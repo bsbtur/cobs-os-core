@@ -93,9 +93,7 @@ function CommandCenter() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{t(item.labelKey)}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      domain: {item.domain}
-                    </p>
+                    <p className="truncate text-xs text-muted-foreground">domain: {item.domain}</p>
                   </div>
                   <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                     {item.activatesIn}

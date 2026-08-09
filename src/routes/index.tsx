@@ -60,8 +60,14 @@ function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      <div className="pointer-events-none absolute inset-0 command-canvas animate-sheen" aria-hidden="true" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.22] hairline-grid" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute inset-0 command-canvas animate-sheen"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.22] hairline-grid"
+        aria-hidden="true"
+      />
 
       <header className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 lg:px-8">
         <BrandLockup />
@@ -74,7 +80,10 @@ function Landing() {
         <section className="grid gap-10 py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:py-20">
           <div className="animate-rise">
             <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-success animate-pulse-dot" aria-hidden="true" />
+              <span
+                className="size-1.5 rounded-full bg-success animate-pulse-dot"
+                aria-hidden="true"
+              />
               {t("landing.eyebrow")}
             </p>
             <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.05] sm:text-5xl lg:text-6xl">

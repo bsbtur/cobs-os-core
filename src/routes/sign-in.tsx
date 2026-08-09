@@ -42,7 +42,10 @@ function SignIn() {
   return (
     <div className="relative grid min-h-screen lg:grid-cols-[1fr_minmax(0,520px)]">
       <section className="relative hidden overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex lg:flex-col lg:justify-between">
-        <div className="pointer-events-none absolute inset-0 command-canvas animate-sheen" aria-hidden="true" />
+        <div
+          className="pointer-events-none absolute inset-0 command-canvas animate-sheen"
+          aria-hidden="true"
+        />
         <div className="relative">
           <BrandLockup />
         </div>

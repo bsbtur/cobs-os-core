@@ -145,8 +145,7 @@ const enUS: Dictionary = {
   "overview.title": "Command center",
   "overview.subtitle": "Structural foundation. No operational data is shown, by principle.",
   "overview.noAnalytics": "No fake analytics",
-  "overview.noAnalyticsBody":
-    "Indicators appear only once real facts are recorded by the system.",
+  "overview.noAnalyticsBody": "Indicators appear only once real facts are recorded by the system.",
   "principles.title": "Architectural constitution",
   "footer.rights": "W00 foundation — no operational data.",
 };

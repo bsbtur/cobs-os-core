@@ -28,7 +28,10 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-[0.35] hairline-grid" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35] hairline-grid"
+        aria-hidden="true"
+      />
       <div className="relative mx-auto flex max-w-md flex-col items-center gap-3">
         {Icon ? (
           <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">

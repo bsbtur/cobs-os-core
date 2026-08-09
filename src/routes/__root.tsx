@@ -41,7 +41,6 @@ function NotFoundComponent() {
   );
 }
 
-
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
@@ -92,8 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "COBS OS — Global Experience Operations" },
       {
         name: "description",
-        content:
-          "COBS OS: a multi-tenant operating system for global experience operations.",
+        content: "COBS OS: a multi-tenant operating system for global experience operations.",
       },
       { name: "author", content: "COBS OS" },
       { property: "og:title", content: "COBS OS — Global Experience Operations" },
@@ -152,5 +150,4 @@ function RootComponent() {
       </ThemeProvider>
     </QueryClientProvider>
   );
-
 }

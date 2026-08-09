@@ -43,10 +43,7 @@ export function AppShell({
             onOpenCommand={() => setOpen(true)}
             onOpenMenu={() => setMenuOpen(true)}
           />
-          <main
-            id="cobs-main"
-            className="min-w-0 flex-1 px-4 pb-24 pt-5 lg:px-8 lg:pb-10 lg:pt-7"
-          >
+          <main id="cobs-main" className="min-w-0 flex-1 px-4 pb-24 pt-5 lg:px-8 lg:pb-10 lg:pt-7">
             {children}
           </main>
         </div>

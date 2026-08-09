@@ -128,7 +128,8 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.62 0.14 232);
 
-  --gradient-command: radial-gradient(
+  --gradient-command:
+    radial-gradient(
       120% 120% at 12% 0%,
       color-mix(in oklab, var(--primary) 22%, transparent) 0%,
       transparent 55%
@@ -138,8 +139,10 @@
       color-mix(in oklab, var(--signal) 16%, transparent) 0%,
       transparent 60%
     );
-  --shadow-soft: 0 1px 2px oklch(0.21 0.03 264 / 0.05), 0 12px 32px -18px oklch(0.21 0.03 264 / 0.35);
-  --shadow-lift: 0 2px 4px oklch(0.21 0.03 264 / 0.06), 0 24px 48px -24px oklch(0.21 0.03 264 / 0.45);
+  --shadow-soft:
+    0 1px 2px oklch(0.21 0.03 264 / 0.05), 0 12px 32px -18px oklch(0.21 0.03 264 / 0.35);
+  --shadow-lift:
+    0 2px 4px oklch(0.21 0.03 264 / 0.06), 0 24px 48px -24px oklch(0.21 0.03 264 / 0.45);
 }
 
 .dark {
@@ -247,7 +250,8 @@
 }
 
 @utility hairline-grid {
-  background-image: linear-gradient(
+  background-image:
+    linear-gradient(
       to right,
       color-mix(in oklab, var(--color-border) 70%, transparent) 1px,
       transparent 1px
