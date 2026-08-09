@@ -34,7 +34,9 @@ const PILLARS = [
   { icon: ShieldCheck, key: "security" },
 ] as const;
 
-const PILLAR_COPY: Record<string, { title: string; body: string }> = {
+type PillarKey = (typeof PILLARS)[number]["key"];
+
+const PILLAR_COPY: Record<PillarKey, { title: string; body: string }> = {
   planned: {
     title: "PLANNED ≠ EXPECTED ≠ ACTUAL",
     body: "Three distinct truths, never collapsed into one status field.",
