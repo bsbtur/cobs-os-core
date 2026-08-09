@@ -72,7 +72,7 @@ export function TopBar({
             className="hidden items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground md:flex focus-ring"
           >
             <Search className="size-4" aria-hidden="true" />
-            <span className="w-44 text-left">{t("topbar.search")}</span>
+            <span className="w-44 truncate whitespace-nowrap text-left">{t("topbar.search")}</span>
             <kbd className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px]">
               ⌘K
             </kbd>
