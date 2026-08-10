@@ -21,6 +21,7 @@ import {
   primaryAction,
   rpcArgs,
   sessionDelayMinutes,
+  sessionResolution,
   type EventProgram,
   type EventRow,
   type EventRuntimeSnapshot,
@@ -196,11 +197,7 @@ function CreateEventForm({
       {sourceKind === "external" ? (
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="ev-producer">{t("w07.producer")}</Label>
-          <Input
-            id="ev-producer"
-            value={producer}
-            onChange={(e) => setProducer(e.target.value)}
-          />
+          <Input id="ev-producer" value={producer} onChange={(e) => setProducer(e.target.value)} />
         </div>
       ) : null}
       <div className="space-y-1.5">
@@ -475,7 +472,12 @@ function SessionForm({
       {adHoc ? (
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="ss-reason">{t("w07.program.adhocReason")}</Label>
-          <Input id="ss-reason" required value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Input
+            id="ss-reason"
+            required
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
         </div>
       ) : null}
       <div className="sm:col-span-2">
@@ -588,7 +590,9 @@ function SessionCard({
           {String(session.sequence).padStart(2, "0")}
         </span>
         <span className="font-medium">{session.title}</span>
-        <span className="text-xs text-muted-foreground">{t(`w07.kind.${session.session_kind}`)}</span>
+        <span className="text-xs text-muted-foreground">
+          {t(`w07.kind.${session.session_kind}`)}
+        </span>
         {session.is_ad_hoc ? (
           <span className="rounded bg-warning-soft px-1.5 py-0.5 text-[11px] text-warning">
             {t("w07.program.adhocBadge")}
@@ -660,7 +664,9 @@ function SessionCard({
 
           {!external && actions.includes("cancel") ? (
             <div className="space-y-1.5">
-              <Label htmlFor={`cancel-${session.session_id}`}>{t("w07.session.cancelReason")}</Label>
+              <Label htmlFor={`cancel-${session.session_id}`}>
+                {t("w07.session.cancelReason")}
+              </Label>
               <Input
                 id={`cancel-${session.session_id}`}
                 value={reason}
@@ -744,7 +750,7 @@ function ProgramPanel({
   const canAdHoc = canOperate && locked && !isTerminalEvent(event.status);
 
   return (
-    <section className="surface-panel space-y-3 p-5">
+    <section id="w07-program" className="surface-panel space-y-3 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-base font-semibold">{t("w07.program")}</h3>
         <div className="flex flex-wrap gap-2">
@@ -914,6 +920,9 @@ function RunPanel({
   if (!canOperate || isTerminalEvent(event.status)) return null;
 
   const canStart = state === "scheduled" && event.status === "ready";
+  /* OBS-W07-001: an internal event may only close once every session is resolved. */
+  const resolution = sessionResolution(snapshot ?? null);
+  const blockedBySessions = !external && resolution.unresolved_total > 0;
   const canComplete = state === "running";
   const canCancel = state === "scheduled" || state === "running";
   const observationIncomplete = external && observerNote.trim().length < 3;
@@ -967,13 +976,51 @@ function RunPanel({
         {canComplete ? (
           <Button
             className="min-h-11"
-            disabled={run.isPending || observationIncomplete}
+            variant={blockedBySessions ? "outline" : "default"}
+            disabled={run.isPending || observationIncomplete || blockedBySessions}
             onClick={() => run.mutate("complete")}
           >
             {external ? t("w07.observe.eventCompleted") : t("w07.run.completeEvent")}
           </Button>
         ) : null}
       </div>
+
+      {canComplete && blockedBySessions ? (
+        <div className="space-y-2 rounded-md border border-warning/40 bg-warning-soft p-3">
+          <p className="text-sm font-medium text-warning">
+            {`${resolution.unresolved_total} ${
+              resolution.unresolved_total === 1
+                ? t("w07.run.unresolvedOne")
+                : t("w07.run.unresolvedMany")
+            }`}
+          </p>
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {resolution.unresolved.map((session) => (
+              <li key={session.session_id} className="flex flex-wrap items-center gap-2">
+                <span>
+                  {session.sequence}. {session.title}
+                </span>
+                <span
+                  className={`rounded px-1.5 py-0.5 ${RUNTIME_STATE_TONE[session.runtime_state]}`}
+                >
+                  {t(`w07.runtime.${session.runtime_state}`)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted-foreground">{t("w07.run.unresolvedHint")}</p>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="min-h-9 px-0 text-warning"
+            onClick={() =>
+              document.getElementById("w07-program")?.scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            {t("w07.run.goToSessions")}
+          </Button>
+        </div>
+      ) : null}
 
       {state === "scheduled" && event.status !== "ready" ? (
         <p className="text-xs text-muted-foreground">{t("w07.run.needsReady")}</p>
@@ -1431,10 +1478,8 @@ function EventsTab() {
     if (!selected) return;
     const channel = supabase
       .channel(`w07-${selected.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "event_runtime_events" },
-        () => refresh(),
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_runtime_events" }, () =>
+        refresh(),
       )
       .on("postgres_changes", { event: "*", schema: "public", table: "event_sessions" }, () =>
         refresh(),
