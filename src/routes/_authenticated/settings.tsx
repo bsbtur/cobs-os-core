@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { History, Settings2 } from "lucide-react";
+import { Bus, History, Settings2 } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
