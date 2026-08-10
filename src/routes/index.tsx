@@ -72,7 +72,7 @@ function Landing() {
       <header className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 lg:px-8">
         <BrandLockup />
         <Button asChild size="sm">
-          <Link to="/auth">{t("landing.primary")}</Link>
+          <Link to="/auth" search={{ redirect: undefined }}>{t("landing.primary")}</Link>
         </Button>
       </header>
 
@@ -94,7 +94,7 @@ function Landing() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="group min-h-11">
-                <Link to="/auth">
+                <Link to="/auth" search={{ redirect: undefined }}>
                   {t("landing.primary")}
                   <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
