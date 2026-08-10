@@ -90,6 +90,15 @@ export const NAV_SECTIONS: NavSection[] = [
         mobile: true,
       },
       {
+        id: "inbox",
+        labelKey: "nav.inbox",
+        to: "/inbox",
+        icon: Inbox,
+        status: "live",
+        domain: "communication",
+        activatesIn: "W08",
+      },
+      {
         id: "team",
         labelKey: "nav.team",
         to: "/team",
@@ -98,6 +107,7 @@ export const NAV_SECTIONS: NavSection[] = [
         domain: "identity",
         activatesIn: "W01",
       },
+
       {
         id: "network",
         labelKey: "nav.network",
