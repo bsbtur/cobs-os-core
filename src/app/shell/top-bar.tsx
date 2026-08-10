@@ -162,7 +162,7 @@ export function TopBar({
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>{t("account.profile")}</DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/sign-in">{t("account.signIn")}</Link>
+                <Link to="/auth">{t("account.signIn")}</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
