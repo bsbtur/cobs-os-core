@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, ShieldCheck, UserRound, Users } from "lucide-react";
+import { Activity, Building2, CalendarRange, ShieldCheck, Users } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -39,7 +39,7 @@ function Posture() {
     queryKey: ["posture", tenant?.id],
     enabled: Boolean(tenant?.id),
     queryFn: async () => {
-      const [people, members, invites] = await Promise.all([
+      const [people, members, experiences, liveOps] = await Promise.all([
         supabase
           .from("people")
           .select("id", { count: "exact", head: true })
@@ -49,32 +49,40 @@ function Posture() {
           .select("id", { count: "exact", head: true })
           .eq("tenant_id", tenant!.id),
         supabase
-          .from("invitations")
+          .from("experiences")
           .select("id", { count: "exact", head: true })
           .eq("tenant_id", tenant!.id)
-          .eq("status", "pending"),
+          .neq("status", "archived"),
+        supabase
+          .from("operations")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant!.id)
+          .in("status", ["planning", "ready", "active"])
+          .is("archived_at", null),
       ]);
       return {
         people: people.count ?? 0,
         members: members.count ?? 0,
-        invites: invites.count ?? 0,
+        experiences: experiences.count ?? 0,
+        liveOps: liveOps.count ?? 0,
       };
     },
   });
 
   const cards = [
     { icon: Building2, label: t("settings.title"), value: tenant?.name ?? "—" },
-    { icon: Users, label: t("people.title"), value: String(counts.data?.people ?? "—") },
-    { icon: UserRound, label: t("team.members"), value: String(counts.data?.members ?? "—") },
     {
-      icon: ShieldCheck,
-      label: t("team.inviteRole"),
-      value: role ? t(`role.${role}`) : "—",
+      icon: CalendarRange,
+      label: t("w02.experiences"),
+      value: String(counts.data?.experiences ?? "—"),
     },
+    { icon: Activity, label: t("w02.activeOps"), value: String(counts.data?.liveOps ?? "—") },
+    { icon: Users, label: t("people.title"), value: String(counts.data?.people ?? "—") },
+    { icon: ShieldCheck, label: t("team.inviteRole"), value: role ? t(`role.${role}`) : "—" },
   ];
 
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label={t("overview.title")}>
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label={t("overview.title")}>
       {cards.map(({ icon: Icon, label, value }) => (
         <article key={label} className="surface-panel flex items-center gap-3 p-4">
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
@@ -110,6 +118,12 @@ function CommandCenter() {
               <h3 className="text-base font-semibold">{t("nav.section.system")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{t("overview.noAnalyticsBody")}</p>
               <div className="mt-4 flex flex-wrap gap-2">
+                <Button asChild variant="outline" className="min-h-11">
+                  <Link to="/experiences">{t("exp.title")}</Link>
+                </Button>
+                <Button asChild variant="outline" className="min-h-11">
+                  <Link to="/operations">{t("op.title")}</Link>
+                </Button>
                 <Button asChild variant="outline" className="min-h-11">
                   <Link to="/people">{t("people.title")}</Link>
                 </Button>
