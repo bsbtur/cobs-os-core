@@ -3,7 +3,9 @@ import {
   BarChart3,
   CalendarRange,
   Globe2,
+  Inbox,
   LayoutGrid,
+
   Settings2,
   Users,
   UsersRound,
