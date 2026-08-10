@@ -15,7 +15,8 @@ export const Route = createFileRoute("/_authenticated/app")({
       { title: "Command center — COBS OS" },
       {
         name: "description",
-        content: "COBS OS command center: identity, tenant and access posture for your organization.",
+        content:
+          "COBS OS command center: identity, tenant and access posture for your organization.",
       },
       { property: "og:title", content: "Command center — COBS OS" },
       {

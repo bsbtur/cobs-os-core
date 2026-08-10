@@ -249,9 +249,7 @@ function PeopleList() {
           <p className="text-sm font-medium">
             {t("people.link")} — {linking.full_name}
           </p>
-          <Select
-            onValueChange={(profileId) => link.mutate({ personId: linking.id, profileId })}
-          >
+          <Select onValueChange={(profileId) => link.mutate({ personId: linking.id, profileId })}>
             <SelectTrigger className="min-h-11">
               <SelectValue placeholder={t("team.members")} />
             </SelectTrigger>

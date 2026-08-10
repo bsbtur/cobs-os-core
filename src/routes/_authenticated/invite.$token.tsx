@@ -16,7 +16,8 @@ export const Route = createFileRoute("/_authenticated/invite/$token")({
       { title: "Accept invitation — COBS OS" },
       {
         name: "description",
-        content: "Accept a single-use COBS OS invitation and join the organization that invited you.",
+        content:
+          "Accept a single-use COBS OS invitation and join the organization that invited you.",
       },
       { property: "og:title", content: "Accept invitation — COBS OS" },
       {
@@ -66,9 +67,7 @@ function AcceptInvite() {
             {failed ? <ShieldX className="size-5" /> : <MailCheck className="size-5" />}
           </span>
           <h2 className="mt-4 text-xl font-semibold">{t("invite.title")}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {failed ?? t("invite.subtitle")}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{failed ?? t("invite.subtitle")}</p>
           {!failed ? (
             <Button className="mt-6 min-h-11 w-full" onClick={() => void accept()} disabled={busy}>
               {busy ? t("common.saving") : t("invite.accept")}

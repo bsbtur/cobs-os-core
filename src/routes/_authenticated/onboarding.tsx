@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
       { title: "Create your organization — COBS OS" },
       {
         name: "description",
-        content: "Create an isolated COBS OS organization with global-ready locale, currency and time zone defaults.",
+        content:
+          "Create an isolated COBS OS organization with global-ready locale, currency and time zone defaults.",
       },
       { property: "og:title", content: "Create your organization — COBS OS" },
       {

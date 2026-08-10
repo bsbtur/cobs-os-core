@@ -79,11 +79,7 @@ export function humanizeError(error: unknown, locale: string): string {
   const raw = error instanceof Error ? error.message : String(error ?? "");
   const pt = locale.startsWith("pt");
   const map: Array<[RegExp, string, string]> = [
-    [
-      /invalid login credentials/i,
-      "E-mail ou senha incorretos.",
-      "Incorrect email or password.",
-    ],
+    [/invalid login credentials/i, "E-mail ou senha incorretos.", "Incorrect email or password."],
     [
       /email not confirmed/i,
       "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.",
