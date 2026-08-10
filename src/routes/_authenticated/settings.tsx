@@ -79,7 +79,14 @@ function Body() {
             </div>
           ))}
         </dl>
+        <Button asChild variant="outline" className="mt-4 min-h-11">
+          <Link to="/settings/fleet">
+            <Bus className="mr-2 size-4" aria-hidden="true" />
+            {t("w05.fleet.open")}
+          </Link>
+        </Button>
       </section>
+
 
       <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">
