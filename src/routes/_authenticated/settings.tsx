@@ -42,7 +42,7 @@ function Body() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audit_events")
-        .select("id, action, entity_type, entity_id, occurred_at")
+        .select("id, action, subject_type, subject_id, occurred_at")
         .eq("tenant_id", tenant!.id)
         .order("occurred_at", { ascending: false })
         .limit(50);
@@ -106,7 +106,7 @@ function Body() {
                     {event.action}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {event.entity_type}
+                    {event.subject_type}
                   </span>
                 </li>
               ))}
