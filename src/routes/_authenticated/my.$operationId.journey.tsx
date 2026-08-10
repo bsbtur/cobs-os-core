@@ -7,7 +7,6 @@ import {
   PortalCard,
   PortalEmpty,
   PortalQueryGate,
-  PortalTag,
   PortalTime,
 } from "@/app/portal/portal-states";
 
@@ -52,15 +51,12 @@ function PortalJourney() {
             {(journey.data ?? []).map((step) => (
               <li key={step.stepId}>
                 <PortalCard>
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                    <h3 className="min-w-0 break-words text-base font-medium text-foreground">
-                      {step.title}
-                    </h3>
-                    {step.adHoc ? <PortalTag>{t("w10.journey.added")}</PortalTag> : null}
-                  </div>
-                  {step.meetingPoint ? (
+                  <h3 className="min-w-0 break-words text-base font-medium text-foreground">
+                    {step.title}
+                  </h3>
+                  {step.locationLabel ? (
                     <p className="mt-1 break-words text-sm text-muted-foreground">
-                      {t("w10.journey.meetingPoint")}: {step.meetingPoint}
+                      {t("w10.journey.location")}: {step.locationLabel}
                     </p>
                   ) : null}
                   <div className="mt-2">
@@ -70,8 +66,10 @@ function PortalJourney() {
                       timeZone={timeZone}
                     />
                   </div>
-                  {step.notes ? (
-                    <p className="mt-2 break-words text-sm text-foreground">{step.notes}</p>
+                  {step.updates.length > 0 ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {t("w10.journey.updates")}: {step.updates.length}
+                    </p>
                   ) : null}
                 </PortalCard>
               </li>

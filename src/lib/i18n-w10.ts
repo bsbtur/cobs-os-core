@@ -41,6 +41,9 @@ export const W10_DICTIONARIES = {
     "w10.home.historicalBody": "Esta viagem já terminou. Você pode consultar o histórico.",
 
     "w10.journey.title": "Cronograma",
+    "w10.journey.location": "Local",
+    "w10.journey.location": "Location",
+    "w10.journey.location": "Lugar",
     "w10.journey.updates": "Atualizações",
     "w10.journey.empty": "Seu cronograma ainda não foi publicado.",
 
