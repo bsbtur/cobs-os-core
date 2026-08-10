@@ -69,9 +69,9 @@ function Chip({ children, className = "" }: { children: React.ReactNode; classNa
 }
 
 function toIsoOrNull(value: string) {
-  if (!value) return null;
+  if (!value) return undefined;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
 /* ------------------------------------------------------------------ */
@@ -89,7 +89,7 @@ function StepDialog({
   operationId: string;
   adHoc: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [title, setTitle] = React.useState("");
   const [kind, setKind] = React.useState<StepKind>("meeting");
@@ -119,9 +119,9 @@ function StepDialog({
         _title: title.trim(),
         _step_kind: kind,
         _idempotency_key: idempotencyKey.current,
-        _description: description.trim() || null,
-        _location_label: location.trim() || null,
-        _traveler_label: travelerLabel.trim() || null,
+        _description: description.trim() || undefined,
+        _location_label: location.trim() || undefined,
+        _traveler_label: travelerLabel.trim() || undefined,
         _traveler_facing: travelerFacing,
         _presence_requirement: requirement,
         _presence_population: population,
@@ -152,7 +152,7 @@ function StepDialog({
       setTravelerLabel("");
       setReason("");
     },
-    onError: (error) => feedback.error(humanizeError(error)),
+    onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
   const disabled = !title.trim() || (adHoc && !reason.trim()) || save.isPending;
@@ -334,7 +334,7 @@ function ForecastDialog({
   onOpenChange: (open: boolean) => void;
   operationId: string;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [start, setStart] = React.useState("");
   const [end, setEnd] = React.useState("");
@@ -350,8 +350,8 @@ function ForecastDialog({
     mutationFn: async () => {
       const { error } = await supabase.rpc("set_step_expected_window", {
         _journey_step_id: step!.id,
-        _expected_start: toIsoOrNull(start),
-        _expected_end: toIsoOrNull(end),
+        _expected_start: toIsoOrNull(start) as unknown as string,
+        _expected_end: toIsoOrNull(end) as unknown as string,
         _reason: reason.trim(),
       });
       if (error) throw error;
@@ -361,7 +361,7 @@ function ForecastDialog({
       void queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
       onOpenChange(false);
     },
-    onError: (error) => feedback.error(humanizeError(error)),
+    onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
   return (
@@ -427,7 +427,7 @@ function PlaybookEditor({
   roleTypes: RoleTypeRow[];
   operationId: string;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [title, setTitle] = React.useState("");
   const [requirement, setRequirement] = React.useState<PlaybookRequirement>("required");
@@ -440,7 +440,7 @@ function PlaybookEditor({
         _title: title.trim(),
         _idempotency_key: newIdempotencyKey(),
         _requirement: requirement,
-        _owner_role_type_id: ownerRole || null,
+        _owner_role_type_id: ownerRole || undefined,
       });
       if (error) throw error;
     },
@@ -449,7 +449,7 @@ function PlaybookEditor({
       setTitle("");
       void queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
     },
-    onError: (error) => feedback.error(humanizeError(error)),
+    onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
   return (
@@ -593,7 +593,7 @@ function JourneyPlanPage() {
       feedback.success(t("w04.journey.reordered"));
       void queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
     },
-    onError: (error) => feedback.error(humanizeError(error)),
+    onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
   if (journey.isLoading) return <PanelSkeleton />;
@@ -617,8 +617,11 @@ function JourneyPlanPage() {
   const move = (index: number, direction: -1 | 1) => {
     const next = [...steps];
     const target = index + direction;
-    if (target < 0 || target >= next.length) return;
-    [next[index], next[target]] = [next[target], next[index]];
+    const a = next[index];
+    const b = next[target];
+    if (!a || !b) return;
+    next[index] = b;
+    next[target] = a;
     reorder.mutate(next.map((step) => step.id));
   };
 
