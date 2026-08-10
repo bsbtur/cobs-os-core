@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_authenticated/experiences/")({
 const STEPS = ["exp.step.identity", "exp.step.context", "exp.step.review"] as const;
 
 function CreateExperienceWizard({ onDone }: { onDone: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
   const idempotencyKey = React.useRef(newIdempotencyKey());
@@ -80,29 +80,31 @@ function CreateExperienceWizard({ onDone }: { onDone: () => void }) {
 
   const create = useMutation({
     mutationFn: async () => {
+      const optional: Record<string, string> = {};
+      if (form.shortDescription.trim()) optional["_short_description"] = form.shortDescription.trim();
+      if (form.description.trim()) optional["_description"] = form.description.trim();
+      if (form.country.trim()) optional["_country_code"] = form.country.trim().toUpperCase();
+      if (form.region.trim()) optional["_region"] = form.region.trim();
+      if (form.city.trim()) optional["_city"] = form.city.trim();
       const { data, error } = await supabase.rpc("create_experience", {
         _tenant_id: tenant!.id,
         _name: form.name.trim(),
         _slug: form.slug.trim() || slugify(form.name),
         _experience_kind: form.kind,
         _idempotency_key: idempotencyKey.current,
-        _short_description: form.shortDescription.trim() || undefined,
-        _description: form.description.trim() || undefined,
-        _country_code: form.country.trim().toUpperCase() || undefined,
-        _region: form.region.trim() || undefined,
-        _city: form.city.trim() || undefined,
         _default_locale: form.locale,
         _default_timezone: form.timezone,
+        ...optional,
       });
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       feedback.success(t("exp.created"));
-      queryClient.invalidateQueries({ queryKey: ["experiences", tenant?.id] });
+      void queryClient.invalidateQueries({ queryKey: ["experiences", tenant?.id] });
       onDone();
     },
-    onError: (error) => feedback.error(humanizeError(error)),
+    onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
   const canContinue = step === 0 ? form.name.trim().length > 1 : true;
