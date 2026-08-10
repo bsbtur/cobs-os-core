@@ -1,0 +1,91 @@
+# COBS OS — W01–W10 ALPHA MILESTONE REVIEW & PILOT READINESS GATE
+
+Milestone: **COBS OS ALPHA CORE v0.1**
+Data: 2026-08-10
+Escopo: revisão transversal W01–W10. Nenhum novo domínio de negócio. W11 NÃO aberto.
+
+---
+
+## 1. Inventário verificado (estado vivo do backend)
+
+| Métrica | Valor |
+| --- | --- |
+| Tabelas públicas | 50 |
+| Tabelas sem RLS | 0 |
+| Políticas RLS | 72 |
+| Funções públicas | 226 (202 SECURITY DEFINER) |
+| Helpers privados (`app_private`) | 98 |
+| Enums de domínio | 48 |
+| Tabelas em Realtime | 12 |
+| SECURITY DEFINER sem `search_path` fixo | 0 |
+| Grants para `anon` em `public` | 0 |
+| Grants de escrita para `authenticated` | 0 (SELECT-only) |
+| Triggers desabilitados | 0 |
+| Tenants / usuários auth | 0 / 0 (base limpa) |
+
+Realtime seletivo (12): journey_steps, journey_events, participant_presence_events, playbook_executions, transport_legs, transport_events, hospitality_rooms, hospitality_events, event_sessions, event_runtime_events, communication_events, financial_facts.
+
+Superfície frontend: 37 rotas (`/operations/*`, `/experiences`, `/people`, `/team`, `/inbox`, `/commerce/*`, `/settings/*`, portal `/my/*`, `/auth`, `/onboarding`, `/invite/$token`).
+
+## 2. Camadas congeladas
+
+```
+PLATFORM      W01 Identity · Authorization · Tenancy
+OPERATIONS    W02 Experience · W03 People · W04 Journey · W05 Mobility
+              W06 Hospitality · W07 Events · W08 Communication
+COMMERCE      W09 Catalog · Pricing · Orders · Capacity · Financial Facts
+PARTICIPANT   W10 Participant Access · Traveler Portal
+```
+
+Invariantes transversais confirmadas: mutação exclusivamente via SECURITY DEFINER; RLS tenant-isolada em todas as tabelas; fatos append-only; modelo temporal PLANNED (congelado) / EXPECTED (previsão) / ACTUAL (fato); autorização apenas por membership W01; acesso de participante operation-scoped e revogável.
+
+## 3. Correção de registro (DEF-W10-003)
+
+Os gates W01–W09 afirmaram "least-privilege ACL" com base apenas em RLS. Verificação do freeze W10 mostrou que os grants default do PostgREST ainda concediam ALL a `anon`/`authenticated` nas tabelas novas. Corrigido em W10 e agora auditado em **todo** o schema público: `anon` = 0 grants, `authenticated` = SELECT-only, 0 grants de escrita. A afirmação anterior fica retificada: o bloqueio era efetivo por RLS, mas a camada ACL não estava no padrão.
+
+## 4. Lacunas reais para o primeiro piloto BSBTUR
+
+Bloqueantes (precisam existir antes de operação real):
+
+- **B1 — QA autenticado cross-workflow.** As dívidas A4/A5 (W06/W07) e a UX transversal owner → operations_agent → participant nunca foram validadas em sessão real de ponta a ponta. É a maior lacuna.
+- **B2 — Bootstrap de tenant real.** Base está vazia; não existe caminho testado de criação do tenant BSBTUR com owner real, sem fixture.
+- **B3 — Procedimento de recuperação operacional.** Não há runbook para: grant revogado por engano, participação cancelada indevidamente, pagamento registrado errado, leg cancelada por engano. Vários fatos são append-only por design — a correção precisa de procedimento documentado, não de DELETE.
+- **B4 — Observabilidade mínima.** Hoje não há visibilidade de erro de RPC, tentativa de autorização negada ou falha de claim. Sem isso, o piloto não gera evidência.
+- **B5 — Backup / restore verificado.** Ponto de restauração e teste de restore antes de dados reais.
+
+Não bloqueantes (podem ficar para pós-piloto):
+
+- Ramo de convite expirado do W10 (untestable sem backdating) — revisão de código PASS.
+- `list_participant_access_grants` retorna vazio em vez de "denied" para não-operador (OBS-W10-002) — privacidade preservada.
+- Incidentes de mobilidade sem taxonomia (W05).
+- i18n: cobertura pt-BR completa; en-US/es-ES precisam de varredura de strings novas.
+
+## 5. Métricas propostas (sem dados sensíveis)
+
+RPC error rate · p95 de latência das projeções · tentativas de autorização negadas · falhas de claim de participante · usuários ativos no portal · mensagens publicadas/lidas · reservas de capacidade · pedidos e saldo em aberto · falhas de comando de runtime. Agregados por tenant e operação, sem PII.
+
+## 6. Recomendação
+
+Caminho **C → B**: uma rodada transversal curta de release engineering, depois operação real.
+
+```
+M0  Alpha Milestone Review              ← este documento
+M1  Cross-Workflow Authenticated UX QA  (B1)
+M2  Real Tenant Bootstrap — BSBTUR      (B2)
+M3  Pilot Operation (experiência pequena)
+M4  Operational Dry Run (T-30 → pós-operação)
+M5  Controlled Pilot
+M6  Post-Pilot Architecture Review → decide W11 com evidência
+```
+
+Stack inalterada: React/TanStack Start, PostgreSQL, RLS, SECURITY DEFINER, Realtime seletivo, append-only, TypeScript, mesmo tenant model. Nenhuma expansão de infraestrutura antes de tráfego real.
+
+## 7. Veredito do Gate
+
+- ALPHA CORE ARCHITECTURE FROZEN: **YES**
+- SECURITY / ACL BASELINE: **PASS** (0 grants anon, authenticated SELECT-only, 0 tabelas sem RLS)
+- DATABASE CLEAN: **YES**
+- READY FOR REAL PILOT DATA: **NO** — bloqueado por B1–B5
+- READY FOR W11: **NO** — por decisão, não por impedimento técnico
+
+Próximo comando recomendado: **COBS OS — ALPHA PILOT READINESS (M1: CROSS-WORKFLOW AUTHENTICATED UX QA)**.
