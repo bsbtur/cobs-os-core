@@ -555,7 +555,7 @@ function StopsPanel({
                   size="sm"
                   variant="ghost"
                   className="min-h-9"
-                  disabled={reach.isPending}
+                  disabled={reach.isPending || terminal}
                   onClick={() => reach.mutate(stop.transport_leg_stop_id)}
                 >
                   {t("w05.action.stopReached")}
@@ -569,11 +569,17 @@ function StopsPanel({
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <div className="min-w-48 flex-1 space-y-1.5">
           <Label htmlFor="stop-label">{t("w05.stops.label")}</Label>
-          <Input id="stop-label" value={label} onChange={(e) => setLabel(e.target.value)} />
+          <Input
+            id="stop-label"
+            value={label}
+            disabled={terminal}
+            onChange={(e) => setLabel(e.target.value)}
+          />
         </div>
         <label className="flex min-h-11 items-center gap-2 text-sm">
           <Checkbox
             checked={isPickup}
+            disabled={terminal}
             onCheckedChange={(value) => setIsPickup(value === true)}
             aria-label={t("w05.stops.pickup")}
           />
@@ -582,7 +588,7 @@ function StopsPanel({
         <Button
           className="min-h-11"
           variant="outline"
-          disabled={add.isPending || label.trim() === ""}
+          disabled={add.isPending || terminal || label.trim() === ""}
           onClick={() => add.mutate()}
         >
           {t("w05.stops.add")}
@@ -758,13 +764,28 @@ function SeatsPanel({
 /* Forecast, return time and incidents                                 */
 /* ------------------------------------------------------------------ */
 
-function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () => void }) {
+function LegControls({
+  leg,
+  state,
+  onRefresh,
+}: {
+  leg: TransportLegRow;
+  state: LegDispatchState | null;
+  onRefresh: () => void;
+}) {
   const { t, locale } = useI18n();
   const [forecastDeparture, setForecastDeparture] = React.useState("");
   const [forecastArrival, setForecastArrival] = React.useState("");
   const [forecastReason, setForecastReason] = React.useState("");
   const [returnTime, setReturnTime] = React.useState("");
+  const [returnReason, setReturnReason] = React.useState("");
   const [incident, setIncident] = React.useState("");
+
+  /* TERMINAL LEG: arrived or cancelled — every control below is locked. */
+  const terminal = isTerminalLeg(state);
+  /* DEF-002: changing an agreed rendezvous requires a reason (server enforces it too). */
+  const returnReasonRequired = Boolean(state?.return_time);
+
 
   const iso = (value: string) => (value ? new Date(value).toISOString() : undefined);
   const done = () => {
