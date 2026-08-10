@@ -1308,6 +1308,8 @@ export type Database = {
           occurred_at: string
           operation_id: string
           recorded_at: string
+          subject_driver_id: string | null
+          subject_vehicle_id: string | null
           tenant_id: string
           transport_leg_id: string | null
           transport_leg_stop_id: string | null
@@ -1323,6 +1325,8 @@ export type Database = {
           occurred_at: string
           operation_id: string
           recorded_at?: string
+          subject_driver_id?: string | null
+          subject_vehicle_id?: string | null
           tenant_id: string
           transport_leg_id?: string | null
           transport_leg_stop_id?: string | null
@@ -1338,6 +1342,8 @@ export type Database = {
           occurred_at?: string
           operation_id?: string
           recorded_at?: string
+          subject_driver_id?: string | null
+          subject_vehicle_id?: string | null
           tenant_id?: string
           transport_leg_id?: string | null
           transport_leg_stop_id?: string | null
@@ -1369,6 +1375,20 @@ export type Database = {
             columns: ["transport_leg_stop_id", "tenant_id"]
             isOneToOne: false
             referencedRelation: "transport_leg_stops"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_events_subject_driver_fk"
+            columns: ["subject_driver_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_events_subject_vehicle_fk"
+            columns: ["subject_vehicle_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id", "tenant_id"]
           },
           {
