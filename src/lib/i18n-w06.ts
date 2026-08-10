@@ -519,6 +519,8 @@ export const W06_ES: Record<string, string> = {
   "w06.room.add": "Agregar habitación",
   "w06.room.label": "Identificación",
   "w06.room.capacity": "Capacidad",
+  "w06.room.floor": "Piso / ala",
+  "w06.room.notes": "Notas",
   "w06.room.available": "Disponible",
   "w06.room.blocked": "Bloqueada",
   "w06.room.full": "Sin lugar",
