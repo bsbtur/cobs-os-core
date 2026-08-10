@@ -24,6 +24,7 @@ import { Route as AuthenticatedCommerceOrderIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_authenticated/experiences.index'
 import { Route as AuthenticatedExperiencesExperienceIdRouteImport } from './routes/_authenticated/experiences.$experienceId'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
+import { Route as AuthenticatedMyIndexRouteImport } from './routes/_authenticated/my.index'
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_authenticated/settings_.catalog'
@@ -118,6 +119,11 @@ const AuthenticatedInviteTokenRoute =
     path: '/invite/$token',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMyIndexRoute = AuthenticatedMyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedMyRoute,
+} as any)
 const AuthenticatedOperationsIndexRoute =
   AuthenticatedOperationsIndexRouteImport.update({
     id: '/operations/',
@@ -208,7 +214,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
-  '/my': typeof AuthenticatedMyRoute
+  '/my': typeof AuthenticatedMyRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
+  '/my/': typeof AuthenticatedMyIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
@@ -238,7 +245,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
-  '/my': typeof AuthenticatedMyRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -252,6 +258,7 @@ export interface FileRoutesByTo {
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/commerce': typeof AuthenticatedCommerceIndexRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
+  '/my': typeof AuthenticatedMyIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
@@ -269,7 +276,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
-  '/_authenticated/my': typeof AuthenticatedMyRoute
+  '/_authenticated/my': typeof AuthenticatedMyRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -284,6 +291,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
   '/_authenticated/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
+  '/_authenticated/my/': typeof AuthenticatedMyIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
   '/_authenticated/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
   '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
@@ -316,6 +324,7 @@ export interface FileRouteTypes {
     | '/settings/venues'
     | '/commerce/'
     | '/experiences/'
+    | '/my/'
     | '/operations/'
     | '/operations/$operationId/communication'
     | '/operations/$operationId/events'
@@ -331,7 +340,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/inbox'
-    | '/my'
     | '/onboarding'
     | '/people'
     | '/settings'
@@ -345,6 +353,7 @@ export interface FileRouteTypes {
     | '/settings/venues'
     | '/commerce'
     | '/experiences'
+    | '/my'
     | '/operations'
     | '/operations/$operationId/communication'
     | '/operations/$operationId/events'
@@ -376,6 +385,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/venues'
     | '/_authenticated/commerce/'
     | '/_authenticated/experiences/'
+    | '/_authenticated/my/'
     | '/_authenticated/operations/'
     | '/_authenticated/operations/$operationId/communication'
     | '/_authenticated/operations/$operationId/events'
@@ -500,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInviteTokenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my/': {
+      id: '/_authenticated/my/'
+      path: '/'
+      fullPath: '/my/'
+      preLoaderRoute: typeof AuthenticatedMyIndexRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
     '/_authenticated/operations/': {
       id: '/_authenticated/operations/'
       path: '/operations'
@@ -601,6 +618,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedMyRouteChildren {
+  AuthenticatedMyIndexRoute: typeof AuthenticatedMyIndexRoute
+}
+
+const AuthenticatedMyRouteChildren: AuthenticatedMyRouteChildren = {
+  AuthenticatedMyIndexRoute: AuthenticatedMyIndexRoute,
+}
+
+const AuthenticatedMyRouteWithChildren = AuthenticatedMyRoute._addFileChildren(
+  AuthenticatedMyRouteChildren,
+)
+
 interface AuthenticatedOperationsOperationIdRouteChildren {
   AuthenticatedOperationsOperationIdCommunicationRoute: typeof AuthenticatedOperationsOperationIdCommunicationRoute
   AuthenticatedOperationsOperationIdEventsRoute: typeof AuthenticatedOperationsOperationIdEventsRoute
@@ -640,7 +669,7 @@ const AuthenticatedOperationsOperationIdRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
-  AuthenticatedMyRoute: typeof AuthenticatedMyRoute
+  AuthenticatedMyRoute: typeof AuthenticatedMyRouteWithChildren
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPeopleRoute: typeof AuthenticatedPeopleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -661,7 +690,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
-  AuthenticatedMyRoute: AuthenticatedMyRoute,
+  AuthenticatedMyRoute: AuthenticatedMyRouteWithChildren,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPeopleRoute: AuthenticatedPeopleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
