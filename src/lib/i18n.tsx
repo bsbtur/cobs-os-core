@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { W01_DICTIONARIES } from "./i18n-w01";
+
 /**
  * COBS OS — i18n foundation (W00)
  * Global-first: locale, timezone and currency are runtime context, never hardcoded.
@@ -171,9 +173,9 @@ const esES: Dictionary = {
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
-  "pt-BR": ptBR,
-  "en-US": enUS,
-  "es-ES": esES,
+  "pt-BR": { ...ptBR, ...W01_DICTIONARIES["pt-BR"] },
+  "en-US": { ...enUS, ...W01_DICTIONARIES["en-US"] },
+  "es-ES": { ...esES, ...W01_DICTIONARIES["es-ES"] },
 };
 
 export type I18nValue = {
