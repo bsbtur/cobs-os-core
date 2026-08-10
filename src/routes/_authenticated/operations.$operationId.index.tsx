@@ -3,8 +3,6 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, ArchiveRestore, ArrowLeft, Box } from "lucide-react";
 
-import { AppShell } from "@/app/shell/app-shell";
-import { RequireTenant } from "@/app/shell/require-tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -26,7 +24,7 @@ import { PanelSkeleton } from "@/components/feedback/loading";
 import { StatusPill } from "@/components/feedback/status-pill";
 import { feedback } from "@/components/feedback/feedback";
 
-export const Route = createFileRoute("/_authenticated/operations/$operationId")({
+export const Route = createFileRoute("/_authenticated/operations/$operationId/")({
   head: () => ({
     meta: [
       { title: "Operation detail — COBS OS execution" },

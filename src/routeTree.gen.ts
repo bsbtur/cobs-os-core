@@ -22,6 +22,7 @@ import { Route as AuthenticatedExperiencesExperienceIdRouteImport } from './rout
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
+import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -92,6 +93,12 @@ const AuthenticatedOperationsOperationIdRoute =
     path: '/operations/$operationId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOperationsOperationIdIndexRoute =
+  AuthenticatedOperationsOperationIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,9 +110,10 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
-  '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRoute
+  '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -117,9 +125,9 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
-  '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,9 +141,10 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
-  '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRoute
+  '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId'
     | '/experiences/'
     | '/operations/'
+    | '/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -163,9 +173,9 @@ export interface FileRouteTypes {
     | '/team'
     | '/experiences/$experienceId'
     | '/invite/$token'
-    | '/operations/$operationId'
     | '/experiences'
     | '/operations'
+    | '/operations/$operationId'
   id:
     | '__root__'
     | '/'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
+    | '/_authenticated/operations/$operationId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -282,8 +293,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/operations/$operationId/': {
+      id: '/_authenticated/operations/$operationId/'
+      path: '/'
+      fullPath: '/operations/$operationId/'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
   }
 }
+
+interface AuthenticatedOperationsOperationIdRouteChildren {
+  AuthenticatedOperationsOperationIdIndexRoute: typeof AuthenticatedOperationsOperationIdIndexRoute
+}
+
+const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOperationIdRouteChildren =
+  {
+    AuthenticatedOperationsOperationIdIndexRoute:
+      AuthenticatedOperationsOperationIdIndexRoute,
+  }
+
+const AuthenticatedOperationsOperationIdRouteWithChildren =
+  AuthenticatedOperationsOperationIdRoute._addFileChildren(
+    AuthenticatedOperationsOperationIdRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
@@ -293,7 +326,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedExperiencesExperienceIdRoute: typeof AuthenticatedExperiencesExperienceIdRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
-  AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRoute
+  AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
   AuthenticatedOperationsIndexRoute: typeof AuthenticatedOperationsIndexRoute
 }
@@ -308,7 +341,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedExperiencesExperienceIdRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
   AuthenticatedOperationsOperationIdRoute:
-    AuthenticatedOperationsOperationIdRoute,
+    AuthenticatedOperationsOperationIdRouteWithChildren,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
   AuthenticatedOperationsIndexRoute: AuthenticatedOperationsIndexRoute,
 }
