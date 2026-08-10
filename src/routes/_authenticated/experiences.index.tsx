@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarRange, Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -81,7 +81,8 @@ function CreateExperienceWizard({ onDone }: { onDone: () => void }) {
   const create = useMutation({
     mutationFn: async () => {
       const optional: Record<string, string> = {};
-      if (form.shortDescription.trim()) optional["_short_description"] = form.shortDescription.trim();
+      if (form.shortDescription.trim())
+        optional["_short_description"] = form.shortDescription.trim();
       if (form.description.trim()) optional["_description"] = form.description.trim();
       if (form.country.trim()) optional["_country_code"] = form.country.trim().toUpperCase();
       if (form.region.trim()) optional["_region"] = form.region.trim();
@@ -234,7 +235,8 @@ function CreateExperienceWizard({ onDone }: { onDone: () => void }) {
             [t("exp.shortDescription"), form.shortDescription || t("common.none")],
             [
               t("exp.context"),
-              [form.city, form.region, form.country].filter(Boolean).join(" · ") || t("common.none"),
+              [form.city, form.region, form.country].filter(Boolean).join(" · ") ||
+                t("common.none"),
             ],
             [t("exp.timezone"), `${form.timezone} · ${form.locale}`],
           ].map(([label, value]) => (
@@ -259,11 +261,7 @@ function CreateExperienceWizard({ onDone }: { onDone: () => void }) {
             </Button>
           ) : null}
           {step < STEPS.length - 1 ? (
-            <Button
-              className="min-h-11"
-              disabled={!canContinue}
-              onClick={() => setStep(step + 1)}
-            >
+            <Button className="min-h-11" disabled={!canContinue} onClick={() => setStep(step + 1)}>
               {t("common.next")}
             </Button>
           ) : (
@@ -387,5 +385,3 @@ function ExperiencesPage() {
     </AppShell>
   );
 }
-
-export const experiencesIcon = CalendarRange;

@@ -41,13 +41,7 @@ export const Route = createFileRoute("/_authenticated/experiences/$experienceId"
   component: ExperienceDetailPage,
 });
 
-function OfferingForm({
-  experienceId,
-  onDone,
-}: {
-  experienceId: string;
-  onDone: () => void;
-}) {
+function OfferingForm({ experienceId, onDone }: { experienceId: string; onDone: () => void }) {
   const { t, locale } = useI18n();
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
@@ -66,7 +60,8 @@ function OfferingForm({
       const optional: Record<string, string | number> = {};
       if (form.capacity.trim()) optional["_capacity"] = Number(form.capacity);
       if (form.currency.trim()) optional["_currency_code"] = form.currency.trim().toUpperCase();
-      if (form.availableFrom) optional["_available_from"] = new Date(form.availableFrom).toISOString();
+      if (form.availableFrom)
+        optional["_available_from"] = new Date(form.availableFrom).toISOString();
       if (form.availableUntil)
         optional["_available_until"] = new Date(form.availableUntil).toISOString();
       const { error } = await supabase.rpc("create_offering", {
@@ -281,7 +276,10 @@ function ExperienceDetail() {
 
   const setStatus = useMutation({
     mutationFn: async (status: "draft" | "active" | "archived") => {
-      const { error } = await supabase.from("experiences").update({ status }).eq("id", experienceId);
+      const { error } = await supabase
+        .from("experiences")
+        .update({ status })
+        .eq("id", experienceId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -353,7 +351,11 @@ function ExperienceDetail() {
             <p className="text-sm text-muted-foreground">{t("off.subtitle")}</p>
           </div>
           {canManage && !creatingOffering ? (
-            <Button variant="outline" className="min-h-11" onClick={() => setCreatingOffering(true)}>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              onClick={() => setCreatingOffering(true)}
+            >
               <Plus className="mr-2 size-4" aria-hidden="true" />
               {t("off.create")}
             </Button>

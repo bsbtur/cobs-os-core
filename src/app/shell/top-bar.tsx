@@ -162,7 +162,9 @@ export function TopBar({
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>{t("account.profile")}</DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/auth" search={{ redirect: undefined }}>{t("account.signIn")}</Link>
+                <Link to="/auth" search={{ redirect: undefined }}>
+                  {t("account.signIn")}
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

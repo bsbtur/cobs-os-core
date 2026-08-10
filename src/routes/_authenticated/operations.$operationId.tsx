@@ -143,9 +143,7 @@ function LifecyclePanel({ op }: { op: OperationRow }) {
             variant="outline"
             className="min-h-11 text-destructive"
             disabled={setStatus.isPending || cancelReason.trim().length < 3}
-            onClick={() =>
-              setStatus.mutate({ status: "cancelled", reason: cancelReason.trim() })
-            }
+            onClick={() => setStatus.mutate({ status: "cancelled", reason: cancelReason.trim() })}
           >
             {t("op.cancel")}
           </Button>
@@ -429,15 +427,13 @@ function OperationDetail() {
               )
             }
           />
-          <Field
-            label={t("off.title")}
-            value={op.source_offering_name ?? t("common.none")}
-          />
+          <Field label={t("off.title")} value={op.source_offering_name ?? t("common.none")} />
           <Field
             label={t("op.location")}
             value={
-              [op.primary_city, op.primary_region, op.primary_country].filter(Boolean).join(" · ") ||
-              t("common.none")
+              [op.primary_city, op.primary_region, op.primary_country]
+                .filter(Boolean)
+                .join(" · ") || t("common.none")
             }
           />
           <Field

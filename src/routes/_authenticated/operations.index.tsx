@@ -328,10 +328,7 @@ function CreateOperationWizard({ onDone }: { onDone: () => void }) {
                 ? (experiences.data?.find((e) => e.id === form.experienceId)?.name ?? "")
                 : t("op.lineageNone"),
             ],
-            [
-              t("op.location"),
-              [form.city, form.region, form.country].filter(Boolean).join(" · "),
-            ],
+            [t("op.location"), [form.city, form.region, form.country].filter(Boolean).join(" · ")],
             [t("op.timezone"), form.timezone],
             [t("op.plannedStart"), form.plannedStart.replace("T", " ")],
             [t("op.plannedEnd"), form.plannedEnd.replace("T", " ")],
@@ -361,7 +358,11 @@ function CreateOperationWizard({ onDone }: { onDone: () => void }) {
               {t("common.next")}
             </Button>
           ) : (
-            <Button className="min-h-11" disabled={create.isPending} onClick={() => create.mutate()}>
+            <Button
+              className="min-h-11"
+              disabled={create.isPending}
+              onClick={() => create.mutate()}
+            >
               {create.isPending ? t("common.saving") : t("op.createDraft")}
             </Button>
           )}
