@@ -1054,6 +1054,10 @@ function MobilityPage() {
   const timeZone = operation.timezone;
   const planning = operation.status === "draft" || operation.status === "planning";
   const events = data.data?.events ?? [];
+  /* DEF-UI-1: the timeline is scoped to the selected leg only. */
+  const legEvents = selected
+    ? events.filter((event) => event.transport_leg_id === selected.id)
+    : [];
   const state = detail.data?.state ?? null;
 
   return (
