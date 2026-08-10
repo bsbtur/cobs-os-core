@@ -25,6 +25,7 @@ import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedExperiencesExperienceIdRouteImport } from './routes/_authenticated/experiences.$experienceId'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedMyIndexRouteImport } from './routes/_authenticated/my.index'
+import { Route as AuthenticatedMyOperationIdRouteImport } from './routes/_authenticated/my.$operationId'
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_authenticated/settings_.catalog'
@@ -124,6 +125,12 @@ const AuthenticatedMyIndexRoute = AuthenticatedMyIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedMyRoute,
 } as any)
+const AuthenticatedMyOperationIdRoute =
+  AuthenticatedMyOperationIdRouteImport.update({
+    id: '/$operationId',
+    path: '/$operationId',
+    getParentRoute: () => AuthenticatedMyRoute,
+  } as any)
 const AuthenticatedOperationsIndexRoute =
   AuthenticatedOperationsIndexRouteImport.update({
     id: '/operations/',
@@ -222,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/my/$operationId': typeof AuthenticatedMyOperationIdRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
@@ -252,6 +260,7 @@ export interface FileRoutesByTo {
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/my/$operationId': typeof AuthenticatedMyOperationIdRoute
   '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
@@ -284,6 +293,7 @@ export interface FileRoutesById {
   '/_authenticated/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/_authenticated/my/$operationId': typeof AuthenticatedMyOperationIdRoute
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/settings_/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
+    | '/my/$operationId'
     | '/operations/$operationId'
     | '/settings/catalog'
     | '/settings/fleet'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
+    | '/my/$operationId'
     | '/settings/catalog'
     | '/settings/fleet'
     | '/settings/properties'
@@ -378,6 +390,7 @@ export interface FileRouteTypes {
     | '/_authenticated/commerce/$orderId'
     | '/_authenticated/experiences/$experienceId'
     | '/_authenticated/invite/$token'
+    | '/_authenticated/my/$operationId'
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/settings_/catalog'
     | '/_authenticated/settings_/fleet'
@@ -517,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyIndexRouteImport
       parentRoute: typeof AuthenticatedMyRoute
     }
+    '/_authenticated/my/$operationId': {
+      id: '/_authenticated/my/$operationId'
+      path: '/$operationId'
+      fullPath: '/my/$operationId'
+      preLoaderRoute: typeof AuthenticatedMyOperationIdRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
     '/_authenticated/operations/': {
       id: '/_authenticated/operations/'
       path: '/operations'
@@ -619,10 +639,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedMyRouteChildren {
+  AuthenticatedMyOperationIdRoute: typeof AuthenticatedMyOperationIdRoute
   AuthenticatedMyIndexRoute: typeof AuthenticatedMyIndexRoute
 }
 
 const AuthenticatedMyRouteChildren: AuthenticatedMyRouteChildren = {
+  AuthenticatedMyOperationIdRoute: AuthenticatedMyOperationIdRoute,
   AuthenticatedMyIndexRoute: AuthenticatedMyIndexRoute,
 }
 
