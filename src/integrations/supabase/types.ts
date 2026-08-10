@@ -2468,6 +2468,16 @@ export type Database = {
         Args: { _reason: string; _transport_leg_id: string }
         Returns: Json
       }
+      change_room: {
+        Args: {
+          _allow_overcapacity?: boolean
+          _idempotency_key: string
+          _reason: string
+          _room_id: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
       clear_leg_assignment: {
         Args: { _reason: string; _transport_leg_id: string }
         Returns: Json
@@ -2744,6 +2754,17 @@ export type Database = {
         Args: { _journey_step_id: string; _transport_leg_id: string }
         Returns: Json
       }
+      note_hospitality_issue: {
+        Args: {
+          _idempotency_key: string
+          _note: string
+          _occurred_at?: string
+          _room_id?: string
+          _stay_id: string
+          _stay_participation_id?: string
+        }
+        Returns: Json
+      }
       note_incident: {
         Args: {
           _journey_step_id?: string
@@ -2783,6 +2804,33 @@ export type Database = {
           _note?: string
           _occurred_at?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      record_guest_checked_in: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
+      record_guest_checked_out: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
+      record_guest_no_show: {
+        Args: {
+          _idempotency_key: string
+          _occurred_at?: string
+          _reason: string
+          _stay_participation_id: string
         }
         Returns: Json
       }
@@ -3136,6 +3184,13 @@ export type Database = {
         Returns: Json
       }
       w05_operation_mobility: { Args: { _operation_id: string }; Returns: Json }
+      w06_operation_hospitality: {
+        Args: { _operation_id: string }
+        Returns: Json
+      }
+      w06_stay_guests: { Args: { _stay_id: string }; Returns: Json }
+      w06_stay_overview: { Args: { _stay_id: string }; Returns: Json }
+      w06_stay_rooming: { Args: { _stay_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
