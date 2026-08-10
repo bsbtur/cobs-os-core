@@ -205,7 +205,8 @@ export function selectorLabel(
     case "all_participations":
       return t("w08.audience.all");
     case "participation_kind":
-      return `${t("w08.audience.kind")}: ${t(`w03.kind.${selector.participation_kind}`)}`;
+      return `${t("w08.audience.kind")}: ${t(`kindLabel.${selector.participation_kind}`)}`;
+
     case "operation_role_type":
       return `${t("w08.audience.role")}: ${names[selector.role_type_id ?? ""] ?? "—"}`;
     case "explicit_person":
