@@ -61,10 +61,14 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 function LifecyclePanel({ op }: { op: OperationRow }) {
   const { t, locale } = useI18n();
-  const { canManage } = useTenant();
+  const { canManage, role } = useTenant();
+  const canOperate = canManage || role === "operations_agent";
   const queryClient = useQueryClient();
   const [cancelReason, setCancelReason] = React.useState("");
-  const next = OPERATION_TRANSITIONS[op.status].filter((s) => s !== "cancelled");
+  const next = OPERATION_TRANSITIONS[op.status]
+    .filter((s) => s !== "cancelled")
+    // Only owners and admins may complete an operation (enforced in the database too).
+    .filter((s) => s !== "completed" || canManage);
   const canCancel = OPERATION_TRANSITIONS[op.status].includes("cancelled");
 
   const invalidate = () => {
@@ -104,7 +108,7 @@ function LifecyclePanel({ op }: { op: OperationRow }) {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  if (!canManage) return null;
+  if (!canOperate) return null;
 
   return (
     <section className="surface-panel space-y-4 p-5">
@@ -150,28 +154,33 @@ function LifecyclePanel({ op }: { op: OperationRow }) {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
-        <Button
-          variant="ghost"
-          className="min-h-11"
-          disabled={setArchived.isPending}
-          onClick={() => setArchived.mutate(!op.archived_at)}
-        >
-          <ArchiveRestore className="mr-2 size-4" aria-hidden="true" />
-          {op.archived_at ? t("op.unarchive") : t("op.archive")}
-        </Button>
-        <p className="text-xs text-muted-foreground">{t("op.archivedNote")}</p>
-      </div>
+      {canManage ? (
+        <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+          <Button
+            variant="ghost"
+            className="min-h-11"
+            disabled={setArchived.isPending}
+            onClick={() => setArchived.mutate(!op.archived_at)}
+          >
+            <ArchiveRestore className="mr-2 size-4" aria-hidden="true" />
+            {op.archived_at ? t("op.unarchive") : t("op.archive")}
+          </Button>
+          <p className="text-xs text-muted-foreground">{t("op.archivedNote")}</p>
+        </div>
+      ) : null}
     </section>
   );
 }
 
 function WindowsPanel({ op }: { op: OperationRow }) {
   const { t, locale, timeZone } = useI18n();
-  const { canManage } = useTenant();
+  const { canManage, role } = useTenant();
+  const canOperate = canManage || role === "operations_agent";
+  // A completed or cancelled operation no longer has a forecast.
+  const isTerminal = op.status === "completed" || op.status === "cancelled";
   const queryClient = useQueryClient();
   const tz = op.timezone || timeZone;
-  const editablePlanned = canManage && isPlannedWindowEditable(op.status);
+  const editablePlanned = canOperate && isPlannedWindowEditable(op.status);
 
   const [planned, setPlanned] = React.useState({
     start: toLocalInput(op.planned_start),
@@ -309,7 +318,7 @@ function WindowsPanel({ op }: { op: OperationRow }) {
           </p>
         </div>
 
-        {canManage ? (
+        {canOperate && !isTerminal ? (
           <form
             className="space-y-3"
             onSubmit={(e) => {
