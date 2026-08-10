@@ -42,8 +42,6 @@ export const W10_DICTIONARIES = {
 
     "w10.journey.title": "Cronograma",
     "w10.journey.location": "Local",
-    "w10.journey.location": "Location",
-    "w10.journey.location": "Lugar",
     "w10.journey.updates": "Atualizações",
     "w10.journey.empty": "Seu cronograma ainda não foi publicado.",
 
@@ -135,6 +133,7 @@ export const W10_DICTIONARIES = {
     "w10.home.historicalBody": "This trip has ended. You can still review it.",
 
     "w10.journey.title": "Schedule",
+    "w10.journey.location": "Location",
     "w10.journey.updates": "Updates",
     "w10.journey.empty": "Your schedule has not been published yet.",
 
@@ -227,6 +226,7 @@ export const W10_DICTIONARIES = {
     "w10.home.historicalBody": "Este viaje ya terminó. Puedes consultar el historial.",
 
     "w10.journey.title": "Cronograma",
+    "w10.journey.location": "Lugar",
     "w10.journey.updates": "Actualizaciones",
     "w10.journey.empty": "Tu cronograma aún no se ha publicado.",
 
