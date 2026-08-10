@@ -255,6 +255,180 @@ export type Database = {
           },
         ]
       }
+      journey_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          event_type: Database["public"]["Enums"]["journey_event_type"]
+          id: string
+          journey_step_id: string | null
+          note: string | null
+          occurred_at: string
+          operation_id: string
+          recorded_at: string
+          tenant_id: string
+          traveler_visible: boolean
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_type: Database["public"]["Enums"]["journey_event_type"]
+          id?: string
+          journey_step_id?: string | null
+          note?: string | null
+          occurred_at: string
+          operation_id: string
+          recorded_at?: string
+          tenant_id: string
+          traveler_visible?: boolean
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["journey_event_type"]
+          id?: string
+          journey_step_id?: string | null
+          note?: string | null
+          occurred_at?: string
+          operation_id?: string
+          recorded_at?: string
+          tenant_id?: string
+          traveler_visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_events_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "journey_events_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "journey_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_steps: {
+        Row: {
+          ad_hoc_reason: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          expected_end: string | null
+          expected_start: string | null
+          id: string
+          location_label: string | null
+          metadata: Json
+          operation_id: string
+          plan_origin: Database["public"]["Enums"]["step_plan_origin"]
+          planned_end: string | null
+          planned_start: string | null
+          presence_population: Database["public"]["Enums"]["step_presence_population"]
+          presence_requirement: Database["public"]["Enums"]["step_presence_requirement"]
+          sequence: number
+          step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          tenant_id: string
+          title: string
+          traveler_facing: boolean
+          traveler_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          ad_hoc_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expected_end?: string | null
+          expected_start?: string | null
+          id?: string
+          location_label?: string | null
+          metadata?: Json
+          operation_id: string
+          plan_origin?: Database["public"]["Enums"]["step_plan_origin"]
+          planned_end?: string | null
+          planned_start?: string | null
+          presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          sequence: number
+          step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          tenant_id: string
+          title: string
+          traveler_facing?: boolean
+          traveler_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ad_hoc_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expected_end?: string | null
+          expected_start?: string | null
+          id?: string
+          location_label?: string | null
+          metadata?: Json
+          operation_id?: string
+          plan_origin?: Database["public"]["Enums"]["step_plan_origin"]
+          planned_end?: string | null
+          planned_start?: string | null
+          presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          sequence?: number
+          step_kind?: Database["public"]["Enums"]["journey_step_kind"]
+          tenant_id?: string
+          title?: string
+          traveler_facing?: boolean
+          traveler_label?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_steps_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_steps_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "journey_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -684,6 +858,90 @@ export type Database = {
           },
         ]
       }
+      participant_presence_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          id: string
+          journey_step_id: string | null
+          note: string | null
+          occurred_at: string
+          operation_id: string
+          participation_id: string
+          presence_fact: Database["public"]["Enums"]["presence_fact"]
+          recorded_at: string
+          tenant_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          journey_step_id?: string | null
+          note?: string | null
+          occurred_at: string
+          operation_id: string
+          participation_id: string
+          presence_fact: Database["public"]["Enums"]["presence_fact"]
+          recorded_at?: string
+          tenant_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          journey_step_id?: string | null
+          note?: string | null
+          occurred_at?: string
+          operation_id?: string
+          participation_id?: string
+          presence_fact?: Database["public"]["Enums"]["presence_fact"]
+          recorded_at?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_presence_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_presence_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "presence_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "presence_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "presence_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
       people: {
         Row: {
           country_code: string | null
@@ -734,6 +992,170 @@ export type Database = {
           },
           {
             foreignKeyName: "people_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbook_executions: {
+        Row: {
+          actor_profile_id: string | null
+          correlation_id: string | null
+          created_at: string
+          execution_action: Database["public"]["Enums"]["playbook_execution_action"]
+          id: string
+          journey_step_id: string | null
+          note: string | null
+          occurred_at: string
+          operation_id: string
+          playbook_item_id: string
+          recorded_at: string
+          tenant_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          execution_action: Database["public"]["Enums"]["playbook_execution_action"]
+          id?: string
+          journey_step_id?: string | null
+          note?: string | null
+          occurred_at: string
+          operation_id: string
+          playbook_item_id: string
+          recorded_at?: string
+          tenant_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          execution_action?: Database["public"]["Enums"]["playbook_execution_action"]
+          id?: string
+          journey_step_id?: string | null
+          note?: string | null
+          occurred_at?: string
+          operation_id?: string
+          playbook_item_id?: string
+          recorded_at?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_exec_item_fk"
+            columns: ["playbook_item_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "playbook_items"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "playbook_exec_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "playbook_executions_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playbook_executions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbook_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          item_kind: Database["public"]["Enums"]["playbook_item_kind"]
+          journey_step_id: string | null
+          metadata: Json
+          operation_id: string
+          owner_role_type_id: string | null
+          requirement: Database["public"]["Enums"]["playbook_requirement"]
+          sequence: number
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_kind?: Database["public"]["Enums"]["playbook_item_kind"]
+          journey_step_id?: string | null
+          metadata?: Json
+          operation_id: string
+          owner_role_type_id?: string | null
+          requirement?: Database["public"]["Enums"]["playbook_requirement"]
+          sequence?: number
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_kind?: Database["public"]["Enums"]["playbook_item_kind"]
+          journey_step_id?: string | null
+          metadata?: Json
+          operation_id?: string
+          owner_role_type_id?: string | null
+          requirement?: Database["public"]["Enums"]["playbook_requirement"]
+          sequence?: number
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playbook_items_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "playbook_items_owner_role_type_id_fkey"
+            columns: ["owner_role_type_id"]
+            isOneToOne: false
+            referencedRelation: "operation_role_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playbook_items_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "playbook_items_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -836,6 +1258,10 @@ export type Database = {
         }
         Returns: Json
       }
+      authorize_departure: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
       bootstrap_tenant: {
         Args: {
           _country_code?: string
@@ -845,6 +1271,40 @@ export type Database = {
           _name: string
           _slug: string
           _timezone?: string
+        }
+        Returns: Json
+      }
+      complete_boarding: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      complete_disembarkation: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      complete_journey_step: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      complete_playbook_item: {
+        Args: { _note?: string; _playbook_item_id: string }
+        Returns: Json
+      }
+      create_ad_hoc_journey_step: {
+        Args: {
+          _description?: string
+          _expected_end?: string
+          _expected_start?: string
+          _idempotency_key: string
+          _location_label?: string
+          _operation_id: string
+          _presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          _presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          _reason: string
+          _step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          _title: string
+          _traveler_facing?: boolean
+          _traveler_label?: string
         }
         Returns: Json
       }
@@ -874,6 +1334,23 @@ export type Database = {
           _tenant_id: string
           _token: string
           _ttl_hours?: number
+        }
+        Returns: Json
+      }
+      create_journey_step: {
+        Args: {
+          _description?: string
+          _idempotency_key: string
+          _location_label?: string
+          _operation_id: string
+          _planned_end?: string
+          _planned_start?: string
+          _presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          _presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          _step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          _title: string
+          _traveler_facing?: boolean
+          _traveler_label?: string
         }
         Returns: Json
       }
@@ -911,6 +1388,18 @@ export type Database = {
         }
         Returns: Json
       }
+      create_playbook_item: {
+        Args: {
+          _description?: string
+          _idempotency_key: string
+          _item_kind?: Database["public"]["Enums"]["playbook_item_kind"]
+          _journey_step_id: string
+          _owner_role_type_id?: string
+          _requirement?: Database["public"]["Enums"]["playbook_requirement"]
+          _title: string
+        }
+        Returns: Json
+      }
       ensure_operation_role_types: {
         Args: { _tenant_id: string }
         Returns: Json
@@ -935,6 +1424,42 @@ export type Database = {
       }
       link_person_to_profile: {
         Args: { _person_id: string; _profile_id: string; _tenant_id: string }
+        Returns: Json
+      }
+      note_incident: {
+        Args: {
+          _journey_step_id?: string
+          _note: string
+          _occurred_at?: string
+          _operation_id: string
+        }
+        Returns: Json
+      }
+      record_arrival: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      record_departed: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      record_presence_fact: {
+        Args: {
+          _journey_step_id: string
+          _note?: string
+          _occurred_at?: string
+          _participation_id: string
+          _presence_fact: Database["public"]["Enums"]["presence_fact"]
+          _reason?: string
+        }
+        Returns: Json
+      }
+      reopen_playbook_item: {
+        Args: { _playbook_item_id: string; _reason: string }
+        Returns: Json
+      }
+      reorder_journey_steps: {
+        Args: { _operation_id: string; _step_ids: string[] }
         Returns: Json
       }
       set_operation_archived: {
@@ -979,16 +1504,102 @@ export type Database = {
         Args: { _participation_id: string; _role_type_id: string }
         Returns: Json
       }
+      set_step_expected_window: {
+        Args: {
+          _expected_end: string
+          _expected_start: string
+          _journey_step_id: string
+          _reason: string
+        }
+        Returns: Json
+      }
+      skip_journey_step: {
+        Args: { _journey_step_id: string; _reason: string }
+        Returns: Json
+      }
+      start_boarding: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      start_gathering: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      start_journey_step: {
+        Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
       unassign_operation_role: {
         Args: { _participation_id: string; _role_type_id: string }
         Returns: Json
       }
+      update_journey_step: {
+        Args: {
+          _apply_planned?: boolean
+          _description?: string
+          _journey_step_id: string
+          _location_label?: string
+          _planned_end?: string
+          _planned_start?: string
+          _presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          _presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          _title?: string
+          _traveler_facing?: boolean
+          _traveler_label?: string
+        }
+        Returns: Json
+      }
+      update_playbook_item: {
+        Args: {
+          _description?: string
+          _is_active?: boolean
+          _item_kind?: Database["public"]["Enums"]["playbook_item_kind"]
+          _owner_role_type_id?: string
+          _playbook_item_id: string
+          _requirement?: Database["public"]["Enums"]["playbook_requirement"]
+          _title?: string
+        }
+        Returns: Json
+      }
+      w04_operation_runtime_state: {
+        Args: { _operation_id: string }
+        Returns: Json
+      }
+      w04_step_readiness: { Args: { _step_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
       experience_kind: "tourism" | "event" | "hybrid"
       experience_status: "draft" | "active" | "archived"
       invitation_status: "pending" | "accepted" | "revoked"
+      journey_event_type:
+        | "STEP_STARTED"
+        | "STEP_COMPLETED"
+        | "STEP_SKIPPED"
+        | "GATHERING_STARTED"
+        | "BOARDING_STARTED"
+        | "BOARDING_COMPLETED"
+        | "DEPARTURE_AUTHORIZED"
+        | "DEPARTED"
+        | "ARRIVED"
+        | "DISEMBARKATION_COMPLETED"
+        | "EXPECTED_TIME_CHANGED"
+        | "INCIDENT_NOTED"
+        | "READINESS_OVERRIDDEN"
+      journey_step_kind:
+        | "meeting"
+        | "boarding"
+        | "movement"
+        | "arrival"
+        | "disembarkation"
+        | "activity"
+        | "meal"
+        | "hotel"
+        | "event"
+        | "break"
+        | "free_time"
+        | "return"
+        | "other"
       membership_status: "active" | "suspended"
       offering_status: "draft" | "active" | "paused" | "archived"
       operation_status:
@@ -1000,6 +1611,18 @@ export type Database = {
         | "cancelled"
       participation_kind: "participant" | "crew" | "support" | "observer"
       participation_status: "expected" | "confirmed" | "cancelled"
+      playbook_execution_action: "completed" | "reopened"
+      playbook_item_kind: "check" | "confirm" | "brief" | "verify" | "other"
+      playbook_requirement: "required" | "recommended" | "informational"
+      presence_fact:
+        | "PRESENT_AT_MEETING_POINT"
+        | "BOARDED"
+        | "DISEMBARKED"
+        | "ABSENCE_NOTED"
+        | "NO_SHOW_CONFIRMED"
+      step_plan_origin: "planned" | "ad_hoc"
+      step_presence_population: "participants" | "all_confirmed"
+      step_presence_requirement: "none" | "accounted" | "boarded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1131,6 +1754,36 @@ export const Constants = {
       experience_kind: ["tourism", "event", "hybrid"],
       experience_status: ["draft", "active", "archived"],
       invitation_status: ["pending", "accepted", "revoked"],
+      journey_event_type: [
+        "STEP_STARTED",
+        "STEP_COMPLETED",
+        "STEP_SKIPPED",
+        "GATHERING_STARTED",
+        "BOARDING_STARTED",
+        "BOARDING_COMPLETED",
+        "DEPARTURE_AUTHORIZED",
+        "DEPARTED",
+        "ARRIVED",
+        "DISEMBARKATION_COMPLETED",
+        "EXPECTED_TIME_CHANGED",
+        "INCIDENT_NOTED",
+        "READINESS_OVERRIDDEN",
+      ],
+      journey_step_kind: [
+        "meeting",
+        "boarding",
+        "movement",
+        "arrival",
+        "disembarkation",
+        "activity",
+        "meal",
+        "hotel",
+        "event",
+        "break",
+        "free_time",
+        "return",
+        "other",
+      ],
       membership_status: ["active", "suspended"],
       offering_status: ["draft", "active", "paused", "archived"],
       operation_status: [
@@ -1143,6 +1796,19 @@ export const Constants = {
       ],
       participation_kind: ["participant", "crew", "support", "observer"],
       participation_status: ["expected", "confirmed", "cancelled"],
+      playbook_execution_action: ["completed", "reopened"],
+      playbook_item_kind: ["check", "confirm", "brief", "verify", "other"],
+      playbook_requirement: ["required", "recommended", "informational"],
+      presence_fact: [
+        "PRESENT_AT_MEETING_POINT",
+        "BOARDED",
+        "DISEMBARKED",
+        "ABSENCE_NOTED",
+        "NO_SHOW_CONFIRMED",
+      ],
+      step_plan_origin: ["planned", "ad_hoc"],
+      step_presence_population: ["participants", "all_confirmed"],
+      step_presence_requirement: ["none", "accounted", "boarded"],
     },
   },
 } as const

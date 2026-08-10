@@ -23,6 +23,8 @@ import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
+import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
+import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
 import { Route as AuthenticatedOperationsOperationIdPeopleRouteImport } from './routes/_authenticated/operations.$operationId.people'
 
 const IndexRoute = IndexRouteImport.update({
@@ -100,6 +102,18 @@ const AuthenticatedOperationsOperationIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const AuthenticatedOperationsOperationIdJourneyRoute =
+  AuthenticatedOperationsOperationIdJourneyRouteImport.update({
+    id: '/journey',
+    path: '/journey',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdLiveRoute =
+  AuthenticatedOperationsOperationIdLiveRouteImport.update({
+    id: '/live',
+    path: '/live',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdPeopleRoute =
   AuthenticatedOperationsOperationIdPeopleRouteImport.update({
     id: '/people',
@@ -120,6 +134,8 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
+  '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
   '/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
@@ -135,6 +151,8 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
+  '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
@@ -153,6 +171,8 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
+  '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/_authenticated/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
   '/_authenticated/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
@@ -171,6 +191,8 @@ export interface FileRouteTypes {
     | '/operations/$operationId'
     | '/experiences/'
     | '/operations/'
+    | '/operations/$operationId/journey'
+    | '/operations/$operationId/live'
     | '/operations/$operationId/people'
     | '/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +208,8 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/experiences'
     | '/operations'
+    | '/operations/$operationId/journey'
+    | '/operations/$operationId/live'
     | '/operations/$operationId/people'
     | '/operations/$operationId'
   id:
@@ -203,6 +227,8 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
+    | '/_authenticated/operations/$operationId/journey'
+    | '/_authenticated/operations/$operationId/live'
     | '/_authenticated/operations/$operationId/people'
     | '/_authenticated/operations/$operationId/'
   fileRoutesById: FileRoutesById
@@ -313,6 +339,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdIndexRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/journey': {
+      id: '/_authenticated/operations/$operationId/journey'
+      path: '/journey'
+      fullPath: '/operations/$operationId/journey'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdJourneyRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/live': {
+      id: '/_authenticated/operations/$operationId/live'
+      path: '/live'
+      fullPath: '/operations/$operationId/live'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdLiveRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
     '/_authenticated/operations/$operationId/people': {
       id: '/_authenticated/operations/$operationId/people'
       path: '/people'
@@ -324,12 +364,18 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
+  AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
+  AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
   AuthenticatedOperationsOperationIdPeopleRoute: typeof AuthenticatedOperationsOperationIdPeopleRoute
   AuthenticatedOperationsOperationIdIndexRoute: typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 
 const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOperationIdRouteChildren =
   {
+    AuthenticatedOperationsOperationIdJourneyRoute:
+      AuthenticatedOperationsOperationIdJourneyRoute,
+    AuthenticatedOperationsOperationIdLiveRoute:
+      AuthenticatedOperationsOperationIdLiveRoute,
     AuthenticatedOperationsOperationIdPeopleRoute:
       AuthenticatedOperationsOperationIdPeopleRoute,
     AuthenticatedOperationsOperationIdIndexRoute:

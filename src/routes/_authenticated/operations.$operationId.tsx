@@ -49,7 +49,24 @@ function OperationWorkspace() {
             >
               {t("roster.tab.people")}
             </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/journey"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w04.tab.journey")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/live"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w04.tab.live")}
+            </Link>
           </nav>
+
 
           <Outlet />
         </RequireTenant>
