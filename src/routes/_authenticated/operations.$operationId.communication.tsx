@@ -467,14 +467,19 @@ function MessageDetail({
     queryFn: async (): Promise<PersonOption[]> => {
       const { data, error } = await supabase
         .from("operation_participations")
-        .select("person_id, people:person_id(id, full_name)")
+        .select("person_id")
         .eq("operation_id", operationId);
       if (error) throw error;
-      const rows = (data ?? []) as Array<{ people: PersonOption | null }>;
-      return rows
-        .map((r) => r.people)
-        .filter((p): p is PersonOption => Boolean(p))
-        .sort((a, b) => a.full_name.localeCompare(b.full_name));
+      const ids = Array.from(new Set((data ?? []).map((r) => r.person_id)));
+      if (ids.length === 0) return [];
+      const { data: people, error: peopleError } = await supabase
+        .from("people")
+        .select("id, full_name")
+        .in("id", ids)
+        .order("full_name");
+      if (peopleError) throw peopleError;
+      return (people ?? []) as PersonOption[];
+
     },
   });
 
