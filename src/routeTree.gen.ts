@@ -24,6 +24,7 @@ import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
+import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
@@ -112,6 +113,12 @@ const AuthenticatedSettingsPropertiesRoute =
     path: '/settings/properties',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsVenuesRoute =
+  AuthenticatedSettingsVenuesRouteImport.update({
+    id: '/settings_/venues',
+    path: '/settings/venues',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdIndexRoute =
   AuthenticatedOperationsOperationIdIndexRouteImport.update({
     id: '/',
@@ -162,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
+  '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -183,6 +191,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
+  '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -207,6 +216,7 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
+  '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId'
     | '/settings/fleet'
     | '/settings/properties'
+    | '/settings/venues'
     | '/experiences/'
     | '/operations/'
     | '/operations/$operationId/hospitality'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/settings/fleet'
     | '/settings/properties'
+    | '/settings/venues'
     | '/experiences'
     | '/operations'
     | '/operations/$operationId/hospitality'
@@ -275,6 +287,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
+    | '/_authenticated/settings_/venues'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
     | '/_authenticated/operations/$operationId/hospitality'
@@ -398,6 +411,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsPropertiesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings_/venues': {
+      id: '/_authenticated/settings_/venues'
+      path: '/settings/venues'
+      fullPath: '/settings/venues'
+      preLoaderRoute: typeof AuthenticatedSettingsVenuesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/operations/$operationId/': {
       id: '/_authenticated/operations/$operationId/'
       path: '/'
@@ -484,6 +504,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
   AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
+  AuthenticatedSettingsVenuesRoute: typeof AuthenticatedSettingsVenuesRoute
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
   AuthenticatedOperationsIndexRoute: typeof AuthenticatedOperationsIndexRoute
 }
@@ -501,6 +522,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedOperationsOperationIdRouteWithChildren,
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
   AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
+  AuthenticatedSettingsVenuesRoute: AuthenticatedSettingsVenuesRoute,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
   AuthenticatedOperationsIndexRoute: AuthenticatedOperationsIndexRoute,
 }
@@ -516,13 +538,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
