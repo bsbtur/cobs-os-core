@@ -80,12 +80,20 @@ function Body() {
             </div>
           ))}
         </dl>
-        <Button asChild variant="outline" className="mt-4 min-h-11">
-          <Link to="/settings/fleet">
-            <Bus className="mr-2 size-4" aria-hidden="true" />
-            {t("w05.fleet.open")}
-          </Link>
-        </Button>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/settings/fleet">
+              <Bus className="mr-2 size-4" aria-hidden="true" />
+              {t("w05.fleet.open")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/settings/properties">
+              <BedDouble className="mr-2 size-4" aria-hidden="true" />
+              {t("w06.prop.open")}
+            </Link>
+          </Button>
+        </div>
       </section>
 
 
