@@ -94,7 +94,7 @@ function CreateLegDialog({
   const [stepId, setStepId] = React.useState("");
   const [reason, setReason] = React.useState("");
 
-  const iso = (value: string) => (value ? new Date(value).toISOString() : null);
+  const iso = (value: string) => (value ? new Date(value).toISOString() : undefined);
 
   const create = useMutation({
     mutationFn: async () => {
@@ -103,9 +103,9 @@ function CreateLegDialog({
         _title: title,
         _idempotency_key: newIdempotencyKey(),
         _leg_kind: kind,
-        _origin_label: origin || null,
-        _destination_label: destination || null,
-        _journey_step_id: stepId || null,
+        _origin_label: origin || undefined,
+        _destination_label: destination || undefined,
+        _journey_step_id: stepId || undefined,
       };
       const { error } = adHoc
         ? await supabase.rpc("create_ad_hoc_transport_leg", {
@@ -270,14 +270,14 @@ function AssignmentPanel({
         const { error } = await supabase.rpc("assign_vehicle_to_leg", {
           _transport_leg_id: leg.id,
           _vehicle_id: payload.id!,
-          _reason: reason || null,
+          _reason: reason || undefined,
         });
         if (error) throw error;
       } else if (payload.fn === "driver") {
         const { error } = await supabase.rpc("assign_driver_to_leg", {
           _transport_leg_id: leg.id,
           _driver_id: payload.id!,
-          _reason: reason || null,
+          _reason: reason || undefined,
         });
         if (error) throw error;
       } else {
@@ -582,7 +582,7 @@ function SeatsPanel({
         _transport_leg_id: leg.id,
         _participation_id: participationId,
         _idempotency_key: newIdempotencyKey(),
-        _seat_label: seatLabel || null,
+        _seat_label: seatLabel || undefined,
       });
       if (error) throw error;
     },
@@ -727,7 +727,7 @@ function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () =
   const [returnTime, setReturnTime] = React.useState("");
   const [incident, setIncident] = React.useState("");
 
-  const iso = (value: string) => (value ? new Date(value).toISOString() : null);
+  const iso = (value: string) => (value ? new Date(value).toISOString() : undefined);
   const done = () => {
     feedback.success(t("w05.action.recorded"));
     onRefresh();
