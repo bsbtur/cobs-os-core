@@ -2437,6 +2437,10 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_hospitality_stay: {
+        Args: { _idempotency_key: string; _reason: string; _stay_id: string }
+        Returns: Json
+      }
       cancel_transport_leg: {
         Args: { _reason: string; _transport_leg_id: string }
         Returns: Json
@@ -2453,12 +2457,29 @@ export type Database = {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
+      complete_hospitality_stay: {
+        Args: { _idempotency_key: string; _note?: string; _stay_id: string }
+        Returns: Json
+      }
       complete_journey_step: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
       complete_playbook_item: {
         Args: { _note?: string; _playbook_item_id: string }
+        Returns: Json
+      }
+      complete_stay_checkout: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
+      confirm_hospitality_stay: {
+        Args: { _idempotency_key: string; _note?: string; _stay_id: string }
         Returns: Json
       }
       create_ad_hoc_journey_step: {
@@ -2538,6 +2559,17 @@ export type Database = {
           _region?: string
           _tenant_id: string
           _timezone?: string
+        }
+        Returns: Json
+      }
+      create_hospitality_room: {
+        Args: {
+          _capacity: number
+          _floor_label?: string
+          _idempotency_key: string
+          _label: string
+          _notes?: string
+          _stay_id: string
         }
         Returns: Json
       }
@@ -2706,6 +2738,15 @@ export type Database = {
         }
         Returns: Json
       }
+      open_stay_checkin: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
       record_arrival: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
@@ -2852,6 +2893,25 @@ export type Database = {
         }
         Returns: Json
       }
+      set_stay_expected_window: {
+        Args: {
+          _expected_check_in?: string
+          _expected_check_out?: string
+          _idempotency_key: string
+          _note?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
+      set_stay_planned_window: {
+        Args: {
+          _idempotency_key: string
+          _planned_check_in: string
+          _planned_check_out: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
       set_step_expected_window: {
         Args: {
           _expected_end: string
@@ -2924,6 +2984,17 @@ export type Database = {
           _property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
           _region?: string
           _timezone?: string
+        }
+        Returns: Json
+      }
+      update_hospitality_room: {
+        Args: {
+          _capacity?: number
+          _floor_label?: string
+          _idempotency_key: string
+          _label?: string
+          _notes?: string
+          _room_id: string
         }
         Returns: Json
       }
