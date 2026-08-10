@@ -88,12 +88,7 @@ function VenueForm({ tenantId, onDone }: { tenantId: string; onDone: () => void 
     >
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="venue-name">{t("w07.venues.name")}</Label>
-        <Input
-          id="venue-name"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <Input id="venue-name" required value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="venue-city">{t("w07.venues.city")}</Label>
