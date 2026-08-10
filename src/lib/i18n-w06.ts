@@ -202,6 +202,19 @@ export const W06_PT: Record<string, string> = {
   "w06.prop.reason": "Motivo",
   "w06.prop.empty": "Nenhuma propriedade cadastrada.",
   "w06.prop.emptyBody": "Cadastre o primeiro hotel ou acomodação usada pela sua organização.",
+  "w06.prop.edit": "Editar propriedade",
+  "w06.prop.address": "Endereço",
+  "w06.prop.timezone": "Fuso horário (IANA)",
+  "w06.prop.notes": "Observações operacionais",
+  "w06.room.edit": "Editar quarto",
+  
+  "w06.stay.editPlan": "Editar plano da hospedagem",
+  "w06.stay.notes": "Observações da hospedagem",
+  "w06.stay.planFrozen":
+    "A linha de base planejada está congelada após a confirmação. Use o previsto.",
+  "w06.stay.planHint": "Corrija o plano inicial antes de confirmar a hospedagem.",
+  "w06.edit.save": "Salvar alterações",
+  "w06.edit.saved": "Alterações salvas.",
 };
 
 export const W06_EN: Record<string, string> = {
@@ -402,6 +415,17 @@ export const W06_EN: Record<string, string> = {
   "w06.prop.reason": "Reason",
   "w06.prop.empty": "No properties registered.",
   "w06.prop.emptyBody": "Register the first hotel or accommodation used by your organization.",
+  "w06.prop.edit": "Edit property",
+  "w06.prop.address": "Address",
+  "w06.prop.timezone": "Time zone (IANA)",
+  "w06.prop.notes": "Operational notes",
+  "w06.room.edit": "Edit room",
+  "w06.stay.editPlan": "Edit stay plan",
+  "w06.stay.notes": "Stay notes",
+  "w06.stay.planFrozen": "The planned baseline is frozen once confirmed. Use the expected window.",
+  "w06.stay.planHint": "Correct the initial plan before confirming the stay.",
+  "w06.edit.save": "Save changes",
+  "w06.edit.saved": "Changes saved.",
 };
 
 export const W06_ES: Record<string, string> = {
@@ -525,6 +549,18 @@ export const W06_ES: Record<string, string> = {
   "w06.prop.title": "Propiedades",
   "w06.prop.add": "Agregar propiedad",
   "w06.prop.open": "Abrir propiedades",
+  "w06.prop.edit": "Editar propiedad",
+  "w06.prop.address": "Dirección",
+  "w06.prop.timezone": "Zona horaria (IANA)",
+  "w06.prop.notes": "Notas operativas",
+  "w06.room.edit": "Editar habitación",
+  "w06.stay.editPlan": "Editar plan del alojamiento",
+  "w06.stay.notes": "Notas del alojamiento",
+  "w06.stay.planFrozen":
+    "La línea base planificada queda congelada tras la confirmación. Usa la previsión.",
+  "w06.stay.planHint": "Corrige el plan inicial antes de confirmar el alojamiento.",
+  "w06.edit.save": "Guardar cambios",
+  "w06.edit.saved": "Cambios guardados.",
 };
 
 export const W06_DICTIONARIES: Record<Locale, Record<string, string>> = {

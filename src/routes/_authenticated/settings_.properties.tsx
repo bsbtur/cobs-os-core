@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /** Drops undefined keys so optional RPC arguments stay absent rather than explicit undefined. */
 function rpcArgs<T extends Record<string, unknown>>(input: T) {
@@ -142,6 +143,109 @@ function PropertyForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
   );
 }
 
+/** Edits only the approved mutable property fields — no duplicated identity or contact concepts. */
+function EditPropertyDialog({ row, onDone }: { row: PropertyRow; onDone: () => void }) {
+  const { t, locale } = useI18n();
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState(row.name);
+  const [kind, setKind] = React.useState<PropertyKind>(row.property_kind);
+  const [city, setCity] = React.useState(row.city ?? "");
+  const [region, setRegion] = React.useState(row.region ?? "");
+  const [country, setCountry] = React.useState(row.country_code ?? "");
+  const [address, setAddress] = React.useState(row.address_label ?? "");
+  const [timezone, setTimezone] = React.useState(row.timezone ?? "");
+  const [contact, setContact] = React.useState(row.contact_label ?? "");
+  const [notes, setNotes] = React.useState(row.notes ?? "");
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc(
+        "update_hospitality_property",
+        rpcArgs({
+          _property_id: row.id,
+          _idempotency_key: newIdempotencyKey(),
+          _name: name.trim() || undefined,
+          _property_kind: kind,
+          _city: city.trim() || undefined,
+          _region: region.trim() || undefined,
+          _country_code: country.trim() ? country.trim().toUpperCase() : undefined,
+          _address_label: address.trim() || undefined,
+          _timezone: timezone.trim() || undefined,
+          _contact_label: contact.trim() || undefined,
+          _notes: notes.trim() || undefined,
+        }),
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w06.edit.saved"));
+      setOpen(false);
+      onDone();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  const fields: Array<[string, string, string, (value: string) => void]> = [
+    [`edit-name-${row.id}`, t("w06.prop.name"), name, setName],
+    [`edit-city-${row.id}`, t("w06.prop.city"), city, setCity],
+    [`edit-region-${row.id}`, t("w06.prop.region"), region, setRegion],
+    [`edit-country-${row.id}`, t("w06.prop.country"), country, setCountry],
+    [`edit-address-${row.id}`, t("w06.prop.address"), address, setAddress],
+    [`edit-tz-${row.id}`, t("w06.prop.timezone"), timezone, setTimezone],
+    [`edit-contact-${row.id}`, t("w06.prop.contact"), contact, setContact],
+    [`edit-notes-${row.id}`, t("w06.prop.notes"), notes, setNotes],
+  ];
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="min-h-11" onClick={() => setOpen(true)}>
+        {t("w06.prop.edit")}
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {t("w06.prop.edit")} · {row.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor={`edit-kind-${row.id}`}>{t("w06.prop.kind")}</Label>
+              <select
+                id={`edit-kind-${row.id}`}
+                className={SELECT_CLASS}
+                value={kind}
+                onChange={(e) => setKind(e.target.value as PropertyKind)}
+              >
+                {PROPERTY_KINDS.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`w06.kind.${value}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {fields.map(([id, label, value, setValue]) => (
+              <div key={id} className="space-y-1.5">
+                <Label htmlFor={id}>{label}</Label>
+                <Input id={id} value={value} onChange={(e) => setValue(e.target.value)} />
+              </div>
+            ))}
+            <div className="sm:col-span-2">
+              <Button
+                className="min-h-11 w-full"
+                disabled={save.isPending || name.trim() === ""}
+                onClick={() => save.mutate()}
+              >
+                {t("w06.edit.save")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function PropertiesPage() {
   const { t, locale } = useI18n();
   const { tenant } = useTenant();
@@ -229,6 +333,7 @@ function PropertiesPage() {
                     >
                       {row.is_active ? t("w06.prop.active") : t("w06.prop.archived")}
                     </span>
+                    <EditPropertyDialog row={row} onDone={refresh} />
                     <Button
                       size="sm"
                       variant="ghost"
