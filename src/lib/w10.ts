@@ -36,8 +36,12 @@ export class PortalError extends Error {
  * transport/availability problem and must never surface raw internals.
  */
 export function toPortalError(error: unknown): PortalError {
-  const raw = error instanceof Error ? error.message : String(error ?? "");
-  return new PortalError(/access denied/i.test(raw) ? "denied" : "unavailable");
+  // PostgREST returns a plain object (not an Error), so read `message` defensively.
+  const message =
+    error && typeof error === "object" && typeof (error as { message?: unknown }).message === "string"
+      ? (error as { message: string }).message
+      : String(error ?? "");
+  return new PortalError(/access denied/i.test(message) ? "denied" : "unavailable");
 }
 
 export function isDenied(error: unknown): boolean {
