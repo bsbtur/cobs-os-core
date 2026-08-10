@@ -1204,16 +1204,20 @@ function MobilityPage() {
         </>
       )}
 
+      {/* SELECTED-LEG TIMELINE: never mixes facts from other legs of this operation. */}
       <section className="surface-panel p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
           <SectionLabel>{t("w05.timeline")}</SectionLabel>
+          {selected ? (
+            <span className="text-xs text-muted-foreground">· {selected.title}</span>
+          ) : null}
         </div>
-        {events.length === 0 ? (
+        {legEvents.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("w05.noEvents")}</p>
         ) : (
           <ol className="mt-3 space-y-2">
-            {events.map((event) => (
+            {legEvents.map((event) => (
               <li key={event.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
                   {formatDateTime(event.occurred_at, { locale, timeZone })}
