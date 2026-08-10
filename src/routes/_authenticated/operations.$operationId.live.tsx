@@ -289,7 +289,7 @@ function ChecklistPanel({
                 disabled={act.isPending}
                 onClick={() => act.mutate({ itemId: item.id, done: !done })}
               >
-                {done ? t("w04.playbook.reopen") : t("w04.playbook.complete")}
+                {done ? t("w04.playbook.reopen") : t("w04.playbook.completed")}
               </Button>
             </li>
           );
