@@ -3,7 +3,9 @@ import {
   BarChart3,
   CalendarRange,
   Globe2,
+  Inbox,
   LayoutGrid,
+
   Settings2,
   Users,
   UsersRound,
@@ -23,7 +25,7 @@ export type NavItem = {
   /** i18n key for the label */
   labelKey: string;
   /** Route path — planned routes intentionally resolve to the shell overview in W00. */
-  to: "/app" | "/experiences" | "/operations" | "/people" | "/team" | "/settings";
+  to: "/app" | "/experiences" | "/operations" | "/people" | "/team" | "/settings" | "/inbox";
   icon: LucideIcon;
   status: NavStatus;
   /** Domain owner — enforces the DOMAIN OWNERSHIP rule. */
@@ -90,6 +92,15 @@ export const NAV_SECTIONS: NavSection[] = [
         mobile: true,
       },
       {
+        id: "inbox",
+        labelKey: "nav.inbox",
+        to: "/inbox",
+        icon: Inbox,
+        status: "live",
+        domain: "communication",
+        activatesIn: "W08",
+      },
+      {
         id: "team",
         labelKey: "nav.team",
         to: "/team",
@@ -98,6 +109,7 @@ export const NAV_SECTIONS: NavSection[] = [
         domain: "identity",
         activatesIn: "W01",
       },
+
       {
         id: "network",
         labelKey: "nav.network",
@@ -178,7 +190,9 @@ export const ROUTE_META: RouteMeta[] = [
     authenticated: true,
     indexable: false,
   },
+  { path: "/inbox", titleKey: "w08.inbox.title", authenticated: true, indexable: false },
   { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
+
   { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
   { path: "/settings", titleKey: "settings.title", authenticated: true, indexable: false },
   { path: "/settings/fleet", titleKey: "w05.fleet.title", authenticated: true, indexable: false },
