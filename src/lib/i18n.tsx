@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { W01_DICTIONARIES } from "./i18n-w01";
+
 /**
  * COBS OS — i18n foundation (W00)
  * Global-first: locale, timezone and currency are runtime context, never hardcoded.
