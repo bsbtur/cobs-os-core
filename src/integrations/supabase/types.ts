@@ -1400,6 +1400,10 @@ export type Database = {
         }
         Returns: Json
       }
+      deactivate_playbook_item: {
+        Args: { _playbook_item_id: string; _reason: string }
+        Returns: Json
+      }
       ensure_operation_role_types: {
         Args: { _tenant_id: string }
         Returns: Json
