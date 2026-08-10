@@ -23,6 +23,7 @@ import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
+import { Route as AuthenticatedOperationsOperationIdPeopleRouteImport } from './routes/_authenticated/operations.$operationId.people'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -99,6 +100,12 @@ const AuthenticatedOperationsOperationIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const AuthenticatedOperationsOperationIdPeopleRoute =
+  AuthenticatedOperationsOperationIdPeopleRouteImport.update({
+    id: '/people',
+    path: '/people',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
   '/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -127,6 +135,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 export interface FileRoutesById {
@@ -144,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
   '/_authenticated/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId'
     | '/experiences/'
     | '/operations/'
+    | '/operations/$operationId/people'
     | '/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/experiences'
     | '/operations'
+    | '/operations/$operationId/people'
     | '/operations/$operationId'
   id:
     | '__root__'
@@ -191,6 +203,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
+    | '/_authenticated/operations/$operationId/people'
     | '/_authenticated/operations/$operationId/'
   fileRoutesById: FileRoutesById
 }
@@ -300,15 +313,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdIndexRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/people': {
+      id: '/_authenticated/operations/$operationId/people'
+      path: '/people'
+      fullPath: '/operations/$operationId/people'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdPeopleRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
   }
 }
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
+  AuthenticatedOperationsOperationIdPeopleRoute: typeof AuthenticatedOperationsOperationIdPeopleRoute
   AuthenticatedOperationsOperationIdIndexRoute: typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 
 const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOperationIdRouteChildren =
   {
+    AuthenticatedOperationsOperationIdPeopleRoute:
+      AuthenticatedOperationsOperationIdPeopleRoute,
     AuthenticatedOperationsOperationIdIndexRoute:
       AuthenticatedOperationsOperationIdIndexRoute,
   }

@@ -186,8 +186,8 @@ function AddPersonDialog({
         _participation_kind: kind,
         _idempotency_key: idempotencyKey.current,
         _role_type_ids: roles,
-        _primary_role_type_id: primaryRole,
-        _notes: notes.trim() || null,
+        _primary_role_type_id: primaryRole ?? undefined,
+        _notes: notes.trim() || undefined,
       });
       if (error) throw error;
     },
@@ -521,7 +521,7 @@ function RosterCard({
       const { error } = await supabase.rpc("set_participation_status", {
         _participation_id: row.id,
         _status: input.status,
-        _reason: input.reason ?? null,
+        _reason: input.reason ?? undefined,
       });
       if (error) throw error;
     },
