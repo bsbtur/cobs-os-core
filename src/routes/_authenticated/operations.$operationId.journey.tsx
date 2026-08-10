@@ -114,30 +114,33 @@ function StepDialog({
 
   const save = useMutation({
     mutationFn: async () => {
+      const startIso = toIsoOrNull(start);
+      const endIso = toIsoOrNull(end);
       const shared = {
         _operation_id: operationId,
         _title: title.trim(),
         _step_kind: kind,
         _idempotency_key: idempotencyKey.current,
-        _description: description.trim() || undefined,
-        _location_label: location.trim() || undefined,
-        _traveler_label: travelerLabel.trim() || undefined,
         _traveler_facing: travelerFacing,
         _presence_requirement: requirement,
         _presence_population: population,
+        ...(description.trim() ? { _description: description.trim() } : {}),
+        ...(location.trim() ? { _location_label: location.trim() } : {}),
+        ...(travelerLabel.trim() ? { _traveler_label: travelerLabel.trim() } : {}),
       };
       const { error } = adHoc
         ? await supabase.rpc("create_ad_hoc_journey_step", {
             ...shared,
             _reason: reason.trim(),
-            _expected_start: toIsoOrNull(start),
-            _expected_end: toIsoOrNull(end),
+            ...(startIso ? { _expected_start: startIso } : {}),
+            ...(endIso ? { _expected_end: endIso } : {}),
           })
         : await supabase.rpc("create_journey_step", {
             ...shared,
-            _planned_start: toIsoOrNull(start),
-            _planned_end: toIsoOrNull(end),
+            ...(startIso ? { _planned_start: startIso } : {}),
+            ...(endIso ? { _planned_end: endIso } : {}),
           });
+
       if (error) throw error;
     },
     onSuccess: () => {
