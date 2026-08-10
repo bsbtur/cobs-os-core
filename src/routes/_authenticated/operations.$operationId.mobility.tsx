@@ -75,6 +75,14 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 type DriverWithPerson = DriverRow & { people: { full_name: string } | null };
 
+/**
+ * A leg is TERMINAL once it arrived or was cancelled: no mutation control may stay
+ * enabled. Further facts belong to a new ad-hoc leg, never to a closed one.
+ */
+function isTerminalLeg(state: LegDispatchState | null) {
+  return Boolean(state?.actual_arrival || state?.cancelled_at);
+}
+
 /* ------------------------------------------------------------------ */
 /* Leg creation                                                        */
 /* ------------------------------------------------------------------ */
@@ -276,7 +284,8 @@ function AssignmentPanel({
 }) {
   const { t, locale } = useI18n();
   const [reason, setReason] = React.useState("");
-  const departed = Boolean(state?.actual_departure);
+  const terminal = isTerminalLeg(state);
+  const departed = Boolean(state?.actual_departure) || terminal;
 
   const call = useMutation({
     mutationFn: async (payload: { fn: "vehicle" | "driver" | "clear"; id?: string }) => {
@@ -319,7 +328,7 @@ function AssignmentPanel({
   if (departed) {
     return (
       <p className="rounded-lg bg-elevated px-3 py-2 text-sm text-muted-foreground">
-        {t("w05.leg.departedLock")}
+        {terminal ? t("w05.leg.terminalLock") : t("w05.leg.departedLock")}
       </p>
     );
   }
