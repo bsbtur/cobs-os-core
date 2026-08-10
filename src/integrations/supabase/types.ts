@@ -2525,6 +2525,34 @@ export type Database = {
         }
         Returns: Json
       }
+      create_hospitality_property: {
+        Args: {
+          _address_label?: string
+          _city?: string
+          _contact_label?: string
+          _country_code?: string
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
+          _region?: string
+          _tenant_id: string
+          _timezone?: string
+        }
+        Returns: Json
+      }
+      create_hospitality_stay: {
+        Args: {
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _operation_id: string
+          _planned_check_in: string
+          _planned_check_out: string
+          _property_id: string
+        }
+        Returns: Json
+      }
       create_invitation: {
         Args: {
           _email: string
@@ -2765,6 +2793,15 @@ export type Database = {
         Args: { _driver_id: string; _is_active: boolean; _reason?: string }
         Returns: Json
       }
+      set_hospitality_property_active: {
+        Args: {
+          _idempotency_key: string
+          _is_active: boolean
+          _property_id: string
+          _reason?: string
+        }
+        Returns: Json
+      }
       set_operation_archived: {
         Args: { _archived: boolean; _operation_id: string }
         Returns: Json
@@ -2871,6 +2908,31 @@ export type Database = {
           _driver_id: string
           _notes?: string
           _operator_name?: string
+        }
+        Returns: Json
+      }
+      update_hospitality_property: {
+        Args: {
+          _address_label?: string
+          _city?: string
+          _contact_label?: string
+          _country_code?: string
+          _idempotency_key: string
+          _name?: string
+          _notes?: string
+          _property_id: string
+          _property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
+          _region?: string
+          _timezone?: string
+        }
+        Returns: Json
+      }
+      update_hospitality_stay: {
+        Args: {
+          _idempotency_key: string
+          _name?: string
+          _notes?: string
+          _stay_id: string
         }
         Returns: Json
       }
