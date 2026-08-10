@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, Clock, Radio, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { MobilityLiveCard } from "@/components/mobility/mobility-live-card";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import {
