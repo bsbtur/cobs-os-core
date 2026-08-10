@@ -65,6 +65,84 @@ export type Database = {
           },
         ]
       }
+      experiences: {
+        Row: {
+          category_tags: string[]
+          city: string | null
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          default_locale: string
+          default_timezone: string
+          description: string | null
+          experience_kind: Database["public"]["Enums"]["experience_kind"]
+          id: string
+          metadata: Json
+          name: string
+          region: string | null
+          short_description: string | null
+          slug: string
+          status: Database["public"]["Enums"]["experience_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category_tags?: string[]
+          city?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_locale?: string
+          default_timezone?: string
+          description?: string | null
+          experience_kind?: Database["public"]["Enums"]["experience_kind"]
+          id?: string
+          metadata?: Json
+          name: string
+          region?: string | null
+          short_description?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["experience_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category_tags?: string[]
+          city?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_locale?: string
+          default_timezone?: string
+          description?: string | null
+          experience_kind?: Database["public"]["Enums"]["experience_kind"]
+          id?: string
+          metadata?: Json
+          name?: string
+          region?: string | null
+          short_description?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["experience_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiences_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       idempotency_keys: {
         Row: {
           action: string
@@ -222,6 +300,201 @@ export type Database = {
           },
         ]
       }
+      offerings: {
+        Row: {
+          available_from: string | null
+          available_until: string | null
+          capacity: number | null
+          created_at: string
+          created_by: string | null
+          currency_code: string | null
+          experience_id: string
+          id: string
+          metadata: Json
+          name: string
+          sales_end: string | null
+          sales_start: string | null
+          slug: string
+          status: Database["public"]["Enums"]["offering_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          available_from?: string | null
+          available_until?: string | null
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string | null
+          experience_id: string
+          id?: string
+          metadata?: Json
+          name: string
+          sales_end?: string | null
+          sales_start?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["offering_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          available_from?: string | null
+          available_until?: string | null
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string | null
+          experience_id?: string
+          id?: string
+          metadata?: Json
+          name?: string
+          sales_end?: string | null
+          sales_start?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["offering_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offerings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offerings_experience_fk"
+            columns: ["experience_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "offerings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operations: {
+        Row: {
+          archived_at: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          code: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          expected_end: string | null
+          expected_start: string | null
+          experience_id: string | null
+          id: string
+          metadata: Json
+          name: string
+          offering_id: string | null
+          operation_kind: Database["public"]["Enums"]["experience_kind"]
+          planned_end: string
+          planned_start: string
+          primary_city: string | null
+          primary_country: string
+          primary_region: string | null
+          source_experience_name: string | null
+          source_offering_name: string | null
+          status: Database["public"]["Enums"]["operation_status"]
+          tenant_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          code: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_end?: string | null
+          expected_start?: string | null
+          experience_id?: string | null
+          id?: string
+          metadata?: Json
+          name: string
+          offering_id?: string | null
+          operation_kind?: Database["public"]["Enums"]["experience_kind"]
+          planned_end: string
+          planned_start: string
+          primary_city?: string | null
+          primary_country: string
+          primary_region?: string | null
+          source_experience_name?: string | null
+          source_offering_name?: string | null
+          status?: Database["public"]["Enums"]["operation_status"]
+          tenant_id: string
+          timezone: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          code?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_end?: string | null
+          expected_start?: string | null
+          experience_id?: string | null
+          id?: string
+          metadata?: Json
+          name?: string
+          offering_id?: string | null
+          operation_kind?: Database["public"]["Enums"]["experience_kind"]
+          planned_end?: string
+          planned_start?: string
+          primary_city?: string | null
+          primary_country?: string
+          primary_region?: string | null
+          source_experience_name?: string | null
+          source_offering_name?: string | null
+          status?: Database["public"]["Enums"]["operation_status"]
+          tenant_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_experience_fk"
+            columns: ["experience_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "operations_offering_fk"
+            columns: ["offering_id", "tenant_id", "experience_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
+            referencedColumns: ["id", "tenant_id", "experience_id"]
+          },
+          {
+            foreignKeyName: "operations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           country_code: string | null
@@ -366,6 +639,24 @@ export type Database = {
         }
         Returns: Json
       }
+      create_experience: {
+        Args: {
+          _category_tags?: string[]
+          _city?: string
+          _country_code?: string
+          _default_locale?: string
+          _default_timezone?: string
+          _description?: string
+          _experience_kind: Database["public"]["Enums"]["experience_kind"]
+          _idempotency_key: string
+          _name: string
+          _region?: string
+          _short_description?: string
+          _slug: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       create_invitation: {
         Args: {
           _email: string
@@ -374,6 +665,40 @@ export type Database = {
           _tenant_id: string
           _token: string
           _ttl_hours?: number
+        }
+        Returns: Json
+      }
+      create_offering: {
+        Args: {
+          _available_from?: string
+          _available_until?: string
+          _capacity?: number
+          _currency_code?: string
+          _experience_id: string
+          _idempotency_key: string
+          _name: string
+          _sales_end?: string
+          _sales_start?: string
+          _slug: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
+      create_operation: {
+        Args: {
+          _code: string
+          _experience_id?: string
+          _idempotency_key: string
+          _name: string
+          _offering_id?: string
+          _operation_kind: Database["public"]["Enums"]["experience_kind"]
+          _planned_end: string
+          _planned_start: string
+          _primary_city?: string
+          _primary_country: string
+          _primary_region?: string
+          _tenant_id: string
+          _timezone: string
         }
         Returns: Json
       }
@@ -399,11 +724,51 @@ export type Database = {
         Args: { _person_id: string; _profile_id: string; _tenant_id: string }
         Returns: Json
       }
+      set_operation_archived: {
+        Args: { _archived: boolean; _operation_id: string }
+        Returns: Json
+      }
+      set_operation_expected_window: {
+        Args: {
+          _expected_end: string
+          _expected_start: string
+          _operation_id: string
+          _reason: string
+        }
+        Returns: Json
+      }
+      set_operation_planned_window: {
+        Args: {
+          _operation_id: string
+          _planned_end: string
+          _planned_start: string
+          _reason?: string
+        }
+        Returns: Json
+      }
+      set_operation_status: {
+        Args: {
+          _operation_id: string
+          _reason?: string
+          _status: Database["public"]["Enums"]["operation_status"]
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
+      experience_kind: "tourism" | "event" | "hybrid"
+      experience_status: "draft" | "active" | "archived"
       invitation_status: "pending" | "accepted" | "revoked"
       membership_status: "active" | "suspended"
+      offering_status: "draft" | "active" | "paused" | "archived"
+      operation_status:
+        | "draft"
+        | "planning"
+        | "ready"
+        | "active"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -532,8 +897,19 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "operations_agent", "member"],
+      experience_kind: ["tourism", "event", "hybrid"],
+      experience_status: ["draft", "active", "archived"],
       invitation_status: ["pending", "accepted", "revoked"],
       membership_status: ["active", "suspended"],
+      offering_status: ["draft", "active", "paused", "archived"],
+      operation_status: [
+        "draft",
+        "planning",
+        "ready",
+        "active",
+        "completed",
+        "cancelled",
+      ],
     },
   },
 } as const
