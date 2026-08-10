@@ -97,7 +97,7 @@ export function PortalTime({
   timeZone?: string | null;
 }) {
   const { t, locale } = useI18n();
-  const ctx = { locale, timeZone: timeZone ?? undefined };
+  const ctx = timeZone ? { locale, timeZone } : { locale };
   if (!planned && !expected) {
     return <span className="text-xs text-muted-foreground">{t("w10.time.tbd")}</span>;
   }
