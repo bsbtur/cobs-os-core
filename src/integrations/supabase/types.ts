@@ -65,6 +65,70 @@ export type Database = {
           },
         ]
       }
+      drivers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          driver_code: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          notes: string | null
+          operator_name: string | null
+          person_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          driver_code?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          notes?: string | null
+          operator_name?: string | null
+          person_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          driver_code?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          notes?: string | null
+          operator_name?: string | null
+          person_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drivers_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "drivers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experiences: {
         Row: {
           category_tags: string[]
@@ -1232,6 +1296,454 @@ export type Database = {
         }
         Relationships: []
       }
+      transport_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          event_type: Database["public"]["Enums"]["transport_event_type"]
+          id: string
+          note: string | null
+          occurred_at: string
+          operation_id: string
+          recorded_at: string
+          tenant_id: string
+          transport_leg_id: string | null
+          transport_leg_stop_id: string | null
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_type: Database["public"]["Enums"]["transport_event_type"]
+          id?: string
+          note?: string | null
+          occurred_at: string
+          operation_id: string
+          recorded_at?: string
+          tenant_id: string
+          transport_leg_id?: string | null
+          transport_leg_stop_id?: string | null
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["transport_event_type"]
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          operation_id?: string
+          recorded_at?: string
+          tenant_id?: string
+          transport_leg_id?: string | null
+          transport_leg_stop_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_events_leg_fk"
+            columns: ["transport_leg_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "transport_legs"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_events_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_events_stop_fk"
+            columns: ["transport_leg_stop_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "transport_leg_stops"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_leg_stops: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expected_time: string | null
+          id: string
+          is_pickup: boolean
+          label: string
+          metadata: Json
+          notes: string | null
+          planned_time: string | null
+          sequence: number
+          tenant_id: string
+          transport_leg_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expected_time?: string | null
+          id?: string
+          is_pickup?: boolean
+          label: string
+          metadata?: Json
+          notes?: string | null
+          planned_time?: string | null
+          sequence: number
+          tenant_id: string
+          transport_leg_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expected_time?: string | null
+          id?: string
+          is_pickup?: boolean
+          label?: string
+          metadata?: Json
+          notes?: string | null
+          planned_time?: string | null
+          sequence?: number
+          tenant_id?: string
+          transport_leg_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_leg_stops_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_leg_stops_leg_fk"
+            columns: ["transport_leg_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "transport_legs"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_leg_stops_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_legs: {
+        Row: {
+          ad_hoc_reason: string | null
+          capacity_override: number | null
+          created_at: string
+          created_by: string | null
+          destination_label: string | null
+          driver_id: string | null
+          expected_arrival: string | null
+          expected_departure: string | null
+          id: string
+          journey_step_id: string | null
+          leg_kind: Database["public"]["Enums"]["transport_leg_kind"]
+          metadata: Json
+          notes: string | null
+          operation_id: string
+          origin_label: string | null
+          plan_origin: Database["public"]["Enums"]["step_plan_origin"]
+          planned_arrival: string | null
+          planned_departure: string | null
+          replaces_leg_id: string | null
+          return_time: string | null
+          return_time_note: string | null
+          sequence: number
+          tenant_id: string
+          title: string
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          ad_hoc_reason?: string | null
+          capacity_override?: number | null
+          created_at?: string
+          created_by?: string | null
+          destination_label?: string | null
+          driver_id?: string | null
+          expected_arrival?: string | null
+          expected_departure?: string | null
+          id?: string
+          journey_step_id?: string | null
+          leg_kind?: Database["public"]["Enums"]["transport_leg_kind"]
+          metadata?: Json
+          notes?: string | null
+          operation_id: string
+          origin_label?: string | null
+          plan_origin?: Database["public"]["Enums"]["step_plan_origin"]
+          planned_arrival?: string | null
+          planned_departure?: string | null
+          replaces_leg_id?: string | null
+          return_time?: string | null
+          return_time_note?: string | null
+          sequence: number
+          tenant_id: string
+          title: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          ad_hoc_reason?: string | null
+          capacity_override?: number | null
+          created_at?: string
+          created_by?: string | null
+          destination_label?: string | null
+          driver_id?: string | null
+          expected_arrival?: string | null
+          expected_departure?: string | null
+          id?: string
+          journey_step_id?: string | null
+          leg_kind?: Database["public"]["Enums"]["transport_leg_kind"]
+          metadata?: Json
+          notes?: string | null
+          operation_id?: string
+          origin_label?: string | null
+          plan_origin?: Database["public"]["Enums"]["step_plan_origin"]
+          planned_arrival?: string | null
+          planned_departure?: string | null
+          replaces_leg_id?: string | null
+          return_time?: string | null
+          return_time_note?: string | null
+          sequence?: number
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_legs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_legs_driver_fk"
+            columns: ["driver_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_legs_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_legs_replaces_leg_id_fkey"
+            columns: ["replaces_leg_id"]
+            isOneToOne: false
+            referencedRelation: "transport_legs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_legs_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_legs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_legs_vehicle_fk"
+            columns: ["vehicle_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
+      transport_seat_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          operation_id: string
+          participation_id: string
+          release_reason: string | null
+          released_at: string | null
+          released_by: string | null
+          seat_label: string | null
+          tenant_id: string
+          transport_leg_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          operation_id: string
+          participation_id: string
+          release_reason?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          seat_label?: string | null
+          tenant_id: string
+          transport_leg_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          operation_id?: string
+          participation_id?: string
+          release_reason?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          seat_label?: string | null
+          tenant_id?: string
+          transport_leg_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seat_leg_fk"
+            columns: ["transport_leg_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "transport_legs"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "seat_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "seat_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "transport_seat_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_seat_assignments_released_by_fkey"
+            columns: ["released_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_seat_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          identifier: string | null
+          is_active: boolean
+          label: string
+          metadata: Json
+          notes: string | null
+          operator_name: string | null
+          tenant_id: string
+          updated_at: string
+          vehicle_kind: Database["public"]["Enums"]["transport_vehicle_kind"]
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          identifier?: string | null
+          is_active?: boolean
+          label: string
+          metadata?: Json
+          notes?: string | null
+          operator_name?: string | null
+          tenant_id: string
+          updated_at?: string
+          vehicle_kind?: Database["public"]["Enums"]["transport_vehicle_kind"]
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          identifier?: string | null
+          is_active?: boolean
+          label?: string
+          metadata?: Json
+          notes?: string | null
+          operator_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+          vehicle_kind?: Database["public"]["Enums"]["transport_vehicle_kind"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1250,11 +1762,47 @@ export type Database = {
         }
         Returns: Json
       }
+      add_transport_leg_stop: {
+        Args: {
+          _is_pickup?: boolean
+          _label: string
+          _notes?: string
+          _planned_time?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      assign_driver_to_leg: {
+        Args: {
+          _driver_id: string
+          _reason?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
       assign_operation_role: {
         Args: {
           _is_primary?: boolean
           _participation_id: string
           _role_type_id: string
+        }
+        Returns: Json
+      }
+      assign_seat: {
+        Args: {
+          _idempotency_key: string
+          _participation_id: string
+          _reason?: string
+          _seat_label?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      assign_vehicle_to_leg: {
+        Args: {
+          _reason?: string
+          _transport_leg_id: string
+          _vehicle_id: string
         }
         Returns: Json
       }
@@ -1272,6 +1820,14 @@ export type Database = {
           _slug: string
           _timezone?: string
         }
+        Returns: Json
+      }
+      cancel_transport_leg: {
+        Args: { _reason: string; _transport_leg_id: string }
+        Returns: Json
+      }
+      clear_leg_assignment: {
+        Args: { _reason: string; _transport_leg_id: string }
         Returns: Json
       }
       complete_boarding: {
@@ -1305,6 +1861,34 @@ export type Database = {
           _title: string
           _traveler_facing?: boolean
           _traveler_label?: string
+        }
+        Returns: Json
+      }
+      create_ad_hoc_transport_leg: {
+        Args: {
+          _destination_label?: string
+          _expected_arrival?: string
+          _expected_departure?: string
+          _idempotency_key: string
+          _journey_step_id?: string
+          _leg_kind?: Database["public"]["Enums"]["transport_leg_kind"]
+          _notes?: string
+          _operation_id: string
+          _origin_label?: string
+          _reason: string
+          _replaces_leg_id?: string
+          _title: string
+        }
+        Returns: Json
+      }
+      create_driver: {
+        Args: {
+          _driver_code?: string
+          _idempotency_key: string
+          _notes?: string
+          _operator_name?: string
+          _person_id: string
+          _tenant_id: string
         }
         Returns: Json
       }
@@ -1400,6 +1984,34 @@ export type Database = {
         }
         Returns: Json
       }
+      create_transport_leg: {
+        Args: {
+          _destination_label?: string
+          _idempotency_key: string
+          _journey_step_id?: string
+          _leg_kind?: Database["public"]["Enums"]["transport_leg_kind"]
+          _notes?: string
+          _operation_id: string
+          _origin_label?: string
+          _planned_arrival?: string
+          _planned_departure?: string
+          _title: string
+        }
+        Returns: Json
+      }
+      create_vehicle: {
+        Args: {
+          _capacity?: number
+          _idempotency_key: string
+          _identifier?: string
+          _label: string
+          _notes?: string
+          _operator_name?: string
+          _tenant_id: string
+          _vehicle_kind?: Database["public"]["Enums"]["transport_vehicle_kind"]
+        }
+        Returns: Json
+      }
       deactivate_playbook_item: {
         Args: { _playbook_item_id: string; _reason: string }
         Returns: Json
@@ -1430,6 +2042,10 @@ export type Database = {
         Args: { _person_id: string; _profile_id: string; _tenant_id: string }
         Returns: Json
       }
+      link_transport_leg_to_journey_step: {
+        Args: { _journey_step_id: string; _transport_leg_id: string }
+        Returns: Json
+      }
       note_incident: {
         Args: {
           _journey_step_id?: string
@@ -1439,12 +2055,36 @@ export type Database = {
         }
         Returns: Json
       }
+      note_transport_incident: {
+        Args: {
+          _note: string
+          _occurred_at?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
       record_arrival: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
       record_departed: {
         Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      record_destination_arrived: {
+        Args: {
+          _note?: string
+          _occurred_at?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      record_leg_departed: {
+        Args: {
+          _note?: string
+          _occurred_at?: string
+          _transport_leg_id: string
+        }
         Returns: Json
       }
       record_presence_fact: {
@@ -1458,12 +2098,56 @@ export type Database = {
         }
         Returns: Json
       }
+      record_stop_reached: {
+        Args: {
+          _note?: string
+          _occurred_at?: string
+          _transport_leg_stop_id: string
+        }
+        Returns: Json
+      }
+      record_vehicle_at_pickup: {
+        Args: {
+          _note?: string
+          _occurred_at?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      record_vehicle_en_route_to_pickup: {
+        Args: {
+          _note?: string
+          _occurred_at?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      release_seat: {
+        Args: { _reason: string; _seat_assignment_id: string }
+        Returns: Json
+      }
+      remove_transport_leg_stop: {
+        Args: { _reason: string; _transport_leg_stop_id: string }
+        Returns: Json
+      }
       reopen_playbook_item: {
         Args: { _playbook_item_id: string; _reason: string }
         Returns: Json
       }
       reorder_journey_steps: {
         Args: { _operation_id: string; _step_ids: string[] }
+        Returns: Json
+      }
+      request_vehicle: {
+        Args: {
+          _note?: string
+          _occurred_at?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      set_driver_active: {
+        Args: { _driver_id: string; _is_active: boolean; _reason?: string }
         Returns: Json
       }
       set_operation_archived: {
@@ -1508,6 +2192,14 @@ export type Database = {
         Args: { _participation_id: string; _role_type_id: string }
         Returns: Json
       }
+      set_return_time: {
+        Args: {
+          _note?: string
+          _return_time: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
       set_step_expected_window: {
         Args: {
           _expected_end: string
@@ -1515,6 +2207,27 @@ export type Database = {
           _journey_step_id: string
           _reason: string
         }
+        Returns: Json
+      }
+      set_transport_leg_expected_window: {
+        Args: {
+          _expected_arrival?: string
+          _expected_departure?: string
+          _reason: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      set_transport_leg_planned_window: {
+        Args: {
+          _planned_arrival: string
+          _planned_departure: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      set_vehicle_active: {
+        Args: { _is_active: boolean; _reason?: string; _vehicle_id: string }
         Returns: Json
       }
       skip_journey_step: {
@@ -1535,6 +2248,15 @@ export type Database = {
       }
       unassign_operation_role: {
         Args: { _participation_id: string; _role_type_id: string }
+        Returns: Json
+      }
+      update_driver: {
+        Args: {
+          _driver_code?: string
+          _driver_id: string
+          _notes?: string
+          _operator_name?: string
+        }
         Returns: Json
       }
       update_journey_step: {
@@ -1565,11 +2287,56 @@ export type Database = {
         }
         Returns: Json
       }
+      update_transport_leg: {
+        Args: {
+          _capacity_override?: number
+          _destination_label?: string
+          _leg_kind?: Database["public"]["Enums"]["transport_leg_kind"]
+          _notes?: string
+          _origin_label?: string
+          _title?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      update_transport_leg_stop: {
+        Args: {
+          _expected_time?: string
+          _is_pickup?: boolean
+          _label?: string
+          _notes?: string
+          _planned_time?: string
+          _transport_leg_stop_id: string
+        }
+        Returns: Json
+      }
+      update_vehicle: {
+        Args: {
+          _capacity?: number
+          _identifier?: string
+          _label?: string
+          _notes?: string
+          _operator_name?: string
+          _vehicle_id: string
+          _vehicle_kind?: Database["public"]["Enums"]["transport_vehicle_kind"]
+        }
+        Returns: Json
+      }
       w04_operation_runtime_state: {
         Args: { _operation_id: string }
         Returns: Json
       }
       w04_step_readiness: { Args: { _step_id: string }; Returns: Json }
+      w05_leg_dispatch_state: {
+        Args: { _transport_leg_id: string }
+        Returns: Json
+      }
+      w05_leg_manifest: { Args: { _transport_leg_id: string }; Returns: Json }
+      w05_leg_seat_candidates: {
+        Args: { _transport_leg_id: string }
+        Returns: Json
+      }
+      w05_operation_mobility: { Args: { _operation_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
@@ -1627,6 +2394,47 @@ export type Database = {
       step_plan_origin: "planned" | "ad_hoc"
       step_presence_population: "participants" | "all_confirmed"
       step_presence_requirement: "none" | "accounted" | "boarded"
+      transport_dispatch_state:
+        | "planned"
+        | "requested"
+        | "assigned"
+        | "en_route_to_pickup"
+        | "at_pickup"
+        | "in_transit"
+        | "arrived"
+        | "cancelled"
+      transport_event_type:
+        | "LEG_CREATED"
+        | "VEHICLE_REQUESTED"
+        | "VEHICLE_ASSIGNED"
+        | "DRIVER_ASSIGNED"
+        | "ASSIGNMENT_CHANGED"
+        | "ASSIGNMENT_CLEARED"
+        | "VEHICLE_EN_ROUTE_TO_PICKUP"
+        | "VEHICLE_AT_PICKUP"
+        | "LEG_DEPARTED"
+        | "STOP_REACHED"
+        | "DESTINATION_ARRIVED"
+        | "LEG_CANCELLED"
+        | "RETURN_TIME_SET"
+        | "EXPECTED_TIME_CHANGED"
+        | "SEAT_ASSIGNED"
+        | "SEAT_RELEASED"
+        | "TRANSPORT_INCIDENT_NOTED"
+      transport_leg_kind:
+        | "outbound"
+        | "transfer"
+        | "shuttle"
+        | "return"
+        | "other"
+      transport_vehicle_kind:
+        | "bus"
+        | "minibus"
+        | "van"
+        | "car"
+        | "boat"
+        | "shuttle"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1813,6 +2621,51 @@ export const Constants = {
       step_plan_origin: ["planned", "ad_hoc"],
       step_presence_population: ["participants", "all_confirmed"],
       step_presence_requirement: ["none", "accounted", "boarded"],
+      transport_dispatch_state: [
+        "planned",
+        "requested",
+        "assigned",
+        "en_route_to_pickup",
+        "at_pickup",
+        "in_transit",
+        "arrived",
+        "cancelled",
+      ],
+      transport_event_type: [
+        "LEG_CREATED",
+        "VEHICLE_REQUESTED",
+        "VEHICLE_ASSIGNED",
+        "DRIVER_ASSIGNED",
+        "ASSIGNMENT_CHANGED",
+        "ASSIGNMENT_CLEARED",
+        "VEHICLE_EN_ROUTE_TO_PICKUP",
+        "VEHICLE_AT_PICKUP",
+        "LEG_DEPARTED",
+        "STOP_REACHED",
+        "DESTINATION_ARRIVED",
+        "LEG_CANCELLED",
+        "RETURN_TIME_SET",
+        "EXPECTED_TIME_CHANGED",
+        "SEAT_ASSIGNED",
+        "SEAT_RELEASED",
+        "TRANSPORT_INCIDENT_NOTED",
+      ],
+      transport_leg_kind: [
+        "outbound",
+        "transfer",
+        "shuttle",
+        "return",
+        "other",
+      ],
+      transport_vehicle_kind: [
+        "bus",
+        "minibus",
+        "van",
+        "car",
+        "boat",
+        "shuttle",
+        "other",
+      ],
     },
   },
 } as const
