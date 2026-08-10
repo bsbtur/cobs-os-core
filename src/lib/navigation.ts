@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   Settings2,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,7 +23,7 @@ export type NavItem = {
   /** i18n key for the label */
   labelKey: string;
   /** Route path — planned routes intentionally resolve to the shell overview in W00. */
-  to: "/app";
+  to: "/app" | "/people" | "/team" | "/settings";
   icon: LucideIcon;
   status: NavStatus;
   /** Domain owner — enforces the DOMAIN OWNERSHIP rule. */
@@ -82,9 +83,19 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         id: "people",
         labelKey: "nav.people",
-        to: "/app",
+        to: "/people",
         icon: Users,
-        status: "planned",
+        status: "live",
+        domain: "identity",
+        activatesIn: "W01",
+        mobile: true,
+      },
+      {
+        id: "team",
+        labelKey: "nav.team",
+        to: "/team",
+        icon: UsersRound,
+        status: "live",
         domain: "identity",
         activatesIn: "W01",
         mobile: true,
@@ -116,9 +127,9 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         id: "settings",
         labelKey: "nav.settings",
-        to: "/app",
+        to: "/settings",
         icon: Settings2,
-        status: "planned",
+        status: "live",
         domain: "platform",
         activatesIn: "W01",
       },
@@ -140,6 +151,10 @@ export type RouteMeta = {
 
 export const ROUTE_META: RouteMeta[] = [
   { path: "/", titleKey: "landing.title", authenticated: false, indexable: true },
-  { path: "/sign-in", titleKey: "signin.title", authenticated: false, indexable: false },
+  { path: "/auth", titleKey: "auth.title", authenticated: false, indexable: false },
   { path: "/app", titleKey: "overview.title", authenticated: true, indexable: false },
+  { path: "/onboarding", titleKey: "onboarding.title", authenticated: true, indexable: false },
+  { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
+  { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
+  { path: "/settings", titleKey: "settings.title", authenticated: true, indexable: false },
 ];
