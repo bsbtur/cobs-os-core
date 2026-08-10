@@ -4,6 +4,7 @@ import { W01_DICTIONARIES } from "./i18n-w01";
 import { W02_DICTIONARIES } from "./i18n-w02";
 import { W03_DICTIONARIES } from "./i18n-w03";
 import { W04_DICTIONARIES } from "./i18n-w04";
+import { W05_DICTIONARIES } from "./i18n-w05";
 
 /**
  * COBS OS — i18n foundation (W00)
