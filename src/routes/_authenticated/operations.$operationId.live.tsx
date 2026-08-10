@@ -271,7 +271,7 @@ function ChecklistPanel({
       <ul className="mt-3 divide-y divide-border/60">
         {items.map((item) => {
           const last = stateOf(item.id);
-          const done = last?.action === "completed";
+          const done = last?.execution_action === "completed";
           return (
             <li key={item.id} className="flex flex-wrap items-center gap-2 py-2.5">
               <CheckCircle2
@@ -434,13 +434,18 @@ function LiveRuntimePage() {
   const steps = live.data?.steps ?? [];
   if (steps.length === 0) {
     return (
-      <EmptyState icon={Radio} title={t("w04.live.noSteps")} body={t("w04.live.noStepsBody")}>
-        <Button asChild className="min-h-11">
-          <Link from="/operations/$operationId" to="/operations/$operationId/journey">
-            {t("w04.journey.title")}
-          </Link>
-        </Button>
-      </EmptyState>
+      <EmptyState
+        icon={Radio}
+        title={t("w04.live.noSteps")}
+        body={t("w04.live.noStepsBody")}
+        action={
+          <Button asChild className="min-h-11">
+            <Link from="/operations/$operationId" to="/operations/$operationId/journey">
+              {t("w04.journey.title")}
+            </Link>
+          </Button>
+        }
+      />
     );
   }
 
