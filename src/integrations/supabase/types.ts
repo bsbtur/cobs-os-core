@@ -2377,6 +2377,15 @@ export type Database = {
         }
         Returns: Json
       }
+      add_stay_participation: {
+        Args: {
+          _idempotency_key: string
+          _notes?: string
+          _participation_id: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
       add_transport_leg_stop: {
         Args: {
           _is_pickup?: boolean
@@ -2403,6 +2412,16 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_room: {
+        Args: {
+          _allow_overcapacity?: boolean
+          _idempotency_key: string
+          _reason?: string
+          _room_id: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
       assign_seat: {
         Args: {
           _idempotency_key: string
@@ -2423,6 +2442,10 @@ export type Database = {
       }
       authorize_departure: {
         Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      block_hospitality_room: {
+        Args: { _idempotency_key: string; _reason: string; _room_id: string }
         Returns: Json
       }
       bootstrap_tenant: {
@@ -2806,8 +2829,24 @@ export type Database = {
         }
         Returns: Json
       }
+      release_room: {
+        Args: {
+          _idempotency_key: string
+          _reason: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
       release_seat: {
         Args: { _reason: string; _seat_assignment_id: string }
+        Returns: Json
+      }
+      remove_stay_participation: {
+        Args: {
+          _idempotency_key: string
+          _reason: string
+          _stay_participation_id: string
+        }
         Returns: Json
       }
       remove_transport_leg_stop: {
@@ -2827,6 +2866,14 @@ export type Database = {
           _note?: string
           _occurred_at?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      restore_stay_participation: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _stay_participation_id: string
         }
         Returns: Json
       }
@@ -2960,6 +3007,10 @@ export type Database = {
       }
       unassign_operation_role: {
         Args: { _participation_id: string; _role_type_id: string }
+        Returns: Json
+      }
+      unblock_hospitality_room: {
+        Args: { _idempotency_key: string; _note?: string; _room_id: string }
         Returns: Json
       }
       update_driver: {
