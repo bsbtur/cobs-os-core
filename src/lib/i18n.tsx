@@ -171,9 +171,9 @@ const esES: Dictionary = {
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
-  "pt-BR": ptBR,
-  "en-US": enUS,
-  "es-ES": esES,
+  "pt-BR": { ...ptBR, ...W01_DICTIONARIES["pt-BR"] },
+  "en-US": { ...enUS, ...W01_DICTIONARIES["en-US"] },
+  "es-ES": { ...esES, ...W01_DICTIONARIES["es-ES"] },
 };
 
 export type I18nValue = {
