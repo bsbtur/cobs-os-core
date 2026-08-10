@@ -197,11 +197,7 @@ function CreateEventForm({
       {sourceKind === "external" ? (
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="ev-producer">{t("w07.producer")}</Label>
-          <Input
-            id="ev-producer"
-            value={producer}
-            onChange={(e) => setProducer(e.target.value)}
-          />
+          <Input id="ev-producer" value={producer} onChange={(e) => setProducer(e.target.value)} />
         </div>
       ) : null}
       <div className="space-y-1.5">
@@ -476,7 +472,12 @@ function SessionForm({
       {adHoc ? (
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="ss-reason">{t("w07.program.adhocReason")}</Label>
-          <Input id="ss-reason" required value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Input
+            id="ss-reason"
+            required
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
         </div>
       ) : null}
       <div className="sm:col-span-2">
@@ -589,7 +590,9 @@ function SessionCard({
           {String(session.sequence).padStart(2, "0")}
         </span>
         <span className="font-medium">{session.title}</span>
-        <span className="text-xs text-muted-foreground">{t(`w07.kind.${session.session_kind}`)}</span>
+        <span className="text-xs text-muted-foreground">
+          {t(`w07.kind.${session.session_kind}`)}
+        </span>
         {session.is_ad_hoc ? (
           <span className="rounded bg-warning-soft px-1.5 py-0.5 text-[11px] text-warning">
             {t("w07.program.adhocBadge")}
@@ -661,7 +664,9 @@ function SessionCard({
 
           {!external && actions.includes("cancel") ? (
             <div className="space-y-1.5">
-              <Label htmlFor={`cancel-${session.session_id}`}>{t("w07.session.cancelReason")}</Label>
+              <Label htmlFor={`cancel-${session.session_id}`}>
+                {t("w07.session.cancelReason")}
+              </Label>
               <Input
                 id={`cancel-${session.session_id}`}
                 value={reason}
@@ -1473,10 +1478,8 @@ function EventsTab() {
     if (!selected) return;
     const channel = supabase
       .channel(`w07-${selected.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "event_runtime_events" },
-        () => refresh(),
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_runtime_events" }, () =>
+        refresh(),
       )
       .on("postgres_changes", { event: "*", schema: "public", table: "event_sessions" }, () =>
         refresh(),

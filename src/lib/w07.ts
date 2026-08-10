@@ -222,7 +222,6 @@ export function sessionResolution(snapshot: EventRuntimeSnapshot | null) {
   };
 }
 
-
 /**
  * DETERMINISTIC primary action. No scoring, no recommendation engine — just the
  * single legal next move derived from lifecycle plus runtime facts.
@@ -247,13 +246,17 @@ export function primaryAction(
     if (upcoming) {
       return {
         key:
-          event.source_kind === "internal" ? "w07.action.startSession" : "w07.action.observeSession",
+          event.source_kind === "internal"
+            ? "w07.action.startSession"
+            : "w07.action.observeSession",
         kind: "session.start",
       };
     }
     return {
       key:
-        event.source_kind === "internal" ? "w07.action.completeEvent" : "w07.action.observeComplete",
+        event.source_kind === "internal"
+          ? "w07.action.completeEvent"
+          : "w07.action.observeComplete",
       kind: "event.complete",
     };
   }
@@ -267,7 +270,8 @@ export function primaryAction(
 export function sessionDelayMinutes(session: ProgramSession) {
   if (!session.planned_start || !session.expected_start) return 0;
   return Math.round(
-    (new Date(session.expected_start).getTime() - new Date(session.planned_start).getTime()) / 60000,
+    (new Date(session.expected_start).getTime() - new Date(session.planned_start).getTime()) /
+      60000,
   );
 }
 

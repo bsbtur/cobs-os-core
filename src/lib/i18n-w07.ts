@@ -153,7 +153,8 @@ export const W07_PT: Record<string, string> = {
   "w07.run.needsReady": "O evento precisa estar pronto antes de começar.",
   "w07.run.unresolvedOne": "sessão ainda precisa ser concluída ou cancelada.",
   "w07.run.unresolvedMany": "sessões ainda precisam ser concluídas ou canceladas.",
-  "w07.run.unresolvedHint": "Resolva cada sessão explicitamente. O COBS nunca conclui nem cancela sessões automaticamente.",
+  "w07.run.unresolvedHint":
+    "Resolva cada sessão explicitamente. O COBS nunca conclui nem cancela sessões automaticamente.",
   "w07.run.goToSessions": "Ver sessões pendentes",
 
   "w07.observe": "Observação externa",
@@ -377,7 +378,8 @@ export const W07_EN: Record<string, string> = {
   "w07.run.needsReady": "The event has to be ready before it can start.",
   "w07.run.unresolvedOne": "session still has to be completed or cancelled.",
   "w07.run.unresolvedMany": "sessions still have to be completed or cancelled.",
-  "w07.run.unresolvedHint": "Resolve every session explicitly. COBS never completes or cancels sessions for you.",
+  "w07.run.unresolvedHint":
+    "Resolve every session explicitly. COBS never completes or cancels sessions for you.",
   "w07.run.goToSessions": "Go to pending sessions",
 
   "w07.observe": "External observation",
@@ -500,7 +502,8 @@ export const W07_ES: Record<string, string> = {
   "w07.run": "Ejecución",
   "w07.run.unresolvedOne": "sesión aún debe completarse o cancelarse.",
   "w07.run.unresolvedMany": "sesiones aún deben completarse o cancelarse.",
-  "w07.run.unresolvedHint": "Resuelve cada sesión explícitamente. COBS nunca completa ni cancela sesiones automáticamente.",
+  "w07.run.unresolvedHint":
+    "Resuelve cada sesión explícitamente. COBS nunca completa ni cancela sesiones automáticamente.",
   "w07.run.goToSessions": "Ver sesiones pendientes",
   "w07.timeline": "Hechos de ejecución",
   "w07.venues.title": "Sedes",
