@@ -379,11 +379,11 @@ function OperationCard({ op, index }: { op: OperationRow; index: number }) {
     <Link
       to="/operations/$operationId"
       params={{ operationId: op.id }}
-      className="surface-panel animate-rise flex flex-col gap-2 p-4 transition-colors hover:border-border-strong"
+      className="surface-panel animate-rise flex min-w-0 flex-col gap-2 p-4 transition-colors hover:border-border-strong"
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold">{op.name}</p>
           <p className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
             {op.code} · {op.source_experience_name ?? t("op.lineageNone")}
@@ -480,7 +480,7 @@ function OperationsWorkspace() {
       ) : null}
 
       {items.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 xl:grid-cols-3">
           {items.map((op, index) => (
             <OperationCard key={op.id} op={op} index={index} />
           ))}

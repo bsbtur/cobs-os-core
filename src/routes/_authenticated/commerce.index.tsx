@@ -253,16 +253,16 @@ function CommerceWorkspace() {
       {rows.length === 0 ? (
         <EmptyState icon={Receipt} title={t("w09.orders.empty")} body={t("w09.orders.emptyBody")} />
       ) : (
-        <ul className="grid gap-3">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-3">
           {rows.map((o) => (
-            <li key={o.id}>
+            <li key={o.id} className="min-w-0">
               <Link
                 to="/commerce/$orderId"
                 params={{ orderId: o.id }}
-                className="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-elevated"
+                className="block min-w-0 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-elevated"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
                       {o.buyer_name ?? t("w09.order")}
                       {o.reference_label ? ` · ${o.reference_label}` : ""}
