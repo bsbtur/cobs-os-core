@@ -401,12 +401,7 @@ function OperationDetail() {
 
   return (
     <div className="space-y-6">
-      <Button asChild variant="ghost" size="sm" className="-ml-2 min-h-9">
-        <Link to="/operations">
-          <ArrowLeft className="mr-2 size-4" aria-hidden="true" />
-          {t("op.back")}
-        </Link>
-      </Button>
+
 
       <header className="surface-panel animate-rise space-y-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
