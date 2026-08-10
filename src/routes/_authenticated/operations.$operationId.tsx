@@ -108,7 +108,7 @@ function LifecyclePanel({ op }: { op: OperationRow }) {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  if (!canManage) return null;
+  if (!canOperate) return null;
 
   return (
     <section className="surface-panel space-y-4 p-5">
