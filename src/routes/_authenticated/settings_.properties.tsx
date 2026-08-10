@@ -9,12 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
-import {
-  PROPERTY_KINDS,
-  newIdempotencyKey,
-  type PropertyKind,
-  type PropertyRow,
-} from "@/lib/w06";
+import { PROPERTY_KINDS, newIdempotencyKey, type PropertyKind, type PropertyRow } from "@/lib/w06";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,9 +19,9 @@ import { feedback } from "@/components/feedback/feedback";
 
 /** Drops undefined keys so optional RPC arguments stay absent rather than explicit undefined. */
 function rpcArgs<T extends Record<string, unknown>>(input: T) {
-  return Object.fromEntries(
-    Object.entries(input).filter(([, value]) => value !== undefined),
-  ) as { [K in keyof T]: Exclude<T[K], undefined> };
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as {
+    [K in keyof T]: Exclude<T[K], undefined>;
+  };
 }
 
 export const Route = createFileRoute("/_authenticated/settings_/properties")({

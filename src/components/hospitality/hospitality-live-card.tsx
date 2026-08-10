@@ -48,9 +48,7 @@ export function HospitalityLiveCard({ operationId }: { operationId: string }) {
         {stays.map((stay) => (
           <li key={stay.stay_id} className="flex flex-wrap items-center gap-2 text-sm">
             <span className="font-medium">{stay.property_name}</span>
-            <span
-              className={`rounded px-1.5 py-0.5 text-[11px] ${STAY_STATUS_TONE[stay.status]}`}
-            >
+            <span className={`rounded px-1.5 py-0.5 text-[11px] ${STAY_STATUS_TONE[stay.status]}`}>
               {t(`w06.status.${stay.status}`)}
             </span>
             <span className="ml-auto tabular-nums text-muted-foreground">

@@ -209,7 +209,8 @@ export const W06_EN: Record<string, string> = {
   "w06.title": "Hospitality",
   "w06.subtitle":
     "Accommodation for this operation: rooms, allocation, check-in and check-out. Journey still owns travel presence.",
-  "w06.boundary": "Assigning a room is not a check-in. Check-in exists only once someone confirms it.",
+  "w06.boundary":
+    "Assigning a room is not a check-in. Check-in exists only once someone confirms it.",
   "w06.empty": "No accommodation added.",
   "w06.emptyBody": "Add the hotel, resort or other accommodation used by this operation.",
   "w06.forbidden": "You don't have access to hospitality for this operation.",

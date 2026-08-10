@@ -63,9 +63,9 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/ho
 
 /** Drops undefined keys so optional RPC arguments stay absent rather than explicit undefined. */
 function rpcArgs<T extends Record<string, unknown>>(input: T) {
-  return Object.fromEntries(
-    Object.entries(input).filter(([, value]) => value !== undefined),
-  ) as { [K in keyof T]: Exclude<T[K], undefined> };
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as {
+    [K in keyof T]: Exclude<T[K], undefined>;
+  };
 }
 
 const SELECT_CLASS =
@@ -281,7 +281,8 @@ function RoomPicker({
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {changing ? t("w06.action.changeRoom") : t("w06.action.assignRoom")} · {guest.full_name}
+              {changing ? t("w06.action.changeRoom") : t("w06.action.assignRoom")} ·{" "}
+              {guest.full_name}
             </DialogTitle>
           </DialogHeader>
 
@@ -423,11 +424,7 @@ function ReleaseRoomButton({ guest, onDone }: { guest: StayGuest; onDone: () => 
           <p className="text-sm text-muted-foreground">{t("w06.action.releaseHint")}</p>
           <div className="space-y-1.5">
             <Label htmlFor="release-reason">{t("w06.action.reason")}</Label>
-            <Input
-              id="release-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
+            <Input id="release-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
           </div>
           <Button
             className="min-h-11 w-full"
@@ -648,7 +645,11 @@ function RoomsPanel({
       for (let index = 0; index < total; index += 1) {
         /* Each room is its own approved command call with its own idempotency key. */
         const roomLabel =
-          total === 1 ? label : Number.isFinite(base) ? String(base + index) : `${label} ${index + 1}`;
+          total === 1
+            ? label
+            : Number.isFinite(base)
+              ? String(base + index)
+              : `${label} ${index + 1}`;
         const { error } = await supabase.rpc(
           "create_hospitality_room",
           rpcArgs({
@@ -725,7 +726,11 @@ function RoomsPanel({
                           : "bg-success-soft text-success"
                     }`}
                   >
-                    {blocked ? t("w06.room.blocked") : full ? t("w06.room.full") : t("w06.room.available")}
+                    {blocked
+                      ? t("w06.room.blocked")
+                      : full
+                        ? t("w06.room.full")
+                        : t("w06.room.available")}
                   </span>
                 </div>
                 <p className="mt-1 text-sm tabular-nums text-muted-foreground">
@@ -806,13 +811,7 @@ function RoomsPanel({
 /* Stay controls                                                       */
 /* ------------------------------------------------------------------ */
 
-function StayControls({
-  overview,
-  onDone,
-}: {
-  overview: StayOverview;
-  onDone: () => void;
-}) {
+function StayControls({ overview, onDone }: { overview: StayOverview; onDone: () => void }) {
   const { t, locale } = useI18n();
   const [expectedIn, setExpectedIn] = React.useState("");
   const [expectedOut, setExpectedOut] = React.useState("");
@@ -892,7 +891,11 @@ function StayControls({
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {overview.status === "draft" ? (
-          <Button className="min-h-11" disabled={run.isPending} onClick={() => run.mutate("confirm")}>
+          <Button
+            className="min-h-11"
+            disabled={run.isPending}
+            onClick={() => run.mutate("confirm")}
+          >
             {t("w06.stay.confirm")}
           </Button>
         ) : null}
@@ -961,9 +964,7 @@ function StayControls({
         variant="outline"
         className="min-h-11"
         disabled={
-          run.isPending ||
-          (expectedIn === "" && expectedOut === "") ||
-          forecastReason.trim() === ""
+          run.isPending || (expectedIn === "" && expectedOut === "") || forecastReason.trim() === ""
         }
         onClick={() => run.mutate("forecast")}
       >
@@ -1052,9 +1053,7 @@ function AddParticipation({
           value={participationId}
           onChange={(e) => setParticipationId(e.target.value)}
         >
-          <option value="">
-            {candidates.length === 0 ? t("w06.participation.none") : "—"}
-          </option>
+          <option value="">{candidates.length === 0 ? t("w06.participation.none") : "—"}</option>
           {candidates.map((row) => (
             <option key={row.participation_id} value={row.participation_id}>
               {row.full_name}
@@ -1097,11 +1096,7 @@ function HospitalityPage() {
       const [operation, hospitality, properties, participations] = await Promise.all([
         supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
         supabase.rpc("w06_operation_hospitality", { _operation_id: operationId }),
-        supabase
-          .from("hospitality_properties")
-          .select("*")
-          .eq("is_active", true)
-          .order("name"),
+        supabase.from("hospitality_properties").select("*").eq("is_active", true).order("name"),
         supabase
           .from("operation_participations")
           .select("id, status, people(full_name)")
@@ -1122,7 +1117,8 @@ function HospitalityPage() {
   });
 
   const stays = base.data?.hospitality?.stays ?? [];
-  const selectedStayId = stays.find((s) => s.stay_id === selectedId)?.stay_id ?? stays[0]?.stay_id ?? null;
+  const selectedStayId =
+    stays.find((s) => s.stay_id === selectedId)?.stay_id ?? stays[0]?.stay_id ?? null;
 
   const detail = useQuery({
     queryKey: ["hospitality-stay", selectedStayId],
@@ -1168,10 +1164,8 @@ function HospitalityPage() {
         },
         () => refresh(),
       )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "hospitality_rooms" },
-        () => refresh(),
+      .on("postgres_changes", { event: "*", schema: "public", table: "hospitality_rooms" }, () =>
+        refresh(),
       )
       .subscribe();
     return () => {
@@ -1183,9 +1177,7 @@ function HospitalityPage() {
 
   const operation = base.data?.operation;
   if (!operation) {
-    return (
-      <EmptyState icon={BedDouble} title={t("w06.forbidden")} body={t("w06.forbiddenBody")} />
-    );
+    return <EmptyState icon={BedDouble} title={t("w06.forbidden")} body={t("w06.forbiddenBody")} />;
   }
 
   const timeZone = operation.timezone ?? tenant?.timezone ?? undefined;
@@ -1307,7 +1299,11 @@ function HospitalityPage() {
                   {overview.property.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {[overview.property.city, overview.property.region, overview.property.country_code]
+                  {[
+                    overview.property.city,
+                    overview.property.region,
+                    overview.property.country_code,
+                  ]
                     .filter(Boolean)
                     .join(" · ") || overview.name}
                 </p>
@@ -1321,31 +1317,23 @@ function HospitalityPage() {
 
                 <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                   {[
-                    [
-                      t("w06.planned"),
-                      overview.planned_check_in,
-                      overview.planned_check_out,
-                    ],
-                    [
-                      t("w06.expected"),
-                      overview.expected_check_in,
-                      overview.expected_check_out,
-                    ],
-                    [
-                      t("w06.actual"),
-                      overview.checkin_opened_at,
-                      overview.checkout_completed_at,
-                    ],
+                    [t("w06.planned"), overview.planned_check_in, overview.planned_check_out],
+                    [t("w06.expected"), overview.expected_check_in, overview.expected_check_out],
+                    [t("w06.actual"), overview.checkin_opened_at, overview.checkout_completed_at],
                   ].map(([label, start, end]) => (
                     <div key={label as string} className="rounded-lg border border-border/70 p-3">
                       <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                         {label}
                       </dt>
                       <dd className="mt-1 tabular-nums">
-                        {start ? formatDateTime(start as string, { locale, timeZone }) : t("w06.pending")}
+                        {start
+                          ? formatDateTime(start as string, { locale, timeZone })
+                          : t("w06.pending")}
                       </dd>
                       <dd className="tabular-nums text-muted-foreground">
-                        {end ? formatDateTime(end as string, { locale, timeZone }) : t("w06.pending")}
+                        {end
+                          ? formatDateTime(end as string, { locale, timeZone })
+                          : t("w06.pending")}
                       </dd>
                     </div>
                   ))}
