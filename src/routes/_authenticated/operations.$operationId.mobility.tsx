@@ -419,26 +419,30 @@ function DispatchActions({
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  /* TERMINAL LEG: arrived or cancelled legs expose no enabled dispatch control. */
+  const terminal = isTerminalLeg(state);
+
   const actions: Array<{ fn: string; label: string; disabled: boolean }> = [
     {
       fn: "request_vehicle",
       label: t("w05.action.requestVehicle"),
-      disabled: Boolean(state?.requested_at),
+      disabled: terminal || Boolean(state?.requested_at),
     },
     {
       fn: "record_vehicle_en_route_to_pickup",
       label: t("w05.action.enRoute"),
-      disabled: Boolean(state?.en_route_at) || !leg.vehicle_id,
+      disabled: terminal || Boolean(state?.en_route_at) || !leg.vehicle_id,
     },
     {
       fn: "record_vehicle_at_pickup",
       label: t("w05.action.atPickup"),
-      disabled: Boolean(state?.at_pickup_at) || !leg.vehicle_id,
+      disabled: terminal || Boolean(state?.at_pickup_at) || !leg.vehicle_id,
     },
     {
       fn: "record_leg_departed",
       label: t("w05.action.departed"),
       disabled:
+        terminal ||
         Boolean(state?.actual_departure) ||
         !state?.at_pickup_at ||
         !leg.vehicle_id ||
@@ -447,7 +451,7 @@ function DispatchActions({
     {
       fn: "record_destination_arrived",
       label: t("w05.action.arrived"),
-      disabled: Boolean(state?.actual_arrival) || !state?.actual_departure,
+      disabled: terminal || Boolean(state?.actual_arrival) || !state?.actual_departure,
     },
   ];
 
@@ -475,11 +479,13 @@ function DispatchActions({
 function StopsPanel({
   leg,
   manifest,
+  state,
   timeZone,
   onRefresh,
 }: {
   leg: TransportLegRow;
   manifest: LegManifest | null;
+  state: LegDispatchState | null;
   timeZone: string;
   onRefresh: () => void;
 }) {
@@ -519,6 +525,7 @@ function StopsPanel({
   });
 
   const stops = manifest?.stops ?? [];
+  const terminal = isTerminalLeg(state);
 
   return (
     <section className="surface-panel p-4">
@@ -646,7 +653,7 @@ function SeatsPanel({
   const seated = manifest?.seated ?? [];
   const history = manifest?.released_history ?? [];
   const options = candidates?.candidates ?? [];
-  const departed = Boolean(state?.actual_departure);
+  const departed = Boolean(state?.actual_departure) || isTerminalLeg(state);
 
   return (
     <section className="surface-panel p-4">
