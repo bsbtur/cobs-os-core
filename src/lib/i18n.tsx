@@ -193,6 +193,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W05_DICTIONARIES["pt-BR"],
     ...W06_DICTIONARIES["pt-BR"],
     ...W07_DICTIONARIES["pt-BR"],
+    ...W08_DICTIONARIES["pt-BR"],
   },
   "en-US": {
     ...enUS,
@@ -203,6 +204,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W05_DICTIONARIES["en-US"],
     ...W06_DICTIONARIES["en-US"],
     ...W07_DICTIONARIES["en-US"],
+    ...W08_DICTIONARIES["en-US"],
   },
   "es-ES": {
     ...esES,
@@ -213,8 +215,10 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W05_DICTIONARIES["es-ES"],
     ...W06_DICTIONARIES["es-ES"],
     ...W07_DICTIONARIES["es-ES"],
+    ...W08_DICTIONARIES["es-ES"],
   },
 };
+
 
 export type I18nValue = {
   locale: Locale;
