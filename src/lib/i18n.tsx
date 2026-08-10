@@ -10,7 +10,6 @@ import { W07_DICTIONARIES } from "./i18n-w07";
 import { W08_DICTIONARIES } from "./i18n-w08";
 import { W09_DICTIONARIES } from "./i18n-w09";
 
-
 /**
  * COBS OS — i18n foundation (W00)
  * Global-first: locale, timezone and currency are runtime context, never hardcoded.
@@ -222,7 +221,6 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W09_DICTIONARIES["es-ES"],
   },
 };
-
 
 export type I18nValue = {
   locale: Locale;

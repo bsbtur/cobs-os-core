@@ -5,7 +5,6 @@ import {
   Globe2,
   Inbox,
   LayoutGrid,
-
   ShoppingBag,
   Settings2,
   Users,
@@ -211,7 +210,12 @@ export const ROUTE_META: RouteMeta[] = [
   { path: "/inbox", titleKey: "w08.inbox.title", authenticated: true, indexable: false },
   { path: "/commerce", titleKey: "w09.title", authenticated: true, indexable: false },
   { path: "/commerce/$orderId", titleKey: "w09.order", authenticated: true, indexable: false },
-  { path: "/settings/catalog", titleKey: "w09.catalog.title", authenticated: true, indexable: false },
+  {
+    path: "/settings/catalog",
+    titleKey: "w09.catalog.title",
+    authenticated: true,
+    indexable: false,
+  },
   { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
 
   { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
@@ -224,4 +228,3 @@ export const ROUTE_META: RouteMeta[] = [
     indexable: false,
   },
 ];
-

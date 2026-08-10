@@ -222,9 +222,7 @@ export function refundableMinor(fact: OrderDetailFact) {
 
 /** Reversal is full amount, once, and only when nothing was refunded against it. */
 export function canReverse(fact: OrderDetailFact) {
-  return (
-    fact.fact_type === "PAYMENT_RECORDED" && !fact.is_reversed && fact.refunded_minor === 0
-  );
+  return fact.fact_type === "PAYMENT_RECORDED" && !fact.is_reversed && fact.refunded_minor === 0;
 }
 
 /** Decimal input → BIGINT minor units. Never store or compute money as a float. */

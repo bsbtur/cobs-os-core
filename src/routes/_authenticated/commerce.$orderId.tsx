@@ -282,7 +282,12 @@ function PaymentForm({ orderId, onDone }: { orderId: string; onDone: () => void 
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="pay-reason">{t("w09.payment.reason")}</Label>
-        <Input id="pay-reason" required value={reason} onChange={(e) => setReason(e.target.value)} />
+        <Input
+          id="pay-reason"
+          required
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
       </div>
       <div className="sm:col-span-2">
         <p className="mb-2 text-xs text-muted-foreground">{t("w09.payment.recordHint")}</p>
@@ -350,7 +355,9 @@ function FactRow({ fact, onDone }: { fact: OrderDetailFact; onDone: () => void }
   return (
     <li className="rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${FACT_TONE[fact.fact_type]}`}>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-medium ${FACT_TONE[fact.fact_type]}`}
+        >
           {t(`w09.fact.${fact.fact_type}`)}
         </span>
         <Money minor={fact.amount_minor} currency={fact.currency} />
@@ -448,7 +455,11 @@ function OrderWorkspace({ orderId }: { orderId: string }) {
         return;
       }
       const fn =
-        action === "submit" ? "submit_order" : action === "confirm" ? "confirm_order" : "complete_order";
+        action === "submit"
+          ? "submit_order"
+          : action === "confirm"
+            ? "confirm_order"
+            : "complete_order";
       const { error } = await supabase.rpc(fn, {
         _order_id: orderId,
         _idempotency_key: newIdempotencyKey(),

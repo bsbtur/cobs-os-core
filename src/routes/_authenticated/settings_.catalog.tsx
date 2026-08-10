@@ -328,11 +328,7 @@ function CatalogWorkspace() {
       </Button>
 
       {entries.length === 0 ? (
-        <EmptyState
-          icon={Tags}
-          title={t("w09.catalog.empty")}
-          body={t("w09.catalog.emptyBody")}
-        />
+        <EmptyState icon={Tags} title={t("w09.catalog.empty")} body={t("w09.catalog.emptyBody")} />
       ) : (
         <ul className="grid gap-3">
           {entries.map((entry) => (
@@ -399,9 +395,7 @@ function CatalogWorkspace() {
                     ))}
                   </ul>
                 )}
-                {entry.status === "active" && (
-                  <PriceForm sellableId={entry.id} onDone={refresh} />
-                )}
+                {entry.status === "active" && <PriceForm sellableId={entry.id} onDone={refresh} />}
               </div>
             </li>
           ))}

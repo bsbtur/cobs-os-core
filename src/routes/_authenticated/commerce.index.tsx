@@ -251,11 +251,7 @@ function CommerceWorkspace() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState
-          icon={Receipt}
-          title={t("w09.orders.empty")}
-          body={t("w09.orders.emptyBody")}
-        />
+        <EmptyState icon={Receipt} title={t("w09.orders.empty")} body={t("w09.orders.emptyBody")} />
       ) : (
         <ul className="grid gap-3">
           {rows.map((o) => (
