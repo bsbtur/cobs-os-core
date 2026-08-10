@@ -93,6 +93,12 @@ function Body() {
               {t("w06.prop.open")}
             </Link>
           </Button>
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/settings/venues">
+              <Building2 className="mr-2 size-4" aria-hidden="true" />
+              {t("w07.venues.open")}
+            </Link>
+          </Button>
         </div>
       </section>
 
