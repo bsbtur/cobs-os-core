@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { MoreHorizontal } from "lucide-react";
 
 import { MOBILE_NAV_ITEMS, NAV_SECTIONS } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
@@ -7,9 +8,23 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { OrgContext } from "./org-context";
 import { BrandLockup } from "./brand";
 
-/** Field-first bottom navigation: thumb-reachable, 4 destinations max, always visible. */
-export function MobileTabBar({ activeId }: { activeId: string }) {
+const CELL_CLASS =
+  "flex min-h-14 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] transition-colors";
+
+/**
+ * Field-first bottom navigation: 3 primary destinations + a "More" trigger.
+ * The grid is exactly 4 cells — items never wrap or overlap at 390px.
+ */
+export function MobileTabBar({
+  activeId,
+  onOpenMenu,
+}: {
+  activeId: string;
+  onOpenMenu: () => void;
+}) {
   const { t } = useI18n();
+  const primaryIds = MOBILE_NAV_ITEMS.map((item) => item.id);
+  const moreActive = !primaryIds.includes(activeId);
 
   return (
     <nav
@@ -21,18 +36,15 @@ export function MobileTabBar({ activeId }: { activeId: string }) {
           const Icon = item.icon;
           const active = item.id === activeId;
           return (
-            <li key={item.id}>
+            <li key={item.id} className="min-w-0">
               <Link
                 to={item.to}
                 aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] transition-colors",
-                  active ? "text-primary" : "text-muted-foreground",
-                )}
+                className={cn(CELL_CLASS, active ? "text-primary" : "text-muted-foreground")}
               >
                 <span
                   className={cn(
-                    "grid size-8 place-items-center rounded-full transition-all duration-300",
+                    "grid size-8 shrink-0 place-items-center rounded-full transition-all duration-300",
                     active ? "bg-primary-soft" : "bg-transparent",
                   )}
                 >
@@ -43,10 +55,29 @@ export function MobileTabBar({ activeId }: { activeId: string }) {
             </li>
           );
         })}
+        <li className="min-w-0">
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            aria-haspopup="dialog"
+            className={cn(CELL_CLASS, moreActive ? "text-primary" : "text-muted-foreground")}
+          >
+            <span
+              className={cn(
+                "grid size-8 shrink-0 place-items-center rounded-full transition-all duration-300",
+                moreActive ? "bg-primary-soft" : "bg-transparent",
+              )}
+            >
+              <MoreHorizontal className="size-[18px]" aria-hidden="true" />
+            </span>
+            <span className="max-w-full truncate">{t("nav.more")}</span>
+          </button>
+        </li>
       </ul>
     </nav>
   );
 }
+
 
 /** Full navigation drawer for the remaining destinations on mobile. */
 export function MobileNavDrawer({
