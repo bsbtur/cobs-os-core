@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { W01_DICTIONARIES } from "./i18n-w01";
 import { W02_DICTIONARIES } from "./i18n-w02";
+import { W03_DICTIONARIES } from "./i18n-w03";
 
 /**
  * COBS OS — i18n foundation (W00)
@@ -174,9 +175,24 @@ const esES: Dictionary = {
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
-  "pt-BR": { ...ptBR, ...W01_DICTIONARIES["pt-BR"], ...W02_DICTIONARIES["pt-BR"] },
-  "en-US": { ...enUS, ...W01_DICTIONARIES["en-US"], ...W02_DICTIONARIES["en-US"] },
-  "es-ES": { ...esES, ...W01_DICTIONARIES["es-ES"], ...W02_DICTIONARIES["es-ES"] },
+  "pt-BR": {
+    ...ptBR,
+    ...W01_DICTIONARIES["pt-BR"],
+    ...W02_DICTIONARIES["pt-BR"],
+    ...W03_DICTIONARIES["pt-BR"],
+  },
+  "en-US": {
+    ...enUS,
+    ...W01_DICTIONARIES["en-US"],
+    ...W02_DICTIONARIES["en-US"],
+    ...W03_DICTIONARIES["en-US"],
+  },
+  "es-ES": {
+    ...esES,
+    ...W01_DICTIONARIES["es-ES"],
+    ...W02_DICTIONARIES["es-ES"],
+    ...W03_DICTIONARIES["es-ES"],
+  },
 };
 
 export type I18nValue = {
