@@ -62,7 +62,7 @@ export type DeliverySummary = {
   in_app_reachable_count: number;
   unreachable_count: number;
   read_count: number;
-  source?: "preview" | "snapshot";
+  source?: "preview" | "snapshot" | undefined;
 };
 
 export type FeedMessage = {
