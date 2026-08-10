@@ -4909,10 +4909,21 @@ export type Database = {
         Args: { _message_id: string }
         Returns: Json
       }
+      get_my_event_program: { Args: { _operation_id: string }; Returns: Json }
+      get_my_journey: { Args: { _operation_id: string }; Returns: Json }
       get_my_message_inbox: {
         Args: { _limit?: number; _tenant_id: string }
         Returns: Json
       }
+      get_my_messages: { Args: { _operation_id: string }; Returns: Json }
+      get_my_mobility: { Args: { _operation_id: string }; Returns: Json }
+      get_my_operation_overview: {
+        Args: { _operation_id: string }
+        Returns: Json
+      }
+      get_my_operations: { Args: never; Returns: Json }
+      get_my_participant_access: { Args: never; Returns: Json }
+      get_my_stay: { Args: { _operation_id: string }; Returns: Json }
       get_offering_commercial_availability: {
         Args: { _offering_id: string }
         Returns: Json
@@ -4975,6 +4986,10 @@ export type Database = {
           _status?: Database["public"]["Enums"]["order_status"]
           _tenant_id: string
         }
+        Returns: Json
+      }
+      list_participant_access_grants: {
+        Args: { _operation_id?: string; _tenant_id: string }
         Returns: Json
       }
       lock_event_program: {
