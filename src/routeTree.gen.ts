@@ -18,6 +18,7 @@ import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_authenticated/experiences.index'
+import { Route as AuthenticatedExperiencesExperienceIdRouteImport } from './routes/_authenticated/experiences.$experienceId'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,12 @@ const AuthenticatedExperiencesIndexRoute =
     path: '/experiences/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedExperiencesExperienceIdRoute =
+  AuthenticatedExperiencesExperienceIdRouteImport.update({
+    id: '/experiences/$experienceId',
+    path: '/experiences/$experienceId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInviteTokenRoute =
   AuthenticatedInviteTokenRouteImport.update({
     id: '/invite/$token',
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
 }
@@ -91,6 +99,7 @@ export interface FileRoutesByTo {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
 }
@@ -104,6 +113,7 @@ export interface FileRoutesById {
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
 }
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/experiences/$experienceId'
     | '/invite/$token'
     | '/experiences/'
   fileRoutesByTo: FileRoutesByTo
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/experiences/$experienceId'
     | '/invite/$token'
     | '/experiences'
   id:
@@ -140,6 +152,7 @@ export interface FileRouteTypes {
     | '/_authenticated/people'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/_authenticated/experiences/$experienceId'
     | '/_authenticated/invite/$token'
     | '/_authenticated/experiences/'
   fileRoutesById: FileRoutesById
@@ -215,6 +228,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExperiencesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/experiences/$experienceId': {
+      id: '/_authenticated/experiences/$experienceId'
+      path: '/experiences/$experienceId'
+      fullPath: '/experiences/$experienceId'
+      preLoaderRoute: typeof AuthenticatedExperiencesExperienceIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/invite/$token': {
       id: '/_authenticated/invite/$token'
       path: '/invite/$token'
@@ -231,6 +251,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPeopleRoute: typeof AuthenticatedPeopleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedExperiencesExperienceIdRoute: typeof AuthenticatedExperiencesExperienceIdRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
 }
@@ -241,6 +262,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPeopleRoute: AuthenticatedPeopleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedExperiencesExperienceIdRoute:
+    AuthenticatedExperiencesExperienceIdRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
 }
