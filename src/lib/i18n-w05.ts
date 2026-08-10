@@ -205,6 +205,7 @@ export const W05_EN: Record<string, string> = {
   "w05.leg.returnTimeReason": "Reason for changing the return time",
   "w05.leg.returnTimeReasonHelp":
     "Required when changing an already agreed return time. Re-sending the same time records nothing.",
+  "w05.leg.returnTimeUnchanged": "The return time was already that. Nothing was recorded.",
   "w05.leg.replaces": "Replaces leg",
   "w05.leg.delay": "Delay",
   "w05.leg.minutes": "min",
