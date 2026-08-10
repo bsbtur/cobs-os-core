@@ -190,7 +190,9 @@ export const ROUTE_META: RouteMeta[] = [
     authenticated: true,
     indexable: false,
   },
+  { path: "/inbox", titleKey: "w08.inbox.title", authenticated: true, indexable: false },
   { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
+
   { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
   { path: "/settings", titleKey: "settings.title", authenticated: true, indexable: false },
   { path: "/settings/fleet", titleKey: "w05.fleet.title", authenticated: true, indexable: false },
