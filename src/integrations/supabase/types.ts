@@ -4267,6 +4267,10 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: Json }
+      accept_participant_access_invitation: {
+        Args: { _token: string }
+        Returns: Json
+      }
       add_message_audience_people: {
         Args: {
           _idempotency_key?: string
@@ -4927,6 +4931,23 @@ export type Database = {
         Args: { _from: string; _to: string; _venue_id: string }
         Returns: Json
       }
+      grant_participant_access: {
+        Args: {
+          _idempotency_key?: string
+          _operation_id: string
+          _person_id: string
+        }
+        Returns: string
+      }
+      invite_participant_access: {
+        Args: {
+          _idempotency_key?: string
+          _operation_id: string
+          _person_id: string
+          _ttl_hours?: number
+        }
+        Returns: Json
+      }
       link_event_journey_step: {
         Args: {
           _event_id: string
@@ -5170,6 +5191,10 @@ export type Database = {
         }
         Returns: Json
       }
+      reinstate_participant_access: {
+        Args: { _grant_id: string; _reason: string }
+        Returns: boolean
+      }
       release_commercial_reservation: {
         Args: { _reason: string; _reservation_id: string }
         Returns: Json
@@ -5265,6 +5290,14 @@ export type Database = {
           _reference: string
         }
         Returns: string
+      }
+      revoke_participant_access: {
+        Args: { _grant_id: string; _reason: string }
+        Returns: boolean
+      }
+      revoke_participant_access_invitation: {
+        Args: { _invitation_id: string; _reason: string }
+        Returns: boolean
       }
       schedule_message: {
         Args: {
