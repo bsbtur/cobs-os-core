@@ -1179,13 +1179,14 @@ function MobilityPage() {
                 </div>
 
                 <div className="mt-5">
-                  <LegControls leg={selected} onRefresh={refresh} />
+                  <LegControls leg={selected} state={state} onRefresh={refresh} />
                 </div>
               </article>
 
               <StopsPanel
                 leg={selected}
                 manifest={detail.data?.manifest ?? null}
+                state={state}
                 timeZone={timeZone}
                 onRefresh={refresh}
               />

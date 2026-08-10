@@ -45,6 +45,7 @@ export const W05_PT: Record<string, string> = {
   "w05.leg.returnTimeReason": "Motivo da alteração do horário de retorno",
   "w05.leg.returnTimeReasonHelp":
     "Obrigatório ao alterar um horário de retorno já combinado. Repetir o mesmo horário não gera novo fato.",
+  "w05.leg.returnTimeUnchanged": "O horário de retorno já era esse. Nada foi registrado.",
   "w05.leg.replaces": "Substitui o trecho",
   "w05.leg.delay": "Atraso",
   "w05.leg.minutes": "min",
