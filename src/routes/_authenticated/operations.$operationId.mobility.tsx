@@ -1031,15 +1031,22 @@ function MobilityPage() {
     queryKey: ["mobility-leg", selected?.id],
     enabled: Boolean(selected?.id),
     queryFn: async () => {
-      const [state, manifest, candidates] = await Promise.all([
+      const [state, manifest, candidates, legEvents] = await Promise.all([
         supabase.rpc("w05_leg_dispatch_state", { _transport_leg_id: selected!.id }),
         supabase.rpc("w05_leg_manifest", { _transport_leg_id: selected!.id }),
         supabase.rpc("w05_leg_seat_candidates", { _transport_leg_id: selected!.id }),
+        supabase
+          .from("transport_events")
+          .select("*")
+          .eq("transport_leg_id", selected!.id)
+          .order("occurred_at", { ascending: false })
+          .limit(60),
       ]);
       return {
         state: (state.data ?? null) as unknown as LegDispatchState | null,
         manifest: (manifest.data ?? null) as unknown as LegManifest | null,
         candidates: (candidates.data ?? null) as unknown as SeatCandidates | null,
+        legEvents: (legEvents.data ?? []) as TransportEventRow[],
       };
     },
   });
