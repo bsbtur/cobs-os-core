@@ -101,26 +101,33 @@ function CreateLegDialog({
       const shared = {
         _operation_id: operationId,
         _title: title,
-        _idempotency_key: newIdempotencyKey(),
+        _idempotency_key: newIdempotencyKey() as string,
         _leg_kind: kind,
         _origin_label: origin || undefined,
         _destination_label: destination || undefined,
         _journey_step_id: stepId || undefined,
       };
       const { error } = adHoc
-        ? await supabase.rpc("create_ad_hoc_transport_leg", {
-            ...shared,
-            _reason: reason,
-            _expected_departure: iso(departure),
-            _expected_arrival: iso(arrival),
-          })
-        : await supabase.rpc("create_transport_leg", {
-            ...shared,
-            _planned_departure: iso(departure),
-            _planned_arrival: iso(arrival),
-          });
+        ? await supabase.rpc(
+            "create_ad_hoc_transport_leg",
+            rpcArgs({
+              ...shared,
+              _reason: reason,
+              _expected_departure: iso(departure),
+              _expected_arrival: iso(arrival),
+            }),
+          )
+        : await supabase.rpc(
+            "create_transport_leg",
+            rpcArgs({
+              ...shared,
+              _planned_departure: iso(departure),
+              _planned_arrival: iso(arrival),
+            }),
+          );
       if (error) throw error;
     },
+
     onSuccess: () => {
       feedback.success(t("w05.leg.saved"));
       setOpen(false);
