@@ -65,6 +65,126 @@ export type Database = {
           },
         ]
       }
+      commercial_reservations: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          created_by: string | null
+          expired_at: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json
+          offering_id: string
+          order_id: string
+          order_item_id: string
+          quantity: number
+          reacquired_from_reservation_id: string | null
+          released_at: string | null
+          released_by: string | null
+          released_reason: string | null
+          status: Database["public"]["Enums"]["commercial_reservation_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          offering_id: string
+          order_id: string
+          order_item_id: string
+          quantity: number
+          reacquired_from_reservation_id?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          released_reason?: string | null
+          status?: Database["public"]["Enums"]["commercial_reservation_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expired_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          offering_id?: string
+          order_id?: string
+          order_item_id?: string
+          quantity?: number
+          reacquired_from_reservation_id?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          released_reason?: string | null
+          status?: Database["public"]["Enums"]["commercial_reservation_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_reservations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_order_id_order_item_id_fkey"
+            columns: ["order_id", "order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["order_id", "id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_reacquired_from_reservation_id_fkey"
+            columns: ["reacquired_from_reservation_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_released_by_fkey"
+            columns: ["released_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_tenant_id_offering_id_fkey"
+            columns: ["tenant_id", "offering_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_tenant_id_order_id_fkey"
+            columns: ["tenant_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "commercial_reservations_tenant_id_order_item_id_fkey"
+            columns: ["tenant_id", "order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
       communication_events: {
         Row: {
           actor_profile_id: string | null
@@ -781,6 +901,92 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_facts: {
+        Row: {
+          actor_profile_id: string | null
+          amount_minor: number
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          currency: string
+          fact_type: Database["public"]["Enums"]["financial_fact_type"]
+          id: string
+          method: Database["public"]["Enums"]["payment_method"] | null
+          occurred_at: string
+          order_id: string
+          reason: string
+          recorded_at: string
+          reference: string | null
+          references_fact_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          amount_minor: number
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          currency: string
+          fact_type: Database["public"]["Enums"]["financial_fact_type"]
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"] | null
+          occurred_at?: string
+          order_id: string
+          reason: string
+          recorded_at?: string
+          reference?: string | null
+          references_fact_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          amount_minor?: number
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          currency?: string
+          fact_type?: Database["public"]["Enums"]["financial_fact_type"]
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"] | null
+          occurred_at?: string
+          order_id?: string
+          reason?: string
+          recorded_at?: string
+          reference?: string | null
+          references_fact_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_facts_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_facts_references_fact_id_fkey"
+            columns: ["references_fact_id"]
+            isOneToOne: false
+            referencedRelation: "financial_facts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_facts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_facts_tenant_id_order_id_fkey"
+            columns: ["tenant_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["tenant_id", "id"]
           },
         ]
       }
@@ -2460,6 +2666,272 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          beneficiary_person_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description_snapshot: string | null
+          discount_minor: number
+          id: string
+          line_subtotal_minor: number
+          line_total_minor: number
+          metadata: Json
+          offering_id: string | null
+          order_id: string
+          price_basis: Database["public"]["Enums"]["price_basis"]
+          price_id: string
+          quantity: number
+          sellable_id: string
+          sellable_kind: Database["public"]["Enums"]["sellable_kind"]
+          sellable_name_snapshot: string
+          snapshot_taken_at: string
+          tenant_id: string
+          unit_amount_minor: number
+          updated_at: string
+        }
+        Insert: {
+          beneficiary_person_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          description_snapshot?: string | null
+          discount_minor?: number
+          id?: string
+          line_subtotal_minor: number
+          line_total_minor: number
+          metadata?: Json
+          offering_id?: string | null
+          order_id: string
+          price_basis: Database["public"]["Enums"]["price_basis"]
+          price_id: string
+          quantity?: number
+          sellable_id: string
+          sellable_kind: Database["public"]["Enums"]["sellable_kind"]
+          sellable_name_snapshot: string
+          snapshot_taken_at?: string
+          tenant_id: string
+          unit_amount_minor: number
+          updated_at?: string
+        }
+        Update: {
+          beneficiary_person_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description_snapshot?: string | null
+          discount_minor?: number
+          id?: string
+          line_subtotal_minor?: number
+          line_total_minor?: number
+          metadata?: Json
+          offering_id?: string | null
+          order_id?: string
+          price_basis?: Database["public"]["Enums"]["price_basis"]
+          price_id?: string
+          quantity?: number
+          sellable_id?: string
+          sellable_kind?: Database["public"]["Enums"]["sellable_kind"]
+          sellable_name_snapshot?: string
+          snapshot_taken_at?: string
+          tenant_id?: string
+          unit_amount_minor?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_tenant_id_beneficiary_person_id_fkey"
+            columns: ["tenant_id", "beneficiary_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "order_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_tenant_id_offering_id_fkey"
+            columns: ["tenant_id", "offering_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "order_items_tenant_id_order_id_fkey"
+            columns: ["tenant_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "order_items_tenant_id_price_id_fkey"
+            columns: ["tenant_id", "price_id"]
+            isOneToOne: false
+            referencedRelation: "prices"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "order_items_tenant_id_sellable_id_fkey"
+            columns: ["tenant_id", "sellable_id"]
+            isOneToOne: false
+            referencedRelation: "sellables"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_name_snapshot: string | null
+          buyer_person_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          completed_by: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          discount_total_minor: number | null
+          grand_total_minor: number | null
+          id: string
+          metadata: Json
+          notes: string | null
+          operation_id: string | null
+          reference_label: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          subtotal_minor: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_name_snapshot?: string | null
+          buyer_person_id: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          discount_total_minor?: number | null
+          grand_total_minor?: number | null
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          operation_id?: string | null
+          reference_label?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          subtotal_minor?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_name_snapshot?: string | null
+          buyer_person_id?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          discount_total_minor?: number | null
+          grand_total_minor?: number | null
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          operation_id?: string | null
+          reference_label?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          subtotal_minor?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_tenant_id_buyer_person_id_fkey"
+            columns: ["tenant_id", "buyer_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_tenant_id_operation_id_fkey"
+            columns: ["tenant_id", "operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
       participant_presence_events: {
         Row: {
           actor_profile_id: string | null
@@ -2765,6 +3237,79 @@ export type Database = {
           },
         ]
       }
+      prices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          id: string
+          metadata: Json
+          price_basis: Database["public"]["Enums"]["price_basis"]
+          sellable_id: string
+          status: Database["public"]["Enums"]["price_status"]
+          tenant_id: string
+          unit_amount_minor: number
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+          price_basis?: Database["public"]["Enums"]["price_basis"]
+          sellable_id: string
+          status?: Database["public"]["Enums"]["price_status"]
+          tenant_id: string
+          unit_amount_minor: number
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+          price_basis?: Database["public"]["Enums"]["price_basis"]
+          sellable_id?: string
+          status?: Database["public"]["Enums"]["price_status"]
+          tenant_id?: string
+          unit_amount_minor?: number
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prices_tenant_id_sellable_id_fkey"
+            columns: ["tenant_id", "sellable_id"]
+            isOneToOne: false
+            referencedRelation: "sellables"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2794,6 +3339,70 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sellables: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          metadata: Json
+          name: string | null
+          offering_id: string | null
+          sellable_kind: Database["public"]["Enums"]["sellable_kind"]
+          status: Database["public"]["Enums"]["sellable_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json
+          name?: string | null
+          offering_id?: string | null
+          sellable_kind: Database["public"]["Enums"]["sellable_kind"]
+          status?: Database["public"]["Enums"]["sellable_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json
+          name?: string | null
+          offering_id?: string | null
+          sellable_kind?: Database["public"]["Enums"]["sellable_kind"]
+          status?: Database["public"]["Enums"]["sellable_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sellables_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sellables_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sellables_tenant_id_offering_id_fkey"
+            columns: ["tenant_id", "offering_id"]
+            isOneToOne: false
+            referencedRelation: "offerings"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
       }
       tenants: {
         Row: {
@@ -3467,6 +4076,16 @@ export type Database = {
         }
         Returns: Json
       }
+      add_order_item: {
+        Args: {
+          _beneficiary_person_id?: string
+          _discount_minor?: number
+          _order_id: string
+          _quantity?: number
+          _sellable_id: string
+        }
+        Returns: string
+      }
       add_stay_participation: {
         Args: {
           _idempotency_key: string
@@ -3486,6 +4105,8 @@ export type Database = {
         }
         Returns: Json
       }
+      archive_price: { Args: { _price_id: string }; Returns: string }
+      archive_sellable: { Args: { _sellable_id: string }; Returns: string }
       assign_driver_to_leg: {
         Args: {
           _driver_id: string
@@ -3596,6 +4217,10 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_order: {
+        Args: { _idempotency_key?: string; _order_id: string; _reason: string }
+        Returns: Json
+      }
       cancel_session: {
         Args: {
           _idempotency_key: string
@@ -3632,6 +4257,10 @@ export type Database = {
         Args: { _reason: string; _transport_leg_id: string }
         Returns: Json
       }
+      close_price: {
+        Args: { _price_id: string; _valid_until: string }
+        Returns: string
+      }
       complete_boarding: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
@@ -3655,6 +4284,10 @@ export type Database = {
       }
       complete_journey_step: {
         Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      complete_order: {
+        Args: { _idempotency_key?: string; _order_id: string }
         Returns: Json
       }
       complete_playbook_item: {
@@ -3681,6 +4314,10 @@ export type Database = {
       }
       confirm_hospitality_stay: {
         Args: { _idempotency_key: string; _note?: string; _stay_id: string }
+        Returns: Json
+      }
+      confirm_order: {
+        Args: { _idempotency_key?: string; _order_id: string }
         Returns: Json
       }
       create_ad_hoc_journey_step: {
@@ -3918,6 +4555,18 @@ export type Database = {
         }
         Returns: Json
       }
+      create_order: {
+        Args: {
+          _buyer_person_id: string
+          _currency: string
+          _idempotency_key?: string
+          _notes?: string
+          _operation_id?: string
+          _reference_label?: string
+          _tenant_id: string
+        }
+        Returns: string
+      }
       create_playbook_item: {
         Args: {
           _description?: string
@@ -3929,6 +4578,29 @@ export type Database = {
           _title: string
         }
         Returns: Json
+      }
+      create_price: {
+        Args: {
+          _currency: string
+          _description?: string
+          _price_basis?: Database["public"]["Enums"]["price_basis"]
+          _sellable_id: string
+          _unit_amount_minor: number
+          _valid_from?: string
+          _valid_until?: string
+        }
+        Returns: string
+      }
+      create_sellable: {
+        Args: {
+          _description?: string
+          _metadata?: Json
+          _name?: string
+          _offering_id?: string
+          _sellable_kind: Database["public"]["Enums"]["sellable_kind"]
+          _tenant_id: string
+        }
+        Returns: string
       }
       create_transport_leg: {
         Args: {
@@ -4015,6 +4687,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_commerce_catalog: { Args: { _tenant_id: string }; Returns: Json }
       get_event_program: { Args: { _event_id: string }; Returns: Json }
       get_event_runtime_state: { Args: { _event_id: string }; Returns: Json }
       get_message_recipient_state: {
@@ -4025,10 +4698,20 @@ export type Database = {
         Args: { _limit?: number; _tenant_id: string }
         Returns: Json
       }
+      get_offering_commercial_availability: {
+        Args: { _offering_id: string }
+        Returns: Json
+      }
+      get_operation_commerce_summary: {
+        Args: { _operation_id: string }
+        Returns: Json
+      }
       get_operation_communication_feed: {
         Args: { _limit?: number; _operation_id: string }
         Returns: Json
       }
+      get_order_detail: { Args: { _order_id: string }; Returns: Json }
+      get_order_financial_state: { Args: { _order_id: string }; Returns: Json }
       get_venue_space_availability: {
         Args: { _from: string; _to: string; _venue_id: string }
         Returns: Json
@@ -4051,6 +4734,15 @@ export type Database = {
       }
       list_event_runtime_events: {
         Args: { _event_id: string; _limit?: number }
+        Returns: Json
+      }
+      list_orders: {
+        Args: {
+          _limit?: number
+          _operation_id?: string
+          _status?: Database["public"]["Enums"]["order_status"]
+          _tenant_id: string
+        }
         Returns: Json
       }
       lock_event_program: {
@@ -4209,6 +4901,18 @@ export type Database = {
         }
         Returns: Json
       }
+      record_payment: {
+        Args: {
+          _amount_minor: number
+          _idempotency_key?: string
+          _method: Database["public"]["Enums"]["payment_method"]
+          _occurred_at?: string
+          _order_id: string
+          _reason: string
+          _reference: string
+        }
+        Returns: string
+      }
       record_presence_fact: {
         Args: {
           _journey_step_id: string
@@ -4219,6 +4923,17 @@ export type Database = {
           _reason?: string
         }
         Returns: Json
+      }
+      record_refund: {
+        Args: {
+          _amount_minor: number
+          _idempotency_key?: string
+          _occurred_at?: string
+          _payment_fact_id: string
+          _reason: string
+          _reference: string
+        }
+        Returns: string
       }
       record_stop_reached: {
         Args: {
@@ -4244,6 +4959,10 @@ export type Database = {
         }
         Returns: Json
       }
+      release_commercial_reservation: {
+        Args: { _reason: string; _reservation_id: string }
+        Returns: Json
+      }
       release_room: {
         Args: {
           _idempotency_key: string
@@ -4264,6 +4983,7 @@ export type Database = {
         Args: { _idempotency_key?: string; _selector_id: string }
         Returns: Json
       }
+      remove_order_item: { Args: { _order_item_id: string }; Returns: boolean }
       remove_session_speaker: {
         Args: { _idempotency_key: string; _speaker_id: string }
         Returns: Json
@@ -4324,6 +5044,16 @@ export type Database = {
           _session_id: string
         }
         Returns: Json
+      }
+      reverse_payment: {
+        Args: {
+          _idempotency_key?: string
+          _occurred_at?: string
+          _payment_fact_id: string
+          _reason: string
+          _reference: string
+        }
+        Returns: string
       }
       schedule_message: {
         Args: {
@@ -4513,6 +5243,10 @@ export type Database = {
         Args: { _event_id: string; _idempotency_key: string }
         Returns: Json
       }
+      submit_order: {
+        Args: { _idempotency_key?: string; _order_id: string }
+        Returns: Json
+      }
       unassign_operation_role: {
         Args: { _participation_id: string; _role_type_id: string }
         Returns: Json
@@ -4626,6 +5360,25 @@ export type Database = {
         }
         Returns: Json
       }
+      update_order_details: {
+        Args: {
+          _notes?: string
+          _operation_id?: string
+          _order_id: string
+          _reference_label?: string
+        }
+        Returns: string
+      }
+      update_order_item: {
+        Args: {
+          _beneficiary_person_id?: string
+          _clear_beneficiary?: boolean
+          _discount_minor?: number
+          _order_item_id: string
+          _quantity?: number
+        }
+        Returns: string
+      }
       update_playbook_item: {
         Args: {
           _description?: string
@@ -4637,6 +5390,15 @@ export type Database = {
           _title?: string
         }
         Returns: Json
+      }
+      update_sellable: {
+        Args: {
+          _description?: string
+          _metadata?: Json
+          _name?: string
+          _sellable_id: string
+        }
+        Returns: string
       }
       update_transport_leg: {
         Args: {
@@ -4732,6 +5494,11 @@ export type Database = {
         | "participation_kind"
         | "operation_role_type"
         | "explicit_person"
+      commercial_reservation_status:
+        | "reserved"
+        | "confirmed"
+        | "released"
+        | "expired"
       communication_channel: "in_app"
       communication_event_type:
         | "MESSAGE_PUBLISHED"
@@ -4788,6 +5555,10 @@ export type Database = {
         | "other"
       experience_kind: "tourism" | "event" | "hybrid"
       experience_status: "draft" | "active" | "archived"
+      financial_fact_type:
+        | "PAYMENT_RECORDED"
+        | "PAYMENT_REVERSED"
+        | "REFUND_RECORDED"
       hospitality_event_type:
         | "STAY_CONFIRMED"
         | "STAY_CANCELLED"
@@ -4867,8 +5638,15 @@ export type Database = {
         | "active"
         | "completed"
         | "cancelled"
+      order_status:
+        | "draft"
+        | "submitted"
+        | "confirmed"
+        | "cancelled"
+        | "completed"
       participation_kind: "participant" | "crew" | "support" | "observer"
       participation_status: "expected" | "confirmed" | "cancelled"
+      payment_method: "cash" | "bank_transfer" | "other"
       playbook_execution_action: "completed" | "reopened"
       playbook_item_kind: "check" | "confirm" | "brief" | "verify" | "other"
       playbook_requirement: "required" | "recommended" | "informational"
@@ -4878,6 +5656,15 @@ export type Database = {
         | "DISEMBARKED"
         | "ABSENCE_NOTED"
         | "NO_SHOW_CONFIRMED"
+      price_basis: "per_person" | "per_unit" | "flat"
+      price_status: "active" | "archived"
+      sellable_kind:
+        | "offering"
+        | "merchandise"
+        | "ticket"
+        | "service"
+        | "fee_item"
+      sellable_status: "active" | "archived"
       step_plan_origin: "planned" | "ad_hoc"
       step_presence_population: "participants" | "all_confirmed"
       step_presence_requirement: "none" | "accounted" | "boarded"
@@ -5056,6 +5843,12 @@ export const Constants = {
         "operation_role_type",
         "explicit_person",
       ],
+      commercial_reservation_status: [
+        "reserved",
+        "confirmed",
+        "released",
+        "expired",
+      ],
       communication_channel: ["in_app"],
       communication_event_type: [
         "MESSAGE_PUBLISHED",
@@ -5117,6 +5910,11 @@ export const Constants = {
       ],
       experience_kind: ["tourism", "event", "hybrid"],
       experience_status: ["draft", "active", "archived"],
+      financial_fact_type: [
+        "PAYMENT_RECORDED",
+        "PAYMENT_REVERSED",
+        "REFUND_RECORDED",
+      ],
       hospitality_event_type: [
         "STAY_CONFIRMED",
         "STAY_CANCELLED",
@@ -5203,8 +6001,16 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      order_status: [
+        "draft",
+        "submitted",
+        "confirmed",
+        "cancelled",
+        "completed",
+      ],
       participation_kind: ["participant", "crew", "support", "observer"],
       participation_status: ["expected", "confirmed", "cancelled"],
+      payment_method: ["cash", "bank_transfer", "other"],
       playbook_execution_action: ["completed", "reopened"],
       playbook_item_kind: ["check", "confirm", "brief", "verify", "other"],
       playbook_requirement: ["required", "recommended", "informational"],
@@ -5215,6 +6021,16 @@ export const Constants = {
         "ABSENCE_NOTED",
         "NO_SHOW_CONFIRMED",
       ],
+      price_basis: ["per_person", "per_unit", "flat"],
+      price_status: ["active", "archived"],
+      sellable_kind: [
+        "offering",
+        "merchandise",
+        "ticket",
+        "service",
+        "fee_item",
+      ],
+      sellable_status: ["active", "archived"],
       step_plan_origin: ["planned", "ad_hoc"],
       step_presence_population: ["participants", "all_confirmed"],
       step_presence_requirement: ["none", "accounted", "boarded"],
