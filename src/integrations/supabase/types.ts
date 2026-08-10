@@ -65,6 +65,104 @@ export type Database = {
           },
         ]
       }
+      communication_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          delivery_id: string | null
+          event_type: Database["public"]["Enums"]["communication_event_type"]
+          id: string
+          message_id: string
+          occurred_at: string
+          operation_id: string | null
+          person_id: string | null
+          recipient_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          delivery_id?: string | null
+          event_type: Database["public"]["Enums"]["communication_event_type"]
+          id?: string
+          message_id: string
+          occurred_at?: string
+          operation_id?: string | null
+          person_id?: string | null
+          recipient_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          delivery_id?: string | null
+          event_type?: Database["public"]["Enums"]["communication_event_type"]
+          id?: string
+          message_id?: string
+          occurred_at?: string
+          operation_id?: string | null
+          person_id?: string | null
+          recipient_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ce_delivery_fk"
+            columns: ["tenant_id", "delivery_id"]
+            isOneToOne: false
+            referencedRelation: "message_deliveries"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "ce_message_fk"
+            columns: ["tenant_id", "message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "ce_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "ce_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "ce_recipient_fk"
+            columns: ["tenant_id", "recipient_id"]
+            isOneToOne: false
+            referencedRelation: "message_recipients"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "communication_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           created_at: string
@@ -1612,6 +1710,372 @@ export type Database = {
           },
         ]
       }
+      message_audience_selectors: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message_id: string
+          participation_kind:
+            | Database["public"]["Enums"]["participation_kind"]
+            | null
+          person_id: string | null
+          role_type_id: string | null
+          selector_kind: Database["public"]["Enums"]["audience_selector_kind"]
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message_id: string
+          participation_kind?:
+            | Database["public"]["Enums"]["participation_kind"]
+            | null
+          person_id?: string | null
+          role_type_id?: string | null
+          selector_kind: Database["public"]["Enums"]["audience_selector_kind"]
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message_id?: string
+          participation_kind?:
+            | Database["public"]["Enums"]["participation_kind"]
+            | null
+          person_id?: string | null
+          role_type_id?: string | null
+          selector_kind?: Database["public"]["Enums"]["audience_selector_kind"]
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mas_message_fk"
+            columns: ["tenant_id", "message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "mas_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "mas_role_type_fk"
+            columns: ["role_type_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_role_types"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "message_audience_selectors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_audience_selectors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_deliveries: {
+        Row: {
+          channel: Database["public"]["Enums"]["communication_channel"]
+          created_at: string
+          delivered_at: string
+          id: string
+          message_id: string
+          person_id: string
+          recipient_id: string
+          status: Database["public"]["Enums"]["delivery_status"]
+          tenant_id: string
+        }
+        Insert: {
+          channel?: Database["public"]["Enums"]["communication_channel"]
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          message_id: string
+          person_id: string
+          recipient_id: string
+          status?: Database["public"]["Enums"]["delivery_status"]
+          tenant_id: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["communication_channel"]
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          message_id?: string
+          person_id?: string
+          recipient_id?: string
+          status?: Database["public"]["Enums"]["delivery_status"]
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "md_message_fk"
+            columns: ["tenant_id", "message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "md_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "md_recipient_fk"
+            columns: ["tenant_id", "recipient_id"]
+            isOneToOne: false
+            referencedRelation: "message_recipients"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "message_deliveries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_recipients: {
+        Row: {
+          created_at: string
+          first_read_at: string | null
+          id: string
+          in_app_eligible: boolean
+          message_id: string
+          person_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_read_at?: string | null
+          id?: string
+          in_app_eligible?: boolean
+          message_id: string
+          person_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          first_read_at?: string | null
+          id?: string
+          in_app_eligible?: boolean
+          message_id?: string
+          person_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_recipients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mr_message_fk"
+            columns: ["tenant_id", "message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "mr_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: string | null
+          event_id: string | null
+          event_session_id: string | null
+          expires_at: string | null
+          hospitality_stay_id: string | null
+          id: string
+          in_app_reachable_count: number
+          journey_step_id: string | null
+          kind: Database["public"]["Enums"]["message_kind"]
+          locale: string
+          metadata: Json
+          operation_id: string | null
+          priority: Database["public"]["Enums"]["message_priority"]
+          published_at: string | null
+          published_by: string | null
+          recipient_count: number
+          scheduled_for: string | null
+          status: Database["public"]["Enums"]["message_status"]
+          supersedes_message_id: string | null
+          tenant_id: string
+          title: string
+          transport_leg_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string | null
+          event_session_id?: string | null
+          expires_at?: string | null
+          hospitality_stay_id?: string | null
+          id?: string
+          in_app_reachable_count?: number
+          journey_step_id?: string | null
+          kind?: Database["public"]["Enums"]["message_kind"]
+          locale?: string
+          metadata?: Json
+          operation_id?: string | null
+          priority?: Database["public"]["Enums"]["message_priority"]
+          published_at?: string | null
+          published_by?: string | null
+          recipient_count?: number
+          scheduled_for?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+          supersedes_message_id?: string | null
+          tenant_id: string
+          title: string
+          transport_leg_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string | null
+          event_session_id?: string | null
+          expires_at?: string | null
+          hospitality_stay_id?: string | null
+          id?: string
+          in_app_reachable_count?: number
+          journey_step_id?: string | null
+          kind?: Database["public"]["Enums"]["message_kind"]
+          locale?: string
+          metadata?: Json
+          operation_id?: string | null
+          priority?: Database["public"]["Enums"]["message_priority"]
+          published_at?: string | null
+          published_by?: string | null
+          recipient_count?: number
+          scheduled_for?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+          supersedes_message_id?: string | null
+          tenant_id?: string
+          title?: string
+          transport_leg_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_event_fk"
+            columns: ["tenant_id", "event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "messages_journey_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "messages_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "messages_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_session_fk"
+            columns: ["event_id", "event_session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["event_id", "id"]
+          },
+          {
+            foreignKeyName: "messages_stay_fk"
+            columns: ["hospitality_stay_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "messages_supersedes_fk"
+            columns: ["tenant_id", "supersedes_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_transport_leg_fk"
+            columns: ["transport_leg_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "transport_legs"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
       offerings: {
         Row: {
           available_from: string | null
@@ -2983,6 +3447,14 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: Json }
+      add_message_audience_people: {
+        Args: {
+          _idempotency_key?: string
+          _message_id: string
+          _person_ids: string[]
+        }
+        Returns: Json
+      }
       add_operation_participation: {
         Args: {
           _idempotency_key: string
@@ -3114,6 +3586,14 @@ export type Database = {
       }
       cancel_hospitality_stay: {
         Args: { _idempotency_key: string; _reason: string; _stay_id: string }
+        Returns: Json
+      }
+      cancel_message: {
+        Args: {
+          _idempotency_key?: string
+          _message_id: string
+          _reason?: string
+        }
         Returns: Json
       }
       cancel_session: {
@@ -3252,6 +3732,15 @@ export type Database = {
         }
         Returns: Json
       }
+      create_correction_message: {
+        Args: {
+          _body?: string
+          _idempotency_key?: string
+          _message_id: string
+          _title?: string
+        }
+        Returns: Json
+      }
       create_driver: {
         Args: {
           _driver_code?: string
@@ -3376,6 +3865,25 @@ export type Database = {
         }
         Returns: Json
       }
+      create_message: {
+        Args: {
+          _body: string
+          _event_id?: string
+          _event_session_id?: string
+          _expires_at?: string
+          _hospitality_stay_id?: string
+          _idempotency_key?: string
+          _journey_step_id?: string
+          _kind?: Database["public"]["Enums"]["message_kind"]
+          _locale?: string
+          _operation_id?: string
+          _priority?: Database["public"]["Enums"]["message_priority"]
+          _tenant_id: string
+          _title: string
+          _transport_leg_id?: string
+        }
+        Returns: Json
+      }
       create_offering: {
         Args: {
           _available_from?: string
@@ -3481,6 +3989,10 @@ export type Database = {
         Args: { _playbook_item_id: string; _reason: string }
         Returns: Json
       }
+      delete_draft_message: {
+        Args: { _idempotency_key?: string; _message_id: string }
+        Returns: Json
+      }
       ensure_operation_role_types: {
         Args: { _tenant_id: string }
         Returns: Json
@@ -3505,6 +4017,18 @@ export type Database = {
       }
       get_event_program: { Args: { _event_id: string }; Returns: Json }
       get_event_runtime_state: { Args: { _event_id: string }; Returns: Json }
+      get_message_recipient_state: {
+        Args: { _message_id: string }
+        Returns: Json
+      }
+      get_my_message_inbox: {
+        Args: { _limit?: number; _tenant_id: string }
+        Returns: Json
+      }
+      get_operation_communication_feed: {
+        Args: { _limit?: number; _operation_id: string }
+        Returns: Json
+      }
       get_venue_space_availability: {
         Args: { _from: string; _to: string; _venue_id: string }
         Returns: Json
@@ -3537,6 +4061,7 @@ export type Database = {
         Args: { _event_id: string; _idempotency_key: string }
         Returns: Json
       }
+      mark_message_read: { Args: { _message_id: string }; Returns: Json }
       note_hospitality_issue: {
         Args: {
           _idempotency_key: string
@@ -3581,6 +4106,11 @@ export type Database = {
           _occurred_at?: string
           _session_id: string
         }
+        Returns: Json
+      }
+      preview_audience_count: { Args: { _message_id: string }; Returns: Json }
+      publish_message: {
+        Args: { _idempotency_key?: string; _message_id: string }
         Returns: Json
       }
       record_arrival: {
@@ -3730,6 +4260,10 @@ export type Database = {
         Args: { _assignment_id: string; _idempotency_key: string }
         Returns: Json
       }
+      remove_message_audience_selector: {
+        Args: { _idempotency_key?: string; _selector_id: string }
+        Returns: Json
+      }
       remove_session_speaker: {
         Args: { _idempotency_key: string; _speaker_id: string }
         Returns: Json
@@ -3791,6 +4325,14 @@ export type Database = {
         }
         Returns: Json
       }
+      schedule_message: {
+        Args: {
+          _idempotency_key?: string
+          _message_id: string
+          _scheduled_for: string
+        }
+        Returns: Json
+      }
       set_driver_active: {
         Args: { _driver_id: string; _is_active: boolean; _reason?: string }
         Returns: Json
@@ -3811,6 +4353,16 @@ export type Database = {
           _is_active: boolean
           _property_id: string
           _reason?: string
+        }
+        Returns: Json
+      }
+      set_message_audience: {
+        Args: {
+          _all_participations?: boolean
+          _idempotency_key?: string
+          _message_id: string
+          _participation_kinds?: Database["public"]["Enums"]["participation_kind"][]
+          _role_type_ids?: string[]
         }
         Returns: Json
       }
@@ -3967,6 +4519,24 @@ export type Database = {
       }
       unblock_hospitality_room: {
         Args: { _idempotency_key: string; _note?: string; _room_id: string }
+        Returns: Json
+      }
+      unschedule_message: {
+        Args: { _idempotency_key?: string; _message_id: string }
+        Returns: Json
+      }
+      update_draft_message: {
+        Args: {
+          _body?: string
+          _clear_expiry?: boolean
+          _expires_at?: string
+          _idempotency_key?: string
+          _kind?: Database["public"]["Enums"]["message_kind"]
+          _locale?: string
+          _message_id: string
+          _priority?: Database["public"]["Enums"]["message_priority"]
+          _title?: string
+        }
         Returns: Json
       }
       update_driver: {
@@ -4157,6 +4727,17 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
+      audience_selector_kind:
+        | "all_participations"
+        | "participation_kind"
+        | "operation_role_type"
+        | "explicit_person"
+      communication_channel: "in_app"
+      communication_event_type:
+        | "MESSAGE_PUBLISHED"
+        | "IN_APP_DELIVERY_CREATED"
+        | "MESSAGE_READ"
+      delivery_status: "delivered"
       event_lifecycle_status:
         | "draft"
         | "planning"
@@ -4268,6 +4849,16 @@ export type Database = {
         | "return"
         | "other"
       membership_status: "active" | "suspended"
+      message_kind:
+        | "operational"
+        | "alert"
+        | "instruction"
+        | "reminder"
+        | "update"
+        | "announcement"
+        | "other"
+      message_priority: "normal" | "important" | "urgent"
+      message_status: "draft" | "scheduled" | "published" | "cancelled"
       offering_status: "draft" | "active" | "paused" | "archived"
       operation_status:
         | "draft"
@@ -4459,6 +5050,19 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "operations_agent", "member"],
+      audience_selector_kind: [
+        "all_participations",
+        "participation_kind",
+        "operation_role_type",
+        "explicit_person",
+      ],
+      communication_channel: ["in_app"],
+      communication_event_type: [
+        "MESSAGE_PUBLISHED",
+        "IN_APP_DELIVERY_CREATED",
+        "MESSAGE_READ",
+      ],
+      delivery_status: ["delivered"],
       event_lifecycle_status: [
         "draft",
         "planning",
@@ -4579,6 +5183,17 @@ export const Constants = {
         "other",
       ],
       membership_status: ["active", "suspended"],
+      message_kind: [
+        "operational",
+        "alert",
+        "instruction",
+        "reminder",
+        "update",
+        "announcement",
+        "other",
+      ],
+      message_priority: ["normal", "important", "urgent"],
+      message_status: ["draft", "scheduled", "published", "cancelled"],
       offering_status: ["draft", "active", "paused", "archived"],
       operation_status: [
         "draft",
