@@ -26,6 +26,7 @@ import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
+import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './routes/_authenticated/operations.$operationId.events'
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
@@ -125,6 +126,12 @@ const AuthenticatedOperationsOperationIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const AuthenticatedOperationsOperationIdEventsRoute =
+  AuthenticatedOperationsOperationIdEventsRouteImport.update({
+    id: '/events',
+    path: '/events',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdHospitalityRoute =
   AuthenticatedOperationsOperationIdHospitalityRouteImport.update({
     id: '/hospitality',
@@ -172,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -194,6 +202,7 @@ export interface FileRoutesByTo {
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -219,6 +228,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/settings/venues'
     | '/experiences/'
     | '/operations/'
+    | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/settings/venues'
     | '/experiences'
     | '/operations'
+    | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
@@ -290,6 +302,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/venues'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
+    | '/_authenticated/operations/$operationId/events'
     | '/_authenticated/operations/$operationId/hospitality'
     | '/_authenticated/operations/$operationId/journey'
     | '/_authenticated/operations/$operationId/live'
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdIndexRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/events': {
+      id: '/_authenticated/operations/$operationId/events'
+      path: '/events'
+      fullPath: '/operations/$operationId/events'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdEventsRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
     '/_authenticated/operations/$operationId/hospitality': {
       id: '/_authenticated/operations/$operationId/hospitality'
       path: '/hospitality'
@@ -464,6 +484,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
+  AuthenticatedOperationsOperationIdEventsRoute: typeof AuthenticatedOperationsOperationIdEventsRoute
   AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
   AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
   AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -474,6 +495,8 @@ interface AuthenticatedOperationsOperationIdRouteChildren {
 
 const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOperationIdRouteChildren =
   {
+    AuthenticatedOperationsOperationIdEventsRoute:
+      AuthenticatedOperationsOperationIdEventsRoute,
     AuthenticatedOperationsOperationIdHospitalityRoute:
       AuthenticatedOperationsOperationIdHospitalityRoute,
     AuthenticatedOperationsOperationIdJourneyRoute:
