@@ -5,7 +5,7 @@ import {
   Globe2,
   Inbox,
   LayoutGrid,
-
+  ShoppingBag,
   Settings2,
   Users,
   UsersRound,
@@ -25,7 +25,15 @@ export type NavItem = {
   /** i18n key for the label */
   labelKey: string;
   /** Route path — planned routes intentionally resolve to the shell overview in W00. */
-  to: "/app" | "/experiences" | "/operations" | "/people" | "/team" | "/settings" | "/inbox";
+  to:
+    | "/app"
+    | "/experiences"
+    | "/operations"
+    | "/people"
+    | "/team"
+    | "/settings"
+    | "/inbox"
+    | "/commerce";
   icon: LucideIcon;
   status: NavStatus;
   /** Domain owner — enforces the DOMAIN OWNERSHIP rule. */
@@ -90,6 +98,15 @@ export const NAV_SECTIONS: NavSection[] = [
         domain: "identity",
         activatesIn: "W01",
         mobile: true,
+      },
+      {
+        id: "commerce",
+        labelKey: "nav.commerce",
+        to: "/commerce",
+        icon: ShoppingBag,
+        status: "live",
+        domain: "commerce",
+        activatesIn: "W09",
       },
       {
         id: "inbox",
@@ -191,6 +208,14 @@ export const ROUTE_META: RouteMeta[] = [
     indexable: false,
   },
   { path: "/inbox", titleKey: "w08.inbox.title", authenticated: true, indexable: false },
+  { path: "/commerce", titleKey: "w09.title", authenticated: true, indexable: false },
+  { path: "/commerce/$orderId", titleKey: "w09.order", authenticated: true, indexable: false },
+  {
+    path: "/settings/catalog",
+    titleKey: "w09.catalog.title",
+    authenticated: true,
+    indexable: false,
+  },
   { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
 
   { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
@@ -203,4 +228,3 @@ export const ROUTE_META: RouteMeta[] = [
     indexable: false,
   },
 ];
-

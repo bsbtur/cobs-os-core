@@ -8,7 +8,7 @@ import { W05_DICTIONARIES } from "./i18n-w05";
 import { W06_DICTIONARIES } from "./i18n-w06";
 import { W07_DICTIONARIES } from "./i18n-w07";
 import { W08_DICTIONARIES } from "./i18n-w08";
-
+import { W09_DICTIONARIES } from "./i18n-w09";
 
 /**
  * COBS OS — i18n foundation (W00)
@@ -194,6 +194,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W06_DICTIONARIES["pt-BR"],
     ...W07_DICTIONARIES["pt-BR"],
     ...W08_DICTIONARIES["pt-BR"],
+    ...W09_DICTIONARIES["pt-BR"],
   },
   "en-US": {
     ...enUS,
@@ -205,6 +206,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W06_DICTIONARIES["en-US"],
     ...W07_DICTIONARIES["en-US"],
     ...W08_DICTIONARIES["en-US"],
+    ...W09_DICTIONARIES["en-US"],
   },
   "es-ES": {
     ...esES,
@@ -216,9 +218,9 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W06_DICTIONARIES["es-ES"],
     ...W07_DICTIONARIES["es-ES"],
     ...W08_DICTIONARIES["es-ES"],
+    ...W09_DICTIONARIES["es-ES"],
   },
 };
-
 
 export type I18nValue = {
   locale: Locale;

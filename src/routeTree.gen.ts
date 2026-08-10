@@ -18,11 +18,14 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated/people'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AuthenticatedCommerceIndexRouteImport } from './routes/_authenticated/commerce.index'
+import { Route as AuthenticatedCommerceOrderIdRouteImport } from './routes/_authenticated/commerce.$orderId'
 import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_authenticated/experiences.index'
 import { Route as AuthenticatedExperiencesExperienceIdRouteImport } from './routes/_authenticated/experiences.$experienceId'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
+import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_authenticated/settings_.catalog'
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
@@ -79,6 +82,18 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCommerceIndexRoute =
+  AuthenticatedCommerceIndexRouteImport.update({
+    id: '/commerce/',
+    path: '/commerce/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCommerceOrderIdRoute =
+  AuthenticatedCommerceOrderIdRouteImport.update({
+    id: '/commerce/$orderId',
+    path: '/commerce/$orderId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedExperiencesIndexRoute =
   AuthenticatedExperiencesIndexRouteImport.update({
     id: '/experiences/',
@@ -107,6 +122,12 @@ const AuthenticatedOperationsOperationIdRoute =
   AuthenticatedOperationsOperationIdRouteImport.update({
     id: '/operations/$operationId',
     path: '/operations/$operationId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsCatalogRoute =
+  AuthenticatedSettingsCatalogRouteImport.update({
+    id: '/settings_/catalog',
+    path: '/settings/catalog',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsFleetRoute =
@@ -185,12 +206,15 @@ export interface FileRoutesByFullPath {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
+  '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
@@ -211,11 +235,14 @@ export interface FileRoutesByTo {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/commerce': typeof AuthenticatedCommerceIndexRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
@@ -238,12 +265,15 @@ export interface FileRoutesById {
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
+  '/_authenticated/settings_/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/_authenticated/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
   '/_authenticated/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
@@ -266,12 +296,15 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
     | '/operations/$operationId'
+    | '/settings/catalog'
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/commerce/'
     | '/experiences/'
     | '/operations/'
     | '/operations/$operationId/communication'
@@ -292,11 +325,14 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
+    | '/settings/catalog'
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/commerce'
     | '/experiences'
     | '/operations'
     | '/operations/$operationId/communication'
@@ -318,12 +354,15 @@ export interface FileRouteTypes {
     | '/_authenticated/people'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/_authenticated/commerce/$orderId'
     | '/_authenticated/experiences/$experienceId'
     | '/_authenticated/invite/$token'
     | '/_authenticated/operations/$operationId'
+    | '/_authenticated/settings_/catalog'
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
     | '/_authenticated/settings_/venues'
+    | '/_authenticated/commerce/'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
     | '/_authenticated/operations/$operationId/communication'
@@ -407,6 +446,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/commerce/': {
+      id: '/_authenticated/commerce/'
+      path: '/commerce'
+      fullPath: '/commerce/'
+      preLoaderRoute: typeof AuthenticatedCommerceIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/commerce/$orderId': {
+      id: '/_authenticated/commerce/$orderId'
+      path: '/commerce/$orderId'
+      fullPath: '/commerce/$orderId'
+      preLoaderRoute: typeof AuthenticatedCommerceOrderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/experiences/': {
       id: '/_authenticated/experiences/'
       path: '/experiences'
@@ -440,6 +493,13 @@ declare module '@tanstack/react-router' {
       path: '/operations/$operationId'
       fullPath: '/operations/$operationId'
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/catalog': {
+      id: '/_authenticated/settings_/catalog'
+      path: '/settings/catalog'
+      fullPath: '/settings/catalog'
+      preLoaderRoute: typeof AuthenticatedSettingsCatalogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/fleet': {
@@ -565,12 +625,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPeopleRoute: typeof AuthenticatedPeopleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedCommerceOrderIdRoute: typeof AuthenticatedCommerceOrderIdRoute
   AuthenticatedExperiencesExperienceIdRoute: typeof AuthenticatedExperiencesExperienceIdRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
+  AuthenticatedSettingsCatalogRoute: typeof AuthenticatedSettingsCatalogRoute
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
   AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
   AuthenticatedSettingsVenuesRoute: typeof AuthenticatedSettingsVenuesRoute
+  AuthenticatedCommerceIndexRoute: typeof AuthenticatedCommerceIndexRoute
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
   AuthenticatedOperationsIndexRoute: typeof AuthenticatedOperationsIndexRoute
 }
@@ -582,14 +645,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPeopleRoute: AuthenticatedPeopleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedCommerceOrderIdRoute: AuthenticatedCommerceOrderIdRoute,
   AuthenticatedExperiencesExperienceIdRoute:
     AuthenticatedExperiencesExperienceIdRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
   AuthenticatedOperationsOperationIdRoute:
     AuthenticatedOperationsOperationIdRouteWithChildren,
+  AuthenticatedSettingsCatalogRoute: AuthenticatedSettingsCatalogRoute,
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
   AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
   AuthenticatedSettingsVenuesRoute: AuthenticatedSettingsVenuesRoute,
+  AuthenticatedCommerceIndexRoute: AuthenticatedCommerceIndexRoute,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
   AuthenticatedOperationsIndexRoute: AuthenticatedOperationsIndexRoute,
 }
