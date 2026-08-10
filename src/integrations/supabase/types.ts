@@ -207,6 +207,601 @@ export type Database = {
           },
         ]
       }
+      hospitality_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          event_type: Database["public"]["Enums"]["hospitality_event_type"]
+          id: string
+          note: string | null
+          occurred_at: string
+          operation_id: string
+          recorded_at: string
+          room_assignment_id: string | null
+          room_id: string | null
+          stay_id: string
+          stay_participation_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_type: Database["public"]["Enums"]["hospitality_event_type"]
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          operation_id: string
+          recorded_at?: string
+          room_assignment_id?: string | null
+          room_id?: string | null
+          stay_id: string
+          stay_participation_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["hospitality_event_type"]
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          operation_id?: string
+          recorded_at?: string
+          room_assignment_id?: string | null
+          room_id?: string | null
+          stay_id?: string
+          stay_participation_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_participation_fk"
+            columns: ["stay_participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stay_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_room_assignment_id_fkey"
+            columns: ["room_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_room_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_room_fk"
+            columns: ["room_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_rooms"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_stay_fk"
+            columns: ["stay_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_stay_id_fkey"
+            columns: ["stay_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_stay_participation_id_fkey"
+            columns: ["stay_participation_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stay_participations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitality_properties: {
+        Row: {
+          address_label: string | null
+          city: string | null
+          contact_label: string | null
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          notes: string | null
+          property_kind: Database["public"]["Enums"]["hospitality_property_kind"]
+          region: string | null
+          tenant_id: string
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_label?: string | null
+          city?: string | null
+          contact_label?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name: string
+          notes?: string | null
+          property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
+          region?: string | null
+          tenant_id: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_label?: string | null
+          city?: string | null
+          contact_label?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
+          region?: string | null
+          tenant_id?: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_properties_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_properties_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitality_room_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          correlation_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          overcapacity_override: boolean
+          override_reason: string | null
+          release_reason: string | null
+          released_at: string | null
+          released_by: string | null
+          room_id: string
+          stay_id: string
+          stay_participation_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          overcapacity_override?: boolean
+          override_reason?: string | null
+          release_reason?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          room_id: string
+          stay_id: string
+          stay_participation_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          overcapacity_override?: boolean
+          override_reason?: string | null
+          release_reason?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          room_id?: string
+          stay_id?: string
+          stay_participation_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_room_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_participation_fk"
+            columns: ["stay_participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stay_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_released_by_fkey"
+            columns: ["released_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_room_fk"
+            columns: ["room_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_rooms"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_stay_fk"
+            columns: ["stay_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_stay_id_fkey"
+            columns: ["stay_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_stay_participation_id_fkey"
+            columns: ["stay_participation_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stay_participations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_room_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitality_rooms: {
+        Row: {
+          capacity: number
+          created_at: string
+          created_by: string | null
+          floor_label: string | null
+          id: string
+          label: string
+          metadata: Json
+          notes: string | null
+          room_status: Database["public"]["Enums"]["hospitality_room_status"]
+          stay_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          created_by?: string | null
+          floor_label?: string | null
+          id?: string
+          label: string
+          metadata?: Json
+          notes?: string | null
+          room_status?: Database["public"]["Enums"]["hospitality_room_status"]
+          stay_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          created_by?: string | null
+          floor_label?: string | null
+          id?: string
+          label?: string
+          metadata?: Json
+          notes?: string | null
+          room_status?: Database["public"]["Enums"]["hospitality_room_status"]
+          stay_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_rooms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_rooms_stay_fk"
+            columns: ["stay_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_rooms_stay_id_fkey"
+            columns: ["stay_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_rooms_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitality_stay_participations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          notes: string | null
+          participation_id: string
+          removal_reason: string | null
+          removed_at: string | null
+          restored_at: string | null
+          stay_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          notes?: string | null
+          participation_id: string
+          removal_reason?: string | null
+          removed_at?: string | null
+          restored_at?: string | null
+          stay_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          notes?: string | null
+          participation_id?: string
+          removal_reason?: string | null
+          removed_at?: string | null
+          restored_at?: string | null
+          stay_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_stay_participations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_stay_participations_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_stay_participations_participation_id_fkey"
+            columns: ["participation_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_stay_participations_stay_fk"
+            columns: ["stay_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_stay_participations_stay_id_fkey"
+            columns: ["stay_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_stays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_stay_participations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitality_stays: {
+        Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          checkin_opened_at: string | null
+          checkout_completed_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          expected_check_in: string | null
+          expected_check_out: string | null
+          id: string
+          metadata: Json
+          name: string
+          notes: string | null
+          operation_id: string
+          planned_check_in: string
+          planned_check_out: string
+          property_id: string
+          status: Database["public"]["Enums"]["hospitality_stay_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          checkin_opened_at?: string | null
+          checkout_completed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_check_in?: string | null
+          expected_check_out?: string | null
+          id?: string
+          metadata?: Json
+          name: string
+          notes?: string | null
+          operation_id: string
+          planned_check_in: string
+          planned_check_out: string
+          property_id: string
+          status?: Database["public"]["Enums"]["hospitality_stay_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          checkin_opened_at?: string | null
+          checkout_completed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_check_in?: string | null
+          expected_check_out?: string | null
+          id?: string
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          operation_id?: string
+          planned_check_in?: string
+          planned_check_out?: string
+          property_id?: string
+          status?: Database["public"]["Enums"]["hospitality_stay_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospitality_stays_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_stays_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_stays_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_stays_property_fk"
+            columns: ["property_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_properties"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "hospitality_stays_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "hospitality_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospitality_stays_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       idempotency_keys: {
         Row: {
           action: string
@@ -1782,6 +2377,15 @@ export type Database = {
         }
         Returns: Json
       }
+      add_stay_participation: {
+        Args: {
+          _idempotency_key: string
+          _notes?: string
+          _participation_id: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
       add_transport_leg_stop: {
         Args: {
           _is_pickup?: boolean
@@ -1808,6 +2412,16 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_room: {
+        Args: {
+          _allow_overcapacity?: boolean
+          _idempotency_key: string
+          _reason?: string
+          _room_id: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
       assign_seat: {
         Args: {
           _idempotency_key: string
@@ -1830,6 +2444,10 @@ export type Database = {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
+      block_hospitality_room: {
+        Args: { _idempotency_key: string; _reason: string; _room_id: string }
+        Returns: Json
+      }
       bootstrap_tenant: {
         Args: {
           _country_code?: string
@@ -1842,8 +2460,22 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_hospitality_stay: {
+        Args: { _idempotency_key: string; _reason: string; _stay_id: string }
+        Returns: Json
+      }
       cancel_transport_leg: {
         Args: { _reason: string; _transport_leg_id: string }
+        Returns: Json
+      }
+      change_room: {
+        Args: {
+          _allow_overcapacity?: boolean
+          _idempotency_key: string
+          _reason: string
+          _room_id: string
+          _stay_participation_id: string
+        }
         Returns: Json
       }
       clear_leg_assignment: {
@@ -1858,12 +2490,29 @@ export type Database = {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
+      complete_hospitality_stay: {
+        Args: { _idempotency_key: string; _note?: string; _stay_id: string }
+        Returns: Json
+      }
       complete_journey_step: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
       complete_playbook_item: {
         Args: { _note?: string; _playbook_item_id: string }
+        Returns: Json
+      }
+      complete_stay_checkout: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
+      confirm_hospitality_stay: {
+        Args: { _idempotency_key: string; _note?: string; _stay_id: string }
         Returns: Json
       }
       create_ad_hoc_journey_step: {
@@ -1927,6 +2576,45 @@ export type Database = {
           _short_description?: string
           _slug: string
           _tenant_id: string
+        }
+        Returns: Json
+      }
+      create_hospitality_property: {
+        Args: {
+          _address_label?: string
+          _city?: string
+          _contact_label?: string
+          _country_code?: string
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
+          _region?: string
+          _tenant_id: string
+          _timezone?: string
+        }
+        Returns: Json
+      }
+      create_hospitality_room: {
+        Args: {
+          _capacity: number
+          _floor_label?: string
+          _idempotency_key: string
+          _label: string
+          _notes?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
+      create_hospitality_stay: {
+        Args: {
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _operation_id: string
+          _planned_check_in: string
+          _planned_check_out: string
+          _property_id: string
         }
         Returns: Json
       }
@@ -2066,6 +2754,17 @@ export type Database = {
         Args: { _journey_step_id: string; _transport_leg_id: string }
         Returns: Json
       }
+      note_hospitality_issue: {
+        Args: {
+          _idempotency_key: string
+          _note: string
+          _occurred_at?: string
+          _room_id?: string
+          _stay_id: string
+          _stay_participation_id?: string
+        }
+        Returns: Json
+      }
       note_incident: {
         Args: {
           _journey_step_id?: string
@@ -2083,6 +2782,15 @@ export type Database = {
         }
         Returns: Json
       }
+      open_stay_checkin: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
       record_arrival: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
@@ -2096,6 +2804,33 @@ export type Database = {
           _note?: string
           _occurred_at?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      record_guest_checked_in: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
+      record_guest_checked_out: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
+      record_guest_no_show: {
+        Args: {
+          _idempotency_key: string
+          _occurred_at?: string
+          _reason: string
+          _stay_participation_id: string
         }
         Returns: Json
       }
@@ -2142,8 +2877,24 @@ export type Database = {
         }
         Returns: Json
       }
+      release_room: {
+        Args: {
+          _idempotency_key: string
+          _reason: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
       release_seat: {
         Args: { _reason: string; _seat_assignment_id: string }
+        Returns: Json
+      }
+      remove_stay_participation: {
+        Args: {
+          _idempotency_key: string
+          _reason: string
+          _stay_participation_id: string
+        }
         Returns: Json
       }
       remove_transport_leg_stop: {
@@ -2166,8 +2917,25 @@ export type Database = {
         }
         Returns: Json
       }
+      restore_stay_participation: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _stay_participation_id: string
+        }
+        Returns: Json
+      }
       set_driver_active: {
         Args: { _driver_id: string; _is_active: boolean; _reason?: string }
+        Returns: Json
+      }
+      set_hospitality_property_active: {
+        Args: {
+          _idempotency_key: string
+          _is_active: boolean
+          _property_id: string
+          _reason?: string
+        }
         Returns: Json
       }
       set_operation_archived: {
@@ -2217,6 +2985,25 @@ export type Database = {
           _note?: string
           _return_time: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      set_stay_expected_window: {
+        Args: {
+          _expected_check_in?: string
+          _expected_check_out?: string
+          _idempotency_key: string
+          _note?: string
+          _stay_id: string
+        }
+        Returns: Json
+      }
+      set_stay_planned_window: {
+        Args: {
+          _idempotency_key: string
+          _planned_check_in: string
+          _planned_check_out: string
+          _stay_id: string
         }
         Returns: Json
       }
@@ -2270,12 +3057,52 @@ export type Database = {
         Args: { _participation_id: string; _role_type_id: string }
         Returns: Json
       }
+      unblock_hospitality_room: {
+        Args: { _idempotency_key: string; _note?: string; _room_id: string }
+        Returns: Json
+      }
       update_driver: {
         Args: {
           _driver_code?: string
           _driver_id: string
           _notes?: string
           _operator_name?: string
+        }
+        Returns: Json
+      }
+      update_hospitality_property: {
+        Args: {
+          _address_label?: string
+          _city?: string
+          _contact_label?: string
+          _country_code?: string
+          _idempotency_key: string
+          _name?: string
+          _notes?: string
+          _property_id: string
+          _property_kind?: Database["public"]["Enums"]["hospitality_property_kind"]
+          _region?: string
+          _timezone?: string
+        }
+        Returns: Json
+      }
+      update_hospitality_room: {
+        Args: {
+          _capacity?: number
+          _floor_label?: string
+          _idempotency_key: string
+          _label?: string
+          _notes?: string
+          _room_id: string
+        }
+        Returns: Json
+      }
+      update_hospitality_stay: {
+        Args: {
+          _idempotency_key: string
+          _name?: string
+          _notes?: string
+          _stay_id: string
         }
         Returns: Json
       }
@@ -2357,11 +3184,49 @@ export type Database = {
         Returns: Json
       }
       w05_operation_mobility: { Args: { _operation_id: string }; Returns: Json }
+      w06_operation_hospitality: {
+        Args: { _operation_id: string }
+        Returns: Json
+      }
+      w06_stay_guests: { Args: { _stay_id: string }; Returns: Json }
+      w06_stay_overview: { Args: { _stay_id: string }; Returns: Json }
+      w06_stay_rooming: { Args: { _stay_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
       experience_kind: "tourism" | "event" | "hybrid"
       experience_status: "draft" | "active" | "archived"
+      hospitality_event_type:
+        | "STAY_CONFIRMED"
+        | "STAY_CANCELLED"
+        | "STAY_COMPLETED"
+        | "STAY_FORECAST_UPDATED"
+        | "STAY_CHECKIN_OPENED"
+        | "STAY_CHECKOUT_COMPLETED"
+        | "ROOM_ASSIGNED"
+        | "ROOM_RELEASED"
+        | "ROOM_BLOCKED"
+        | "ROOM_UNBLOCKED"
+        | "GUEST_CHECKED_IN"
+        | "GUEST_CHECKED_OUT"
+        | "GUEST_NO_SHOW_RECORDED"
+        | "HOSPITALITY_ISSUE_NOTED"
+      hospitality_property_kind:
+        | "hotel"
+        | "hostel"
+        | "resort"
+        | "guesthouse"
+        | "apartment"
+        | "campus"
+        | "venue"
+        | "other"
+      hospitality_room_status: "available" | "blocked"
+      hospitality_stay_status:
+        | "draft"
+        | "confirmed"
+        | "active"
+        | "completed"
+        | "cancelled"
       invitation_status: "pending" | "accepted" | "revoked"
       journey_event_type:
         | "STEP_STARTED"
@@ -2585,6 +3450,40 @@ export const Constants = {
       app_role: ["owner", "admin", "operations_agent", "member"],
       experience_kind: ["tourism", "event", "hybrid"],
       experience_status: ["draft", "active", "archived"],
+      hospitality_event_type: [
+        "STAY_CONFIRMED",
+        "STAY_CANCELLED",
+        "STAY_COMPLETED",
+        "STAY_FORECAST_UPDATED",
+        "STAY_CHECKIN_OPENED",
+        "STAY_CHECKOUT_COMPLETED",
+        "ROOM_ASSIGNED",
+        "ROOM_RELEASED",
+        "ROOM_BLOCKED",
+        "ROOM_UNBLOCKED",
+        "GUEST_CHECKED_IN",
+        "GUEST_CHECKED_OUT",
+        "GUEST_NO_SHOW_RECORDED",
+        "HOSPITALITY_ISSUE_NOTED",
+      ],
+      hospitality_property_kind: [
+        "hotel",
+        "hostel",
+        "resort",
+        "guesthouse",
+        "apartment",
+        "campus",
+        "venue",
+        "other",
+      ],
+      hospitality_room_status: ["available", "blocked"],
+      hospitality_stay_status: [
+        "draft",
+        "confirmed",
+        "active",
+        "completed",
+        "cancelled",
+      ],
       invitation_status: ["pending", "accepted", "revoked"],
       journey_event_type: [
         "STEP_STARTED",
