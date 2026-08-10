@@ -23,7 +23,7 @@ export type NavItem = {
   /** i18n key for the label */
   labelKey: string;
   /** Route path — planned routes intentionally resolve to the shell overview in W00. */
-  to: "/app" | "/experiences" | "/operations" | "/people" | "/team" | "/settings";
+  to: "/app" | "/experiences" | "/operations" | "/people" | "/team" | "/settings" | "/inbox";
   icon: LucideIcon;
   status: NavStatus;
   /** Domain owner — enforces the DOMAIN OWNERSHIP rule. */
