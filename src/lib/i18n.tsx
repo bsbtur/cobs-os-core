@@ -4,6 +4,7 @@ import { W01_DICTIONARIES } from "./i18n-w01";
 import { W02_DICTIONARIES } from "./i18n-w02";
 import { W03_DICTIONARIES } from "./i18n-w03";
 import { W04_DICTIONARIES } from "./i18n-w04";
+import { W05_DICTIONARIES } from "./i18n-w05";
 
 /**
  * COBS OS — i18n foundation (W00)
@@ -182,6 +183,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W02_DICTIONARIES["pt-BR"],
     ...W03_DICTIONARIES["pt-BR"],
     ...W04_DICTIONARIES["pt-BR"],
+    ...W05_DICTIONARIES["pt-BR"],
   },
   "en-US": {
     ...enUS,
@@ -189,6 +191,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W02_DICTIONARIES["en-US"],
     ...W03_DICTIONARIES["en-US"],
     ...W04_DICTIONARIES["en-US"],
+    ...W05_DICTIONARIES["en-US"],
   },
   "es-ES": {
     ...esES,
@@ -196,6 +199,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W02_DICTIONARIES["es-ES"],
     ...W03_DICTIONARIES["es-ES"],
     ...W04_DICTIONARIES["es-ES"],
+    ...W05_DICTIONARIES["es-ES"],
   },
 };
 

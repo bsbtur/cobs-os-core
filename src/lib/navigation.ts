@@ -163,7 +163,15 @@ export const ROUTE_META: RouteMeta[] = [
   },
   { path: "/operations", titleKey: "op.title", authenticated: true, indexable: false },
   { path: "/operations/$operationId", titleKey: "op.title", authenticated: true, indexable: false },
+  {
+    path: "/operations/$operationId/mobility",
+    titleKey: "w05.title",
+    authenticated: true,
+    indexable: false,
+  },
   { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
   { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
   { path: "/settings", titleKey: "settings.title", authenticated: true, indexable: false },
+  { path: "/settings/fleet", titleKey: "w05.fleet.title", authenticated: true, indexable: false },
 ];
+

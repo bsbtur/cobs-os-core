@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { History, Settings2 } from "lucide-react";
+import { Bus, History, Settings2 } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -79,7 +80,14 @@ function Body() {
             </div>
           ))}
         </dl>
+        <Button asChild variant="outline" className="mt-4 min-h-11">
+          <Link to="/settings/fleet">
+            <Bus className="mr-2 size-4" aria-hidden="true" />
+            {t("w05.fleet.open")}
+          </Link>
+        </Button>
       </section>
+
 
       <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">

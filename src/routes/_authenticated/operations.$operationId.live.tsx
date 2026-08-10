@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, Clock, Radio, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { MobilityLiveCard } from "@/components/mobility/mobility-live-card";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -571,7 +572,10 @@ function LiveRuntimePage() {
         />
       ) : null}
 
+      <MobilityLiveCard operationId={operation.id} />
+
       <section className="surface-panel p-4">
+
         <div className="flex items-center gap-2">
           <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
           <SectionLabel>{t("w04.live.timeline")}</SectionLabel>

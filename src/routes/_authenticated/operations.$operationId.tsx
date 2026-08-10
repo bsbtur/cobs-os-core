@@ -65,7 +65,16 @@ function OperationWorkspace() {
             >
               {t("w04.tab.live")}
             </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/mobility"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w05.tab.mobility")}
+            </Link>
           </nav>
+
 
 
           <Outlet />
