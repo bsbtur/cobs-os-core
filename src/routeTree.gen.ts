@@ -24,7 +24,9 @@ import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
+import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
+import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './routes/_authenticated/operations.$operationId.events'
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
@@ -112,10 +114,22 @@ const AuthenticatedSettingsPropertiesRoute =
     path: '/settings/properties',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsVenuesRoute =
+  AuthenticatedSettingsVenuesRouteImport.update({
+    id: '/settings_/venues',
+    path: '/settings/venues',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdIndexRoute =
   AuthenticatedOperationsOperationIdIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdEventsRoute =
+  AuthenticatedOperationsOperationIdEventsRouteImport.update({
+    id: '/events',
+    path: '/events',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
 const AuthenticatedOperationsOperationIdHospitalityRoute =
@@ -162,8 +176,10 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
+  '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -183,8 +199,10 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
+  '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -207,8 +225,10 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
+  '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -231,8 +251,10 @@ export interface FileRouteTypes {
     | '/operations/$operationId'
     | '/settings/fleet'
     | '/settings/properties'
+    | '/settings/venues'
     | '/experiences/'
     | '/operations/'
+    | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
@@ -252,8 +274,10 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/settings/fleet'
     | '/settings/properties'
+    | '/settings/venues'
     | '/experiences'
     | '/operations'
+    | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
@@ -275,8 +299,10 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
+    | '/_authenticated/settings_/venues'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
+    | '/_authenticated/operations/$operationId/events'
     | '/_authenticated/operations/$operationId/hospitality'
     | '/_authenticated/operations/$operationId/journey'
     | '/_authenticated/operations/$operationId/live'
@@ -398,11 +424,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsPropertiesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings_/venues': {
+      id: '/_authenticated/settings_/venues'
+      path: '/settings/venues'
+      fullPath: '/settings/venues'
+      preLoaderRoute: typeof AuthenticatedSettingsVenuesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/operations/$operationId/': {
       id: '/_authenticated/operations/$operationId/'
       path: '/'
       fullPath: '/operations/$operationId/'
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/events': {
+      id: '/_authenticated/operations/$operationId/events'
+      path: '/events'
+      fullPath: '/operations/$operationId/events'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdEventsRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
     '/_authenticated/operations/$operationId/hospitality': {
@@ -444,6 +484,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
+  AuthenticatedOperationsOperationIdEventsRoute: typeof AuthenticatedOperationsOperationIdEventsRoute
   AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
   AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
   AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
@@ -454,6 +495,8 @@ interface AuthenticatedOperationsOperationIdRouteChildren {
 
 const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOperationIdRouteChildren =
   {
+    AuthenticatedOperationsOperationIdEventsRoute:
+      AuthenticatedOperationsOperationIdEventsRoute,
     AuthenticatedOperationsOperationIdHospitalityRoute:
       AuthenticatedOperationsOperationIdHospitalityRoute,
     AuthenticatedOperationsOperationIdJourneyRoute:
@@ -484,6 +527,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
   AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
+  AuthenticatedSettingsVenuesRoute: typeof AuthenticatedSettingsVenuesRoute
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
   AuthenticatedOperationsIndexRoute: typeof AuthenticatedOperationsIndexRoute
 }
@@ -501,6 +545,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedOperationsOperationIdRouteWithChildren,
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
   AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
+  AuthenticatedSettingsVenuesRoute: AuthenticatedSettingsVenuesRoute,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
   AuthenticatedOperationsIndexRoute: AuthenticatedOperationsIndexRoute,
 }
@@ -516,13 +561,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

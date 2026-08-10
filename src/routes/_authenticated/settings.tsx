@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BedDouble, Bus, History, Settings2 } from "lucide-react";
+import { BedDouble, Building2, Bus, History, Settings2 } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -91,6 +91,12 @@ function Body() {
             <Link to="/settings/properties">
               <BedDouble className="mr-2 size-4" aria-hidden="true" />
               {t("w06.prop.open")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/settings/venues">
+              <Building2 className="mr-2 size-4" aria-hidden="true" />
+              {t("w07.venues.open")}
             </Link>
           </Button>
         </div>

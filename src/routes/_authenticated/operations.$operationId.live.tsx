@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { MobilityLiveCard } from "@/components/mobility/mobility-live-card";
 import { HospitalityLiveCard } from "@/components/hospitality/hospitality-live-card";
+import { EventLiveCard } from "@/components/events/event-live-card";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -576,6 +577,8 @@ function LiveRuntimePage() {
       <MobilityLiveCard operationId={operation.id} />
 
       <HospitalityLiveCard operationId={operation.id} />
+
+      <EventLiveCard operationId={operation.id} />
 
       <section className="surface-panel p-4">
 

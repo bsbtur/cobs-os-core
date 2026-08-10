@@ -129,6 +129,485 @@ export type Database = {
           },
         ]
       }
+      event_runtime_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          correlation_id: string | null
+          created_at: string
+          event_id: string
+          event_type: Database["public"]["Enums"]["event_runtime_event_type"]
+          id: string
+          note: string | null
+          observed: boolean
+          observed_at: string | null
+          observer_note: string | null
+          occurred_at: string
+          operation_id: string
+          recorded_at: string
+          session_id: string | null
+          tenant_id: string
+          venue_space_id: string | null
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_id: string
+          event_type: Database["public"]["Enums"]["event_runtime_event_type"]
+          id?: string
+          note?: string | null
+          observed?: boolean
+          observed_at?: string | null
+          observer_note?: string | null
+          occurred_at?: string
+          operation_id: string
+          recorded_at?: string
+          session_id?: string | null
+          tenant_id: string
+          venue_space_id?: string | null
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          correlation_id?: string | null
+          created_at?: string
+          event_id?: string
+          event_type?: Database["public"]["Enums"]["event_runtime_event_type"]
+          id?: string
+          note?: string | null
+          observed?: boolean
+          observed_at?: string | null
+          observer_note?: string | null
+          occurred_at?: string
+          operation_id?: string
+          recorded_at?: string
+          session_id?: string | null
+          tenant_id?: string
+          venue_space_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_runtime_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_runtime_events_event_id_session_id_fkey"
+            columns: ["event_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["event_id", "id"]
+          },
+          {
+            foreignKeyName: "event_runtime_events_tenant_id_event_id_fkey"
+            columns: ["tenant_id", "event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_runtime_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_runtime_events_tenant_id_operation_id_fkey"
+            columns: ["tenant_id", "operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_runtime_events_tenant_id_venue_space_id_fkey"
+            columns: ["tenant_id", "venue_space_id"]
+            isOneToOne: false
+            referencedRelation: "venue_spaces"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      event_session_speakers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          metadata: Json
+          notes: string | null
+          person_id: string
+          presentation_title: string | null
+          session_id: string
+          sort_order: number
+          speaking_role: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          person_id: string
+          presentation_title?: string | null
+          session_id: string
+          sort_order?: number
+          speaking_role?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          person_id?: string
+          presentation_title?: string | null
+          session_id?: string
+          sort_order?: number
+          speaking_role?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_session_speakers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_session_speakers_event_id_session_id_fkey"
+            columns: ["event_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["event_id", "id"]
+          },
+          {
+            foreignKeyName: "event_session_speakers_tenant_id_event_id_fkey"
+            columns: ["tenant_id", "event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_session_speakers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_session_speakers_tenant_id_person_id_fkey"
+            columns: ["tenant_id", "person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_session_speakers_tenant_id_session_id_fkey"
+            columns: ["tenant_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      event_sessions: {
+        Row: {
+          ad_hoc_reason: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_id: string
+          expected_end: string | null
+          expected_start: string | null
+          id: string
+          is_ad_hoc: boolean
+          metadata: Json
+          planned_end: string | null
+          planned_start: string | null
+          sequence: number
+          session_kind: Database["public"]["Enums"]["event_session_kind"]
+          tenant_id: string
+          title: string
+          updated_at: string
+          venue_space_id: string | null
+        }
+        Insert: {
+          ad_hoc_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_id: string
+          expected_end?: string | null
+          expected_start?: string | null
+          id?: string
+          is_ad_hoc?: boolean
+          metadata?: Json
+          planned_end?: string | null
+          planned_start?: string | null
+          sequence: number
+          session_kind?: Database["public"]["Enums"]["event_session_kind"]
+          tenant_id: string
+          title: string
+          updated_at?: string
+          venue_space_id?: string | null
+        }
+        Update: {
+          ad_hoc_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_id?: string
+          expected_end?: string | null
+          expected_start?: string | null
+          id?: string
+          is_ad_hoc?: boolean
+          metadata?: Json
+          planned_end?: string | null
+          planned_start?: string | null
+          sequence?: number
+          session_kind?: Database["public"]["Enums"]["event_session_kind"]
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          venue_space_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_sessions_tenant_id_event_id_fkey"
+            columns: ["tenant_id", "event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_sessions_tenant_id_venue_space_id_fkey"
+            columns: ["tenant_id", "venue_space_id"]
+            isOneToOne: false
+            referencedRelation: "venue_spaces"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      event_staff_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          metadata: Json
+          notes: string | null
+          person_id: string
+          session_id: string | null
+          staff_function: Database["public"]["Enums"]["event_staff_function"]
+          tenant_id: string
+          updated_at: string
+          venue_space_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          person_id: string
+          session_id?: string | null
+          staff_function: Database["public"]["Enums"]["event_staff_function"]
+          tenant_id: string
+          updated_at?: string
+          venue_space_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          person_id?: string
+          session_id?: string | null
+          staff_function?: Database["public"]["Enums"]["event_staff_function"]
+          tenant_id?: string
+          updated_at?: string
+          venue_space_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_staff_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_staff_assignments_event_id_session_id_fkey"
+            columns: ["event_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["event_id", "id"]
+          },
+          {
+            foreignKeyName: "event_staff_assignments_tenant_id_event_id_fkey"
+            columns: ["tenant_id", "event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_staff_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_staff_assignments_tenant_id_person_id_fkey"
+            columns: ["tenant_id", "person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "event_staff_assignments_tenant_id_venue_space_id_fkey"
+            columns: ["tenant_id", "venue_space_id"]
+            isOneToOne: false
+            referencedRelation: "venue_spaces"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          closed_out_at: string | null
+          created_at: string
+          created_by: string | null
+          expected_end: string | null
+          expected_start: string | null
+          external_producer_name: string | null
+          id: string
+          journey_step_id: string | null
+          metadata: Json
+          name: string
+          notes: string | null
+          operation_id: string
+          planned_end: string
+          planned_start: string
+          source_kind: Database["public"]["Enums"]["event_source_kind"]
+          status: Database["public"]["Enums"]["event_lifecycle_status"]
+          tenant_id: string
+          timezone: string
+          updated_at: string
+          venue_id: string | null
+        }
+        Insert: {
+          closed_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_end?: string | null
+          expected_start?: string | null
+          external_producer_name?: string | null
+          id?: string
+          journey_step_id?: string | null
+          metadata?: Json
+          name: string
+          notes?: string | null
+          operation_id: string
+          planned_end: string
+          planned_start: string
+          source_kind: Database["public"]["Enums"]["event_source_kind"]
+          status?: Database["public"]["Enums"]["event_lifecycle_status"]
+          tenant_id: string
+          timezone: string
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Update: {
+          closed_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_end?: string | null
+          expected_start?: string | null
+          external_producer_name?: string | null
+          id?: string
+          journey_step_id?: string | null
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          operation_id?: string
+          planned_end?: string
+          planned_start?: string
+          source_kind?: Database["public"]["Enums"]["event_source_kind"]
+          status?: Database["public"]["Enums"]["event_lifecycle_status"]
+          tenant_id?: string
+          timezone?: string
+          updated_at?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_tenant_id_journey_step_id_fkey"
+            columns: ["tenant_id", "journey_step_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "events_tenant_id_operation_id_fkey"
+            columns: ["tenant_id", "operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["tenant_id", "id"]
+          },
+          {
+            foreignKeyName: "events_tenant_id_venue_id_fkey"
+            columns: ["tenant_id", "venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
       experiences: {
         Row: {
           category_tags: string[]
@@ -2359,6 +2838,145 @@ export type Database = {
           },
         ]
       }
+      venue_spaces: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          floor_label: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          notes: string | null
+          planning_capacity: number | null
+          space_label: string | null
+          tenant_id: string
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          floor_label?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name: string
+          notes?: string | null
+          planning_capacity?: number | null
+          space_label?: string | null
+          tenant_id: string
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          floor_label?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          planning_capacity?: number | null
+          space_label?: string | null
+          tenant_id?: string
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_spaces_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_spaces_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_spaces_tenant_id_venue_id_fkey"
+            columns: ["tenant_id", "venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["tenant_id", "id"]
+          },
+        ]
+      }
+      venues: {
+        Row: {
+          address_label: string | null
+          city: string | null
+          contact_label: string | null
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          notes: string | null
+          region: string | null
+          tenant_id: string
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_label?: string | null
+          city?: string | null
+          contact_label?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name: string
+          notes?: string | null
+          region?: string | null
+          tenant_id: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_label?: string | null
+          city?: string | null
+          contact_label?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          region?: string | null
+          tenant_id?: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venues_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venues_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2404,6 +3022,18 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_event_staff: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _notes?: string
+          _person_id: string
+          _session_id?: string
+          _staff_function: Database["public"]["Enums"]["event_staff_function"]
+          _venue_space_id?: string
+        }
+        Returns: Json
+      }
       assign_operation_role: {
         Args: {
           _is_primary?: boolean
@@ -2429,6 +3059,18 @@ export type Database = {
           _reason?: string
           _seat_label?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      assign_session_speaker: {
+        Args: {
+          _idempotency_key: string
+          _notes?: string
+          _person_id: string
+          _presentation_title?: string
+          _session_id: string
+          _sort_order?: number
+          _speaking_role?: string
         }
         Returns: Json
       }
@@ -2460,8 +3102,27 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_event: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _observed_at?: string
+          _observer_note?: string
+          _reason: string
+        }
+        Returns: Json
+      }
       cancel_hospitality_stay: {
         Args: { _idempotency_key: string; _reason: string; _stay_id: string }
+        Returns: Json
+      }
+      cancel_session: {
+        Args: {
+          _idempotency_key: string
+          _occurred_at?: string
+          _reason: string
+          _session_id: string
+        }
         Returns: Json
       }
       cancel_transport_leg: {
@@ -2478,6 +3139,15 @@ export type Database = {
         }
         Returns: Json
       }
+      change_session_space: {
+        Args: {
+          _idempotency_key: string
+          _reason: string
+          _session_id: string
+          _venue_space_id: string
+        }
+        Returns: Json
+      }
       clear_leg_assignment: {
         Args: { _reason: string; _transport_leg_id: string }
         Returns: Json
@@ -2490,6 +3160,15 @@ export type Database = {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
+      complete_event: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+        }
+        Returns: Json
+      }
       complete_hospitality_stay: {
         Args: { _idempotency_key: string; _note?: string; _stay_id: string }
         Returns: Json
@@ -2500,6 +3179,15 @@ export type Database = {
       }
       complete_playbook_item: {
         Args: { _note?: string; _playbook_item_id: string }
+        Returns: Json
+      }
+      complete_session: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _session_id: string
+        }
         Returns: Json
       }
       complete_stay_checkout: {
@@ -2533,6 +3221,20 @@ export type Database = {
         }
         Returns: Json
       }
+      create_ad_hoc_session: {
+        Args: {
+          _ad_hoc_reason: string
+          _description?: string
+          _event_id: string
+          _idempotency_key: string
+          _planned_end?: string
+          _planned_start?: string
+          _session_kind?: Database["public"]["Enums"]["event_session_kind"]
+          _title: string
+          _venue_space_id?: string
+        }
+        Returns: Json
+      }
       create_ad_hoc_transport_leg: {
         Args: {
           _destination_label?: string
@@ -2558,6 +3260,34 @@ export type Database = {
           _operator_name?: string
           _person_id: string
           _tenant_id: string
+        }
+        Returns: Json
+      }
+      create_event: {
+        Args: {
+          _external_producer_name?: string
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _operation_id: string
+          _planned_end: string
+          _planned_start: string
+          _source_kind: Database["public"]["Enums"]["event_source_kind"]
+          _timezone?: string
+          _venue_id?: string
+        }
+        Returns: Json
+      }
+      create_event_session: {
+        Args: {
+          _description?: string
+          _event_id: string
+          _idempotency_key: string
+          _planned_end?: string
+          _planned_start?: string
+          _session_kind?: Database["public"]["Enums"]["event_session_kind"]
+          _title: string
+          _venue_space_id?: string
         }
         Returns: Json
       }
@@ -2720,6 +3450,33 @@ export type Database = {
         }
         Returns: Json
       }
+      create_venue: {
+        Args: {
+          _address_label?: string
+          _city?: string
+          _contact_label?: string
+          _country_code?: string
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _region?: string
+          _tenant_id: string
+          _timezone?: string
+        }
+        Returns: Json
+      }
+      create_venue_space: {
+        Args: {
+          _floor_label?: string
+          _idempotency_key: string
+          _name: string
+          _notes?: string
+          _planning_capacity?: number
+          _space_label?: string
+          _venue_id: string
+        }
+        Returns: Json
+      }
       deactivate_playbook_item: {
         Args: { _playbook_item_id: string; _reason: string }
         Returns: Json
@@ -2746,12 +3503,38 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_event_program: { Args: { _event_id: string }; Returns: Json }
+      get_event_runtime_state: { Args: { _event_id: string }; Returns: Json }
+      get_venue_space_availability: {
+        Args: { _from: string; _to: string; _venue_id: string }
+        Returns: Json
+      }
+      link_event_journey_step: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _journey_step_id?: string
+        }
+        Returns: Json
+      }
       link_person_to_profile: {
         Args: { _person_id: string; _profile_id: string; _tenant_id: string }
         Returns: Json
       }
       link_transport_leg_to_journey_step: {
         Args: { _journey_step_id: string; _transport_leg_id: string }
+        Returns: Json
+      }
+      list_event_runtime_events: {
+        Args: { _event_id: string; _limit?: number }
+        Returns: Json
+      }
+      lock_event_program: {
+        Args: { _event_id: string; _idempotency_key: string }
+        Returns: Json
+      }
+      mark_event_ready: {
+        Args: { _event_id: string; _idempotency_key: string }
         Returns: Json
       }
       note_hospitality_issue: {
@@ -2791,6 +3574,15 @@ export type Database = {
         }
         Returns: Json
       }
+      pause_session: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _session_id: string
+        }
+        Returns: Json
+      }
       record_arrival: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
@@ -2804,6 +3596,15 @@ export type Database = {
           _note?: string
           _occurred_at?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      record_event_note: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _note: string
+          _session_id?: string
         }
         Returns: Json
       }
@@ -2839,6 +3640,42 @@ export type Database = {
           _note?: string
           _occurred_at?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      record_observed_event_completed: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _observed_at: string
+          _observer_note: string
+        }
+        Returns: Json
+      }
+      record_observed_event_started: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _observed_at: string
+          _observer_note: string
+        }
+        Returns: Json
+      }
+      record_observed_session_completed: {
+        Args: {
+          _idempotency_key: string
+          _observed_at: string
+          _observer_note: string
+          _session_id: string
+        }
+        Returns: Json
+      }
+      record_observed_session_started: {
+        Args: {
+          _idempotency_key: string
+          _observed_at: string
+          _observer_note: string
+          _session_id: string
         }
         Returns: Json
       }
@@ -2889,6 +3726,14 @@ export type Database = {
         Args: { _reason: string; _seat_assignment_id: string }
         Returns: Json
       }
+      remove_event_staff: {
+        Args: { _assignment_id: string; _idempotency_key: string }
+        Returns: Json
+      }
+      remove_session_speaker: {
+        Args: { _idempotency_key: string; _speaker_id: string }
+        Returns: Json
+      }
       remove_stay_participation: {
         Args: {
           _idempotency_key: string
@@ -2901,8 +3746,20 @@ export type Database = {
         Args: { _reason: string; _transport_leg_stop_id: string }
         Returns: Json
       }
+      reopen_event_program: {
+        Args: { _event_id: string; _idempotency_key: string; _reason: string }
+        Returns: Json
+      }
       reopen_playbook_item: {
         Args: { _playbook_item_id: string; _reason: string }
+        Returns: Json
+      }
+      reorder_event_sessions: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _session_ids: string[]
+        }
         Returns: Json
       }
       reorder_journey_steps: {
@@ -2925,8 +3782,27 @@ export type Database = {
         }
         Returns: Json
       }
+      resume_session: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _session_id: string
+        }
+        Returns: Json
+      }
       set_driver_active: {
         Args: { _driver_id: string; _is_active: boolean; _reason?: string }
+        Returns: Json
+      }
+      set_event_expected_window: {
+        Args: {
+          _event_id: string
+          _expected_end?: string
+          _expected_start?: string
+          _idempotency_key: string
+          _reason: string
+        }
         Returns: Json
       }
       set_hospitality_property_active: {
@@ -2988,6 +3864,16 @@ export type Database = {
         }
         Returns: Json
       }
+      set_session_expected_window: {
+        Args: {
+          _expected_end?: string
+          _expected_start?: string
+          _idempotency_key: string
+          _reason: string
+          _session_id: string
+        }
+        Returns: Json
+      }
       set_stay_expected_window: {
         Args: {
           _expected_check_in?: string
@@ -3045,12 +3931,34 @@ export type Database = {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
+      start_event: {
+        Args: {
+          _event_id: string
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+        }
+        Returns: Json
+      }
       start_gathering: {
         Args: { _journey_step_id: string; _occurred_at?: string }
         Returns: Json
       }
       start_journey_step: {
         Args: { _journey_step_id: string; _occurred_at?: string }
+        Returns: Json
+      }
+      start_session: {
+        Args: {
+          _idempotency_key: string
+          _note?: string
+          _occurred_at?: string
+          _session_id: string
+        }
+        Returns: Json
+      }
+      submit_event_planning: {
+        Args: { _event_id: string; _idempotency_key: string }
         Returns: Json
       }
       unassign_operation_role: {
@@ -3067,6 +3975,32 @@ export type Database = {
           _driver_id: string
           _notes?: string
           _operator_name?: string
+        }
+        Returns: Json
+      }
+      update_event: {
+        Args: {
+          _event_id: string
+          _external_producer_name?: string
+          _idempotency_key: string
+          _name?: string
+          _notes?: string
+          _planned_end?: string
+          _planned_start?: string
+          _venue_id?: string
+        }
+        Returns: Json
+      }
+      update_event_session: {
+        Args: {
+          _description?: string
+          _idempotency_key: string
+          _planned_end?: string
+          _planned_start?: string
+          _session_id: string
+          _session_kind?: Database["public"]["Enums"]["event_session_kind"]
+          _title?: string
+          _venue_space_id?: string
         }
         Returns: Json
       }
@@ -3169,6 +4103,35 @@ export type Database = {
         }
         Returns: Json
       }
+      update_venue: {
+        Args: {
+          _address_label?: string
+          _city?: string
+          _contact_label?: string
+          _country_code?: string
+          _idempotency_key: string
+          _is_active?: boolean
+          _name?: string
+          _notes?: string
+          _region?: string
+          _timezone?: string
+          _venue_id: string
+        }
+        Returns: Json
+      }
+      update_venue_space: {
+        Args: {
+          _floor_label?: string
+          _idempotency_key: string
+          _is_active?: boolean
+          _name?: string
+          _notes?: string
+          _planning_capacity?: number
+          _space_id: string
+          _space_label?: string
+        }
+        Returns: Json
+      }
       w04_operation_runtime_state: {
         Args: { _operation_id: string }
         Returns: Json
@@ -3194,6 +4157,54 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
+      event_lifecycle_status:
+        | "draft"
+        | "planning"
+        | "program_locked"
+        | "ready"
+        | "closed_out"
+      event_runtime_event_type:
+        | "EVENT_STARTED"
+        | "EVENT_COMPLETED"
+        | "EVENT_CANCELLED"
+        | "EVENT_EXPECTED_TIME_CHANGED"
+        | "SESSION_STARTED"
+        | "SESSION_PAUSED"
+        | "SESSION_RESUMED"
+        | "SESSION_COMPLETED"
+        | "SESSION_CANCELLED"
+        | "SESSION_EXPECTED_TIME_CHANGED"
+        | "SESSION_SPACE_CHANGED"
+        | "EVENT_NOTE_RECORDED"
+      event_session_kind:
+        | "keynote"
+        | "talk"
+        | "panel"
+        | "workshop"
+        | "ceremony"
+        | "performance"
+        | "rehearsal"
+        | "setup"
+        | "teardown"
+        | "break"
+        | "meal"
+        | "networking"
+        | "other"
+      event_source_kind: "internal" | "external"
+      event_staff_function:
+        | "producer"
+        | "coordinator"
+        | "stage_manager"
+        | "technician"
+        | "audio"
+        | "lighting"
+        | "video"
+        | "photography"
+        | "host"
+        | "support"
+        | "logistics"
+        | "security"
+        | "other"
       experience_kind: "tourism" | "event" | "hybrid"
       experience_status: "draft" | "active" | "archived"
       hospitality_event_type:
@@ -3448,6 +4459,58 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "operations_agent", "member"],
+      event_lifecycle_status: [
+        "draft",
+        "planning",
+        "program_locked",
+        "ready",
+        "closed_out",
+      ],
+      event_runtime_event_type: [
+        "EVENT_STARTED",
+        "EVENT_COMPLETED",
+        "EVENT_CANCELLED",
+        "EVENT_EXPECTED_TIME_CHANGED",
+        "SESSION_STARTED",
+        "SESSION_PAUSED",
+        "SESSION_RESUMED",
+        "SESSION_COMPLETED",
+        "SESSION_CANCELLED",
+        "SESSION_EXPECTED_TIME_CHANGED",
+        "SESSION_SPACE_CHANGED",
+        "EVENT_NOTE_RECORDED",
+      ],
+      event_session_kind: [
+        "keynote",
+        "talk",
+        "panel",
+        "workshop",
+        "ceremony",
+        "performance",
+        "rehearsal",
+        "setup",
+        "teardown",
+        "break",
+        "meal",
+        "networking",
+        "other",
+      ],
+      event_source_kind: ["internal", "external"],
+      event_staff_function: [
+        "producer",
+        "coordinator",
+        "stage_manager",
+        "technician",
+        "audio",
+        "lighting",
+        "video",
+        "photography",
+        "host",
+        "support",
+        "logistics",
+        "security",
+        "other",
+      ],
       experience_kind: ["tourism", "event", "hybrid"],
       experience_status: ["draft", "active", "archived"],
       hospitality_event_type: [

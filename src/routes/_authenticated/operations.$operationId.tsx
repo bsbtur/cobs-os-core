@@ -81,6 +81,14 @@ function OperationWorkspace() {
             >
               {t("w06.tab.hospitality")}
             </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/events"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w07.tab.events")}
+            </Link>
           </nav>
 
 
