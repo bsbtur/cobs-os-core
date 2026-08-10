@@ -2932,6 +2932,217 @@ export type Database = {
           },
         ]
       }
+      participant_access_grants: {
+        Row: {
+          activated_at: string
+          created_at: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          operation_id: string
+          origin: Database["public"]["Enums"]["participant_access_grant_origin"]
+          participation_id: string
+          person_id: string
+          profile_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
+          status: Database["public"]["Enums"]["participant_access_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          operation_id: string
+          origin: Database["public"]["Enums"]["participant_access_grant_origin"]
+          participation_id: string
+          person_id: string
+          profile_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          status?: Database["public"]["Enums"]["participant_access_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          operation_id?: string
+          origin?: Database["public"]["Enums"]["participant_access_grant_origin"]
+          participation_id?: string
+          person_id?: string
+          profile_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          status?: Database["public"]["Enums"]["participant_access_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_access_grants_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_access_grants_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "participant_access_grants_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "participant_access_grants_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "participant_access_grants_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_access_grants_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_access_grants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participant_access_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_profile_id: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          operation_id: string
+          participation_id: string
+          person_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
+          tenant_id: string
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_profile_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          operation_id: string
+          participation_id: string
+          person_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          tenant_id: string
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_profile_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          operation_id?: string
+          participation_id?: string
+          person_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          tenant_id?: string
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_access_invitations_accepted_profile_id_fkey"
+            columns: ["accepted_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_access_invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_access_invitations_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "participant_access_invitations_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "participant_access_invitations_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "participant_access_invitations_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_access_invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participant_presence_events: {
         Row: {
           actor_profile_id: string | null
@@ -4056,6 +4267,10 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: Json }
+      accept_participant_access_invitation: {
+        Args: { _token: string }
+        Returns: Json
+      }
       add_message_audience_people: {
         Args: {
           _idempotency_key?: string
@@ -4716,6 +4931,23 @@ export type Database = {
         Args: { _from: string; _to: string; _venue_id: string }
         Returns: Json
       }
+      grant_participant_access: {
+        Args: {
+          _idempotency_key?: string
+          _operation_id: string
+          _person_id: string
+        }
+        Returns: string
+      }
+      invite_participant_access: {
+        Args: {
+          _idempotency_key?: string
+          _operation_id: string
+          _person_id: string
+          _ttl_hours?: number
+        }
+        Returns: Json
+      }
       link_event_journey_step: {
         Args: {
           _event_id: string
@@ -4959,6 +5191,10 @@ export type Database = {
         }
         Returns: Json
       }
+      reinstate_participant_access: {
+        Args: { _grant_id: string; _reason: string }
+        Returns: boolean
+      }
       release_commercial_reservation: {
         Args: { _reason: string; _reservation_id: string }
         Returns: Json
@@ -5054,6 +5290,14 @@ export type Database = {
           _reference: string
         }
         Returns: string
+      }
+      revoke_participant_access: {
+        Args: { _grant_id: string; _reason: string }
+        Returns: boolean
+      }
+      revoke_participant_access_invitation: {
+        Args: { _invitation_id: string; _reason: string }
+        Returns: boolean
       }
       schedule_message: {
         Args: {
@@ -5644,6 +5888,8 @@ export type Database = {
         | "confirmed"
         | "cancelled"
         | "completed"
+      participant_access_grant_origin: "operator_grant" | "invitation_claim"
+      participant_access_status: "active" | "revoked"
       participation_kind: "participant" | "crew" | "support" | "observer"
       participation_status: "expected" | "confirmed" | "cancelled"
       payment_method: "cash" | "bank_transfer" | "other"
@@ -6008,6 +6254,8 @@ export const Constants = {
         "cancelled",
         "completed",
       ],
+      participant_access_grant_origin: ["operator_grant", "invitation_claim"],
+      participant_access_status: ["active", "revoked"],
       participation_kind: ["participant", "crew", "support", "observer"],
       participation_status: ["expected", "confirmed", "cancelled"],
       payment_method: ["cash", "bank_transfer", "other"],
