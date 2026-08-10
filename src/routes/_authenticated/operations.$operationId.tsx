@@ -61,10 +61,14 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 function LifecyclePanel({ op }: { op: OperationRow }) {
   const { t, locale } = useI18n();
-  const { canManage } = useTenant();
+  const { canManage, role } = useTenant();
+  const canOperate = canManage || role === "operations_agent";
   const queryClient = useQueryClient();
   const [cancelReason, setCancelReason] = React.useState("");
-  const next = OPERATION_TRANSITIONS[op.status].filter((s) => s !== "cancelled");
+  const next = OPERATION_TRANSITIONS[op.status]
+    .filter((s) => s !== "cancelled")
+    // Only owners and admins may complete an operation (enforced in the database too).
+    .filter((s) => s !== "completed" || canManage);
   const canCancel = OPERATION_TRANSITIONS[op.status].includes("cancelled");
 
   const invalidate = () => {
