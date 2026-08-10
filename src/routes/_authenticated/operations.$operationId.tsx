@@ -318,7 +318,7 @@ function WindowsPanel({ op }: { op: OperationRow }) {
           </p>
         </div>
 
-        {canManage ? (
+        {canOperate && !isTerminal ? (
           <form
             className="space-y-3"
             onSubmit={(e) => {
