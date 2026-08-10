@@ -55,6 +55,13 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/mo
   component: MobilityPage,
 });
 
+/** Drops undefined keys so optional RPC arguments stay absent rather than explicit undefined. */
+function rpcArgs<T extends Record<string, unknown>>(input: T) {
+  return Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== undefined),
+  ) as { [K in keyof T]: Exclude<T[K], undefined> };
+}
+
 const SELECT_CLASS =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -274,18 +281,24 @@ function AssignmentPanel({
   const call = useMutation({
     mutationFn: async (payload: { fn: "vehicle" | "driver" | "clear"; id?: string }) => {
       if (payload.fn === "vehicle") {
-        const { error } = await supabase.rpc("assign_vehicle_to_leg", {
-          _transport_leg_id: leg.id,
-          _vehicle_id: payload.id!,
-          _reason: reason || undefined,
-        });
+        const { error } = await supabase.rpc(
+          "assign_vehicle_to_leg",
+          rpcArgs({
+            _transport_leg_id: leg.id,
+            _vehicle_id: payload.id!,
+            _reason: reason || undefined,
+          }),
+        );
         if (error) throw error;
       } else if (payload.fn === "driver") {
-        const { error } = await supabase.rpc("assign_driver_to_leg", {
-          _transport_leg_id: leg.id,
-          _driver_id: payload.id!,
-          _reason: reason || undefined,
-        });
+        const { error } = await supabase.rpc(
+          "assign_driver_to_leg",
+          rpcArgs({
+            _transport_leg_id: leg.id,
+            _driver_id: payload.id!,
+            _reason: reason || undefined,
+          }),
+        );
         if (error) throw error;
       } else {
         const { error } = await supabase.rpc("clear_leg_assignment", {
@@ -585,12 +598,15 @@ function SeatsPanel({
 
   const assign = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("assign_seat", {
-        _transport_leg_id: leg.id,
-        _participation_id: participationId,
-        _idempotency_key: newIdempotencyKey(),
-        _seat_label: seatLabel || undefined,
-      });
+      const { error } = await supabase.rpc(
+        "assign_seat",
+        rpcArgs({
+          _transport_leg_id: leg.id,
+          _participation_id: participationId,
+          _idempotency_key: newIdempotencyKey() as string,
+          _seat_label: seatLabel || undefined,
+        }),
+      );
       if (error) throw error;
     },
     onSuccess: () => {
@@ -743,12 +759,15 @@ function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () =
 
   const forecast = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("set_transport_leg_expected_window", {
-        _transport_leg_id: leg.id,
-        _reason: forecastReason,
-        _expected_departure: iso(forecastDeparture),
-        _expected_arrival: iso(forecastArrival),
-      });
+      const { error } = await supabase.rpc(
+        "set_transport_leg_expected_window",
+        rpcArgs({
+          _transport_leg_id: leg.id,
+          _reason: forecastReason,
+          _expected_departure: iso(forecastDeparture),
+          _expected_arrival: iso(forecastArrival),
+        }),
+      );
       if (error) throw error;
     },
     onSuccess: done,
