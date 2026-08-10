@@ -5,17 +5,17 @@
 
 ## Gate results
 
-| Gate                                   | Result |
-| -------------------------------------- | ------ |
-| W06 ARCHITECTURE GATE                  | PASS   |
-| W06 SECURITY GATE                      | PASS   |
-| W06 FINAL HOTFIX                       | PASS   |
-| W06 ACL HARDENING                      | PASS   |
-| W06 BACKEND ADVERSARIAL VERIFICATION   | PASS   |
-| W06 RLS/ACL GATE                       | PASS   |
-| W06 DOMAIN INVARIANTS                  | PASS   |
-| W06 FRONTEND STATIC VERIFICATION       | PASS   |
-| **W06 ARCHITECTURE FROZEN**            | **YES** |
+| Gate                                 | Result  |
+| ------------------------------------ | ------- |
+| W06 ARCHITECTURE GATE                | PASS    |
+| W06 SECURITY GATE                    | PASS    |
+| W06 FINAL HOTFIX                     | PASS    |
+| W06 ACL HARDENING                    | PASS    |
+| W06 BACKEND ADVERSARIAL VERIFICATION | PASS    |
+| W06 RLS/ACL GATE                     | PASS    |
+| W06 DOMAIN INVARIANTS                | PASS    |
+| W06 FRONTEND STATIC VERIFICATION     | PASS    |
+| **W06 ARCHITECTURE FROZEN**          | **YES** |
 
 ## W06 AUTHENTICATED BROWSER A4/A5
 
