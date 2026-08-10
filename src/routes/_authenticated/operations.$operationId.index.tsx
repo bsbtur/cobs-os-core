@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArchiveRestore, ArrowLeft, Box } from "lucide-react";
+import { Activity, ArchiveRestore, Box } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/")
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: OperationDetailPage,
+  component: OperationDetail,
 });
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -461,15 +461,3 @@ function OperationDetail() {
   );
 }
 
-function OperationDetailPage() {
-  const { t } = useI18n();
-  return (
-    <AppShell activeId="operations" title={t("op.title")}>
-      <div className="mx-auto w-full max-w-5xl">
-        <RequireTenant>
-          <OperationDetail />
-        </RequireTenant>
-      </div>
-    </AppShell>
-  );
-}
