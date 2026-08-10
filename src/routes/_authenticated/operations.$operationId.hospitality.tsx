@@ -618,6 +618,105 @@ function GuestRow({
 }
 
 /* ------------------------------------------------------------------ */
+/* Room edit                                                           */
+/* ------------------------------------------------------------------ */
+
+/** ROOM-LEVEL ONLY: label, capacity, floor and notes. No bed-level fields exist. */
+function EditRoomDialog({ room, onDone }: { room: RoomingRoom; onDone: () => void }) {
+  const { t, locale } = useI18n();
+  const [open, setOpen] = React.useState(false);
+  const [label, setLabel] = React.useState(room.label);
+  const [capacity, setCapacity] = React.useState(String(room.capacity));
+  const [floor, setFloor] = React.useState(room.floor_label ?? "");
+  const [notes, setNotes] = React.useState(room.notes ?? "");
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc(
+        "update_hospitality_room",
+        rpcArgs({
+          _room_id: room.room_id,
+          _idempotency_key: newIdempotencyKey(),
+          _label: label.trim() || undefined,
+          _capacity: Number(capacity) || undefined,
+          _floor_label: floor.trim() || undefined,
+          _notes: notes.trim() || undefined,
+        }),
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w06.edit.saved"));
+      setOpen(false);
+      onDone();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="mt-2 min-h-11" onClick={() => setOpen(true)}>
+        {t("w06.room.edit")}
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {t("w06.room.edit")} · {room.label}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor={`room-edit-label-${room.room_id}`}>{t("w06.room.label")}</Label>
+              <Input
+                id={`room-edit-label-${room.room_id}`}
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`room-edit-capacity-${room.room_id}`}>{t("w06.room.capacity")}</Label>
+              <Input
+                id={`room-edit-capacity-${room.room_id}`}
+                type="number"
+                min={1}
+                value={capacity}
+                onChange={(e) => setCapacity(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`room-edit-floor-${room.room_id}`}>{t("w06.room.floor")}</Label>
+              <Input
+                id={`room-edit-floor-${room.room_id}`}
+                value={floor}
+                onChange={(e) => setFloor(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`room-edit-notes-${room.room_id}`}>{t("w06.room.notes")}</Label>
+              <Input
+                id={`room-edit-notes-${room.room_id}`}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Button
+                className="min-h-11 w-full"
+                disabled={save.isPending || label.trim() === ""}
+                onClick={() => save.mutate()}
+              >
+                {t("w06.edit.save")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Rooms panel                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -742,15 +841,18 @@ function RoomsPanel({
                   </p>
                 ) : null}
                 {terminal ? null : (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="mt-2 min-h-11"
-                    disabled={status.isPending}
-                    onClick={() => status.mutate({ roomId: room.room_id, block: !blocked })}
-                  >
-                    {blocked ? t("w06.room.unblock") : t("w06.room.block")}
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="mt-2 min-h-11"
+                      disabled={status.isPending}
+                      onClick={() => status.mutate({ roomId: room.room_id, block: !blocked })}
+                    >
+                      {blocked ? t("w06.room.unblock") : t("w06.room.block")}
+                    </Button>
+                    <EditRoomDialog room={room} onDone={onDone} />
+                  </div>
                 )}
               </li>
             );
@@ -810,6 +912,112 @@ function RoomsPanel({
 /* ------------------------------------------------------------------ */
 /* Stay controls                                                       */
 /* ------------------------------------------------------------------ */
+
+/** datetime-local needs a local wall-clock string; UTC storage is untouched. */
+function toLocalInput(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+/**
+ * PLAN CORRECTION BEFORE FREEZE. Name/notes stay editable while the stay is open;
+ * the planned baseline is only editable while the stay is a draft — the backend is final authority.
+ */
+function StayPlanEditor({ overview, onDone }: { overview: StayOverview; onDone: () => void }) {
+  const { t, locale } = useI18n();
+  const draft = overview.status === "draft";
+  const [name, setName] = React.useState(overview.name);
+  const [notes, setNotes] = React.useState(overview.notes ?? "");
+  const [plannedIn, setPlannedIn] = React.useState(toLocalInput(overview.planned_check_in));
+  const [plannedOut, setPlannedOut] = React.useState(toLocalInput(overview.planned_check_out));
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const identityChanged = name !== overview.name || notes !== (overview.notes ?? "");
+      if (identityChanged) {
+        const { error } = await supabase.rpc(
+          "update_hospitality_stay",
+          rpcArgs({
+            _stay_id: overview.stay_id,
+            _idempotency_key: newIdempotencyKey(),
+            _name: name.trim() || undefined,
+            _notes: notes.trim() || undefined,
+          }),
+        );
+        if (error) throw error;
+      }
+      if (
+        draft &&
+        (plannedIn !== toLocalInput(overview.planned_check_in) ||
+          plannedOut !== toLocalInput(overview.planned_check_out))
+      ) {
+        const { error } = await supabase.rpc("set_stay_planned_window", {
+          _stay_id: overview.stay_id,
+          _planned_check_in: iso(plannedIn)!,
+          _planned_check_out: iso(plannedOut)!,
+          _idempotency_key: newIdempotencyKey(),
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      feedback.success(t("w06.edit.saved"));
+      onDone();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border/70 p-3">
+      <SectionLabel>{t("w06.stay.editPlan")}</SectionLabel>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="stay-edit-name">{t("w06.stay.name")}</Label>
+          <Input id="stay-edit-name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="stay-edit-notes">{t("w06.stay.notes")}</Label>
+          <Input id="stay-edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        {draft ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="stay-edit-in">{t("w06.stay.plannedIn")}</Label>
+              <Input
+                id="stay-edit-in"
+                type="datetime-local"
+                value={plannedIn}
+                onChange={(e) => setPlannedIn(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="stay-edit-out">{t("w06.stay.plannedOut")}</Label>
+              <Input
+                id="stay-edit-out"
+                type="datetime-local"
+                value={plannedOut}
+                onChange={(e) => setPlannedOut(e.target.value)}
+              />
+            </div>
+          </>
+        ) : null}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {draft ? t("w06.stay.planHint") : t("w06.stay.planFrozen")}
+      </p>
+      <Button
+        variant="outline"
+        className="min-h-11"
+        disabled={save.isPending || name.trim() === ""}
+        onClick={() => save.mutate()}
+      >
+        {t("w06.edit.save")}
+      </Button>
+    </div>
+  );
+}
 
 function StayControls({ overview, onDone }: { overview: StayOverview; onDone: () => void }) {
   const { t, locale } = useI18n();
@@ -931,6 +1139,8 @@ function StayControls({ overview, onDone }: { overview: StayOverview; onDone: ()
         ) : null}
       </div>
       <p className="text-xs text-muted-foreground">{t("w06.checkout.hint")}</p>
+
+      <StayPlanEditor overview={overview} onDone={onDone} />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
