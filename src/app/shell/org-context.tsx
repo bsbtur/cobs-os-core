@@ -1,6 +1,7 @@
-import { Building2, ChevronsUpDown } from "lucide-react";
+import { Building2, Check, ChevronsUpDown } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+import { useTenant } from "@/lib/tenant";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,13 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * Organization (tenant) context placeholder.
- * MULTI-TENANT FROM DAY ONE: the switcher exists structurally in W00,
- * but no tenant is created or selected until W01 defines Tenant + Membership.
+ * Organization (tenant) context switcher.
+ * MULTI-TENANT FROM DAY ONE: the active tenant is always explicit and visible.
  */
 export function OrgContext({ tone = "sidebar" }: { tone?: "sidebar" | "bar" }) {
   const { t } = useI18n();
+  const { memberships, tenant, setActiveTenantId } = useTenant();
   const sidebar = tone === "sidebar";
+  const label = tenant?.name ?? t("org.placeholder");
 
   return (
     <DropdownMenu>
@@ -36,14 +38,30 @@ export function OrgContext({ tone = "sidebar" }: { tone?: "sidebar" | "bar" }) {
           <span className="truncate font-mono text-[9px] uppercase tracking-[0.16em] opacity-60">
             {t("org.context")}
           </span>
-          <span className="truncate text-xs font-medium">{t("org.placeholder")}</span>
+          <span className="truncate text-xs font-medium">{label}</span>
         </span>
         <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuLabel>{t("org.context")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>{t("org.placeholder")}</DropdownMenuItem>
+        {memberships.length === 0 ? (
+          <DropdownMenuItem disabled>{t("org.placeholder")}</DropdownMenuItem>
+        ) : (
+          memberships.map((membership) => (
+            <DropdownMenuItem
+              key={membership.tenant_id}
+              onSelect={() => setActiveTenantId(membership.tenant_id)}
+            >
+              <span className="flex-1 truncate">
+                {membership.tenants?.name ?? membership.tenant_id}
+              </span>
+              {membership.tenant_id === tenant?.id ? (
+                <Check className="size-3.5 opacity-70" aria-hidden="true" />
+              ) : null}
+            </DropdownMenuItem>
+          ))
+        )}
         <DropdownMenuSeparator />
         <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("org.hint")}</p>
       </DropdownMenuContent>
