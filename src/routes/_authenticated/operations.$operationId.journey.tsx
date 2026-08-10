@@ -443,7 +443,7 @@ function PlaybookEditor({
         _title: title.trim(),
         _idempotency_key: newIdempotencyKey(),
         _requirement: requirement,
-        _owner_role_type_id: ownerRole || undefined,
+        ...(ownerRole ? { _owner_role_type_id: ownerRole } : {}),
       });
       if (error) throw error;
     },
