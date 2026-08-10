@@ -23,7 +23,9 @@ import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
+import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
+import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
 import { Route as AuthenticatedOperationsOperationIdMobilityRouteImport } from './routes/_authenticated/operations.$operationId.mobility'
@@ -104,10 +106,22 @@ const AuthenticatedSettingsFleetRoute =
     path: '/settings/fleet',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsPropertiesRoute =
+  AuthenticatedSettingsPropertiesRouteImport.update({
+    id: '/settings_/properties',
+    path: '/settings/properties',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdIndexRoute =
   AuthenticatedOperationsOperationIdIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdHospitalityRoute =
+  AuthenticatedOperationsOperationIdHospitalityRouteImport.update({
+    id: '/hospitality',
+    path: '/hospitality',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
 const AuthenticatedOperationsOperationIdJourneyRoute =
@@ -147,8 +161,10 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
+  '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -166,8 +182,10 @@ export interface FileRoutesByTo {
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
+  '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -188,8 +206,10 @@ export interface FileRoutesById {
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
+  '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/_authenticated/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -210,8 +230,10 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/operations/$operationId'
     | '/settings/fleet'
+    | '/settings/properties'
     | '/experiences/'
     | '/operations/'
+    | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
@@ -229,8 +251,10 @@ export interface FileRouteTypes {
     | '/experiences/$experienceId'
     | '/invite/$token'
     | '/settings/fleet'
+    | '/settings/properties'
     | '/experiences'
     | '/operations'
+    | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
@@ -250,8 +274,10 @@ export interface FileRouteTypes {
     | '/_authenticated/invite/$token'
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/settings_/fleet'
+    | '/_authenticated/settings_/properties'
     | '/_authenticated/experiences/'
     | '/_authenticated/operations/'
+    | '/_authenticated/operations/$operationId/hospitality'
     | '/_authenticated/operations/$operationId/journey'
     | '/_authenticated/operations/$operationId/live'
     | '/_authenticated/operations/$operationId/mobility'
@@ -365,11 +391,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsFleetRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings_/properties': {
+      id: '/_authenticated/settings_/properties'
+      path: '/settings/properties'
+      fullPath: '/settings/properties'
+      preLoaderRoute: typeof AuthenticatedSettingsPropertiesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/operations/$operationId/': {
       id: '/_authenticated/operations/$operationId/'
       path: '/'
       fullPath: '/operations/$operationId/'
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/hospitality': {
+      id: '/_authenticated/operations/$operationId/hospitality'
+      path: '/hospitality'
+      fullPath: '/operations/$operationId/hospitality'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdHospitalityRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
     '/_authenticated/operations/$operationId/journey': {
@@ -404,6 +444,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
+  AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
   AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
   AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
   AuthenticatedOperationsOperationIdMobilityRoute: typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -413,6 +454,8 @@ interface AuthenticatedOperationsOperationIdRouteChildren {
 
 const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOperationIdRouteChildren =
   {
+    AuthenticatedOperationsOperationIdHospitalityRoute:
+      AuthenticatedOperationsOperationIdHospitalityRoute,
     AuthenticatedOperationsOperationIdJourneyRoute:
       AuthenticatedOperationsOperationIdJourneyRoute,
     AuthenticatedOperationsOperationIdLiveRoute:
@@ -440,6 +483,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
+  AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
   AuthenticatedOperationsIndexRoute: typeof AuthenticatedOperationsIndexRoute
 }
@@ -456,6 +500,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOperationsOperationIdRoute:
     AuthenticatedOperationsOperationIdRouteWithChildren,
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
+  AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
   AuthenticatedOperationsIndexRoute: AuthenticatedOperationsIndexRoute,
 }
