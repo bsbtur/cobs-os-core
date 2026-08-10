@@ -19,6 +19,7 @@ import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedCommerceIndexRouteImport } from './routes/_authenticated/commerce.index'
+import { Route as AuthenticatedCommerceOrderIdRouteImport } from './routes/_authenticated/commerce.$orderId'
 import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_authenticated/experiences.index'
 import { Route as AuthenticatedExperiencesExperienceIdRouteImport } from './routes/_authenticated/experiences.$experienceId'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
@@ -84,6 +85,12 @@ const AuthenticatedCommerceIndexRoute =
   AuthenticatedCommerceIndexRouteImport.update({
     id: '/commerce/',
     path: '/commerce/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCommerceOrderIdRoute =
+  AuthenticatedCommerceOrderIdRouteImport.update({
+    id: '/commerce/$orderId',
+    path: '/commerce/$orderId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedExperiencesIndexRoute =
@@ -192,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
@@ -219,6 +227,7 @@ export interface FileRoutesByTo {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
@@ -247,6 +256,7 @@ export interface FileRoutesById {
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
     | '/operations/$operationId'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
     | '/settings/fleet'
@@ -330,6 +342,7 @@ export interface FileRouteTypes {
     | '/_authenticated/people'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/_authenticated/commerce/$orderId'
     | '/_authenticated/experiences/$experienceId'
     | '/_authenticated/invite/$token'
     | '/_authenticated/operations/$operationId'
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/commerce'
       fullPath: '/commerce/'
       preLoaderRoute: typeof AuthenticatedCommerceIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/commerce/$orderId': {
+      id: '/_authenticated/commerce/$orderId'
+      path: '/commerce/$orderId'
+      fullPath: '/commerce/$orderId'
+      preLoaderRoute: typeof AuthenticatedCommerceOrderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/experiences/': {
@@ -585,6 +605,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPeopleRoute: typeof AuthenticatedPeopleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedCommerceOrderIdRoute: typeof AuthenticatedCommerceOrderIdRoute
   AuthenticatedExperiencesExperienceIdRoute: typeof AuthenticatedExperiencesExperienceIdRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
@@ -603,6 +624,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPeopleRoute: AuthenticatedPeopleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedCommerceOrderIdRoute: AuthenticatedCommerceOrderIdRoute,
   AuthenticatedExperiencesExperienceIdRoute:
     AuthenticatedExperiencesExperienceIdRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
