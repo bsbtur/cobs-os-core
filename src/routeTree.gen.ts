@@ -38,6 +38,7 @@ import { Route as AuthenticatedMyOperationIdJourneyRouteImport } from './routes/
 import { Route as AuthenticatedMyOperationIdMessagesRouteImport } from './routes/_authenticated/my.$operationId.messages'
 import { Route as AuthenticatedMyOperationIdMobilityRouteImport } from './routes/_authenticated/my.$operationId.mobility'
 import { Route as AuthenticatedMyOperationIdStayRouteImport } from './routes/_authenticated/my.$operationId.stay'
+import { Route as AuthenticatedMyClaimTokenRouteImport } from './routes/_authenticated/my.claim.$token'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
 import { Route as AuthenticatedOperationsOperationIdCommunicationRouteImport } from './routes/_authenticated/operations.$operationId.communication'
 import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './routes/_authenticated/operations.$operationId.events'
@@ -209,6 +210,12 @@ const AuthenticatedMyOperationIdStayRoute =
     path: '/stay',
     getParentRoute: () => AuthenticatedMyOperationIdRoute,
   } as any)
+const AuthenticatedMyClaimTokenRoute =
+  AuthenticatedMyClaimTokenRouteImport.update({
+    id: '/claim/$token',
+    path: '/claim/$token',
+    getParentRoute: () => AuthenticatedMyRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdIndexRoute =
   AuthenticatedOperationsOperationIdIndexRouteImport.update({
     id: '/',
@@ -286,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
   '/my/$operationId/mobility': typeof AuthenticatedMyOperationIdMobilityRoute
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
+  '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -321,6 +329,7 @@ export interface FileRoutesByTo {
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
   '/my/$operationId/mobility': typeof AuthenticatedMyOperationIdMobilityRoute
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
+  '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -361,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
   '/_authenticated/my/$operationId/mobility': typeof AuthenticatedMyOperationIdMobilityRoute
   '/_authenticated/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
+  '/_authenticated/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/_authenticated/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
   '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/my/$operationId/messages'
     | '/my/$operationId/mobility'
     | '/my/$operationId/stay'
+    | '/my/claim/$token'
     | '/operations/$operationId/communication'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/my/$operationId/messages'
     | '/my/$operationId/mobility'
     | '/my/$operationId/stay'
+    | '/my/claim/$token'
     | '/operations/$operationId/communication'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
@@ -475,6 +487,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my/$operationId/messages'
     | '/_authenticated/my/$operationId/mobility'
     | '/_authenticated/my/$operationId/stay'
+    | '/_authenticated/my/claim/$token'
     | '/_authenticated/operations/$operationId/communication'
     | '/_authenticated/operations/$operationId/events'
     | '/_authenticated/operations/$operationId/hospitality'
@@ -697,6 +710,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyOperationIdStayRouteImport
       parentRoute: typeof AuthenticatedMyOperationIdRoute
     }
+    '/_authenticated/my/claim/$token': {
+      id: '/_authenticated/my/claim/$token'
+      path: '/claim/$token'
+      fullPath: '/my/claim/$token'
+      preLoaderRoute: typeof AuthenticatedMyClaimTokenRouteImport
+      parentRoute: typeof AuthenticatedMyRoute
+    }
     '/_authenticated/operations/$operationId/': {
       id: '/_authenticated/operations/$operationId/'
       path: '/'
@@ -787,11 +807,13 @@ const AuthenticatedMyOperationIdRouteWithChildren =
 interface AuthenticatedMyRouteChildren {
   AuthenticatedMyOperationIdRoute: typeof AuthenticatedMyOperationIdRouteWithChildren
   AuthenticatedMyIndexRoute: typeof AuthenticatedMyIndexRoute
+  AuthenticatedMyClaimTokenRoute: typeof AuthenticatedMyClaimTokenRoute
 }
 
 const AuthenticatedMyRouteChildren: AuthenticatedMyRouteChildren = {
   AuthenticatedMyOperationIdRoute: AuthenticatedMyOperationIdRouteWithChildren,
   AuthenticatedMyIndexRoute: AuthenticatedMyIndexRoute,
+  AuthenticatedMyClaimTokenRoute: AuthenticatedMyClaimTokenRoute,
 }
 
 const AuthenticatedMyRouteWithChildren = AuthenticatedMyRoute._addFileChildren(
