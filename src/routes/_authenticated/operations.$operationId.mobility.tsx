@@ -813,13 +813,26 @@ function LegControls({
 
   const rendezvous = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("set_return_time", {
-        _transport_leg_id: leg.id,
-        _return_time: new Date(returnTime).toISOString(),
-      });
+      const { data, error } = await supabase.rpc(
+        "set_return_time",
+        rpcArgs({
+          _transport_leg_id: leg.id,
+          _return_time: new Date(returnTime).toISOString(),
+          _note: returnReason.trim() === "" ? undefined : returnReason.trim(),
+        }),
+      );
       if (error) throw error;
+      return data as unknown as { unchanged?: boolean } | null;
     },
-    onSuccess: done,
+    onSuccess: (result) => {
+      /* DEF-003: an identical rendezvous is a no-op — say so instead of faking a new fact. */
+      if (result?.unchanged) {
+        feedback.info(t("w05.leg.returnTimeUnchanged"));
+        return;
+      }
+      setReturnReason("");
+      done();
+    },
     onError: fail,
   });
 
@@ -837,6 +850,14 @@ function LegControls({
     },
     onError: fail,
   });
+
+  if (terminal) {
+    return (
+      <p className="rounded-lg bg-elevated px-3 py-2 text-sm text-muted-foreground">
+        {t("w05.leg.terminalLock")}
+      </p>
+    );
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -883,14 +904,30 @@ function LegControls({
           value={returnTime}
           onChange={(e) => setReturnTime(e.target.value)}
         />
+        {returnReasonRequired ? (
+          <>
+            <Input
+              aria-label={t("w05.leg.returnTimeReason")}
+              placeholder={t("w05.leg.returnTimeReason")}
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">{t("w05.leg.returnTimeReasonHelp")}</p>
+          </>
+        ) : null}
         <Button
           variant="outline"
           className="min-h-11 w-full"
-          disabled={rendezvous.isPending || returnTime === ""}
+          disabled={
+            rendezvous.isPending ||
+            returnTime === "" ||
+            (returnReasonRequired && returnReason.trim() === "")
+          }
           onClick={() => rendezvous.mutate()}
         >
           {t("w05.action.setReturnTime")}
         </Button>
+
 
         <SectionLabel>{t("w05.action.incident")}</SectionLabel>
         <Textarea
