@@ -582,6 +582,9 @@ function LiveRuntimePage() {
 
       <EventLiveCard operationId={operation.id} />
 
+      <CommunicationLiveCard operationId={operation.id} />
+
+
       <section className="surface-panel p-4">
 
         <div className="flex items-center gap-2">
