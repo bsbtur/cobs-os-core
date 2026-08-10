@@ -379,6 +379,195 @@ export type Database = {
           },
         ]
       }
+      operation_participations: {
+        Row: {
+          cancellation_count: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          operation_id: string
+          participation_kind: Database["public"]["Enums"]["participation_kind"]
+          person_id: string
+          reactivated_at: string | null
+          status: Database["public"]["Enums"]["participation_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cancellation_count?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          operation_id: string
+          participation_kind?: Database["public"]["Enums"]["participation_kind"]
+          person_id: string
+          reactivated_at?: string | null
+          status?: Database["public"]["Enums"]["participation_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cancellation_count?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          operation_id?: string
+          participation_kind?: Database["public"]["Enums"]["participation_kind"]
+          person_id?: string
+          reactivated_at?: string | null
+          status?: Database["public"]["Enums"]["participation_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_participations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operation_participations_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "operation_participations_person_fk"
+            columns: ["person_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "operation_participations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operation_role_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_primary: boolean
+          participation_id: string
+          role_type_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_primary?: boolean
+          participation_id: string
+          role_type_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_primary?: boolean
+          participation_id?: string
+          role_type_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_role_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operation_role_assignments_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "operation_role_assignments_role_type_fk"
+            columns: ["role_type_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_role_types"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "operation_role_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operation_role_types: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_system: boolean
+          key: string
+          label: string | null
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          key: string
+          label?: string | null
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          key?: string
+          label?: string | null
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_role_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operations: {
         Row: {
           archived_at: string | null
@@ -627,6 +816,26 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { _token: string }; Returns: Json }
+      add_operation_participation: {
+        Args: {
+          _idempotency_key: string
+          _notes?: string
+          _operation_id: string
+          _participation_kind: Database["public"]["Enums"]["participation_kind"]
+          _person_id: string
+          _primary_role_type_id?: string
+          _role_type_ids?: string[]
+        }
+        Returns: Json
+      }
+      assign_operation_role: {
+        Args: {
+          _is_primary?: boolean
+          _participation_id: string
+          _role_type_id: string
+        }
+        Returns: Json
+      }
       bootstrap_tenant: {
         Args: {
           _country_code?: string
@@ -702,6 +911,10 @@ export type Database = {
         }
         Returns: Json
       }
+      ensure_operation_role_types: {
+        Args: { _tenant_id: string }
+        Returns: Json
+      }
       ensure_profile: {
         Args: { _display_name?: string }
         Returns: {
@@ -754,6 +967,22 @@ export type Database = {
         }
         Returns: Json
       }
+      set_participation_status: {
+        Args: {
+          _participation_id: string
+          _reason?: string
+          _status: Database["public"]["Enums"]["participation_status"]
+        }
+        Returns: Json
+      }
+      set_primary_operation_role: {
+        Args: { _participation_id: string; _role_type_id: string }
+        Returns: Json
+      }
+      unassign_operation_role: {
+        Args: { _participation_id: string; _role_type_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "operations_agent" | "member"
@@ -769,6 +998,8 @@ export type Database = {
         | "active"
         | "completed"
         | "cancelled"
+      participation_kind: "participant" | "crew" | "support" | "observer"
+      participation_status: "expected" | "confirmed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -910,6 +1141,8 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      participation_kind: ["participant", "crew", "support", "observer"],
+      participation_status: ["expected", "confirmed", "cancelled"],
     },
   },
 } as const
