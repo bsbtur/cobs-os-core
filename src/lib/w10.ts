@@ -460,7 +460,7 @@ export function useMyJourney(
     queryKey: portalKeys.scoped(operationId, "journey"),
     enabled,
     ...BASE,
-    queryFn: async () => arr((await callScoped("get_my_journey", operationId)).steps).map(mapStep),
+    queryFn: async () => arr((await callScoped("get_my_journey", operationId))["steps"]).map(mapStep),
   });
 }
 
@@ -472,7 +472,7 @@ export function useMyMobility(
     queryKey: portalKeys.scoped(operationId, "mobility"),
     enabled,
     ...BASE,
-    queryFn: async () => arr((await callScoped("get_my_mobility", operationId)).legs).map(mapLeg),
+    queryFn: async () => arr((await callScoped("get_my_mobility", operationId))["legs"]).map(mapLeg),
   });
 }
 
@@ -484,7 +484,7 @@ export function useMyStay(
     queryKey: portalKeys.scoped(operationId, "stay"),
     enabled,
     ...BASE,
-    queryFn: async () => arr((await callScoped("get_my_stay", operationId)).stays).map(mapStay),
+    queryFn: async () => arr((await callScoped("get_my_stay", operationId))["stays"]).map(mapStay),
   });
 }
 
@@ -497,7 +497,7 @@ export function useMyEventProgram(
     enabled,
     ...BASE,
     queryFn: async () =>
-      arr((await callScoped("get_my_event_program", operationId)).events).map(mapEvent),
+      arr((await callScoped("get_my_event_program", operationId))["events"]).map(mapEvent),
   });
 }
 
@@ -510,7 +510,7 @@ export function useMyMessages(
     enabled,
     ...BASE,
     queryFn: async () =>
-      arr((await callScoped("get_my_messages", operationId)).messages).map(mapMessage),
+      arr((await callScoped("get_my_messages", operationId))["messages"]).map(mapMessage),
   });
 }
 
