@@ -40,6 +40,12 @@ export const W05_PT: Record<string, string> = {
   "w05.leg.cancelled": "Trecho cancelado.",
   "w05.leg.departedLock":
     "Este trecho já partiu. Para substituir veículo ou motorista, crie um novo trecho durante a operação.",
+  "w05.leg.terminalLock":
+    "Este trecho está encerrado. Nenhum controle pode mais ser alterado; registre novos fatos em um novo trecho.",
+  "w05.leg.returnTimeReason": "Motivo da alteração do horário de retorno",
+  "w05.leg.returnTimeReasonHelp":
+    "Obrigatório ao alterar um horário de retorno já combinado. Repetir o mesmo horário não gera novo fato.",
+  "w05.leg.returnTimeUnchanged": "O horário de retorno já era esse. Nada foi registrado.",
   "w05.leg.replaces": "Substitui o trecho",
   "w05.leg.delay": "Atraso",
   "w05.leg.minutes": "min",
@@ -194,6 +200,12 @@ export const W05_EN: Record<string, string> = {
   "w05.leg.cancelled": "Leg cancelled.",
   "w05.leg.departedLock":
     "This leg already departed. To replace vehicle or driver, create a new leg during the operation.",
+  "w05.leg.terminalLock":
+    "This leg is closed. No control can change it any more; record new facts on a new leg.",
+  "w05.leg.returnTimeReason": "Reason for changing the return time",
+  "w05.leg.returnTimeReasonHelp":
+    "Required when changing an already agreed return time. Re-sending the same time records nothing.",
+  "w05.leg.returnTimeUnchanged": "The return time was already that. Nothing was recorded.",
   "w05.leg.replaces": "Replaces leg",
   "w05.leg.delay": "Delay",
   "w05.leg.minutes": "min",

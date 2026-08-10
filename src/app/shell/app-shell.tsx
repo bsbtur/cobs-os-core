@@ -48,7 +48,7 @@ export function AppShell({
           </main>
         </div>
 
-        <MobileTabBar activeId={activeId} />
+        <MobileTabBar activeId={activeId} onOpenMenu={() => setMenuOpen(true)} />
         <MobileNavDrawer open={menuOpen} onOpenChange={setMenuOpen} activeId={activeId} />
         <CommandPalette open={open} onOpenChange={setOpen} />
       </div>

@@ -68,7 +68,6 @@ export const NAV_SECTIONS: NavSection[] = [
         status: "live",
         domain: "experience",
         activatesIn: "W02",
-        mobile: true,
       },
       {
         id: "operations",
@@ -98,7 +97,6 @@ export const NAV_SECTIONS: NavSection[] = [
         status: "live",
         domain: "identity",
         activatesIn: "W01",
-        mobile: true,
       },
       {
         id: "network",
@@ -139,7 +137,12 @@ export const NAV_SECTIONS: NavSection[] = [
 
 export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items);
 
-export const MOBILE_NAV_ITEMS: NavItem[] = NAV_ITEMS.filter((i) => i.mobile);
+/**
+ * Mobile bottom bar holds AT MOST 3 primary destinations; the 4th slot is always
+ * the "More" trigger that opens the full drawer. Never exceed 3 here — a 5th cell
+ * wraps and overlaps at 390px.
+ */
+export const MOBILE_NAV_ITEMS: NavItem[] = NAV_ITEMS.filter((i) => i.mobile).slice(0, 3);
 
 export type RouteMeta = {
   path: string;

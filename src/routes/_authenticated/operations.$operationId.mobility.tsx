@@ -75,6 +75,14 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 type DriverWithPerson = DriverRow & { people: { full_name: string } | null };
 
+/**
+ * A leg is TERMINAL once it arrived or was cancelled: no mutation control may stay
+ * enabled. Further facts belong to a new ad-hoc leg, never to a closed one.
+ */
+function isTerminalLeg(state: LegDispatchState | null) {
+  return Boolean(state?.actual_arrival || state?.cancelled_at);
+}
+
 /* ------------------------------------------------------------------ */
 /* Leg creation                                                        */
 /* ------------------------------------------------------------------ */
@@ -276,7 +284,8 @@ function AssignmentPanel({
 }) {
   const { t, locale } = useI18n();
   const [reason, setReason] = React.useState("");
-  const departed = Boolean(state?.actual_departure);
+  const terminal = isTerminalLeg(state);
+  const departed = Boolean(state?.actual_departure) || terminal;
 
   const call = useMutation({
     mutationFn: async (payload: { fn: "vehicle" | "driver" | "clear"; id?: string }) => {
@@ -319,7 +328,7 @@ function AssignmentPanel({
   if (departed) {
     return (
       <p className="rounded-lg bg-elevated px-3 py-2 text-sm text-muted-foreground">
-        {t("w05.leg.departedLock")}
+        {terminal ? t("w05.leg.terminalLock") : t("w05.leg.departedLock")}
       </p>
     );
   }
@@ -410,26 +419,30 @@ function DispatchActions({
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  /* TERMINAL LEG: arrived or cancelled legs expose no enabled dispatch control. */
+  const terminal = isTerminalLeg(state);
+
   const actions: Array<{ fn: string; label: string; disabled: boolean }> = [
     {
       fn: "request_vehicle",
       label: t("w05.action.requestVehicle"),
-      disabled: Boolean(state?.requested_at),
+      disabled: terminal || Boolean(state?.requested_at),
     },
     {
       fn: "record_vehicle_en_route_to_pickup",
       label: t("w05.action.enRoute"),
-      disabled: Boolean(state?.en_route_at) || !leg.vehicle_id,
+      disabled: terminal || Boolean(state?.en_route_at) || !leg.vehicle_id,
     },
     {
       fn: "record_vehicle_at_pickup",
       label: t("w05.action.atPickup"),
-      disabled: Boolean(state?.at_pickup_at) || !leg.vehicle_id,
+      disabled: terminal || Boolean(state?.at_pickup_at) || !leg.vehicle_id,
     },
     {
       fn: "record_leg_departed",
       label: t("w05.action.departed"),
       disabled:
+        terminal ||
         Boolean(state?.actual_departure) ||
         !state?.at_pickup_at ||
         !leg.vehicle_id ||
@@ -438,7 +451,7 @@ function DispatchActions({
     {
       fn: "record_destination_arrived",
       label: t("w05.action.arrived"),
-      disabled: Boolean(state?.actual_arrival) || !state?.actual_departure,
+      disabled: terminal || Boolean(state?.actual_arrival) || !state?.actual_departure,
     },
   ];
 
@@ -466,11 +479,13 @@ function DispatchActions({
 function StopsPanel({
   leg,
   manifest,
+  state,
   timeZone,
   onRefresh,
 }: {
   leg: TransportLegRow;
   manifest: LegManifest | null;
+  state: LegDispatchState | null;
   timeZone: string;
   onRefresh: () => void;
 }) {
@@ -510,6 +525,7 @@ function StopsPanel({
   });
 
   const stops = manifest?.stops ?? [];
+  const terminal = isTerminalLeg(state);
 
   return (
     <section className="surface-panel p-4">
@@ -539,7 +555,7 @@ function StopsPanel({
                   size="sm"
                   variant="ghost"
                   className="min-h-9"
-                  disabled={reach.isPending}
+                  disabled={reach.isPending || terminal}
                   onClick={() => reach.mutate(stop.transport_leg_stop_id)}
                 >
                   {t("w05.action.stopReached")}
@@ -553,11 +569,17 @@ function StopsPanel({
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <div className="min-w-48 flex-1 space-y-1.5">
           <Label htmlFor="stop-label">{t("w05.stops.label")}</Label>
-          <Input id="stop-label" value={label} onChange={(e) => setLabel(e.target.value)} />
+          <Input
+            id="stop-label"
+            value={label}
+            disabled={terminal}
+            onChange={(e) => setLabel(e.target.value)}
+          />
         </div>
         <label className="flex min-h-11 items-center gap-2 text-sm">
           <Checkbox
             checked={isPickup}
+            disabled={terminal}
             onCheckedChange={(value) => setIsPickup(value === true)}
             aria-label={t("w05.stops.pickup")}
           />
@@ -566,7 +588,7 @@ function StopsPanel({
         <Button
           className="min-h-11"
           variant="outline"
-          disabled={add.isPending || label.trim() === ""}
+          disabled={add.isPending || terminal || label.trim() === ""}
           onClick={() => add.mutate()}
         >
           {t("w05.stops.add")}
@@ -637,7 +659,7 @@ function SeatsPanel({
   const seated = manifest?.seated ?? [];
   const history = manifest?.released_history ?? [];
   const options = candidates?.candidates ?? [];
-  const departed = Boolean(state?.actual_departure);
+  const departed = Boolean(state?.actual_departure) || isTerminalLeg(state);
 
   return (
     <section className="surface-panel p-4">
@@ -742,13 +764,28 @@ function SeatsPanel({
 /* Forecast, return time and incidents                                 */
 /* ------------------------------------------------------------------ */
 
-function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () => void }) {
+function LegControls({
+  leg,
+  state,
+  onRefresh,
+}: {
+  leg: TransportLegRow;
+  state: LegDispatchState | null;
+  onRefresh: () => void;
+}) {
   const { t, locale } = useI18n();
   const [forecastDeparture, setForecastDeparture] = React.useState("");
   const [forecastArrival, setForecastArrival] = React.useState("");
   const [forecastReason, setForecastReason] = React.useState("");
   const [returnTime, setReturnTime] = React.useState("");
+  const [returnReason, setReturnReason] = React.useState("");
   const [incident, setIncident] = React.useState("");
+
+  /* TERMINAL LEG: arrived or cancelled — every control below is locked. */
+  const terminal = isTerminalLeg(state);
+  /* DEF-002: changing an agreed rendezvous requires a reason (server enforces it too). */
+  const returnReasonRequired = Boolean(state?.return_time);
+
 
   const iso = (value: string) => (value ? new Date(value).toISOString() : undefined);
   const done = () => {
@@ -776,13 +813,26 @@ function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () =
 
   const rendezvous = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("set_return_time", {
-        _transport_leg_id: leg.id,
-        _return_time: new Date(returnTime).toISOString(),
-      });
+      const { data, error } = await supabase.rpc(
+        "set_return_time",
+        rpcArgs({
+          _transport_leg_id: leg.id,
+          _return_time: new Date(returnTime).toISOString(),
+          _note: returnReason.trim() === "" ? undefined : returnReason.trim(),
+        }),
+      );
       if (error) throw error;
+      return data as unknown as { unchanged?: boolean } | null;
     },
-    onSuccess: done,
+    onSuccess: (result) => {
+      /* DEF-003: an identical rendezvous is a no-op — say so instead of faking a new fact. */
+      if (result?.unchanged) {
+        feedback.info(t("w05.leg.returnTimeUnchanged"));
+        return;
+      }
+      setReturnReason("");
+      done();
+    },
     onError: fail,
   });
 
@@ -800,6 +850,14 @@ function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () =
     },
     onError: fail,
   });
+
+  if (terminal) {
+    return (
+      <p className="rounded-lg bg-elevated px-3 py-2 text-sm text-muted-foreground">
+        {t("w05.leg.terminalLock")}
+      </p>
+    );
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -846,14 +904,30 @@ function LegControls({ leg, onRefresh }: { leg: TransportLegRow; onRefresh: () =
           value={returnTime}
           onChange={(e) => setReturnTime(e.target.value)}
         />
+        {returnReasonRequired ? (
+          <>
+            <Input
+              aria-label={t("w05.leg.returnTimeReason")}
+              placeholder={t("w05.leg.returnTimeReason")}
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">{t("w05.leg.returnTimeReasonHelp")}</p>
+          </>
+        ) : null}
         <Button
           variant="outline"
           className="min-h-11 w-full"
-          disabled={rendezvous.isPending || returnTime === ""}
+          disabled={
+            rendezvous.isPending ||
+            returnTime === "" ||
+            (returnReasonRequired && returnReason.trim() === "")
+          }
           onClick={() => rendezvous.mutate()}
         >
           {t("w05.action.setReturnTime")}
         </Button>
+
 
         <SectionLabel>{t("w05.action.incident")}</SectionLabel>
         <Textarea
@@ -957,15 +1031,22 @@ function MobilityPage() {
     queryKey: ["mobility-leg", selected?.id],
     enabled: Boolean(selected?.id),
     queryFn: async () => {
-      const [state, manifest, candidates] = await Promise.all([
+      const [state, manifest, candidates, legEvents] = await Promise.all([
         supabase.rpc("w05_leg_dispatch_state", { _transport_leg_id: selected!.id }),
         supabase.rpc("w05_leg_manifest", { _transport_leg_id: selected!.id }),
         supabase.rpc("w05_leg_seat_candidates", { _transport_leg_id: selected!.id }),
+        supabase
+          .from("transport_events")
+          .select("*")
+          .eq("transport_leg_id", selected!.id)
+          .order("occurred_at", { ascending: false })
+          .limit(60),
       ]);
       return {
         state: (state.data ?? null) as unknown as LegDispatchState | null,
         manifest: (manifest.data ?? null) as unknown as LegManifest | null,
         candidates: (candidates.data ?? null) as unknown as SeatCandidates | null,
+        legEvents: (legEvents.data ?? []) as TransportEventRow[],
       };
     },
   });
@@ -979,7 +1060,10 @@ function MobilityPage() {
 
   const timeZone = operation.timezone;
   const planning = operation.status === "draft" || operation.status === "planning";
-  const events = data.data?.events ?? [];
+  /* DEF-UI-1: the timeline is scoped to the selected leg only. */
+  const legEvents = selected
+    ? (detail.data?.legEvents ?? []).filter((event) => event.transport_leg_id === selected.id)
+    : [];
   const state = detail.data?.state ?? null;
 
   return (
@@ -1105,13 +1189,14 @@ function MobilityPage() {
                 </div>
 
                 <div className="mt-5">
-                  <LegControls leg={selected} onRefresh={refresh} />
+                  <LegControls leg={selected} state={state} onRefresh={refresh} />
                 </div>
               </article>
 
               <StopsPanel
                 leg={selected}
                 manifest={detail.data?.manifest ?? null}
+                state={state}
                 timeZone={timeZone}
                 onRefresh={refresh}
               />
@@ -1129,16 +1214,20 @@ function MobilityPage() {
         </>
       )}
 
+      {/* SELECTED-LEG TIMELINE: never mixes facts from other legs of this operation. */}
       <section className="surface-panel p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
           <SectionLabel>{t("w05.timeline")}</SectionLabel>
+          {selected ? (
+            <span className="text-xs text-muted-foreground">· {selected.title}</span>
+          ) : null}
         </div>
-        {events.length === 0 ? (
+        {legEvents.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("w05.noEvents")}</p>
         ) : (
           <ol className="mt-3 space-y-2">
-            {events.map((event) => (
+            {legEvents.map((event) => (
               <li key={event.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
                   {formatDateTime(event.occurred_at, { locale, timeZone })}
