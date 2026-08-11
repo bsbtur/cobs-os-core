@@ -112,6 +112,12 @@ export function humanizeError(error: unknown, locale: string): string {
       "Muitas tentativas. Aguarde alguns instantes.",
       "Too many attempts. Please wait a moment.",
     ],
+    // DEF-PILOT-015: vehicle capacity invariant is enforced in the backend.
+    [
+      /Vehicle capacity has been reached for this leg/i,
+      "A capacidade do veículo foi atingida neste trecho.",
+      "Vehicle capacity has been reached for this leg.",
+    ],
     // DEF-PILOT-012: seat collision on the same transport leg must surface
     // before the generic duplicate-key fallback.
     [
