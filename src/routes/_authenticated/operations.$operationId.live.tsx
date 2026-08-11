@@ -78,11 +78,14 @@ function PresencePanel({
   step,
   roster,
   presence,
+  boardingStarted,
   onRefresh,
 }: {
   step: JourneyStepRow;
   roster: RosterRow[];
   presence: PresenceEventRow[];
+  /** DEF-PILOT-008: BOARDED is only accepted after BOARDING_STARTED exists on this step. */
+  boardingStarted: boolean;
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
@@ -125,6 +128,8 @@ function PresencePanel({
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
   const primaryFact: PresenceFact =
     step.presence_requirement === "boarded" ? "BOARDED" : "PRESENT_AT_MEETING_POINT";
+  // BOARDED is rejected by the server until boarding is open on this step.
+  const primaryBlocked = primaryFact === "BOARDED" && !boardingStarted;
 
   const visible = roster.filter((row) =>
     step.presence_population === "participants"
@@ -139,6 +144,9 @@ function PresencePanel({
         <SectionLabel>{t("w04.live.people")}</SectionLabel>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{t("w04.presence.rosterNote")}</p>
+      {primaryBlocked ? (
+        <p className="mt-2 text-xs text-warning">{t("w04.presence.boardingNotOpen")}</p>
+      ) : null}
 
       <ul className="mt-3 divide-y divide-border/60">
         {visible.map((row) => {
@@ -160,7 +168,8 @@ function PresencePanel({
                 <Button
                   size="sm"
                   className="min-h-10"
-                  disabled={record.isPending}
+                  disabled={record.isPending || primaryBlocked}
+                  title={primaryBlocked ? t("w04.presence.boardingNotOpen") : undefined}
                   onClick={() =>
                     record.mutate({ participationId: row.id, fact: primaryFact })
                   }
@@ -564,6 +573,11 @@ function LiveRuntimePage() {
           step={current}
           roster={live.data?.roster ?? []}
           presence={live.data?.presence ?? []}
+          boardingStarted={events.some(
+            (event) =>
+              event.journey_step_id === current.id &&
+              event.event_type === "BOARDING_STARTED",
+          )}
           onRefresh={refresh}
         />
       ) : null}

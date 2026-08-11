@@ -160,6 +160,12 @@ export function humanizeError(error: unknown, locale: string): string {
       "Não é possível registrar um fato com data futura. Verifique a data e a hora do dispositivo.",
       "A fact cannot be recorded in the future. Check the device date and time.",
     ],
+    // DEF-PILOT-008: boarding sequence guard must read as an operator instruction.
+    [
+      /boarding has not started/i,
+      "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
+      "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
+    ],
   ];
 
 
