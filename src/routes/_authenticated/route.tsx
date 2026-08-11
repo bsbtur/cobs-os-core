@@ -40,6 +40,17 @@ export const Route = createFileRoute("/_authenticated")({
     if (!location.pathname.startsWith("/my/claim/")) {
       const pending = readPendingClaim();
       if (pending) {
+        // A claim intent belongs to a traveler authentication flow. Never let
+        // residual browser state divert an operator session into that flow.
+        const { data: memberships, error: membershipError } = await supabase
+          .from("memberships")
+          .select("id")
+          .eq("profile_id", data.user.id)
+          .eq("status", "active")
+          .limit(1);
+        if (membershipError) return { user: data.user };
+        if ((memberships ?? []).length > 0) return { user: data.user };
+
         throw redirect({
           to: "/my/claim/$token",
           params: { token: pending },
