@@ -79,6 +79,13 @@ export const W01_PT: Record<string, string> = {
   "settings.audit": "Trilha de auditoria",
   "settings.auditHint": "Registro imutável. Não pode ser editado nem apagado.",
   "settings.auditEmpty": "Nenhum evento registrado ainda.",
+  "identity.title": "Seu nome de exibição",
+  "identity.hint":
+    "Como seu nome aparece para a sua organização. Só você pode alterar o seu próprio nome.",
+  "identity.field": "Nome de exibição",
+  "identity.save": "Salvar nome",
+  "identity.saved": "Nome atualizado.",
+  "identity.unchanged": "O nome já estava atualizado.",
   "invite.title": "Aceitar convite",
   "invite.body": "Você foi convidado para uma organização no COBS OS.",
   "invite.accept": "Aceitar convite",
