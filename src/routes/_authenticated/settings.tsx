@@ -1,15 +1,20 @@
+import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { BedDouble, Building2, Bus, History, Settings2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { BedDouble, Building2, Bus, History, Settings2, UserRound } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth, humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { feedback } from "@/components/feedback/feedback";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
