@@ -136,6 +136,14 @@ export const W04_PT: Record<string, string> = {
     "Somente proprietários e administradores confirmam uma ausência.",
   "w04.presence.pending": "Sem registro",
   "w04.presence.rosterNote": "Presença física não altera a situação da pessoa na lista.",
+  // DEF-PILOT-011 — a prontidão considera apenas pessoas confirmadas.
+  "w04.presence.status.expected": "Aguardando confirmação",
+  "w04.presence.status.cancelled": "Cancelado",
+  "w04.presence.notCounted": "não conta na prontidão",
+  "w04.presence.unconfirmedWarning":
+    "pessoa(s) do roster ainda não confirmada(s) — não entram no cálculo de prontidão:",
+  "w04.presence.goToRoster": "Abrir Pessoas",
+
   "w04.presence.boardingNotOpen":
     "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
 
@@ -303,6 +311,14 @@ export const W04_EN: Record<string, string> = {
   "w04.presence.noShowOwnerOnly": "Only owners and admins confirm a no-show.",
   "w04.presence.pending": "No record",
   "w04.presence.rosterNote": "Physical presence never changes roster status.",
+  // DEF-PILOT-011 — readiness evaluates confirmed people only.
+  "w04.presence.status.expected": "Awaiting confirmation",
+  "w04.presence.status.cancelled": "Cancelled",
+  "w04.presence.notCounted": "not counted for readiness",
+  "w04.presence.unconfirmedWarning":
+    "roster people are not confirmed yet — they are excluded from readiness:",
+  "w04.presence.goToRoster": "Open People",
+
   "w04.presence.boardingNotOpen":
     "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
 
