@@ -30,13 +30,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     let active = true;
 
+    const displayNameOf = (s: Session | null) => {
+      const raw = (s?.user?.user_metadata as { display_name?: unknown } | undefined)?.display_name;
+      const clean = typeof raw === "string" ? raw.trim() : "";
+      return clean.length > 0 && clean.length <= 120 ? clean : undefined;
+    };
+
     const { data: subscription } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!active) return;
       setSession(nextSession);
       setLoading(false);
       if (event === "SIGNED_IN" || event === "USER_UPDATED") {
         // Profile is created lazily and idempotently, never by a client INSERT.
-        void supabase.rpc("ensure_profile", { _display_name: undefined as unknown as string });
+        // The signup display name is carried through so the Person created by
+        // bootstrap_tenant is named, not email-derived.
+        const n = displayNameOf(nextSession);
+        void supabase.rpc("ensure_profile", n ? { _display_name: n } : {});
       }
     });
 
@@ -44,7 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!active) return;
       setSession(data.session);
       setLoading(false);
-      if (data.session) void supabase.rpc("ensure_profile", {});
+      if (data.session) {
+        const n = displayNameOf(data.session);
+        void supabase.rpc("ensure_profile", n ? { _display_name: n } : {});
+      }
     });
 
     return () => {

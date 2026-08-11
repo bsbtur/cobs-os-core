@@ -1,15 +1,20 @@
+import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { BedDouble, Building2, Bus, History, Settings2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { BedDouble, Building2, Bus, History, Settings2, UserRound } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth, humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { feedback } from "@/components/feedback/feedback";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -32,6 +37,79 @@ export const Route = createFileRoute("/_authenticated/settings")({
   }),
   component: SettingsPage,
 });
+
+/**
+ * Self-identity maintenance (W01 · update_my_display_name).
+ * Self-service only: the command derives the identity from auth.uid().
+ */
+function DisplayNameCard() {
+  const { t, locale } = useI18n();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [value, setValue] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+
+  const profile = useQuery({
+    queryKey: ["my-profile", user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  React.useEffect(() => {
+    if (profile.data) setValue(profile.data.display_name ?? "");
+  }, [profile.data]);
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    const { data, error } = await supabase.rpc("update_my_display_name", {
+      _display_name: value.trim(),
+      _idempotency_key: crypto.randomUUID(),
+    });
+    setBusy(false);
+    if (error) {
+      feedback.error(humanizeError(error, locale));
+      return;
+    }
+    const result = data as { unchanged?: boolean } | null;
+    feedback.success(result?.unchanged ? t("identity.unchanged") : t("identity.saved"));
+    void queryClient.invalidateQueries();
+  };
+
+  return (
+    <section className="surface-panel animate-rise p-5">
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <UserRound className="size-4 text-primary" aria-hidden="true" />
+        {t("identity.title")}
+      </h3>
+      <p className="mt-1 text-xs text-muted-foreground">{t("identity.hint")}</p>
+      <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1 space-y-2">
+          <Label htmlFor="display-name">{t("identity.field")}</Label>
+          <Input
+            id="display-name"
+            value={value}
+            maxLength={120}
+            required
+            autoComplete="name"
+            onChange={(e) => setValue(e.target.value)}
+          />
+        </div>
+        <Button type="submit" className="min-h-11" disabled={busy || value.trim().length === 0}>
+          {busy ? t("common.saving") : t("identity.save")}
+        </Button>
+      </form>
+    </section>
+  );
+}
 
 function Body() {
   const { t, locale } = useI18n();
@@ -101,6 +179,8 @@ function Body() {
           </Button>
         </div>
       </section>
+
+      <DisplayNameCard />
 
 
       <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>

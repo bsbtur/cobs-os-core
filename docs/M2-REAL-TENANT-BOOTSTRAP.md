@@ -110,3 +110,34 @@ Remedy (requires an explicit, separately authorised change — a W01 surface add
 Tenants 1 · auth users 1 · Profiles 1 · People 1 · Memberships 1 (active `owner`) · all IDs preserved · BSBTUR/`bsbtur`/BR/BRL/pt-BR/America/Sao_Paulo unchanged · Experiences/Offerings/Operations 0 · W04–W10 rows 0 · no duplicate identity · structural fingerprint unchanged (50 tables, 72 policies, 226 public functions, 98 helpers, 48 enums). No secret material inspected or printed.
 
 **OBS-M2-001 remains OPEN.**
+
+---
+
+## Addendum M2.2 — Self Display Name Correction Contract (2026-08-11 UTC)
+
+### New public command (additive, W01)
+
+`public.update_my_display_name(_display_name text, _idempotency_key uuid) returns jsonb`
+SECURITY DEFINER · `SET search_path = public` · EXECUTE granted to `authenticated`, `service_role`; revoked from `public`/`anon`.
+
+- Identity derived exclusively from `auth.uid()` — no person/profile/tenant/membership arguments. Cannot touch another identity.
+- Atomically sets `profiles.display_name` and, when a Person is linked to that Profile (`people.profile_id = auth.uid()`), that Person's `full_name`, in one transaction.
+- Input: trimmed, blank rejected, max 120 chars, no case forcing, no name parsing, international characters preserved.
+- No-op path returns `{ unchanged: true }` and writes nothing (no audit, no idempotency row).
+- Idempotency via `idempotency_keys` (`action = 'identity.display_name'`, scoped to the actor); replay returns the stored result.
+- Audit: `identity.display_name_changed`, subject `person` (or `profile` when unlinked), metadata carries ids plus `changed: true` only — no names, no email, no credentials.
+- No table ACL broadening, no RLS change, no guard weakened. `people` has no mutation guard trigger; direct `authenticated` DML remains impossible (SELECT-only grants).
+
+Public function count 226 → **227**. Private helpers **98 → 98 (unchanged; none added)**.
+
+### Root-cause fix (frontend only)
+
+`src/lib/auth.tsx` now passes the signup metadata display name ("Como devemos te chamar") into `ensure_profile`, so `profiles.display_name` is populated before `bootstrap_tenant` derives the owner Person name. `AuthProvider` structure and `bootstrap_tenant` semantics are untouched, and no table is mutated from the client. Settings gains a self-service "Your display name" card calling the approved command (needed because `ensure_profile` never overwrites an existing value).
+
+### Real owner correction — NOT EXECUTED
+
+`LOVABLE_BROWSER_AUTH_STATUS = signed_out`: no real authenticated Owner session is injectable in this environment. Per the contract, the correction was **not** performed by impersonating the Owner with `service_role`. The Owner completes it from **Settings → Your display name** by entering `Rafael Lima`.
+
+Production state unchanged: tenants 1 · auth users 1 · profiles 1 · people 1 · active owner memberships 1 · all ids preserved · BSBTUR/`bsbtur`/BR/BRL/pt-BR/America/Sao_Paulo unchanged · Experiences/Offerings/Operations 0 · W04–W10 rows 0 · profile `display_name` NULL · person `full_name` still the email.
+
+**OBS-M2-001 remains OPEN until the Owner runs the command.**

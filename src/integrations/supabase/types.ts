@@ -5619,6 +5619,10 @@ export type Database = {
         }
         Returns: Json
       }
+      update_my_display_name: {
+        Args: { _display_name: string; _idempotency_key: string }
+        Returns: Json
+      }
       update_order_details: {
         Args: {
           _notes?: string
