@@ -5921,6 +5921,7 @@ export type Database = {
         | "DISEMBARKED"
         | "ABSENCE_NOTED"
         | "NO_SHOW_CONFIRMED"
+        | "PRESENCE_RETRACTED"
       price_basis: "per_person" | "per_unit" | "flat"
       price_status: "active" | "archived"
       sellable_kind:
@@ -6287,6 +6288,7 @@ export const Constants = {
         "DISEMBARKED",
         "ABSENCE_NOTED",
         "NO_SHOW_CONFIRMED",
+        "PRESENCE_RETRACTED",
       ],
       price_basis: ["per_person", "per_unit", "flat"],
       price_status: ["active", "archived"],
