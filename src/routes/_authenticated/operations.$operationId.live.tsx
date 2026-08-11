@@ -523,14 +523,15 @@ function StepActions({
       });
       if (error) throw error;
     },
-    onSuccess: () => {
-      feedback.success(t("w04.live.recorded"));
+    onSuccess: (_data, fn) => {
+      const action = actions.find((a) => a.fn === fn);
+      feedback.success(`${t("w04.live.recorded")}: ${action?.label ?? ""}`.trim());
       onRefresh();
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  const actions: Array<{ fn: string; label: string; gated?: boolean }> = [];
+  const actions: Array<{ fn: string; label: string; gated?: boolean; className?: string }> = [];
   if (step.step_kind === "meeting") actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
   // DEF-PILOT-009: boarding action set is driven by the backend contract
   // (presence_requirement = 'boarded'), not only by step_kind = 'boarding'.
@@ -538,7 +539,11 @@ function StepActions({
     actions.push({ fn: "start_boarding", label: t("w04.action.startBoarding") });
     actions.push({ fn: "complete_boarding", label: t("w04.action.completeBoarding"), gated: true });
     actions.push({ fn: "authorize_departure", label: t("w04.action.authorizeDeparture"), gated: true });
-    actions.push({ fn: "record_departed", label: t("w04.action.departed") });
+    actions.push({
+      fn: "record_departed",
+      label: t("w04.action.departed"),
+      className: "border-l border-border/60 pl-3 ml-1",
+    });
   }
   if (step.step_kind === "movement" || step.step_kind === "arrival") {
     actions.push({ fn: "record_arrival", label: t("w04.action.arrived") });
@@ -553,7 +558,7 @@ function StepActions({
       {actions.map((action) => (
         <Button
           key={action.fn}
-          className="min-h-12 flex-1 sm:flex-none"
+          className={`min-h-12 flex-1 sm:flex-none ${action.className ?? ""}`}
           variant={action.gated ? "default" : "outline"}
           disabled={call.isPending || (action.gated === true && !ready)}
           onClick={() => call.mutate(action.fn)}
