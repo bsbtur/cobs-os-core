@@ -751,12 +751,35 @@ function SeatsPanel({
             className="min-h-11"
             variant="outline"
             disabled={assign.isPending || participationId === ""}
-            onClick={() => assign.mutate()}
+            onClick={attemptAssign}
           >
             {t("w05.seats.assign")}
           </Button>
         </div>
       ) : null}
+
+      <Dialog open={confirmUnnumberedOpen} onOpenChange={setConfirmUnnumberedOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("w05.seats.confirmUnnumberedTitle")}</DialogTitle>
+            <DialogDescription>{t("w05.seats.confirmUnnumberedBody")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmUnnumberedOpen(false)}>
+              {t("w05.seats.confirmUnnumberedCancel")}
+            </Button>
+            <Button
+              variant="default"
+              disabled={assign.isPending}
+              onClick={() => {
+                assign.mutate();
+              }}
+            >
+              {t("w05.seats.confirmUnnumberedConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {history.length > 0 ? (
         <div className="mt-5">
