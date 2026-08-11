@@ -149,6 +149,23 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.boardingNotOpen":
     "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
 
+  // DEF-PILOT-019 — correção de registro de presença (retratação append-only).
+  "w04.presence.correct": "Corrigir registro",
+  "w04.presence.correctable": "Registro corrigível",
+  "w04.presence.correctTitle": "Corrigir registro de presença",
+  "w04.presence.correctCurrent": "Estado atual",
+  "w04.presence.correctExplain":
+    "O registro original é preservado no histórico. Uma retratação é adicionada e o estado anterior volta a valer. Depois disso você pode registrar o fato correto pelos botões normais.",
+  "w04.presence.correctReason": "Motivo da correção",
+  "w04.presence.correctConfirm": "Confirmar correção",
+  "w04.presence.corrected": "Registro corrigido. O histórico foi preservado.",
+  "w04.presence.correctErrorAlready": "Este registro já foi corrigido.",
+  "w04.presence.correctErrorNotFound":
+    "Não foi possível encontrar este registro de presença.",
+  "w04.presence.correctErrorReason": "O motivo da correção é obrigatório.",
+  "w04.presence.correctErrorPermission":
+    "Você não tem permissão para corrigir registros de presença.",
+
   "w04.event.STEP_STARTED": "A etapa começou.",
   "w04.event.STEP_COMPLETED": "A etapa foi concluída.",
   "w04.event.STEP_SKIPPED": "A etapa foi pulada.",
@@ -325,6 +342,22 @@ export const W04_EN: Record<string, string> = {
 
   "w04.presence.boardingNotOpen":
     "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
+
+  // DEF-PILOT-019 — presence record correction (append-only retraction).
+  "w04.presence.correct": "Correct record",
+  "w04.presence.correctable": "Correctable record",
+  "w04.presence.correctTitle": "Correct presence record",
+  "w04.presence.correctCurrent": "Current state",
+  "w04.presence.correctExplain":
+    "The original record stays in history. A retraction is added and the previous state applies again. You can then record the correct fact with the normal buttons.",
+  "w04.presence.correctReason": "Reason for the correction",
+  "w04.presence.correctConfirm": "Confirm correction",
+  "w04.presence.corrected": "Record corrected. History was preserved.",
+  "w04.presence.correctErrorAlready": "This record has already been corrected.",
+  "w04.presence.correctErrorNotFound": "This presence record could not be found.",
+  "w04.presence.correctErrorReason": "A reason for the correction is required.",
+  "w04.presence.correctErrorPermission":
+    "You do not have permission to correct presence records.",
 
   "w04.event.STEP_STARTED": "The step started.",
   "w04.event.STEP_COMPLETED": "The step was completed.",
