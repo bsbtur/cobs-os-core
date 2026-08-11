@@ -96,15 +96,41 @@ function PresencePanel({
     fact: Extract<PresenceFact, "ABSENCE_NOTED" | "NO_SHOW_CONFIRMED">;
   } | null>(null);
   const [reason, setReason] = React.useState("");
+  /**
+   * DEF-PILOT-019 — presence correction (append-only retraction).
+   * The UI never deletes an event: it calls public.retract_presence_fact, which
+   * appends a PRESENCE_RETRACTED marker. Authorization stays with the backend
+   * (owner/admin); no parallel permission rule is implemented in the frontend,
+   * because tenant role is not reliably available in this route's context.
+   */
+  const [correctPrompt, setCorrectPrompt] = React.useState<{
+    row: RosterRow;
+    event: PresenceEventRow;
+    idempotencyKey: string;
+  } | null>(null);
+  const [correctReason, setCorrectReason] = React.useState("");
 
-  const latestFor = (participationId: string): PresenceFact | null => {
+  /** Ids of facts that already carry a retraction — they are no longer effective. */
+  const retractedIds = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const event of presence) {
+      if (event.retracts_presence_event_id) set.add(event.retracts_presence_event_id);
+    }
+    return set;
+  }, [presence]);
+
+  /** Effective (non-retracted, non-marker) presence event for a participation on this step. */
+  const effectiveFor = (participationId: string): PresenceEventRow | null => {
     const rows = presence
       .filter(
         (event) =>
-          event.participation_id === participationId && event.journey_step_id === step.id,
+          event.participation_id === participationId &&
+          event.journey_step_id === step.id &&
+          event.presence_fact !== "PRESENCE_RETRACTED" &&
+          !retractedIds.has(event.id),
       )
       .sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1));
-    return (rows[0]?.presence_fact as PresenceFact | undefined) ?? null;
+    return rows[0] ?? null;
   };
 
   const record = useMutation({
@@ -129,6 +155,36 @@ function PresencePanel({
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
+
+  /** Maps known backend messages to safe, humanized copy (no SQL, no ids, no stack). */
+  const correctionError = (error: unknown): string => {
+    const raw = error instanceof Error ? error.message : String(error ?? "");
+    if (/already been retracted/i.test(raw)) return t("w04.presence.correctErrorAlready");
+    if (/Presence record not found/i.test(raw)) return t("w04.presence.correctErrorNotFound");
+    if (/reason is required/i.test(raw)) return t("w04.presence.correctErrorReason");
+    if (/permission|not allowed|retraction cannot/i.test(raw))
+      return t("w04.presence.correctErrorPermission");
+    return humanizeError(error, locale);
+  };
+
+  const retract = useMutation({
+    mutationFn: async (input: { presenceEventId: string; reason: string; key: string }) => {
+      const { error } = await supabase.rpc("retract_presence_fact", {
+        _presence_fact_id: input.presenceEventId,
+        _reason: input.reason,
+        _idempotency_key: input.key,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.presence.corrected"));
+      setCorrectPrompt(null);
+      setCorrectReason("");
+      onRefresh();
+    },
+    onError: (error) => feedback.error(correctionError(error)),
+  });
+
 
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
   const primaryFact: PresenceFact =
@@ -179,7 +235,8 @@ function PresencePanel({
 
       <ul className="mt-3 divide-y divide-border/60">
         {visible.map((row) => {
-          const fact = latestFor(row.id);
+          const effective = effectiveFor(row.id);
+          const fact = (effective?.presence_fact as PresenceFact | undefined) ?? null;
           const ok = fact ? satisfying.includes(fact) : false;
           return (
             <li key={row.id} className="flex flex-wrap items-center gap-2 py-2.5">
@@ -234,11 +291,30 @@ function PresencePanel({
                 >
                   {presenceLabel("NO_SHOW_CONFIRMED", t)}
                 </Button>
+                {effective ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="min-h-10 text-muted-foreground"
+                    disabled={retract.isPending}
+                    onClick={() => {
+                      setCorrectReason("");
+                      setCorrectPrompt({
+                        row,
+                        event: effective,
+                        idempotencyKey: crypto.randomUUID(),
+                      });
+                    }}
+                  >
+                    {t("w04.presence.correct")}
+                  </Button>
+                ) : null}
               </div>
             </li>
           );
         })}
       </ul>
+
 
       <Dialog
         open={Boolean(reasonPrompt)}
@@ -292,7 +368,63 @@ function PresencePanel({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* DEF-PILOT-019 — correction dialog. Retraction only; the corrected fact
+          is recorded afterwards by the operator through the normal buttons. */}
+      <Dialog
+        open={Boolean(correctPrompt)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCorrectPrompt(null);
+            setCorrectReason("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("w04.presence.correctTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm font-medium">{correctPrompt?.row.people?.full_name}</p>
+            <p className="text-sm">
+              <span className="text-muted-foreground">
+                {t("w04.presence.correctCurrent")}:{" "}
+              </span>
+              {correctPrompt
+                ? presenceLabel(correctPrompt.event.presence_fact as PresenceFact, t)
+                : ""}
+            </p>
+            <p className="text-sm text-muted-foreground">{t("w04.presence.correctExplain")}</p>
+            <div className="space-y-1.5">
+              <Label htmlFor="presence-correct-reason">
+                {t("w04.presence.correctReason")}
+              </Label>
+              <Textarea
+                id="presence-correct-reason"
+                rows={2}
+                value={correctReason}
+                onChange={(event) => setCorrectReason(event.target.value)}
+              />
+            </div>
+            <Button
+              className="min-h-11 w-full"
+              disabled={!correctReason.trim() || retract.isPending}
+              onClick={() =>
+                correctPrompt &&
+                retract.mutate({
+                  presenceEventId: correctPrompt.event.id,
+                  reason: correctReason.trim(),
+                  key: correctPrompt.idempotencyKey,
+                })
+              }
+            >
+              {t("w04.presence.correctConfirm")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
+
   );
 }
 
