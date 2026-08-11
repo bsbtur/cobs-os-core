@@ -368,7 +368,63 @@ function PresencePanel({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* DEF-PILOT-019 — correction dialog. Retraction only; the corrected fact
+          is recorded afterwards by the operator through the normal buttons. */}
+      <Dialog
+        open={Boolean(correctPrompt)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCorrectPrompt(null);
+            setCorrectReason("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("w04.presence.correctTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm font-medium">{correctPrompt?.row.people?.full_name}</p>
+            <p className="text-sm">
+              <span className="text-muted-foreground">
+                {t("w04.presence.correctCurrent")}:{" "}
+              </span>
+              {correctPrompt
+                ? presenceLabel(correctPrompt.event.presence_fact as PresenceFact, t)
+                : ""}
+            </p>
+            <p className="text-sm text-muted-foreground">{t("w04.presence.correctExplain")}</p>
+            <div className="space-y-1.5">
+              <Label htmlFor="presence-correct-reason">
+                {t("w04.presence.correctReason")}
+              </Label>
+              <Textarea
+                id="presence-correct-reason"
+                rows={2}
+                value={correctReason}
+                onChange={(event) => setCorrectReason(event.target.value)}
+              />
+            </div>
+            <Button
+              className="min-h-11 w-full"
+              disabled={!correctReason.trim() || retract.isPending}
+              onClick={() =>
+                correctPrompt &&
+                retract.mutate({
+                  presenceEventId: correctPrompt.event.id,
+                  reason: correctReason.trim(),
+                  key: correctPrompt.idempotencyKey,
+                })
+              }
+            >
+              {t("w04.presence.correctConfirm")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
+
   );
 }
 
