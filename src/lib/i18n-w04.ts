@@ -132,6 +132,8 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.ABSENCE_NOTED": "Ausência registrada",
   "w04.presence.NO_SHOW_CONFIRMED": "Ausência confirmada",
   "w04.presence.noShowReason": "Motivo da ausência confirmada",
+  "w04.presence.absenceReason": "Motivo da ausência",
+  "w04.presence.absenceReasonRequired": "O motivo é obrigatório para registrar uma ausência.",
   "w04.presence.noShowOwnerOnly":
     "Somente proprietários e administradores confirmam uma ausência.",
   "w04.presence.pending": "Sem registro",
