@@ -102,6 +102,8 @@ function Body() {
         </div>
       </section>
 
+      <DisplayNameCard />
+
 
       <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">
