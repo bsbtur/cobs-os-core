@@ -89,7 +89,12 @@ function PresencePanel({
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
-  const [noShow, setNoShow] = React.useState<RosterRow | null>(null);
+  // DEF-PILOT-019: ABSENCE_NOTED and NO_SHOW_CONFIRMED both require a reason server-side,
+  // so both go through the same confirm dialog. Nothing is written until confirmation.
+  const [reasonPrompt, setReasonPrompt] = React.useState<{
+    row: RosterRow;
+    fact: Extract<PresenceFact, "ABSENCE_NOTED" | "NO_SHOW_CONFIRMED">;
+  } | null>(null);
   const [reason, setReason] = React.useState("");
 
   const latestFor = (participationId: string): PresenceFact | null => {
@@ -118,7 +123,7 @@ function PresencePanel({
     },
     onSuccess: () => {
       feedback.success(t("w04.live.recorded"));
-      setNoShow(null);
+      setReasonPrompt(null);
       setReason("");
       onRefresh();
     },
@@ -211,9 +216,10 @@ function PresencePanel({
                   variant="outline"
                   className="min-h-10"
                   disabled={record.isPending}
-                  onClick={() =>
-                    record.mutate({ participationId: row.id, fact: "ABSENCE_NOTED" })
-                  }
+                  onClick={() => {
+                    setReason("");
+                    setReasonPrompt({ row, fact: "ABSENCE_NOTED" });
+                  }}
                 >
                   {presenceLabel("ABSENCE_NOTED", t)}
                 </Button>
@@ -221,7 +227,10 @@ function PresencePanel({
                   size="sm"
                   variant="ghost"
                   className="min-h-10"
-                  onClick={() => setNoShow(row)}
+                  onClick={() => {
+                    setReason("");
+                    setReasonPrompt({ row, fact: "NO_SHOW_CONFIRMED" });
+                  }}
                 >
                   {presenceLabel("NO_SHOW_CONFIRMED", t)}
                 </Button>
@@ -231,19 +240,36 @@ function PresencePanel({
         })}
       </ul>
 
-      <Dialog open={Boolean(noShow)} onOpenChange={(open) => !open && setNoShow(null)}>
+      <Dialog
+        open={Boolean(reasonPrompt)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReasonPrompt(null);
+            setReason("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{presenceLabel("NO_SHOW_CONFIRMED", t)}</DialogTitle>
+            <DialogTitle>
+              {reasonPrompt ? presenceLabel(reasonPrompt.fact, t) : ""}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <p className="text-sm font-medium">{reasonPrompt?.row.people?.full_name}</p>
             <p className="text-sm text-muted-foreground">
-              {t("w04.presence.noShowOwnerOnly")}
+              {reasonPrompt?.fact === "NO_SHOW_CONFIRMED"
+                ? t("w04.presence.noShowOwnerOnly")
+                : t("w04.presence.absenceReasonRequired")}
             </p>
             <div className="space-y-1.5">
-              <Label htmlFor="no-show-reason">{t("w04.presence.noShowReason")}</Label>
+              <Label htmlFor="presence-reason">
+                {reasonPrompt?.fact === "NO_SHOW_CONFIRMED"
+                  ? t("w04.presence.noShowReason")
+                  : t("w04.presence.absenceReason")}
+              </Label>
               <Textarea
-                id="no-show-reason"
+                id="presence-reason"
                 rows={2}
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
@@ -253,10 +279,10 @@ function PresencePanel({
               className="min-h-11 w-full"
               disabled={!reason.trim() || record.isPending}
               onClick={() =>
-                noShow &&
+                reasonPrompt &&
                 record.mutate({
-                  participationId: noShow.id,
-                  fact: "NO_SHOW_CONFIRMED",
+                  participationId: reasonPrompt.row.id,
+                  fact: reasonPrompt.fact,
                   reason: reason.trim(),
                 })
               }

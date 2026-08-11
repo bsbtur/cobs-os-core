@@ -132,6 +132,8 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.ABSENCE_NOTED": "Ausência registrada",
   "w04.presence.NO_SHOW_CONFIRMED": "Ausência confirmada",
   "w04.presence.noShowReason": "Motivo da ausência confirmada",
+  "w04.presence.absenceReason": "Motivo da ausência",
+  "w04.presence.absenceReasonRequired": "O motivo é obrigatório para registrar uma ausência.",
   "w04.presence.noShowOwnerOnly":
     "Somente proprietários e administradores confirmam uma ausência.",
   "w04.presence.pending": "Sem registro",
@@ -308,6 +310,8 @@ export const W04_EN: Record<string, string> = {
   "w04.presence.ABSENCE_NOTED": "Absence noted",
   "w04.presence.NO_SHOW_CONFIRMED": "No-show confirmed",
   "w04.presence.noShowReason": "Reason for the confirmed no-show",
+  "w04.presence.absenceReason": "Reason for the absence",
+  "w04.presence.absenceReasonRequired": "A reason is required to note an absence.",
   "w04.presence.noShowOwnerOnly": "Only owners and admins confirm a no-show.",
   "w04.presence.pending": "No record",
   "w04.presence.rosterNote": "Physical presence never changes roster status.",
