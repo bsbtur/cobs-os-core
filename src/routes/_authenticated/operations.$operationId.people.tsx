@@ -497,10 +497,94 @@ function AddPersonDialog({
 }
 
 /* ------------------------------------------------------------------ */
+/* Traveler portal access (W10 invitation — no parallel mechanism)      */
+/* ------------------------------------------------------------------ */
+
+function PortalAccessAction({
+  operationId,
+  personId,
+  disabled,
+}: {
+  operationId: string;
+  personId: string;
+  disabled: boolean;
+}) {
+  const { t, locale } = useI18n();
+  const [link, setLink] = React.useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
+
+  const invite = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("invite_participant_access", {
+        _operation_id: operationId,
+        _person_id: personId,
+        _idempotency_key: newIdempotencyKey(),
+      });
+      if (error) throw error;
+      return (data ?? {}) as Record<string, unknown>;
+    },
+    onSuccess: (payload) => {
+      const token = typeof payload["token"] === "string" ? payload["token"] : null;
+      if (!token) {
+        feedback.error(t("roster.portal.once"));
+        return;
+      }
+      setLink(`${window.location.origin}/my/claim/${token}`);
+      setExpiresAt(typeof payload["expires_at"] === "string" ? payload["expires_at"] : null);
+      setCopied(false);
+      feedback.success(t("roster.portal.done"));
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  const copy = async () => {
+    if (!link) return;
+    await navigator.clipboard.writeText(link);
+    setCopied(true);
+    feedback.success(t("roster.portal.copied"));
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border p-3">
+      <p className="text-sm font-medium">{t("roster.portal.title")}</p>
+      <p className="text-xs text-muted-foreground">{t("roster.portal.hint")}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          className="min-h-11"
+          disabled={disabled || invite.isPending}
+          onClick={() => invite.mutate()}
+        >
+          {invite.isPending ? t("common.saving") : t("roster.portal.invite")}
+        </Button>
+        {link ? (
+          <Button variant="outline" className="min-h-11" onClick={() => void copy()}>
+            {copied ? t("roster.portal.copied") : t("roster.portal.copy")}
+          </Button>
+        ) : null}
+      </div>
+      {link ? (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-warning">{t("roster.portal.once")}</p>
+          <p className="break-all rounded-md bg-elevated p-2 font-mono text-[11px]">{link}</p>
+          {expiresAt ? (
+            <p className="text-xs text-muted-foreground">
+              {t("roster.portal.expires")}: {formatDateTime(expiresAt, { locale })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Roster row                                                          */
 /* ------------------------------------------------------------------ */
 
 function RosterCard({
+
   row,
   roleTypes,
   operationId,
