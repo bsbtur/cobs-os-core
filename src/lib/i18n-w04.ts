@@ -86,6 +86,10 @@ export const W04_PT: Record<string, string> = {
   "w04.live.timeline": "Linha do tempo",
   "w04.live.noCurrent": "Nenhuma etapa em andamento.",
   "w04.live.noCurrentBody": "Inicie a próxima etapa para começar o registro operacional.",
+  "w04.live.journeyCompleted": "Jornada concluída",
+  "w04.live.journeyCompletedBody":
+    "Todas as etapas operacionais foram finalizadas. A operação permanece ativa até o encerramento formal.",
+  "w04.live.goToOverview": "Ir para Visão geral e concluir operação",
   "w04.live.notStarted": "A operação ainda não está pronta para execução.",
   "w04.live.notStartedBody":
     "Coloque a operação em “pronta” na visão geral para liberar o registro ao vivo.",
@@ -252,6 +256,10 @@ export const W04_EN: Record<string, string> = {
   "w04.live.timeline": "Timeline",
   "w04.live.noCurrent": "No step is running.",
   "w04.live.noCurrentBody": "Start the next step to begin recording operational facts.",
+  "w04.live.journeyCompleted": "Journey completed",
+  "w04.live.journeyCompletedBody":
+    "All operational steps are finished. The operation stays active until formal closure.",
+  "w04.live.goToOverview": "Go to Overview and complete operation",
   "w04.live.notStarted": "This operation is not ready to run yet.",
   "w04.live.notStartedBody": "Move the operation to “ready” on the overview to unlock live recording.",
   "w04.live.noSteps": "This operation has no journey yet.",
