@@ -31,7 +31,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/operations/$operationId/mobility")({
   head: () => ({
@@ -617,6 +624,9 @@ function SeatsPanel({
   const [participationId, setParticipationId] = React.useState("");
   const [seatLabel, setSeatLabel] = React.useState("");
   const [releaseReason, setReleaseReason] = React.useState("");
+  const [confirmUnnumberedOpen, setConfirmUnnumberedOpen] = React.useState(false);
+
+  const trimmedLabel = seatLabel.trim();
 
   const assign = useMutation({
     mutationFn: async () => {
@@ -626,7 +636,9 @@ function SeatsPanel({
           _transport_leg_id: leg.id,
           _participation_id: participationId,
           _idempotency_key: newIdempotencyKey() as string,
-          _seat_label: seatLabel || undefined,
+          // DEF-PILOT-013: blank labels become unnumbered seats only after
+          // explicit operator confirmation; backend contract is preserved.
+          _seat_label: trimmedLabel || undefined,
         }),
       );
       if (error) throw error;
@@ -635,10 +647,19 @@ function SeatsPanel({
       feedback.success(t("w05.action.recorded"));
       setParticipationId("");
       setSeatLabel("");
+      setConfirmUnnumberedOpen(false);
       onRefresh();
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
+
+  const attemptAssign = () => {
+    if (trimmedLabel === "") {
+      setConfirmUnnumberedOpen(true);
+      return;
+    }
+    assign.mutate();
+  };
 
   const release = useMutation({
     mutationFn: async (seatAssignmentId: string) => {
@@ -730,12 +751,35 @@ function SeatsPanel({
             className="min-h-11"
             variant="outline"
             disabled={assign.isPending || participationId === ""}
-            onClick={() => assign.mutate()}
+            onClick={attemptAssign}
           >
             {t("w05.seats.assign")}
           </Button>
         </div>
       ) : null}
+
+      <Dialog open={confirmUnnumberedOpen} onOpenChange={setConfirmUnnumberedOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("w05.seats.confirmUnnumberedTitle")}</DialogTitle>
+            <DialogDescription>{t("w05.seats.confirmUnnumberedBody")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmUnnumberedOpen(false)}>
+              {t("w05.seats.confirmUnnumberedCancel")}
+            </Button>
+            <Button
+              variant="default"
+              disabled={assign.isPending}
+              onClick={() => {
+                assign.mutate();
+              }}
+            >
+              {t("w05.seats.confirmUnnumberedConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {history.length > 0 ? (
         <div className="mt-5">
