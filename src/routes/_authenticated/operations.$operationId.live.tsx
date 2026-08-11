@@ -144,6 +144,9 @@ function PresencePanel({
         <SectionLabel>{t("w04.live.people")}</SectionLabel>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{t("w04.presence.rosterNote")}</p>
+      {primaryBlocked ? (
+        <p className="mt-2 text-xs text-warning">{t("w04.presence.boardingNotOpen")}</p>
+      ) : null}
 
       <ul className="mt-3 divide-y divide-border/60">
         {visible.map((row) => {
