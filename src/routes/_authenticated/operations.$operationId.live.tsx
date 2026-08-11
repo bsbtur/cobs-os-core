@@ -420,8 +420,18 @@ function LiveRuntimePage() {
     queryKey: ["live", operationId],
     refetchInterval: 20000,
     queryFn: async () => {
-      const [operation, steps, events, presence, items, executions, roster, state] =
-        await Promise.all([
+      const [
+        operation,
+        steps,
+        events,
+        resolutionEvents,
+        boardingEvents,
+        presence,
+        items,
+        executions,
+        roster,
+        state,
+      ] = await Promise.all([
           supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
           supabase.from("journey_steps").select("*").eq("operation_id", operationId).order("sequence"),
           supabase
@@ -430,6 +440,21 @@ function LiveRuntimePage() {
             .eq("operation_id", operationId)
             .order("occurred_at", { ascending: false })
             .limit(40),
+          /**
+           * DEF-PILOT-014: operational state must NOT be derived from the limited
+           * visual feed above. These narrow, unbounded projections carry the facts
+           * needed for terminal-state and boarding derivation.
+           */
+          supabase
+            .from("journey_events")
+            .select("journey_step_id, event_type")
+            .eq("operation_id", operationId)
+            .in("event_type", ["STEP_COMPLETED", "STEP_SKIPPED"]),
+          supabase
+            .from("journey_events")
+            .select("journey_step_id")
+            .eq("operation_id", operationId)
+            .eq("event_type", "BOARDING_STARTED"),
           supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
           supabase
             .from("playbook_items")
@@ -447,16 +472,29 @@ function LiveRuntimePage() {
         ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
+      if (resolutionEvents.error) throw resolutionEvents.error;
+      if (boardingEvents.error) throw boardingEvents.error;
       return {
         operation: operation.data,
         steps: steps.data ?? [],
         events: (events.data ?? []) as JourneyEventRow[],
+        resolvedStepIds: new Set(
+          (resolutionEvents.data ?? [])
+            .map((row) => row.journey_step_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+        boardingStartedStepIds: new Set(
+          (boardingEvents.data ?? [])
+            .map((row) => row.journey_step_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
         presence: (presence.data ?? []) as PresenceEventRow[],
         items: (items.data ?? []) as PlaybookItemRow[],
         executions: (executions.data ?? []) as PlaybookExecutionRow[],
         roster: (roster.data ?? []) as unknown as RosterRow[],
         state: (state.data ?? null) as RuntimeState | null,
       };
+
     },
   });
 
