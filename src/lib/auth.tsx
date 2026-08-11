@@ -148,7 +148,20 @@ export function humanizeError(error: unknown, locale: string): string {
       "Sessão expirada. Entre novamente.",
       "Session expired. Please sign in again.",
     ],
+    // DEF-PILOT-007: temporal runtime guards must read as operational guidance,
+    // never as a raw database message.
+    [
+      /backdated before the operation window/i,
+      "A etapa não pode ser iniciada fora da janela operacional atual. Verifique a previsão da operação.",
+      "This step cannot be started outside the current operating window. Check the operation forecast.",
+    ],
+    [
+      /cannot be recorded in the future/i,
+      "Não é possível registrar um fato com data futura. Verifique a data e a hora do dispositivo.",
+      "A fact cannot be recorded in the future. Check the device date and time.",
+    ],
   ];
+
 
   for (const [re, ptMsg, enMsg] of map) {
     if (re.test(raw)) return pt ? ptMsg : enMsg;
