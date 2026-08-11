@@ -1,6 +1,6 @@
 # PILOT-02 · P1 VALIDATION + PROVISIONING MANIFEST
 
-**Mode:** VALIDATION ONLY — no entity, participation, vehicle, access, seat, leg, journey step, message or operation was created. No mutable RPC executed. No schema/RLS/ACL change. Golden Pilot `CITYTO-20260815` untouched.
+**Mode:** P1 FINAL LOCK — VALIDATION ONLY. No entity, participation, vehicle, access, seat, leg, journey step, message or operation was created. No mutable RPC executed. No schema/RLS/ACL change. Golden Pilot `CITYTO-20260815` untouched.
 
 **Date of validation:** 2026-08-11 (UTC)
 **Tenant:** BSBTUR (production) — `9a09c18f-1279-4196-ad4d-929e93e348f2`
@@ -29,16 +29,16 @@
 
 | # | Full name | Controlled e-mail | Exists in COBS | Operational consent |
 | --- | --- | --- | --- | --- |
-| 1 | Mariana Alves Ferreira | designfrondf@gmail.com | NO | **PENDING** |
-| 2 | Lucas Henrique Martins | bsbturltda@gmail.com | NO | **PENDING** |
-| 3 | Camila Rodrigues Souza | imoveisdfvenda@gmail.com | NO | **PENDING** |
-| 4 | Pedro Augusto Ribeiro | rafasaudedf@gmail.com | NO | **PENDING** |
-| 5 | Juliana Costa Nascimento | zemiguelpoesias@gmail.com | NO | **PENDING** |
+| 1 | Mariana Alves Ferreira | designfrondf@gmail.com | NO | **YES** |
+| 2 | Lucas Henrique Martins | bsbturltda@gmail.com | NO | **YES** |
+| 3 | Camila Rodrigues Souza | imoveisdfvenda@gmail.com | NO | **YES** |
+| 4 | Pedro Augusto Ribeiro | rafasaudedf@gmail.com | NO | **YES** |
+| 5 | Juliana Costa Nascimento | zemiguelpoesias@gmail.com | NO | **YES** |
 
 - `@example.com` placeholders are **discarded** and must never be provisioned.
 - One identity per traveler. No shared account. No credential reuse.
 - Pedro Augusto Ribeiro is a **different person** from the Golden Pilot's Pedro Paulo de Lima Santos Cardoso — a new Person record, never a reuse.
-- `TRAVELER_CONSENT_CONFIRMED: PENDING` — blocking for provisioning.
+- `TRAVELER_CONSENT_CONFIRMED: 5/5 YES` — input lock complete.
 
 ### Driver
 
@@ -46,10 +46,10 @@
 | --- | --- |
 | Name given | Carlos Eduardo Mendes |
 | Exists in COBS | NO |
-| Real-driver confirmation | **PENDING** (never answered SIM/NÃO) |
+| Real-driver confirmation | **YES** |
 | Regina reuse | NOT authorized — Golden Pilot resource |
 
-`DRIVER_CONFIRMED: PENDING` — blocking.
+`DRIVER_CONFIRMED: YES` — input lock complete.
 
 ### Second operator
 
@@ -61,7 +61,7 @@
 | SECOND_OPERATOR_ROLE | operations_agent (never admin, never owner) |
 | COBS_ACCOUNT_EXISTS | NO |
 | ACCOUNT_CONFIRMED | NO |
-| LOGIN_TESTED | NO |
+| LOGIN_CONFIRMED | NO |
 | PRE_T0_ACCOUNT_PROVISIONING_REQUIRED | YES |
 | PRE_T0_LOGIN_VALIDATION_REQUIRED | YES |
 
@@ -72,10 +72,11 @@
 | Field | Value |
 | --- | --- |
 | VEHICLE_IDENTIFIER | EDZ2E87 |
+| VEHICLE_TYPE | van |
 | PHYSICAL_CAPACITY | 20 |
 | COBS_OPERATIONAL_CAPACITY | 18 (intentional reduction — never auto-raise to 20) |
-| EXPECTED_OCCUPANCY | 7 (5 travelers + 1 driver + 1 operations_agent) |
-| CAPACITY_MARGIN_COBS | 11 |
+| PLANNED_OCCUPANCY | 7 (5 travelers + 1 driver + 1 operations_agent) |
+| CAPACITY_HEADROOM | 11 |
 | PHYSICAL_CAPACITY_EXCEEDED | NO |
 | JHR8B21 reuse | FORBIDDEN (Golden Pilot resource, capacity 3) |
 | PIL0T02 placeholder | DISCARDED — must not be created |
@@ -88,23 +89,26 @@ Capacity enforcement is live per DEF-PILOT-015: active seat assignments per leg 
 | --- | --- |
 | Original proposal | 11/08/2026 11:00–13:00 (America/Sao_Paulo) |
 | Status | **INVALID** — the window is today and already started/passed; it also collides with the Golden Pilot's consumed expected window |
-| New window | **PENDING — required input** |
+| New window | **PENDING — to be set at P2 provisioning** |
 
-`OPERATIONAL_WINDOW: PENDING` — blocking.
+`OPERATIONAL_WINDOW: PENDING` — not a P1 input-lock blocker; final scheduling occurs during authorized P2 provisioning.
 
 ### Offering / Experience
 
+`PILOT_02_OPERATION_ORIGIN: standalone`
+
+`EXPERIENCE_CREATED: NO`
+`OFFERING_CREATED: NO`
+
 "City Tour Brasília Essencial — Circuito Cívico e Monumental — 2 horas" **does not exist** in COBS. Zero experiences and zero offerings are registered in BSBTUR.
 
-`OFFERING_EXISTS: NO`. Two admissible paths, decision pending:
-- **Path A (recommended for Pilot-02):** standalone Operation with no experience/offering lineage — identical to the certified Golden Pilot shape, smallest surface.
-- **Path B:** create Experience + Offering first (catalog W02 write), then derive the Operation. Larger surface, adds catalog to the pilot envelope.
+Path selected: **Path A — standalone Operation** with no experience/offering lineage, identical to the certified Golden Pilot shape.
 
 ---
 
 ## 3. Provisioning Manifest (proposed — NOT executed)
 
-Executed only after explicit P2 authorization, in this order, exclusively through approved public commands.
+Executed only after explicit textual authorization, in this order, exclusively through approved public commands.
 
 ### 3.1 Reuse (no writes)
 
@@ -131,12 +135,12 @@ Executed only after explicit P2 authorization, in this order, exclusively throug
 
 ### 3.4 Create — resources
 
-- 1 Vehicle: identifier/label `EDZ2E87`, capacity **18**, kind to be set at provisioning (minibus/bus per real vehicle).
+- 1 Vehicle: identifier/label `EDZ2E87`, kind `van`, capacity **18**.
 - 1 Driver resource pointing at Person "Carlos Eduardo Mendes" (Person is canonical).
 
 ### 3.5 Create — operation
 
-- 1 Operation, tourism, BR / DF / Brasília, `America/Sao_Paulo`, standalone (Path A) unless Path B is authorized.
+- 1 Operation, tourism, BR / DF / Brasília, `America/Sao_Paulo`, standalone (Path A).
 - Planned window = the confirmed new date (baseline, frozen after creation).
 - 7 participations: 5 `participant` (travelers), 2 `crew` (Carlos, Fernanda) — all to be **confirmed** pre-T0; `expected` never counts toward readiness.
 - 1 operation role assignment: Fernanda as field operator.
@@ -158,40 +162,59 @@ Hospitality OFF · Event production OFF · Commerce OFF · External integrations
 
 ## 4. Blocking gaps before P2
 
-| # | Gap | Owner |
-| --- | --- | --- |
-| B1 | New operational date/window (day + start + end, America/Sao_Paulo) | Rafael |
-| B2 | Explicit operational-registration consent for all 5 travelers (SIM/NÃO each) | Rafael |
-| B3 | Confirmation that Carlos Eduardo Mendes is the real driver of this operation | Rafael |
-| B4 | Offering path decision: A (standalone) or B (create catalog first) | Rafael |
-| B5 | Real vehicle kind for EDZ2E87 (minibus / bus / van) | Rafael |
+| # | Gap | Status | Owner |
+| --- | --- | --- | --- |
+| B1 | New operational date/window (day + start + end, America/Sao_Paulo) | PENDING — to be set at P2 provisioning | Rafael |
+| B2 | Explicit operational-registration consent for all 5 travelers (SIM/NÃO each) | RESOLVED — 5/5 YES | Rafael |
+| B3 | Confirmation that Carlos Eduardo Mendes is the real driver of this operation | RESOLVED — YES | Rafael |
+| B4 | Offering path decision: A (standalone) or B (create catalog first) | RESOLVED — Path A | Rafael |
+| B5 | Real vehicle kind for EDZ2E87 (minibus / bus / van) | RESOLVED — van | Rafael |
+
+`HUMAN_INPUT_BLOCKERS: 0`
 
 ---
 
 ## 5. Status block
 
 ```
-PILOT_02_P1_VALIDATION: INCOMPLETE
+PILOT_02_P1_VALIDATION: FINAL_LOCKED
+P1_FINAL_LOCK: YES
+HUMAN_INPUT_BLOCKERS: 0
+READY_FOR_P2_PROVISIONING: YES
+P2_AUTHORIZED: NO
+PILOT_02_OPERATION_ORIGIN: standalone
+EXPERIENCE_CREATED: NO
+OFFERING_CREATED: NO
 TRAVELER_IDENTITIES_LOCKED: YES (5 controlled addresses)
-TRAVELER_CONSENT_CONFIRMED: PENDING
-DRIVER_CONFIRMED: PENDING
+TRAVELER_CONSENT_CONFIRMED: 5/5 YES
+DRIVER_CONFIRMED: YES
+DRIVER_NAME: Carlos Eduardo Mendes
 SECOND_OPERATOR_REAL: YES
+SECOND_OPERATOR_NAME: Fernanda Lima Rocha
+SECOND_OPERATOR_EMAIL: contato@bsbtur.com.br
 SECOND_OPERATOR_ROLE: operations_agent
 COBS_ACCOUNT_EXISTS: NO
+ACCOUNT_CONFIRMED: NO
+LOGIN_CONFIRMED: NO
 PRE_T0_ACCOUNT_PROVISIONING_REQUIRED: YES
+PRE_T0_LOGIN_VALIDATION_REQUIRED: YES
 VEHICLE_IDENTIFIER: EDZ2E87
+VEHICLE_TYPE: van
 PHYSICAL_CAPACITY: 20
 COBS_OPERATIONAL_CAPACITY: 18
-EXPECTED_OCCUPANCY: 7
-CAPACITY_MARGIN_COBS: 11
+PLANNED_OCCUPANCY: 7
+CAPACITY_HEADROOM: 11
 PHYSICAL_CAPACITY_EXCEEDED: NO
 JHR8B21_REUSED: NO
 PIL0T02_CREATED: NO
 OPERATIONAL_WINDOW: PENDING
+OPERATIONAL_WINDOW_BLOCKER: NO
 OFFERING_EXISTS: NO
-OFFERING_PATH_DECIDED: NO
+OFFERING_PATH_DECIDED: YES
+OFFERING_PATH: A (standalone)
 GOLDEN_PILOT_MODIFIED: NO
 DATA_MUTATED: NO
 ENTITIES_CREATED: 0
-READY_FOR_P2_PROVISIONING: NO
 ```
+
+**Next action gate:** P2 provisioning is **NOT authorized**. Await explicit textual authorization: `"AUTORIZO O PILOT-02 P2 PROVISIONING"` before any mutation.
