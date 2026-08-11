@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { KeyRound, RefreshCw } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { KeyRound, Loader2, RefreshCw } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -21,6 +21,13 @@ import { FullPageLoading } from "@/components/feedback/loading";
  * Participation, Tenant or Grant — it only decides what to render.
  */
 
+async function fetchEffectivePortalAccess(): Promise<boolean> {
+  const { data, error } = await supabase.rpc("get_my_participant_access");
+  if (error) return false;
+  const rows = Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
+  return rows.some((row) => row["effective"] === true);
+}
+
 function useEffectivePortalAccess(enabled: boolean) {
   const { user } = useAuth();
   return useQuery({
@@ -28,19 +35,61 @@ function useEffectivePortalAccess(enabled: boolean) {
     enabled: enabled && Boolean(user?.id),
     retry: false,
     staleTime: 30_000,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_my_participant_access");
-      if (error) return false;
-      const rows = Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
-      return rows.some((row) => row["effective"] === true);
-    },
+    queryFn: fetchEffectivePortalAccess,
   });
 }
 
 function NoAccountAccess() {
   const { t } = useI18n();
-  const { signOut } = useAuth();
-  const { refetch } = useTenant();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [checking, setChecking] = React.useState(false);
+  const [feedback, setFeedback] = React.useState<"none" | "nochange" | "error">("none");
+
+  const recheck = React.useCallback(async () => {
+    if (checking) return; // DEF-PILOT-002: never fire duplicate concurrent checks
+    setChecking(true);
+    setFeedback("none");
+    try {
+      // Refetch BOTH posture sources and wait for completion.
+      const [memberships, portal] = await Promise.all([
+        queryClient.fetchQuery({
+          queryKey: ["memberships", user?.id],
+          queryFn: async () => {
+            const { data, error } = await supabase
+              .from("memberships")
+              .select("*, tenants(*)")
+              .eq("profile_id", user!.id)
+              .eq("status", "active");
+            if (error) throw error;
+            return data ?? [];
+          },
+          staleTime: 0,
+        }),
+        queryClient.fetchQuery({
+          queryKey: ["access-posture", "portal", user?.id],
+          queryFn: fetchEffectivePortalAccess,
+          staleTime: 0,
+          retry: false,
+        }),
+      ]);
+
+      if (Array.isArray(memberships) && memberships.length > 0) {
+        await navigate({ to: "/app", replace: true });
+        return;
+      }
+      if (portal === true) {
+        await navigate({ to: "/my", replace: true });
+        return;
+      }
+      setFeedback("nochange");
+    } catch {
+      setFeedback("error");
+    } finally {
+      setChecking(false);
+    }
+  }, [checking, navigate, queryClient, user]);
 
   return (
     <main className="grid min-h-screen place-items-center bg-background px-5 py-10">
@@ -56,14 +105,39 @@ function NoAccountAccess() {
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <Button className="min-h-11" onClick={() => refetch()}>
-              <RefreshCw className="mr-2 size-4" aria-hidden="true" />
-              {t("access.none.recheck")}
+            <Button className="min-h-11" onClick={() => void recheck()} disabled={checking}>
+              {checking ? (
+                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <RefreshCw className="mr-2 size-4" aria-hidden="true" />
+              )}
+              {checking ? t("access.none.checking") : t("access.none.recheck")}
             </Button>
-            <Button variant="outline" className="min-h-11" onClick={() => void signOut()}>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              onClick={() => void signOut()}
+              disabled={checking}
+            >
               {t("access.none.signOut")}
             </Button>
           </div>
+
+          <p
+            role="status"
+            aria-live="polite"
+            className={
+              feedback === "error"
+                ? "mt-3 text-sm text-destructive"
+                : "mt-3 text-sm text-muted-foreground"
+            }
+          >
+            {feedback === "nochange"
+              ? t("access.none.nochange")
+              : feedback === "error"
+                ? t("access.none.error")
+                : ""}
+          </p>
 
           <div className="mt-6 border-t border-border pt-4">
             <Link
@@ -99,3 +173,4 @@ export function RequireOperatorAccess({ children }: { children: React.ReactNode 
 
   return <NoAccountAccess />;
 }
+
