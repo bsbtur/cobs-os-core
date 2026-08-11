@@ -684,11 +684,7 @@ function LiveRuntimePage() {
           step={current}
           roster={live.data?.roster ?? []}
           presence={live.data?.presence ?? []}
-          boardingStarted={events.some(
-            (event) =>
-              event.journey_step_id === current.id &&
-              event.event_type === "BOARDING_STARTED",
-          )}
+          boardingStarted={boardingStartedStepIds.has(current.id)}
           onRefresh={refresh}
         />
       ) : null}
