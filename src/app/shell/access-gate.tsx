@@ -139,6 +139,8 @@ function NoAccountAccess() {
                 : ""}
           </p>
 
+          <InviteRecovery />
+
           <div className="mt-6 border-t border-border pt-4">
             <Link
               to="/onboarding"
