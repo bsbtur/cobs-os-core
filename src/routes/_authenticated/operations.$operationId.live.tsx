@@ -291,11 +291,30 @@ function PresencePanel({
                 >
                   {presenceLabel("NO_SHOW_CONFIRMED", t)}
                 </Button>
+                {effective ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="min-h-10 text-muted-foreground"
+                    disabled={retract.isPending}
+                    onClick={() => {
+                      setCorrectReason("");
+                      setCorrectPrompt({
+                        row,
+                        event: effective,
+                        idempotencyKey: crypto.randomUUID(),
+                      });
+                    }}
+                  >
+                    {t("w04.presence.correct")}
+                  </Button>
+                ) : null}
               </div>
             </li>
           );
         })}
       </ul>
+
 
       <Dialog
         open={Boolean(reasonPrompt)}
