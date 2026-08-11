@@ -165,7 +165,8 @@ function PresencePanel({
                 <Button
                   size="sm"
                   className="min-h-10"
-                  disabled={record.isPending}
+                  disabled={record.isPending || primaryBlocked}
+                  title={primaryBlocked ? t("w04.presence.boardingNotOpen") : undefined}
                   onClick={() =>
                     record.mutate({ participationId: row.id, fact: primaryFact })
                   }
