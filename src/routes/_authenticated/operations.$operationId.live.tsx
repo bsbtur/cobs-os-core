@@ -78,11 +78,14 @@ function PresencePanel({
   step,
   roster,
   presence,
+  boardingStarted,
   onRefresh,
 }: {
   step: JourneyStepRow;
   roster: RosterRow[];
   presence: PresenceEventRow[];
+  /** DEF-PILOT-008: BOARDED is only accepted after BOARDING_STARTED exists on this step. */
+  boardingStarted: boolean;
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
