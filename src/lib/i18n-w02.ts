@@ -112,6 +112,13 @@ export const W02_PT: Record<string, string> = {
   "op.cancel": "Cancelar operação",
   "op.cancelReason": "Motivo do cancelamento",
   "op.complete": "Concluir operação",
+  "op.completeConfirmTitle": "Encerrar esta operação?",
+  "op.completeConfirmBody":
+    "Isto encerra a viagem inteira no COBS. Não é o mesmo que concluir um check-in, um embarque ou uma etapa individual.",
+  "op.completeConfirmNote":
+    "Ação final: depois de encerrada, a operação sai da execução ao vivo e só pode ser reaberta por um proprietário, em caso de encerramento acidental.",
+  "op.completeConfirmCta": "Sim, encerrar a operação",
+  "op.completeTerminal": "Ação final",
   "op.archive": "Arquivar",
   "op.unarchive": "Desarquivar",
   "op.archived": "Arquivada",
