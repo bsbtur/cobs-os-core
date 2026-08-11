@@ -128,6 +128,8 @@ function PresencePanel({
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
   const primaryFact: PresenceFact =
     step.presence_requirement === "boarded" ? "BOARDED" : "PRESENT_AT_MEETING_POINT";
+  // BOARDED is rejected by the server until boarding is open on this step.
+  const primaryBlocked = primaryFact === "BOARDED" && !boardingStarted;
 
   const visible = roster.filter((row) =>
     step.presence_population === "participants"
