@@ -96,15 +96,41 @@ function PresencePanel({
     fact: Extract<PresenceFact, "ABSENCE_NOTED" | "NO_SHOW_CONFIRMED">;
   } | null>(null);
   const [reason, setReason] = React.useState("");
+  /**
+   * DEF-PILOT-019 — presence correction (append-only retraction).
+   * The UI never deletes an event: it calls public.retract_presence_fact, which
+   * appends a PRESENCE_RETRACTED marker. Authorization stays with the backend
+   * (owner/admin); no parallel permission rule is implemented in the frontend,
+   * because tenant role is not reliably available in this route's context.
+   */
+  const [correctPrompt, setCorrectPrompt] = React.useState<{
+    row: RosterRow;
+    event: PresenceEventRow;
+    idempotencyKey: string;
+  } | null>(null);
+  const [correctReason, setCorrectReason] = React.useState("");
 
-  const latestFor = (participationId: string): PresenceFact | null => {
+  /** Ids of facts that already carry a retraction — they are no longer effective. */
+  const retractedIds = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const event of presence) {
+      if (event.retracts_presence_event_id) set.add(event.retracts_presence_event_id);
+    }
+    return set;
+  }, [presence]);
+
+  /** Effective (non-retracted, non-marker) presence event for a participation on this step. */
+  const effectiveFor = (participationId: string): PresenceEventRow | null => {
     const rows = presence
       .filter(
         (event) =>
-          event.participation_id === participationId && event.journey_step_id === step.id,
+          event.participation_id === participationId &&
+          event.journey_step_id === step.id &&
+          event.presence_fact !== "PRESENCE_RETRACTED" &&
+          !retractedIds.has(event.id),
       )
       .sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1));
-    return (rows[0]?.presence_fact as PresenceFact | undefined) ?? null;
+    return rows[0] ?? null;
   };
 
   const record = useMutation({
@@ -129,6 +155,36 @@ function PresencePanel({
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
+
+  /** Maps known backend messages to safe, humanized copy (no SQL, no ids, no stack). */
+  const correctionError = (error: unknown): string => {
+    const raw = error instanceof Error ? error.message : String(error ?? "");
+    if (/already been retracted/i.test(raw)) return t("w04.presence.correctErrorAlready");
+    if (/Presence record not found/i.test(raw)) return t("w04.presence.correctErrorNotFound");
+    if (/reason is required/i.test(raw)) return t("w04.presence.correctErrorReason");
+    if (/permission|not allowed|retraction cannot/i.test(raw))
+      return t("w04.presence.correctErrorPermission");
+    return humanizeError(error, locale);
+  };
+
+  const retract = useMutation({
+    mutationFn: async (input: { presenceEventId: string; reason: string; key: string }) => {
+      const { error } = await supabase.rpc("retract_presence_fact", {
+        _presence_fact_id: input.presenceEventId,
+        _reason: input.reason,
+        _idempotency_key: input.key,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.presence.corrected"));
+      setCorrectPrompt(null);
+      setCorrectReason("");
+      onRefresh();
+    },
+    onError: (error) => feedback.error(correctionError(error)),
+  });
+
 
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
   const primaryFact: PresenceFact =
