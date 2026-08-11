@@ -89,3 +89,22 @@ Stack inalterada: React/TanStack Start, PostgreSQL, RLS, SECURITY DEFINER, Realt
 - READY FOR W11: **NO** — por decisão, não por impedimento técnico
 
 Próximo comando recomendado: **COBS OS — ALPHA PILOT READINESS (M1: CROSS-WORKFLOW AUTHENTICATED UX QA)**.
+
+---
+
+## 8. M3 — Operational Recovery Runbook (2026-08-11 UTC)
+
+Entrega: **`docs/ALPHA-OPERATIONAL-RECOVERY-RUNBOOK.md`** — propósito, escopo, princípios do operador, taxonomia de severidade (SEV-1..SEV-4), árvore de decisão de incidente, matriz de recuperação por domínio (11 domínios), 22 procedimentos de cenário, regras de escalonamento, ações proibidas, requisitos de auditoria/evidência, checklist de emergência e registro de lacunas.
+
+Milestone somente de documentação e verificação read-only: nenhum schema, função, policy, grant, trigger ou linha de produção foi criado, alterado ou removido. O tenant real BSBTUR, o Profile, a Person e a Membership do Owner permanecem intactos. Nenhuma Experiência, Offering ou Operation foi criada.
+
+**Lacunas de recuperação:** P0 = 0 · P1 = 2 · P2 = 4 · P3 = 1.
+
+- **G-02 (P1, W02)** — Operação cancelada por engano é irreversível: `set_operation_status` recusa qualquer transição a partir de `cancelled`/`completed`. Remédio mínimo: comando `reinstate_operation` restrito ao Owner, apenas `cancelled → planning`, com motivo obrigatório e auditoria. **Exige emenda autorizada do W02.**
+- **G-03 (P1, W04)** — Fato de presença registrado errado não pode ser retratado; o headcount derivado continua contando um `BOARDED` incorreto, número relevante para segurança na autorização de partida. Remédio mínimo: valor de enum `PRESENCE_RETRACTED` + comando `retract_presence_fact`, append-only, motivo obrigatório, Owner/Admin. **Exige emenda autorizada do W04.**
+
+Ambas foram **reportadas, não implementadas**, conforme o modo estrito. B3 do Alpha Milestone Review passa de "ausente" para **documentado, com duas lacunas P1 registradas**.
+
+- M3_OPERATIONAL_RECOVERY_RUNBOOK: **CONDITIONAL PASS** (PASS bloqueado apenas por G-02 e G-03)
+- REAL_BSBTUR_DATA_CHANGED: **NO** · W01_W10_ARCHITECTURE_CHANGED: **NO**
+- READY_FOR_M4_OBSERVABILITY: **YES** (M4 pode correr em paralelo; a primeira Operation real do piloto não deve começar antes da decisão sobre G-02/G-03)
