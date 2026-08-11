@@ -250,6 +250,13 @@ export const W02_EN: Record<string, string> = {
   "op.cancel": "Cancel operation",
   "op.cancelReason": "Cancellation reason",
   "op.complete": "Complete operation",
+  "op.completeConfirmTitle": "End this operation?",
+  "op.completeConfirmBody":
+    "This ends the whole trip in COBS. It is not the same as completing an individual check-in, boarding or journey step.",
+  "op.completeConfirmNote":
+    "Final action: once ended, the operation leaves live execution and can only be reopened by an owner, in case of an accidental ending.",
+  "op.completeConfirmCta": "Yes, end the operation",
+  "op.completeTerminal": "Final action",
   "op.archive": "Archive",
   "op.unarchive": "Unarchive",
   "op.archived": "Archived",
