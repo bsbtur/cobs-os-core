@@ -3,7 +3,6 @@ import {
   createFileRoute,
   Outlet,
   redirect,
-  useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
 
@@ -34,30 +33,26 @@ export const Route = createFileRoute("/_authenticated")({
       if (pending) savePendingClaim(pending);
       throw redirect({ to: "/auth", search: { redirect: location.href } });
     }
+
+    // DEF-PILOT-017: resume a preserved claim before rendering any access
+    // posture. A component effect runs too late: /app can render the neutral
+    // no-access decision before the pending invitation is consumed.
+    if (!location.pathname.startsWith("/my/claim/")) {
+      const pending = readPendingClaim();
+      if (pending) {
+        throw redirect({
+          to: "/my/claim/$token",
+          params: { token: pending },
+          replace: true,
+        });
+      }
+    }
     return { user: data.user };
   },
   component: AuthenticatedLayout,
 });
 
 const UNGATED_PREFIXES = ["/my", "/invite", "/onboarding"];
-
-/**
- * DEF-PILOT-016: resume a claim that was interrupted by authentication
- * (e.g. account creation with e-mail confirmation landing on another URL).
- */
-function ResumePendingClaim() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    if (pathname.startsWith("/my/claim/")) return;
-    const token = readPendingClaim();
-    if (!token) return;
-    void navigate({ to: "/my/claim/$token", params: { token }, replace: true });
-  }, [pathname, navigate]);
-
-  return null;
-}
 
 function AccessRouter() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -76,7 +71,6 @@ function AccessRouter() {
 function AuthenticatedLayout() {
   return (
     <TenantProvider>
-      <ResumePendingClaim />
       <AccessRouter />
     </TenantProvider>
   );
