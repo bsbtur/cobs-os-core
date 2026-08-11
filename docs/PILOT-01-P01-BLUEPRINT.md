@@ -229,3 +229,7 @@ DECISION:                     AWAITING_BLUEPRINT_APPROVAL
 ```
 
 STOP.
+
+## Incident log
+
+- **DEF-PILOT-004** — W08/W10 in-app eligibility (Gate 7): CLOSED 2026-08-11. See `docs/PILOT-01-DEF-PILOT-004.md`.
