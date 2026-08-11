@@ -235,7 +235,8 @@ function PresencePanel({
 
       <ul className="mt-3 divide-y divide-border/60">
         {visible.map((row) => {
-          const fact = latestFor(row.id);
+          const effective = effectiveFor(row.id);
+          const fact = (effective?.presence_fact as PresenceFact | undefined) ?? null;
           const ok = fact ? satisfying.includes(fact) : false;
           return (
             <li key={row.id} className="flex flex-wrap items-center gap-2 py-2.5">
