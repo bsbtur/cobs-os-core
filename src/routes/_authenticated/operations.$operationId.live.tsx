@@ -344,7 +344,9 @@ function StepActions({
 
   const actions: Array<{ fn: string; label: string; gated?: boolean }> = [];
   if (step.step_kind === "meeting") actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
-  if (step.step_kind === "boarding") {
+  // DEF-PILOT-009: boarding action set is driven by the backend contract
+  // (presence_requirement = 'boarded'), not only by step_kind = 'boarding'.
+  if (step.presence_requirement === "boarded") {
     actions.push({ fn: "start_boarding", label: t("w04.action.startBoarding") });
     actions.push({ fn: "complete_boarding", label: t("w04.action.completeBoarding"), gated: true });
     actions.push({ fn: "authorize_departure", label: t("w04.action.authorizeDeparture"), gated: true });
