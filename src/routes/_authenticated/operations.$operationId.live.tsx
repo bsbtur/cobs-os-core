@@ -131,11 +131,21 @@ function PresencePanel({
   // BOARDED is rejected by the server until boarding is open on this step.
   const primaryBlocked = primaryFact === "BOARDED" && !boardingStarted;
 
-  const visible = roster.filter((row) =>
+  /**
+   * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
+   * The server evaluates readiness over CONFIRMED people only
+   * (public.w04_step_readiness: p.status = 'confirmed').
+   * The panel therefore shows the same population WITHOUT hiding people who are
+   * still `expected`: they stay visible, labelled, and flagged as not counted.
+   * Cancelled people never reach this panel (the roster query excludes them).
+   */
+  const relevant = roster.filter((row) =>
     step.presence_population === "participants"
       ? row.participation_kind === "participant"
-      : row.status === "confirmed",
+      : true,
   );
+  const visible = relevant;
+  const unconfirmed = relevant.filter((row) => row.status !== "confirmed");
 
   return (
     <section className="surface-panel p-4">
@@ -147,6 +157,20 @@ function PresencePanel({
       {primaryBlocked ? (
         <p className="mt-2 text-xs text-warning">{t("w04.presence.boardingNotOpen")}</p>
       ) : null}
+      {unconfirmed.length > 0 ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
+          <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            {unconfirmed.length} {t("w04.presence.unconfirmedWarning")}
+          </span>
+          <Button asChild size="sm" variant="ghost" className="ml-auto min-h-9">
+            <Link from="/operations/$operationId" to="/operations/$operationId/people">
+              {t("w04.presence.goToRoster")}
+            </Link>
+          </Button>
+        </div>
+      ) : null}
+
 
       <ul className="mt-3 divide-y divide-border/60">
         {visible.map((row) => {
@@ -157,6 +181,12 @@ function PresencePanel({
               <span className="min-w-0 flex-1 truncate text-sm font-medium">
                 {row.people?.full_name}
               </span>
+              {row.status !== "confirmed" ? (
+                <span className="rounded bg-warning-soft px-1.5 py-0.5 text-[11px] text-warning">
+                  {t(`w04.presence.status.${row.status}`)} · {t("w04.presence.notCounted")}
+                </span>
+              ) : null}
+
               <span
                 className={`font-mono text-[10px] uppercase tracking-[0.12em] ${
                   ok ? "text-success" : "text-muted-foreground"
@@ -470,6 +500,20 @@ function LiveRuntimePage() {
   const current = steps.find((step) => step.id === state?.current_step_id) ?? null;
   const next = steps.find((step) => step.id === state?.next_step_id) ?? null;
   const events = live.data?.events ?? [];
+  /**
+   * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
+   * They are invisible to public.w04_step_readiness, so the operator must see them.
+   */
+  const unconfirmedForCurrent = current
+    ? (live.data?.roster ?? []).filter(
+        (row) =>
+          row.status !== "confirmed" &&
+          (current.presence_population === "participants"
+            ? row.participation_kind === "participant"
+            : true),
+      )
+    : [];
+
 
   return (
     <section className="space-y-4">
@@ -516,6 +560,15 @@ function LiveRuntimePage() {
                 </span>
               </div>
             ) : null}
+
+            {/* DEF-PILOT-011: readiness counts CONFIRMED people only — say so out loud. */}
+            {readiness && readiness.requirement !== "none" && unconfirmedForCurrent.length > 0 ? (
+              <p className="mt-2 text-sm text-warning">
+                {unconfirmedForCurrent.length} {t("w04.presence.unconfirmedWarning")}{" "}
+                {unconfirmedForCurrent.map((row) => row.people?.full_name).join(", ")}
+              </p>
+            ) : null}
+
 
             {readiness && !readiness.ready ? (
               <div className="mt-2 space-y-1 text-sm text-muted-foreground">
