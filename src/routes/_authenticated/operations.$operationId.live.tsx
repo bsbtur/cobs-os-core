@@ -552,7 +552,13 @@ function LiveRuntimePage() {
                 <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.noCurrentBody")}</p>
                 <StartNext step={next} onRefresh={refresh} />
               </>
-            ) : steps.length > 0 && steps.every((step) => ["completed", "cancelled"].includes(step.status)) ? (
+            ) : steps.length > 0 && steps.every((step) =>
+                events.some(
+                  (event) =>
+                    event.journey_step_id === step.id &&
+                    (event.event_type === "STEP_COMPLETED" || event.event_type === "STEP_SKIPPED"),
+                ),
+              ) ? (
               <div className="mt-2 space-y-3">
                 <h3 className="text-lg font-semibold">{t("w04.live.journeyCompleted")}</h3>
                 <p className="text-sm text-muted-foreground">{t("w04.live.journeyCompletedBody")}</p>
