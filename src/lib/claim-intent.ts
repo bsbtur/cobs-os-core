@@ -36,11 +36,11 @@ export function claimTokenFromPath(pathname: string): string | null {
  * origin. Returns null for anything else. The token is never logged.
  */
 export function claimTokenFromInviteInput(value: string): string | null {
-  const raw = value.trim();
+  const raw: string = value.trim();
   if (raw.length === 0) return null;
 
   // Bare token pasted on its own.
-  if (isClaimToken(raw)) return raw;
+  if (TOKEN_RE.test(raw)) return raw;
 
   let pathname: string | null = null;
   try {
@@ -48,7 +48,7 @@ export function claimTokenFromInviteInput(value: string): string | null {
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
     pathname = url.pathname;
   } catch {
-    pathname = raw.startsWith("/") ? raw.split(/[?#]/)[0]! : null;
+    pathname = raw.startsWith("/") ? (raw.split(/[?#]/)[0] ?? null) : null;
   }
   if (!pathname) return null;
   return claimTokenFromPath(pathname);
