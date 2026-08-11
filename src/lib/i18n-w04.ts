@@ -295,6 +295,8 @@ export const W04_EN: Record<string, string> = {
   "w04.presence.noShowOwnerOnly": "Only owners and admins confirm a no-show.",
   "w04.presence.pending": "No record",
   "w04.presence.rosterNote": "Physical presence never changes roster status.",
+  "w04.presence.boardingNotOpen":
+    "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
 
   "w04.event.STEP_STARTED": "The step started.",
   "w04.event.STEP_COMPLETED": "The step was completed.",
