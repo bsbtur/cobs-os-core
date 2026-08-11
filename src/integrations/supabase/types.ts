@@ -3158,6 +3158,7 @@ export type Database = {
           presence_fact: Database["public"]["Enums"]["presence_fact"]
           recorded_at: string
           retracts_presence_event_id: string | null
+          supersedes_presence_event_id: string | null
           tenant_id: string
         }
         Insert: {
@@ -3174,6 +3175,7 @@ export type Database = {
           presence_fact: Database["public"]["Enums"]["presence_fact"]
           recorded_at?: string
           retracts_presence_event_id?: string | null
+          supersedes_presence_event_id?: string | null
           tenant_id: string
         }
         Update: {
@@ -3190,6 +3192,7 @@ export type Database = {
           presence_fact?: Database["public"]["Enums"]["presence_fact"]
           recorded_at?: string
           retracts_presence_event_id?: string | null
+          supersedes_presence_event_id?: string | null
           tenant_id?: string
         }
         Relationships: [
@@ -3203,6 +3206,13 @@ export type Database = {
           {
             foreignKeyName: "participant_presence_events_retracts_presence_event_id_fkey"
             columns: ["retracts_presence_event_id"]
+            isOneToOne: false
+            referencedRelation: "participant_presence_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_presence_events_supersedes_presence_event_id_fkey"
+            columns: ["supersedes_presence_event_id"]
             isOneToOne: false
             referencedRelation: "participant_presence_events"
             referencedColumns: ["id"]
