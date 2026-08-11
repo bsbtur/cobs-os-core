@@ -178,15 +178,32 @@ No gap was implemented. Each P1 item below requires an explicit, separately auth
 
 | ID | Sev | Domain | Failure scenario | Why current commands are insufficient | Smallest safe remedy | Security implications | Needs frozen-architecture amendment? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **G-02** | **P1** | W02 operations | Operation cancelled by mistake (§8.19) | `set_operation_status` hard-rejects any transition out of `cancelled`/`completed`; terminal by contract | A single narrow Owner-only command `reinstate_operation(operation_id, reason, idempotency_key)` allowed **only** from `cancelled` → `planning`, mandatory reason, audited as `operation.reinstated`; completion stays terminal | Owner-only; no new table ACL; no generic status escape hatch; preserves the cancellation fact | **YES — W02 amendment required** |
-| **G-03** | **P1** | W04 presence | A presence fact (notably `BOARDED`) recorded for the wrong person or in error (§8.5) | `participant_presence_events` is append-only and the `presence_fact` enum has no retraction value; derived headcount keeps counting the erroneous fact, which is a safety-relevant number at departure | Add one enum value + one command: `PRESENCE_RETRACTED` recorded via `retract_presence_fact(presence_event_id, reason)`, append-only, mandatory reason, Owner/Admin only; readiness projections then ignore retracted facts | Does not delete anything; the erroneous fact stays visible; retraction is itself audited | **YES — W04 amendment required** |
+| **G-02** | **P1** | W02 operations | Operation cancelled by mistake (§8.19) | `set_operation_status` hard-rejects any transition out of `cancelled`/`completed`; terminal by contract | A single narrow Owner-only command `reinstate_operation(operation_id, reason, idempotency_key)` allowed **only** from `cancelled` → `planning`, mandatory reason, audited as `operation.reinstated`; completion stays terminal | Owner-only; no new table ACL; no generic status escape hatch; preserves the cancellation fact | **CLOSED — implemented in M3.1 (2026-08-11)** |
+| **G-03** | **P1** | W04 presence | A presence fact (notably `BOARDED`) recorded for the wrong person or in error (§8.5) | `participant_presence_events` is append-only and the `presence_fact` enum has no retraction value; derived headcount keeps counting the erroneous fact, which is a safety-relevant number at departure | Add one enum value + one command: `PRESENCE_RETRACTED` recorded via `retract_presence_fact(presence_event_id, reason)`, append-only, mandatory reason, Owner/Admin only; readiness projections then ignore retracted facts | Does not delete anything; the erroneous fact stays visible; retraction is itself audited | **CLOSED — implemented in M3.1 (2026-08-11)** |
 | **G-01** | **P2** | W01 identity | Person bound to the wrong login (§8.22) | `link_person_to_profile` is one-way; no unlink | `unlink_person_from_profile(tenant_id, person_id, reason)`, Owner-only, audited | Must not become a person-impersonation tool; containment (suspend + revoke) already limits exposure today | YES if implemented |
 | **G-04** | **P2** | W04 journey | Step started/completed by mistake (§8.4) | No step reopen; steps are forward-only | Documented workaround (`skip_journey_step` + `create_ad_hoc_journey_step`) is sufficient for the pilot | none | No |
 | **G-05** | **P2** | W07 events | Session/event started or completed by mistake (§8.12/§8.13) | Completion and cancellation are terminal | Documented workaround (`create_ad_hoc_session` + `record_event_note`) is sufficient for the pilot | none | No |
 | **G-07** | **P2** | W06 hospitality | Guest checked in/out by mistake | No un-check-in fact | `note_hospitality_issue` documents it; occupancy is corrected by room commands | none | No |
 | **G-06** | **P3** | W01 invitations | Invitation revoked by mistake (§8.21) | No un-revoke — deliberate token hygiene | Reissue a new invitation | Reissuing is the secure behaviour; un-revoking a dead token would not be | No |
 
-**P0 = 0 · P1 = 2 (G-02, G-03) · P2 = 4 (G-01, G-04, G-05, G-07) · P3 = 1 (G-06).**
+**Open after M3.1: P0 = 0 · P1 = 0 · P2 = 4 (G-01, G-04, G-05, G-07) · P3 = 1 (G-06).**
+
+### 10.1 M3.1 amendments applied (2026-08-11 UTC)
+
+G-02 and G-03 are **closed**. See `docs/M3-P1-RECOVERY-AMENDMENTS.md` for the full contract,
+adversarial gate (65/65 PASS) and structural drift report.
+
+- **§8.19 (operation cancelled by mistake)** — approved recovery is now
+  `reinstate_operation(_operation_id, _reason, _idempotency_key)`, Owner-only, `cancelled → planning`
+  only, mandatory reason, audited as `operation.reinstated` with the original cancellation evidence.
+  `completed` remains terminal; `cancelled → active` remains impossible.
+- **§8.5 (wrong presence fact)** — approved recovery is now
+  `retract_presence_fact(_presence_fact_id, _reason, _idempotency_key)`, Owner/Admin only,
+  append-only (the original fact stays immutable and visible), audited as `presence.retracted`.
+  Derived step readiness and `authorize_departure` use the **effective** headcount, ignoring
+  retracted facts. The correct fact can then be re-recorded via `record_presence_fact`.
+  A retraction cannot itself be retracted, and the same fact cannot be retracted twice.
+
 
 ## 11. Escalation rules
 
