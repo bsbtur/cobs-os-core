@@ -538,6 +538,10 @@ function LiveRuntimePage() {
   const current = steps.find((step) => step.id === state?.current_step_id) ?? null;
   const next = steps.find((step) => step.id === state?.next_step_id) ?? null;
   const events = live.data?.events ?? [];
+  // DEF-PILOT-014: derived from unbounded projections, never from the feed above.
+  const resolvedStepIds = live.data?.resolvedStepIds ?? new Set<string>();
+  const boardingStartedStepIds = live.data?.boardingStartedStepIds ?? new Set<string>();
+  const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
   /**
    * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
    * They are invisible to public.w04_step_readiness, so the operator must see them.
