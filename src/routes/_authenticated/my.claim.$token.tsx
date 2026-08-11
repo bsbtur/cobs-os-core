@@ -51,7 +51,9 @@ function ClaimPage() {
     // Strip immediately: replaceState does not re-run the router, so the
     // component stays mounted while the secret leaves the URL.
     if (typeof window !== "undefined") {
-      window.history.replaceState(window.history.state, "", "/my/claim");
+      // Replace with "/my" (never "/my/claim", which collides with the
+      // "/my/$operationId" dynamic route and would send "claim" to the RPC).
+      window.history.replaceState(window.history.state, "", "/my");
     }
 
     void (async () => {
