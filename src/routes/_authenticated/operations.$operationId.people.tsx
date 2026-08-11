@@ -684,6 +684,13 @@ function RosterCard({
             </div>
           ) : null}
 
+          <PortalAccessAction
+            operationId={operationId}
+            personId={row.person_id}
+            disabled={row.status === "cancelled"}
+          />
+
+
           <div className="flex flex-wrap gap-2">
             {transitions
               .filter((s) => s !== "cancelled")
