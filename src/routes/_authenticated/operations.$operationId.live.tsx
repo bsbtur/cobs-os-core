@@ -123,7 +123,7 @@ function PresencePanel({
     },
     onSuccess: () => {
       feedback.success(t("w04.live.recorded"));
-      setNoShow(null);
+      setReasonPrompt(null);
       setReason("");
       onRefresh();
     },
