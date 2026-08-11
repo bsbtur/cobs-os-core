@@ -3157,6 +3157,7 @@ export type Database = {
           participation_id: string
           presence_fact: Database["public"]["Enums"]["presence_fact"]
           recorded_at: string
+          retracts_presence_event_id: string | null
           tenant_id: string
         }
         Insert: {
@@ -3172,6 +3173,7 @@ export type Database = {
           participation_id: string
           presence_fact: Database["public"]["Enums"]["presence_fact"]
           recorded_at?: string
+          retracts_presence_event_id?: string | null
           tenant_id: string
         }
         Update: {
@@ -3187,6 +3189,7 @@ export type Database = {
           participation_id?: string
           presence_fact?: Database["public"]["Enums"]["presence_fact"]
           recorded_at?: string
+          retracts_presence_event_id?: string | null
           tenant_id?: string
         }
         Relationships: [
@@ -3195,6 +3198,13 @@ export type Database = {
             columns: ["actor_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_presence_events_retracts_presence_event_id_fkey"
+            columns: ["retracts_presence_event_id"]
+            isOneToOne: false
+            referencedRelation: "participant_presence_events"
             referencedColumns: ["id"]
           },
           {
@@ -5206,6 +5216,14 @@ export type Database = {
         }
         Returns: Json
       }
+      reinstate_operation: {
+        Args: {
+          _idempotency_key: string
+          _operation_id: string
+          _reason: string
+        }
+        Returns: Json
+      }
       reinstate_participant_access: {
         Args: { _grant_id: string; _reason: string }
         Returns: boolean
@@ -5293,6 +5311,14 @@ export type Database = {
           _note?: string
           _occurred_at?: string
           _session_id: string
+        }
+        Returns: Json
+      }
+      retract_presence_fact: {
+        Args: {
+          _idempotency_key: string
+          _presence_fact_id: string
+          _reason: string
         }
         Returns: Json
       }
