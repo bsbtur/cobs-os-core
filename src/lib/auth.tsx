@@ -44,7 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Profile is created lazily and idempotently, never by a client INSERT.
         // The signup display name is carried through so the Person created by
         // bootstrap_tenant is named, not email-derived.
-        void supabase.rpc("ensure_profile", { _display_name: displayNameOf(nextSession) });
+        const n = displayNameOf(nextSession);
+        void supabase.rpc("ensure_profile", n ? { _display_name: n } : {});
       }
     });
 
@@ -52,8 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!active) return;
       setSession(data.session);
       setLoading(false);
-      if (data.session)
-        void supabase.rpc("ensure_profile", { _display_name: displayNameOf(data.session) });
+      if (data.session) {
+        const n = displayNameOf(data.session);
+        void supabase.rpc("ensure_profile", n ? { _display_name: n } : {});
+      }
     });
 
     return () => {
