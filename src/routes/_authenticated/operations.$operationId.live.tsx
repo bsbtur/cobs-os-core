@@ -518,18 +518,39 @@ function StepActions({
 
   const call = useMutation({
     mutationFn: async (fn: string) => {
-      const { error } = await supabase.rpc(fn as "start_journey_step", {
+      // DEF_PILOT_022 — temporary diagnostic instrumentation (no PII, no tokens)
+      console.info("[W04_RPC_START]", { fn, stepId: step.id, at: new Date().toISOString() });
+      const startedAt = performance.now();
+      const { data, error } = await supabase.rpc(fn as "start_journey_step", {
         _journey_step_id: step.id,
       });
+      console.info("[W04_RPC_RESULT]", {
+        fn,
+        ok: !error,
+        errorCode: error?.code ?? null,
+        errorMessage: error?.message ?? null,
+        hasData: data != null,
+        durationMs: performance.now() - startedAt,
+      });
       if (error) throw error;
+      return data;
     },
     onSuccess: (_data, fn) => {
+      console.info("[W04_SUCCESS]", { fn, at: new Date().toISOString() });
       const action = actions.find((a) => a.fn === fn);
       feedback.success(`${t("w04.live.recorded")}: ${action?.label ?? ""}`.trim());
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error, fn) => {
+      console.info("[W04_ERROR]", {
+        fn,
+        message: error instanceof Error ? error.message : String(error),
+        at: new Date().toISOString(),
+      });
+      feedback.error(humanizeError(error, locale));
+    },
   });
+
 
   const actions: Array<{ fn: string; label: string; gated?: boolean; className?: string }> = [];
   if (step.step_kind === "meeting") actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
