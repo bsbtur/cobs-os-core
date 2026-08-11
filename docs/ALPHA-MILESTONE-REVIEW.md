@@ -147,3 +147,26 @@ Dados reais BSBTUR: **intocados**.
 - M4_MINIMUM_OBSERVABILITY: **PASS** · P0: **0** · P1: **0** · P2: **4** · P3: **3**
 - ALERTING: **manual/polled** (OBS-M4-004, declarado — não simulado)
 - READY_FOR_M5: **YES** · W11 e a primeira Operation real do piloto **não** foram iniciados
+
+---
+
+## M6 — FINAL PILOT READINESS GATE (2026-08-11) — GO_WITH_CONTROLS
+
+Full record: `docs/ALPHA-PILOT-READINESS-FINAL.md` · Operating procedure: `docs/ALPHA-PILOT-DAY-CHECKLIST.md`
+
+| Milestone | M6 re-classification |
+|---|---|
+| M1 cross-workflow authenticated UX QA | VERIFIED WITH ACCEPTED LIMITATION (OBS-M1-005, P2) |
+| M2 real tenant bootstrap + owner identity | VERIFIED |
+| M3 / M3.1 operational recovery | VERIFIED |
+| M4 minimum production observability | VERIFIED WITH ACCEPTED LIMITATION (manual alerting, no durable client sink) |
+| M5 backup & restore | VERIFIED WITH ACCEPTED LIMITATION (no scheduled backup; auth.* UNVERIFIED) |
+
+Baseline re-measured live and unchanged: 50 tables · 50 RLS · 72 policies · 229 public functions · 205 SD (0 without fixed search_path) · 98 private helpers · 48 enums · 98 public triggers · 0 disabled triggers · 0 anon grants · 12 realtime tables · 0 W11 objects. BSBTUR tenant + single owner identity intact; zero QA residue.
+
+Blockers: **P0 = 0 · P1 = 0 · P2 = 9 (all with operating procedures) · P3 = 7 deferred.**
+Security final gate: PASS. Cross-tenant isolation: PASS. Append-only recovery: PASS (no scenario needs direct DML).
+
+Pilot blockers B1–B5 from the Alpha review are cleared, subject to the compensating controls in Phases F and G. First pilot is bound to the Phase I safe envelope: single day, ≤ 15 travelers, ≤ 2 legs, no external integrations, no storage.
+
+**W11 remains closed** until the post-pilot review. The first real Operation has **not** been created.

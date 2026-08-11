@@ -159,3 +159,41 @@ Escalation beyond the envelope (more travelers, multi-day, commerce at scale, st
 NO-GO conditions — all false: no P0, no P1, no security regression, tenant/owner consistent, no normal-recovery path requires direct DML, restore evidence sufficient, every P2 has an operating procedure.
 
 **DECISION: GO_WITH_CONTROLS**, bound to the Phase I envelope, the Phase F monitoring control, the Phase G backup control, and `docs/ALPHA-PILOT-DAY-CHECKLIST.md`.
+
+---
+
+## PHASE E — OPERATIONAL CONTROL ROOM
+
+The minimum human operating procedure is `docs/ALPHA-PILOT-DAY-CHECKLIST.md` (BEFORE / DURING / AFTER). It is mandatory for the first pilot and must be completed and retained as evidence.
+
+---
+
+## PHASE F — M4 MANUAL MONITORING CONTROL (compensating control for absent alerting)
+
+| | Definition |
+|---|---|
+| **WHO** | The tenant **Owner** (RAFAEL LIMA) is accountable. If a second **operations_agent** is present on the pilot, they perform the in-operation polls and the Owner remains the escalation point. No other roles exist and none are invented. |
+| **WHAT** | (1) `/api/public/health` → `status: ok`, `app/auth/data_api: up`; (2) browser console `[COBS_OBS]` lines on the operator device — any `error`-severity envelope; (3) any command that returns an error to the operator; (4) traveler-reported "I can't see X"; (5) after each milestone, a 10-second sanity read of the live surface (headcount, leg state, room state). |
+| **WHEN** | T-24h and T-2h (pre-flight). During the operation: at start, at every milestone (departure, arrival, check-in, session start/end, return), and at least once per hour otherwise. At day close. Before and after every production migration. |
+| **WHERE** | Health: `/api/public/health` on the operator device. Signals: browser devtools console on the operator device. History: `audit_events` and the per-domain event tables through the operator surface. |
+| **ESCALATION TRIGGER** | Any of: health not `ok`; the same command fails twice; two or more distinct `error` envelopes within 15 minutes; any traveler-visible data that is wrong and cannot be corrected by an approved command; any suspicion of unauthorized access. Action: stop writes, record state on paper, keep the operation running manually, escalate to platform support, and log the incident. |
+
+**Sufficiency judgement:** sufficient **for this first pilot only**, because the pilot envelope is one operating day, ≤ 15 travelers, one operator actively watching, and every failure has a paper fallback. It is **not** sufficient for concurrent or unattended operations — automated alerting (P3) must land before the envelope widens.
+
+---
+
+## PHASE G — M5 BACKUP COMPENSATING CONTROL
+
+Until a scheduled backup is proven, the following rule is binding:
+
+1. Run `python3 scripts/backup/gen_backup.py` **before** every production migration.
+2. Run it **after** every production migration.
+3. Run it at the **close of each pilot operating day**.
+4. Preserve only the minimum necessary recovery artifact (latest pre-migration, latest post-migration, latest day-close).
+5. Treat every artifact as **PII-bearing**: protected storage only, never in chat, tickets, logs, or the repository.
+6. Destroy temporary restore environments and artifacts per `docs/ALPHA-BACKUP-RESTORE-RUNBOOK.md` as soon as the drill concludes.
+7. **Never restore into production.** Restore into an isolated target, pass structural (`compare.py`) and behavioural (`behaviour.sql`) gates, then plan reconciliation.
+
+**Executability re-verified in this gate:** `scripts/backup/gen_backup.py` and `compare.py` compile cleanly; `restore_drill.sh` passes syntax validation; `behaviour.sql` is present. Measured in M5: backup ~49s, restore apply ~0.55s, drift 0.
+
+**`auth.*` recovery is NOT verified.** It is provider-owned, was never tested from this project, and must never be reported as tested. Storage recovery is likewise out of scope — the pilot envelope forbids storage-dependent workflows.
