@@ -582,7 +582,16 @@ function StepActions({
           className={`min-h-12 flex-1 sm:flex-none ${action.className ?? ""}`}
           variant={action.gated ? "default" : "outline"}
           disabled={call.isPending || (action.gated === true && !ready)}
-          onClick={() => call.mutate(action.fn)}
+          onClick={() => {
+            console.info("[W04_CLICK]", {
+              label: action.label,
+              fn: action.fn,
+              stepId: step.id,
+              at: new Date().toISOString(),
+            });
+            call.mutate(action.fn);
+          }}
+
         >
           {action.label}
         </Button>
