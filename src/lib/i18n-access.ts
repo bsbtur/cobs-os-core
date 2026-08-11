@@ -10,6 +10,9 @@ export const ACCESS_DICTIONARIES = {
     "access.none.body":
       "Nenhuma organização e nenhuma viagem estão vinculadas a esta conta. Se você recebeu um convite, abra o link enviado por quem organiza sua viagem.",
     "access.none.recheck": "Verificar novamente",
+    "access.none.checking": "Verificando acesso...",
+    "access.none.nochange": "Nenhum acesso novo encontrado.",
+    "access.none.error": "Não foi possível verificar seu acesso agora. Tente novamente.",
     "access.none.signOut": "Sair",
     "access.none.org": "Criar uma organização",
     "access.none.orgHint": "Somente se você for responsável por operar experiências.",
@@ -29,6 +32,9 @@ export const ACCESS_DICTIONARIES = {
     "access.none.body":
       "No organization and no trip are linked to this account. If you were invited, open the link sent by whoever organizes your trip.",
     "access.none.recheck": "Check again",
+    "access.none.checking": "Checking access...",
+    "access.none.nochange": "No new access found.",
+    "access.none.error": "We couldn't check your access right now. Please try again.",
     "access.none.signOut": "Sign out",
     "access.none.org": "Create an organization",
     "access.none.orgHint": "Only if you are responsible for operating experiences.",
@@ -48,6 +54,9 @@ export const ACCESS_DICTIONARIES = {
     "access.none.body":
       "Ninguna organización ni viaje están vinculados a esta cuenta. Si recibiste una invitación, abre el enlace enviado por quien organiza tu viaje.",
     "access.none.recheck": "Comprobar de nuevo",
+    "access.none.checking": "Verificando acceso...",
+    "access.none.nochange": "No se encontró ningún acceso nuevo.",
+    "access.none.error": "No pudimos verificar tu acceso ahora. Inténtalo de nuevo.",
     "access.none.signOut": "Salir",
     "access.none.org": "Crear una organización",
     "access.none.orgHint": "Solo si eres responsable de operar experiencias.",
