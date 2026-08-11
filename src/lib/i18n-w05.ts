@@ -269,6 +269,12 @@ export const W05_EN: Record<string, string> = {
   "w05.seats.eligibilityHelp":
     "Participants, crew and support can take a seat. Observers and cancelled people cannot.",
   "w05.seats.taken": "taken",
+  // DEF-PILOT-013: explicit confirmation before creating an unnumbered seat.
+  "w05.seats.confirmUnnumberedTitle": "Assign without a numbered seat?",
+  "w05.seats.confirmUnnumberedBody":
+    "This person will be recorded on this leg without a specific seat number/label.",
+  "w05.seats.confirmUnnumberedConfirm": "Confirm unnumbered assignment",
+  "w05.seats.confirmUnnumberedCancel": "Cancel",
 
   "w05.fleet.title": "Vehicles and drivers",
   "w05.fleet.subtitle":
