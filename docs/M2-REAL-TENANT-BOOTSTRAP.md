@@ -141,3 +141,72 @@ Public function count 226 → **227**. Private helpers **98 → 98 (unchanged; n
 Production state unchanged: tenants 1 · auth users 1 · profiles 1 · people 1 · active owner memberships 1 · all ids preserved · BSBTUR/`bsbtur`/BR/BRL/pt-BR/America/Sao_Paulo unchanged · Experiences/Offerings/Operations 0 · W04–W10 rows 0 · profile `display_name` NULL · person `full_name` still the email.
 
 **OBS-M2-001 remains OPEN until the Owner runs the command.**
+
+---
+
+## Addendum M2.2 FINAL — Owner Identity Re-Verification (2026-08-11 UTC)
+
+Read-only verification against the live production backend. No row, function, policy, grant or setting was created, altered or removed during this verification. `update_my_display_name` was **not** re-executed and `service_role` was **not** used to impersonate the Owner.
+
+### 1. Real tenant (exactly 1)
+
+BSBTUR · `bsbtur` · BR · BRL · pt-BR · America/Sao_Paulo · id `9a09c18f…` · created 2026-08-10 23:52:44 UTC — identical to the M2 baseline.
+
+### 2. Owner identity
+
+| Check | Result |
+| --- | --- |
+| Auth users | 1 |
+| Profiles | 1 · `38c4f5d6…` · `display_name = RAFAEL LIMA` |
+| People in BSBTUR | 1 · `cf022cd0…` · `full_name = RAFAEL LIMA` · `profile_id = 38c4f5d6…` |
+| Memberships | 1 · `9807e9b7…` · role `owner` · status `active` |
+
+### 3. Identity preservation
+
+All identifiers match the M2/M2.1 records byte-for-byte: tenant `9a09c18f…`, profile `38c4f5d6…`, person `cf022cd0…`, membership `9807e9b7…`. `created_at` on tenant, profile, person and membership is unchanged (23:52:44 UTC) — no record was recreated. Auth email `contato.bsbtur@gmail.com` unchanged on both the profile and the person. Tenant defaults unchanged. Duplicates: none (1/1/1/1).
+
+### 4. Audit evidence (append-only, 2 rows total)
+
+1. `tenant.bootstrapped` — intact, unmodified, 2026-08-10 23:52:44 UTC.
+2. `identity.display_name_changed` — 2026-08-11 00:27:42 UTC · actor `38c4f5d6…` (the Owner profile) · tenant `9a09c18f…` · subject `person` `cf022cd0…` · metadata exactly `{changed: true, person_id, profile_id}`.
+
+No name, email, token, password, hash or other secret appears in the audit payload.
+
+### 5. Idempotency evidence (not replayed)
+
+`idempotency_keys` holds 2 rows: `tenant.bootstrap` (23:52:44) and `identity.display_name` (00:27:42) scoped to actor `38c4f5d6…`, timestamp-matching the audit event of the successful command. The command was not replayed to test this.
+
+### 6. Operational cleanliness
+
+Experiences 0 · Offerings 0 · Operations 0 · all W04–W10 domain tables 0 rows. Nothing created, nothing deleted.
+
+### 7. Security posture
+
+`public.update_my_display_name(_display_name text, _idempotency_key uuid)`: `SECURITY DEFINER = true`, `search_path = public` (fixed), identity derived from `auth.uid()` only. EXECUTE: `postgres`, `authenticated`, `service_role` — **`anon` and `PUBLIC` hold none**. `authenticated` has zero non-SELECT grants on `people` and `profiles`; `anon` has zero privileges on all 50 public tables; RLS enabled on 50/50 tables. No generic person editor exists on the public surface.
+
+### 8. Structural baseline
+
+| Metric | M2 | M2.2 final | Delta |
+| --- | --- | --- | --- |
+| Public tables | 50 | 50 | — |
+| RLS policies | 72 | 72 | — |
+| Public functions | 226 | **227** | +1 (intentional) |
+| `app_private` helpers | 98 | 98 | — |
+| Public enums | 48 | 48 | — |
+| User triggers | 103 | 103 | — |
+| Tables with RLS off | 0 | 0 | — |
+| `anon` table grants | 0 | 0 | — |
+
+No other structural drift detected.
+
+### 9. Verdict
+
+- M2_2_OWNER_IDENTITY_CORRECTION: **PASS**
+- OWNER_PROFILE_NAME_CORRECT: **YES** · OWNER_PERSON_NAME_CORRECT: **YES**
+- PROFILE_ID_PRESERVED / PERSON_ID_PRESERVED / MEMBERSHIP_ID_PRESERVED / TENANT_ID_PRESERVED / AUTH_EMAIL_PRESERVED: **YES**
+- DUPLICATE_IDENTITY_CREATED: **NO**
+- AUDIT_EVENT_VERIFIED: **YES** · IDEMPOTENCY_EVIDENCE_VERIFIED: **YES**
+- DIRECT_PERSON_DML_ENABLED: **NO** · W01_SECURITY_SEMANTICS_WEAKENED: **NO**
+- OPERATIONAL_DATA_CREATED: **NO**
+- **OBS-M2-001: CLOSED**
+- READY_FOR_M3: **YES**
