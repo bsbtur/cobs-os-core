@@ -89,7 +89,12 @@ function PresencePanel({
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
-  const [noShow, setNoShow] = React.useState<RosterRow | null>(null);
+  // DEF-PILOT-019: ABSENCE_NOTED and NO_SHOW_CONFIRMED both require a reason server-side,
+  // so both go through the same confirm dialog. Nothing is written until confirmation.
+  const [reasonPrompt, setReasonPrompt] = React.useState<{
+    row: RosterRow;
+    fact: Extract<PresenceFact, "ABSENCE_NOTED" | "NO_SHOW_CONFIRMED">;
+  } | null>(null);
   const [reason, setReason] = React.useState("");
 
   const latestFor = (participationId: string): PresenceFact | null => {
