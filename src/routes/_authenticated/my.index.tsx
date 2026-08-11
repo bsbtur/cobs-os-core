@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Compass, MapPin } from "lucide-react";
+import { CheckCircle2, Compass, MapPin, ShieldOff } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
@@ -9,6 +9,14 @@ import { PortalQueryGate, PortalTag } from "@/app/portal/portal-states";
 import { EmptyState } from "@/components/feedback/empty-state";
 
 export const Route = createFileRoute("/_authenticated/my/")({
+  // DEF-PILOT-016: the claim route redirects here with an explicit outcome.
+  validateSearch: (search: Record<string, unknown>) => ({
+    claim:
+      search["claim"] === "ok" || search["claim"] === "invalid"
+        ? (search["claim"] as "ok" | "invalid")
+        : undefined,
+    operation: typeof search["operation"] === "string" ? (search["operation"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "My trips — COBS OS traveler portal" },
@@ -25,6 +33,36 @@ export const Route = createFileRoute("/_authenticated/my/")({
   }),
   component: MyOperationsPage,
 });
+
+function ClaimOutcome({ claim }: { claim: "ok" | "invalid" }) {
+  const { t } = useI18n();
+  const ok = claim === "ok";
+  const Icon = ok ? CheckCircle2 : ShieldOff;
+
+  return (
+    <div
+      role="status"
+      className={`mb-4 flex items-start gap-3 rounded-xl border bg-elevated/60 p-4 ${
+        ok ? "border-success/50" : "border-destructive/50"
+      }`}
+
+    >
+      <Icon
+        className={`mt-0.5 size-5 shrink-0 ${ok ? "text-success" : "text-destructive"}`}
+        aria-hidden="true"
+      />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground">
+          {ok ? t("w10.claim.success") : t("w10.claim.invalid")}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {ok ? t("w10.claim.body") : t("w10.denied.body")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 
 function place(op: PortalOperationCard) {
   return [op.city, op.region, op.country].filter(Boolean).join(" · ");
@@ -65,10 +103,13 @@ function OperationCard({ op }: { op: PortalOperationCard }) {
 function MyOperationsPage() {
   const { t } = useI18n();
   const operations = useMyOperations();
+  const { claim } = Route.useSearch();
 
   return (
     <PortalFrame title={t("w10.list.title")}>
+      {claim ? <ClaimOutcome claim={claim} /> : null}
       <p className="mb-4 text-sm text-muted-foreground">{t("w10.list.subtitle")}</p>
+
       <PortalQueryGate
         isLoading={operations.isLoading}
         error={operations.error}
