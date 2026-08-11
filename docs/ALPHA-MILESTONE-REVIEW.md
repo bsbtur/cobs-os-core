@@ -129,3 +129,21 @@ Duas colunas novas em `participant_presence_events`: `retracts_presence_event_id
 - P1_RECOVERY_GAPS: **0** · REAL_BSBTUR_DATA_CHANGED: **NO** · QA_RESIDUE: **0**
 - READY_FOR_M4_OBSERVABILITY: **YES** · W11 e a primeira Operation real do piloto **não** foram iniciados
 
+
+## 10. M4 — Observabilidade mínima de produção (2026-08-11 UTC)
+
+Entrega: **`docs/ALPHA-OBSERVABILITY-RUNBOOK.md`**. Camada aditiva **somente de frontend/SSR**:
+envelope sanitizado `[COBS_OBS]` (`src/lib/observability.ts`), choke point único de falha em
+`QueryCache`/`MutationCache` (`src/router.tsx`), boundary raiz instrumentado e probe anônimo
+`GET /api/public/health` (200 ok / 503 degraded).
+
+Drills reais contra o backend (D1–D8, zero escrita): negação de RPC anônimo, negação de leitura
+anônima, bearer inválido, credencial inválida, erro SQL, frontend publicado, health e teste de
+redação com senha+JWT+e-mail+hash+UUID+chave — **nenhum vazamento de PII ou segredo**.
+
+Drift estrutural: **nenhum**. Nenhuma migração aplicada; funções públicas permanecem **229**.
+Dados reais BSBTUR: **intocados**.
+
+- M4_MINIMUM_OBSERVABILITY: **PASS** · P0: **0** · P1: **0** · P2: **4** · P3: **3**
+- ALERTING: **manual/polled** (OBS-M4-004, declarado — não simulado)
+- READY_FOR_M5: **YES** · W11 e a primeira Operation real do piloto **não** foram iniciados
