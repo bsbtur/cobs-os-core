@@ -624,6 +624,9 @@ function SeatsPanel({
   const [participationId, setParticipationId] = React.useState("");
   const [seatLabel, setSeatLabel] = React.useState("");
   const [releaseReason, setReleaseReason] = React.useState("");
+  const [confirmUnnumberedOpen, setConfirmUnnumberedOpen] = React.useState(false);
+
+  const trimmedLabel = seatLabel.trim();
 
   const assign = useMutation({
     mutationFn: async () => {
@@ -633,7 +636,9 @@ function SeatsPanel({
           _transport_leg_id: leg.id,
           _participation_id: participationId,
           _idempotency_key: newIdempotencyKey() as string,
-          _seat_label: seatLabel || undefined,
+          // DEF-PILOT-013: blank labels become unnumbered seats only after
+          // explicit operator confirmation; backend contract is preserved.
+          _seat_label: trimmedLabel || undefined,
         }),
       );
       if (error) throw error;
@@ -642,10 +647,19 @@ function SeatsPanel({
       feedback.success(t("w05.action.recorded"));
       setParticipationId("");
       setSeatLabel("");
+      setConfirmUnnumberedOpen(false);
       onRefresh();
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
+
+  const attemptAssign = () => {
+    if (trimmedLabel === "") {
+      setConfirmUnnumberedOpen(true);
+      return;
+    }
+    assign.mutate();
+  };
 
   const release = useMutation({
     mutationFn: async (seatAssignmentId: string) => {
