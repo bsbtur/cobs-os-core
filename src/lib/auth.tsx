@@ -112,6 +112,13 @@ export function humanizeError(error: unknown, locale: string): string {
       "Muitas tentativas. Aguarde alguns instantes.",
       "Too many attempts. Please wait a moment.",
     ],
+    // DEF-PILOT-012: seat collision on the same transport leg must surface
+    // before the generic duplicate-key fallback.
+    [
+      /seat_active_label_key/i,
+      "Este assento já está ocupado neste trecho. Escolha outro assento.",
+      "This seat is already occupied on this leg. Choose another seat.",
+    ],
     [
       /duplicate key|tenants_slug_key/i,
       "Este identificador de organização já está em uso.",
