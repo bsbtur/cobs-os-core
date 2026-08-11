@@ -117,17 +117,54 @@ function LifecyclePanel({ op }: { op: OperationRow }) {
 
       {next.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          {next.map((status) => (
-            <Button
-              key={status}
-              className="min-h-11"
-              variant={status === "completed" ? "default" : "outline"}
-              disabled={setStatus.isPending}
-              onClick={() => setStatus.mutate({ status })}
-            >
-              {t("op.advance")} · {t(`status.${status}`)}
-            </Button>
-          ))}
+          {next
+            .filter((status) => status !== "completed")
+            .map((status) => (
+              <Button
+                key={status}
+                className="min-h-11"
+                variant="outline"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate({ status })}
+              >
+                {t("op.advance")} · {t(`status.${status}`)}
+              </Button>
+            ))}
+        </div>
+      ) : null}
+
+      {next.includes("completed") ? (
+        <div className="rounded-lg border border-dashed border-destructive/60 bg-destructive/5 p-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-destructive">
+            {t("op.completeTerminal")}
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                className="mt-2 min-h-11"
+                disabled={setStatus.isPending}
+              >
+                {t("op.complete")}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("op.completeConfirmTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>{t("op.completeConfirmBody")}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <p className="text-sm text-muted-foreground">{t("op.completeConfirmNote")}</p>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common.back")}</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => setStatus.mutate({ status: "completed" })}
+                >
+                  {t("op.completeConfirmCta")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       ) : null}
 
