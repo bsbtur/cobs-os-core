@@ -16,6 +16,13 @@ export const ACCESS_DICTIONARIES = {
     "access.none.signOut": "Sair",
     "access.none.org": "Criar uma organização",
     "access.none.orgHint": "Somente se você for responsável por operar experiências.",
+    "access.recover.title": "Já recebeu um convite para sua viagem?",
+    "access.recover.label": "Cole aqui o link de convite enviado pela organização.",
+    "access.recover.placeholder": "https://.../my/claim/...",
+    "access.recover.cta": "Acessar minha viagem",
+    "access.recover.empty": "Cole o link do convite para continuar.",
+    "access.recover.invalid":
+      "Este link não é um convite válido do portal do viajante. Copie o link completo que você recebeu.",
 
     "roster.portal.title": "Acesso ao portal do viajante",
     "roster.portal.invite": "Convidar para o portal",
@@ -38,6 +45,13 @@ export const ACCESS_DICTIONARIES = {
     "access.none.signOut": "Sign out",
     "access.none.org": "Create an organization",
     "access.none.orgHint": "Only if you are responsible for operating experiences.",
+    "access.recover.title": "Already received an invitation to your trip?",
+    "access.recover.label": "Paste here the invitation link sent by the organization.",
+    "access.recover.placeholder": "https://.../my/claim/...",
+    "access.recover.cta": "Access my trip",
+    "access.recover.empty": "Paste the invitation link to continue.",
+    "access.recover.invalid":
+      "This link is not a valid traveler portal invitation. Copy the full link you received.",
 
     "roster.portal.title": "Traveler portal access",
     "roster.portal.invite": "Invite to portal",
@@ -60,6 +74,13 @@ export const ACCESS_DICTIONARIES = {
     "access.none.signOut": "Salir",
     "access.none.org": "Crear una organización",
     "access.none.orgHint": "Solo si eres responsable de operar experiencias.",
+    "access.recover.title": "¿Ya recibiste una invitación para tu viaje?",
+    "access.recover.label": "Pega aquí el enlace de invitación enviado por la organización.",
+    "access.recover.placeholder": "https://.../my/claim/...",
+    "access.recover.cta": "Acceder a mi viaje",
+    "access.recover.empty": "Pega el enlace de invitación para continuar.",
+    "access.recover.invalid":
+      "Este enlace no es una invitación válida al portal del viajero. Copia el enlace completo que recibiste.",
 
     "roster.portal.title": "Acceso al portal del viajero",
     "roster.portal.invite": "Invitar al portal",
