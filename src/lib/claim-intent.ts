@@ -27,6 +27,33 @@ export function claimTokenFromPath(pathname: string): string | null {
   return isClaimToken(token) ? token : null;
 }
 
+/**
+ * DEF-PILOT-017B — portable claim recovery.
+ *
+ * Extracts the token from a pasted invitation link. The host is deliberately
+ * ignored for navigation purposes: only the /my/claim/<token> path shape is
+ * accepted and the caller navigates internally, never to a user-supplied
+ * origin. Returns null for anything else. The token is never logged.
+ */
+export function claimTokenFromInviteInput(value: string): string | null {
+  const raw: string = value.trim();
+  if (raw.length === 0) return null;
+
+  // Bare token pasted on its own.
+  if (TOKEN_RE.test(raw)) return raw;
+
+  let pathname: string | null = null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    pathname = url.pathname;
+  } catch {
+    pathname = raw.startsWith("/") ? (raw.split(/[?#]/)[0] ?? null) : null;
+  }
+  if (!pathname) return null;
+  return claimTokenFromPath(pathname);
+}
+
 export function savePendingClaim(token: string) {
   if (typeof window === "undefined" || !isClaimToken(token)) return;
   try {

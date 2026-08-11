@@ -10,12 +10,15 @@ import { EmptyState } from "@/components/feedback/empty-state";
 
 export const Route = createFileRoute("/_authenticated/my/")({
   // DEF-PILOT-016: the claim route redirects here with an explicit outcome.
-  validateSearch: (search: Record<string, unknown>) => ({
-    claim:
-      search["claim"] === "ok" || search["claim"] === "invalid"
-        ? (search["claim"] as "ok" | "invalid")
-        : undefined,
-    operation: typeof search["operation"] === "string" ? (search["operation"] as string) : undefined,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { claim?: "ok" | "invalid"; operation?: string } => ({
+    ...(search["claim"] === "ok" || search["claim"] === "invalid"
+      ? { claim: search["claim"] as "ok" | "invalid" }
+      : {}),
+    ...(typeof search["operation"] === "string"
+      ? { operation: search["operation"] as string }
+      : {}),
   }),
   head: () => ({
     meta: [
