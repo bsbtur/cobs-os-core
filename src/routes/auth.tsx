@@ -88,10 +88,13 @@ function AuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        // DEF-PILOT-016: return the traveler to the pending claim URL after
+        // e-mail confirmation instead of dropping them on the landing page.
+        emailRedirectTo: `${window.location.origin}${destination}`,
         data: { display_name: String(form.get("display_name") ?? "").trim() },
       },
     });
+
     setBusy(false);
     if (error) {
       feedback.error(humanizeError(error, locale));
