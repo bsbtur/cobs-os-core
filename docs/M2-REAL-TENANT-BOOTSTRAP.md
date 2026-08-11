@@ -77,3 +77,36 @@ Experiences 0 · Offerings 0 · Operations 0 · all W04–W10 tables 0.
 - DUPLICATE_BOOTSTRAP_FOUND: **NO**
 - PRODUCTION_BASELINE_CAPTURED: **YES**
 - READY_FOR_M3: **YES**
+
+---
+
+## Addendum M2.1 — Owner Person Name Correction (2026-08-11 UTC)
+
+**Outcome: BLOCKED — no changes made.** Read-only inspection only; no DML, no schema change.
+
+### Frozen command surface inspection
+
+| Candidate | Can correct the owner's Person name? |
+| --- | --- |
+| `ensure_profile(_display_name)` | Partially — sets `profiles.display_name` only when it is currently NULL. Never touches `people.full_name`. |
+| `link_person_to_profile(...)` | No — binds an existing Person to a Profile. |
+| `bootstrap_tenant(...)` | No — creation-only, idempotent; a replay returns the stored result. |
+| Any `update_*` / `set_*` command | No — none targets `public.people`. |
+
+Result: **the frozen W01–W10 public surface contains no command that updates `public.people.full_name`.** Direct DML is additionally rejected by the `guard_w03_mutation` BEFORE trigger, and `authenticated` holds SELECT-only on `people`. Per the task constraints (prefer the approved command path; do not modify architecture to perform the correction), execution stopped here.
+
+Current state (unchanged): Person `cf022cd0…` `full_name = contato.bsbtur@gmail.com`; Profile `38c4f5d6…` `display_name = NULL`.
+
+### Root cause (identified, not fixed in this task)
+
+1. `AuthProvider` calls `ensure_profile` with no display name, so `profiles.display_name` is created NULL.
+2. Signup metadata (`RAFAEL LIMA`) is stored on the auth user and never propagated to `profiles.display_name`.
+3. `bootstrap_tenant` derives the owner Person name via `coalesce(profiles.display_name, profiles.email, 'Owner')` → falls back to the email address.
+
+Remedy (requires an explicit, separately authorised change — a W01 surface addition such as `update_my_display_name(_display_name)` writing both `profiles.display_name` and the caller's owning Person `full_name`, with audit evidence; plus propagating signup metadata into `ensure_profile`).
+
+### Verification (unchanged baseline)
+
+Tenants 1 · auth users 1 · Profiles 1 · People 1 · Memberships 1 (active `owner`) · all IDs preserved · BSBTUR/`bsbtur`/BR/BRL/pt-BR/America/Sao_Paulo unchanged · Experiences/Offerings/Operations 0 · W04–W10 rows 0 · no duplicate identity · structural fingerprint unchanged (50 tables, 72 policies, 226 public functions, 98 helpers, 48 enums). No secret material inspected or printed.
+
+**OBS-M2-001 remains OPEN.**
