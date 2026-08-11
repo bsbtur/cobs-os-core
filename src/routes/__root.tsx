@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { observeError } from "../lib/observability";
 import { ThemeProvider } from "../lib/theme";
 import { I18nProvider } from "../lib/i18n";
 import { AuthProvider } from "../lib/auth";
@@ -46,8 +47,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
+    // M4: sanitized structured envelope for the production log pipeline.
+    observeError(error, { action: "boundary:root" });
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">

@@ -32,6 +32,7 @@ import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedMyOperationIdIndexRouteImport } from './routes/_authenticated/my.$operationId.index'
 import { Route as AuthenticatedMyOperationIdEventsRouteImport } from './routes/_authenticated/my.$operationId.events'
 import { Route as AuthenticatedMyOperationIdJourneyRouteImport } from './routes/_authenticated/my.$operationId.journey'
@@ -174,6 +175,11 @@ const AuthenticatedSettingsVenuesRoute =
     path: '/settings/venues',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedMyOperationIdIndexRoute =
   AuthenticatedMyOperationIdIndexRouteImport.update({
     id: '/',
@@ -284,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/my/': typeof AuthenticatedMyIndexRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/commerce': typeof AuthenticatedCommerceIndexRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/my': typeof AuthenticatedMyIndexRoute
@@ -361,6 +369,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/my/': typeof AuthenticatedMyIndexRoute
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/api/public/health'
     | '/commerce/'
     | '/experiences/'
     | '/my/'
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/api/public/health'
     | '/commerce'
     | '/experiences'
     | '/my'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
     | '/_authenticated/settings_/venues'
+    | '/api/public/health'
     | '/_authenticated/commerce/'
     | '/_authenticated/experiences/'
     | '/_authenticated/my/'
@@ -503,6 +515,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -667,6 +680,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/venues'
       preLoaderRoute: typeof AuthenticatedSettingsVenuesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/my/$operationId/': {
       id: '/_authenticated/my/$operationId/'
@@ -907,7 +927,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
