@@ -5342,6 +5342,14 @@ export type Database = {
         }
         Returns: string
       }
+      revoke_operation_completion: {
+        Args: {
+          _idempotency_key: string
+          _operation_id: string
+          _reason: string
+        }
+        Returns: Json
+      }
       revoke_participant_access: {
         Args: { _grant_id: string; _reason: string }
         Returns: boolean
