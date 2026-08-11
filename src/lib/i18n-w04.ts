@@ -132,6 +132,8 @@ export const W04_PT: Record<string, string> = {
     "Somente proprietários e administradores confirmam uma ausência.",
   "w04.presence.pending": "Sem registro",
   "w04.presence.rosterNote": "Presença física não altera a situação da pessoa na lista.",
+  "w04.presence.boardingNotOpen":
+    "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
 
   "w04.event.STEP_STARTED": "A etapa começou.",
   "w04.event.STEP_COMPLETED": "A etapa foi concluída.",
