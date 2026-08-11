@@ -108,3 +108,24 @@ Ambas foram **reportadas, não implementadas**, conforme o modo estrito. B3 do A
 - M3_OPERATIONAL_RECOVERY_RUNBOOK: **CONDITIONAL PASS** (PASS bloqueado apenas por G-02 e G-03)
 - REAL_BSBTUR_DATA_CHANGED: **NO** · W01_W10_ARCHITECTURE_CHANGED: **NO**
 - READY_FOR_M4_OBSERVABILITY: **YES** (M4 pode correr em paralelo; a primeira Operation real do piloto não deve começar antes da decisão sobre G-02/G-03)
+
+## 9. M3.1 — Emendas P1 de recuperação (2026-08-11 UTC)
+
+Entrega: **`docs/M3-P1-RECOVERY-AMENDMENTS.md`**. Duas emendas cirúrgicas autorizadas e implementadas:
+
+- **G-02 — CLOSED**: `reinstate_operation(_operation_id, _reason, _idempotency_key)` — Owner-only,
+  `cancelled → planning` apenas, motivo obrigatório, idempotente, auditado com a evidência original
+  de cancelamento. `completed` permanece terminal.
+- **G-03 — CLOSED**: `retract_presence_fact(_presence_fact_id, _reason, _idempotency_key)` — Owner/Admin,
+  retração **append-only** que referencia o fato original (que permanece imutável), com re-registro do
+  fato correto suportado. `w04_step_readiness` e `authorize_departure` passam a usar o headcount efetivo.
+
+Gate adversarial: **65/65 PASS** (G-02 27/27, G-03 38/38), em tenants QA isolados, com resíduo zero após limpeza.
+Drift estrutural: tabelas 50 → 50, funções públicas 227 → **229**, helpers 98 → 98, enums 48 → 48
+(+1 valor `PRESENCE_RETRACTED`), políticas RLS 72 → 72, triggers 103 → 103, tabelas sem RLS **0**.
+Duas colunas novas em `participant_presence_events`: `retracts_presence_event_id`, `supersedes_presence_event_id`.
+
+- M3_1_P1_RECOVERY_AMENDMENTS: **PASS** · M3_OPERATIONAL_RECOVERY_RUNBOOK: **PASS** (elevado)
+- P1_RECOVERY_GAPS: **0** · REAL_BSBTUR_DATA_CHANGED: **NO** · QA_RESIDUE: **0**
+- READY_FOR_M4_OBSERVABILITY: **YES** · W11 e a primeira Operation real do piloto **não** foram iniciados
+
