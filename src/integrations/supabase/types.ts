@@ -1697,6 +1697,200 @@ export type Database = {
           },
         ]
       }
+      journey_blueprint_steps: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          location_label: string | null
+          metadata: Json
+          presence_population: Database["public"]["Enums"]["step_presence_population"]
+          presence_requirement:
+            | Database["public"]["Enums"]["step_presence_requirement"]
+            | null
+          sequence: number
+          start_offset_minutes: number
+          step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          tenant_id: string
+          title: string
+          traveler_facing: boolean
+          traveler_label: string | null
+          updated_at: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location_label?: string | null
+          metadata?: Json
+          presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          presence_requirement?:
+            | Database["public"]["Enums"]["step_presence_requirement"]
+            | null
+          sequence: number
+          start_offset_minutes: number
+          step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          tenant_id: string
+          title: string
+          traveler_facing?: boolean
+          traveler_label?: string | null
+          updated_at?: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location_label?: string | null
+          metadata?: Json
+          presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          presence_requirement?:
+            | Database["public"]["Enums"]["step_presence_requirement"]
+            | null
+          sequence?: number
+          start_offset_minutes?: number
+          step_kind?: Database["public"]["Enums"]["journey_step_kind"]
+          tenant_id?: string
+          title?: string
+          traveler_facing?: boolean
+          traveler_label?: string | null
+          updated_at?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_blueprint_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_blueprint_steps_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "journey_blueprint_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_blueprint_versions: {
+        Row: {
+          blueprint_id: string
+          checksum: string | null
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          published_at: string | null
+          published_by: string | null
+          status: Database["public"]["Enums"]["journey_blueprint_version_status"]
+          step_count: number
+          tenant_id: string
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          blueprint_id: string
+          checksum?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          status?: Database["public"]["Enums"]["journey_blueprint_version_status"]
+          step_count?: number
+          tenant_id: string
+          updated_at?: string
+          version_number: number
+        }
+        Update: {
+          blueprint_id?: string
+          checksum?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          status?: Database["public"]["Enums"]["journey_blueprint_version_status"]
+          step_count?: number
+          tenant_id?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_blueprint_versions_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "journey_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_blueprint_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_blueprints: {
+        Row: {
+          created_at: string
+          created_by: string
+          default_timezone: string | null
+          description: string | null
+          id: string
+          metadata: Json
+          name: string
+          slug: string
+          status: Database["public"]["Enums"]["journey_blueprint_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          default_timezone?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json
+          name: string
+          slug: string
+          status?: Database["public"]["Enums"]["journey_blueprint_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          default_timezone?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json
+          name?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["journey_blueprint_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_blueprints_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journey_events: {
         Row: {
           actor_profile_id: string | null
@@ -1792,6 +1986,8 @@ export type Database = {
           presence_population: Database["public"]["Enums"]["step_presence_population"]
           presence_requirement: Database["public"]["Enums"]["step_presence_requirement"]
           sequence: number
+          source_blueprint_step_id: string | null
+          source_blueprint_version_id: string | null
           step_kind: Database["public"]["Enums"]["journey_step_kind"]
           tenant_id: string
           title: string
@@ -1816,6 +2012,8 @@ export type Database = {
           presence_population?: Database["public"]["Enums"]["step_presence_population"]
           presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
           sequence: number
+          source_blueprint_step_id?: string | null
+          source_blueprint_version_id?: string | null
           step_kind: Database["public"]["Enums"]["journey_step_kind"]
           tenant_id: string
           title: string
@@ -1840,6 +2038,8 @@ export type Database = {
           presence_population?: Database["public"]["Enums"]["step_presence_population"]
           presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
           sequence?: number
+          source_blueprint_step_id?: string | null
+          source_blueprint_version_id?: string | null
           step_kind?: Database["public"]["Enums"]["journey_step_kind"]
           tenant_id?: string
           title?: string
@@ -1861,6 +2061,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "operations"
             referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "journey_steps_source_blueprint_step_id_fkey"
+            columns: ["source_blueprint_step_id"]
+            isOneToOne: false
+            referencedRelation: "journey_blueprint_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_steps_source_blueprint_version_id_fkey"
+            columns: ["source_blueprint_version_id"]
+            isOneToOne: false
+            referencedRelation: "journey_blueprint_versions"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "journey_steps_tenant_id_fkey"
@@ -2354,6 +2568,74 @@ export type Database = {
           },
           {
             foreignKeyName: "offerings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operation_journey_provisionings: {
+        Row: {
+          applied_at: string
+          applied_by: string
+          blueprint_id: string
+          blueprint_version_id: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          operation_id: string
+          tenant_id: string
+          version_checksum: string
+        }
+        Insert: {
+          applied_at?: string
+          applied_by: string
+          blueprint_id: string
+          blueprint_version_id: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          operation_id: string
+          tenant_id: string
+          version_checksum: string
+        }
+        Update: {
+          applied_at?: string
+          applied_by?: string
+          blueprint_id?: string
+          blueprint_version_id?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          operation_id?: string
+          tenant_id?: string
+          version_checksum?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_journey_provisionings_blueprint_id_fkey"
+            columns: ["blueprint_id"]
+            isOneToOne: false
+            referencedRelation: "journey_blueprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operation_journey_provisionings_blueprint_version_id_fkey"
+            columns: ["blueprint_version_id"]
+            isOneToOne: false
+            referencedRelation: "journey_blueprint_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operation_journey_provisionings_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: true
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operation_journey_provisionings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -4291,6 +4573,24 @@ export type Database = {
         Args: { _token: string }
         Returns: Json
       }
+      add_blueprint_step: {
+        Args: {
+          _description?: string
+          _duration_minutes?: number
+          _idempotency_key: string
+          _location_label?: string
+          _presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          _presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          _sequence?: number
+          _start_offset_minutes: number
+          _step_kind: Database["public"]["Enums"]["journey_step_kind"]
+          _title: string
+          _traveler_facing?: boolean
+          _traveler_label?: string
+          _version_id: string
+        }
+        Returns: Json
+      }
       add_message_audience_people: {
         Args: {
           _idempotency_key?: string
@@ -4337,6 +4637,23 @@ export type Database = {
           _notes?: string
           _planned_time?: string
           _transport_leg_id: string
+        }
+        Returns: Json
+      }
+      apply_journey_blueprint_to_operation: {
+        Args: {
+          _anchor_start?: string
+          _idempotency_key: string
+          _operation_id: string
+          _version_id: string
+        }
+        Returns: Json
+      }
+      archive_journey_blueprint: {
+        Args: {
+          _blueprint_id: string
+          _idempotency_key: string
+          _reason: string
         }
         Returns: Json
       }
@@ -4604,6 +4921,15 @@ export type Database = {
         }
         Returns: Json
       }
+      create_blueprint_version: {
+        Args: {
+          _blueprint_id: string
+          _from_version_id: string
+          _idempotency_key: string
+          _notes?: string
+        }
+        Returns: Json
+      }
       create_correction_message: {
         Args: {
           _body?: string
@@ -4717,6 +5043,17 @@ export type Database = {
           _tenant_id: string
           _token: string
           _ttl_hours?: number
+        }
+        Returns: Json
+      }
+      create_journey_blueprint: {
+        Args: {
+          _default_timezone?: string
+          _description?: string
+          _idempotency_key: string
+          _name: string
+          _slug: string
+          _tenant_id: string
         }
         Returns: Json
       }
@@ -5068,6 +5405,10 @@ export type Database = {
         Returns: Json
       }
       preview_audience_count: { Args: { _message_id: string }; Returns: Json }
+      publish_blueprint_version: {
+        Args: { _idempotency_key: string; _version_id: string }
+        Returns: Json
+      }
       publish_message: {
         Args: { _idempotency_key?: string; _message_id: string }
         Returns: Json
@@ -5254,6 +5595,10 @@ export type Database = {
         Args: { _reason: string; _seat_assignment_id: string }
         Returns: Json
       }
+      remove_blueprint_step: {
+        Args: { _idempotency_key: string; _step_id: string }
+        Returns: Json
+      }
       remove_event_staff: {
         Args: { _assignment_id: string; _idempotency_key: string }
         Returns: Json
@@ -5285,6 +5630,14 @@ export type Database = {
       }
       reopen_playbook_item: {
         Args: { _playbook_item_id: string; _reason: string }
+        Returns: Json
+      }
+      reorder_blueprint_steps: {
+        Args: {
+          _idempotency_key: string
+          _ordered_step_ids: string[]
+          _version_id: string
+        }
         Returns: Json
       }
       reorder_event_sessions: {
@@ -5562,6 +5915,25 @@ export type Database = {
         Args: { _idempotency_key?: string; _message_id: string }
         Returns: Json
       }
+      update_blueprint_step: {
+        Args: {
+          _clear_duration?: boolean
+          _clear_presence_requirement?: boolean
+          _description?: string
+          _duration_minutes?: number
+          _idempotency_key: string
+          _location_label?: string
+          _presence_population?: Database["public"]["Enums"]["step_presence_population"]
+          _presence_requirement?: Database["public"]["Enums"]["step_presence_requirement"]
+          _start_offset_minutes?: number
+          _step_id: string
+          _step_kind?: Database["public"]["Enums"]["journey_step_kind"]
+          _title?: string
+          _traveler_facing?: boolean
+          _traveler_label?: string
+        }
+        Returns: Json
+      }
       update_draft_message: {
         Args: {
           _body?: string
@@ -5771,6 +6143,10 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_blueprint_version: {
+        Args: { _version_id: string }
+        Returns: Json
+      }
       w04_operation_runtime_state: {
         Args: { _operation_id: string }
         Returns: Json
@@ -5898,6 +6274,8 @@ export type Database = {
         | "completed"
         | "cancelled"
       invitation_status: "pending" | "accepted" | "revoked"
+      journey_blueprint_status: "active" | "archived"
+      journey_blueprint_version_status: "draft" | "published" | "archived"
       journey_event_type:
         | "STEP_STARTED"
         | "STEP_COMPLETED"
@@ -6260,6 +6638,8 @@ export const Constants = {
         "cancelled",
       ],
       invitation_status: ["pending", "accepted", "revoked"],
+      journey_blueprint_status: ["active", "archived"],
+      journey_blueprint_version_status: ["draft", "published", "archived"],
       journey_event_type: [
         "STEP_STARTED",
         "STEP_COMPLETED",
