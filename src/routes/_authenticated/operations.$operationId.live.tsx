@@ -79,6 +79,7 @@ function PresencePanel({
   roster,
   presence,
   boardingStarted,
+  arrived,
   onRefresh,
 }: {
   step: JourneyStepRow;
@@ -86,6 +87,8 @@ function PresencePanel({
   presence: PresenceEventRow[];
   /** DEF-PILOT-008: BOARDED is only accepted after BOARDING_STARTED exists on this step. */
   boardingStarted: boolean;
+  /** DEF-PILOT-025: DISEMBARKED is only accepted after ARRIVED exists on this step. */
+  arrived: boolean;
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
@@ -187,10 +190,18 @@ function PresencePanel({
 
 
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
+  // DEF-PILOT-025: on a disembarkation step the operational fact is DISEMBARKED,
+  // which the server accepts only after ARRIVED exists on the same step.
   const primaryFact: PresenceFact =
-    step.presence_requirement === "boarded" ? "BOARDED" : "PRESENT_AT_MEETING_POINT";
+    step.step_kind === "disembarkation"
+      ? "DISEMBARKED"
+      : step.presence_requirement === "boarded"
+        ? "BOARDED"
+        : "PRESENT_AT_MEETING_POINT";
   // BOARDED is rejected by the server until boarding is open on this step.
-  const primaryBlocked = primaryFact === "BOARDED" && !boardingStarted;
+  const primaryBlocked =
+    (primaryFact === "BOARDED" && !boardingStarted) ||
+    (primaryFact === "DISEMBARKED" && !arrived);
 
   /**
    * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
@@ -508,10 +519,13 @@ function ChecklistPanel({
 function StepActions({
   step,
   ready,
+  arrived,
   onRefresh,
 }: {
   step: JourneyStepRow;
   ready: boolean;
+  /** DEF-PILOT-023 / 025: ARRIVED exists on this step. */
+  arrived: boolean;
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
@@ -552,7 +566,13 @@ function StepActions({
   });
 
 
-  const actions: Array<{ fn: string; label: string; gated?: boolean; className?: string }> = [];
+  const actions: Array<{
+    fn: string;
+    label: string;
+    gated?: boolean;
+    className?: string;
+    requiresArrival?: boolean;
+  }> = [];
   if (step.step_kind === "meeting") actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
   // DEF-PILOT-009: boarding action set is driven by the backend contract
   // (presence_requirement = 'boarded'), not only by step_kind = 'boarding'.
@@ -566,13 +586,33 @@ function StepActions({
       className: "border-l border-border/60 pl-3 ml-1",
     });
   }
-  if (step.step_kind === "movement" || step.step_kind === "arrival") {
+  // DEF-PILOT-025: disembarkation also needs ARRIVED before any disembark action.
+  if (
+    step.step_kind === "movement" ||
+    step.step_kind === "arrival" ||
+    step.step_kind === "return" ||
+    step.step_kind === "disembarkation"
+  ) {
     actions.push({ fn: "record_arrival", label: t("w04.action.arrived") });
   }
   if (step.step_kind === "disembarkation") {
-    actions.push({ fn: "complete_disembarkation", label: t("w04.action.disembarked"), gated: true });
+    actions.push({
+      fn: "complete_disembarkation",
+      label: t("w04.action.disembarked"),
+      gated: true,
+      requiresArrival: true,
+    });
   }
-  actions.push({ fn: "complete_journey_step", label: t("w04.action.completeStep"), gated: true });
+  actions.push({
+    fn: "complete_journey_step",
+    label: t("w04.action.completeStep"),
+    gated: true,
+    // DEF-PILOT-023: movement/return/disembarkation cannot close without ARRIVED.
+    requiresArrival:
+      step.step_kind === "movement" ||
+      step.step_kind === "return" ||
+      step.step_kind === "disembarkation",
+  });
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -581,7 +621,16 @@ function StepActions({
           key={action.fn}
           className={`min-h-12 flex-1 sm:flex-none ${action.className ?? ""}`}
           variant={action.gated ? "default" : "outline"}
-          disabled={call.isPending || (action.gated === true && !ready)}
+          title={
+            action.requiresArrival === true && !arrived
+              ? t("w04.presence.arrivalNotRecorded")
+              : undefined
+          }
+          disabled={
+            call.isPending ||
+            (action.gated === true && !ready) ||
+            (action.requiresArrival === true && !arrived)
+          }
           onClick={() => {
             console.info("[W04_CLICK]", {
               label: action.label,
@@ -645,9 +694,9 @@ function LiveRuntimePage() {
             .in("event_type", ["STEP_COMPLETED", "STEP_SKIPPED"]),
           supabase
             .from("journey_events")
-            .select("journey_step_id")
+            .select("journey_step_id, event_type")
             .eq("operation_id", operationId)
-            .eq("event_type", "BOARDING_STARTED"),
+            .in("event_type", ["BOARDING_STARTED", "ARRIVED"]),
           supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
           supabase
             .from("playbook_items")
@@ -678,6 +727,15 @@ function LiveRuntimePage() {
         ),
         boardingStartedStepIds: new Set(
           (boardingEvents.data ?? [])
+            .filter((row) => row.event_type === "BOARDING_STARTED")
+            .map((row) => row.journey_step_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+        // DEF-PILOT-025: ARRIVED is a precondition for DISEMBARKED and for
+        // complete_disembarkation; the UI must mirror that backend invariant.
+        arrivedStepIds: new Set(
+          (boardingEvents.data ?? [])
+            .filter((row) => row.event_type === "ARRIVED")
             .map((row) => row.journey_step_id)
             .filter((id): id is string => Boolean(id)),
         ),
@@ -734,6 +792,7 @@ function LiveRuntimePage() {
   // DEF-PILOT-014: derived from unbounded projections, never from the feed above.
   const resolvedStepIds = live.data?.resolvedStepIds ?? new Set<string>();
   const boardingStartedStepIds = live.data?.boardingStartedStepIds ?? new Set<string>();
+  const arrivedStepIds = live.data?.arrivedStepIds ?? new Set<string>();
   const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
   /**
    * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
@@ -828,6 +887,7 @@ function LiveRuntimePage() {
                 <StepActions
                   step={current}
                   ready={readiness?.ready ?? true}
+                  arrived={arrivedStepIds.has(current.id)}
                   onRefresh={refresh}
                 />
               </div>
@@ -878,6 +938,7 @@ function LiveRuntimePage() {
           roster={live.data?.roster ?? []}
           presence={live.data?.presence ?? []}
           boardingStarted={boardingStartedStepIds.has(current.id)}
+          arrived={arrivedStepIds.has(current.id)}
           onRefresh={refresh}
         />
       ) : null}
