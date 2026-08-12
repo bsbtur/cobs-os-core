@@ -49,12 +49,49 @@ export const PLAYBOOK_REQUIREMENTS: PlaybookRequirement[] = [
   "informational",
 ];
 
+/**
+ * CANONICAL PRESENCE CONTRACT (POST_PILOT_RELEASE_02).
+ * Single source of truth on the client; mirrors app_private.w04_assert_presence_contract
+ * and app_private.w04_default_presence_requirement byte-for-byte in behaviour.
+ * "boarded" exists only on boarding steps. Movement/return never re-check boarding;
+ * their completion is gated by ARRIVED, not by presence.
+ */
+export const PRESENCE_CONTRACT: Record<StepKind, PresenceRequirement[]> = {
+  meeting: ["accounted"],
+  boarding: ["boarded"],
+  movement: ["none"],
+  arrival: ["none", "accounted"],
+  disembarkation: ["accounted"],
+  activity: ["none", "accounted"],
+  meal: ["none"],
+  hotel: ["none"],
+  event: ["none"],
+  break: ["none"],
+  free_time: ["none"],
+  return: ["none"],
+  other: ["none"],
+};
+
 /** Mirrors app_private.w04_default_presence_requirement — the UI proposes what the DB would. */
 export function defaultPresenceRequirement(kind: StepKind): PresenceRequirement {
-  if (kind === "boarding" || kind === "movement" || kind === "return") return "boarded";
-  if (kind === "meeting" || kind === "arrival" || kind === "disembarkation") return "accounted";
+  if (kind === "boarding") return "boarded";
+  if (kind === "meeting" || kind === "disembarkation") return "accounted";
   return "none";
 }
+
+/** Requirements the operator may legitimately pick for a kind. */
+export function allowedPresenceRequirements(kind: StepKind): PresenceRequirement[] {
+  return PRESENCE_CONTRACT[kind];
+}
+
+/** True when a stored combination predates the canonical contract (historical configuration). */
+export function isCanonicalPresence(
+  kind: StepKind,
+  requirement: PresenceRequirement,
+): boolean {
+  return PRESENCE_CONTRACT[kind].includes(requirement);
+}
+
 
 /**
  * BINDING READINESS RULE (server is authoritative; this mirrors it for display only).
