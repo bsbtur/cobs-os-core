@@ -12,7 +12,6 @@ import { roleLabel, type RoleTypeRow } from "@/lib/w03";
 import {
   PLAYBOOK_REQUIREMENTS,
   PRESENCE_POPULATIONS,
-  PRESENCE_REQUIREMENTS,
   STEP_KINDS,
   allowedPresenceRequirements,
   defaultPresenceRequirement,
