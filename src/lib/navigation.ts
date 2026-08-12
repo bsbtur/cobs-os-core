@@ -4,6 +4,7 @@ import {
   CalendarRange,
   Globe2,
   Inbox,
+  Map,
   LayoutGrid,
   ShoppingBag,
   Settings2,
@@ -28,6 +29,7 @@ export type NavItem = {
   to:
     | "/app"
     | "/experiences"
+    | "/blueprints"
     | "/operations"
     | "/people"
     | "/team"
@@ -98,6 +100,15 @@ export const NAV_SECTIONS: NavSection[] = [
         domain: "identity",
         activatesIn: "W01",
         mobile: true,
+      },
+      {
+        id: "blueprints",
+        labelKey: "nav.blueprints",
+        to: "/blueprints",
+        icon: Map,
+        status: "live",
+        domain: "journey",
+        activatesIn: "W04",
       },
       {
         id: "commerce",
@@ -190,6 +201,13 @@ export const ROUTE_META: RouteMeta[] = [
   {
     path: "/experiences/$experienceId",
     titleKey: "exp.title",
+    authenticated: true,
+    indexable: false,
+  },
+  { path: "/blueprints", titleKey: "bp.title", authenticated: true, indexable: false },
+  {
+    path: "/blueprints/$blueprintId",
+    titleKey: "bp.title",
     authenticated: true,
     indexable: false,
   },
