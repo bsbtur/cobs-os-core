@@ -894,18 +894,25 @@ function JourneyPlanPage() {
   const [applyOpen, setApplyOpen] = React.useState(false);
   const { role } = useTenant();
 
+  /**
+   * Provisioning origin: one row joined to its version and blueprint, so the banner and the
+   * per-step chips are served by a single query (never one query per step).
+   */
   const provisioning = useQuery({
     queryKey: ["journey-provisioning", operationId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operation_journey_provisionings")
-        .select("*, journey_blueprint_versions(version_number, blueprint_id)")
+        .select(
+          "*, journey_blueprint_versions(id, version_number, checksum, step_count, journey_blueprints(name))",
+        )
         .eq("operation_id", operationId)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
+
 
   const journey = useQuery({
     queryKey: ["journey", operationId],
