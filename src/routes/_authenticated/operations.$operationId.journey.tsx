@@ -1019,14 +1019,30 @@ function JourneyPlanPage() {
         </div>
       </header>
 
-      {provisioning.data ? (
-        <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
-          {t("bp.origin.provisioned")} · {t("bp.origin.appliedAt")}{" "}
-          {formatDateTime(provisioning.data.applied_at, { locale })}
-        </p>
+      {origin ? (
+        <div className="surface-panel px-4 py-3 text-sm">
+          <p className="font-medium">{t("bp.origin.title")}</p>
+          <p className="mt-1 text-muted-foreground">
+            {t("bp.origin.provisioned")}{" "}
+            <span className="text-foreground">{origin.blueprintName}</span> ·{" "}
+            {t("bp.version")} {t("bp.versionShort")}
+            {origin.versionNumber}
+            {origin.stepCount === null ? "" : ` · ${origin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
+            {origin.checksumShort ? ` · ${t("bp.checksum")}: ` : ""}
+            {origin.checksumShort ? (
+              <span className="font-mono text-xs">{origin.checksumShort}</span>
+            ) : null}{" "}
+            · {t("bp.origin.appliedAt")}{" "}
+            {formatDateTime(origin.appliedAt, {
+              locale,
+              ...(operation.timezone ? { timeZone: operation.timezone } : {}),
+            })}
+          </p>
+        </div>
       ) : steps.length > 0 ? (
         <p className="text-xs text-muted-foreground">{t("bp.origin.manual")}</p>
       ) : null}
+
 
       {!baselineOpen ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
