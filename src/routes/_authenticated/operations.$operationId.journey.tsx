@@ -751,6 +751,21 @@ function JourneyPlanPage() {
   const queryClient = useQueryClient();
   const [dialog, setDialog] = React.useState<null | "planned" | "ad_hoc">(null);
   const [forecastStep, setForecastStep] = React.useState<JourneyStepRow | null>(null);
+  const [applyOpen, setApplyOpen] = React.useState(false);
+  const { role } = useTenant();
+
+  const provisioning = useQuery({
+    queryKey: ["journey-provisioning", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("operation_journey_provisionings")
+        .select("*, journey_blueprint_versions(version_number, blueprint_id)")
+        .eq("operation_id", operationId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const journey = useQuery({
     queryKey: ["journey", operationId],
@@ -839,15 +854,32 @@ function JourneyPlanPage() {
             {t("w04.journey.subtitle")}
           </p>
         </div>
-        <Button
-          className="min-h-11"
-          onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
-          disabled={operation.status === "completed" || operation.status === "cancelled"}
-        >
-          <Plus className="mr-1.5 size-4" aria-hidden="true" />
-          {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (
+            <Button variant="outline" className="min-h-11" onClick={() => setApplyOpen(true)}>
+              <RouteIcon className="mr-1.5 size-4" aria-hidden="true" />
+              {t("bp.apply.action")}
+            </Button>
+          ) : null}
+          <Button
+            className="min-h-11"
+            onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
+            disabled={operation.status === "completed" || operation.status === "cancelled"}
+          >
+            <Plus className="mr-1.5 size-4" aria-hidden="true" />
+            {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
+          </Button>
+        </div>
       </header>
+
+      {provisioning.data ? (
+        <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
+          {t("bp.origin.provisioned")} · {t("bp.origin.appliedAt")}{" "}
+          {formatDateTime(provisioning.data.applied_at, { locale })}
+        </p>
+      ) : steps.length > 0 ? (
+        <p className="text-xs text-muted-foreground">{t("bp.origin.manual")}</p>
+      ) : null}
 
       {!baselineOpen ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
@@ -973,6 +1005,13 @@ function JourneyPlanPage() {
           ))}
         </ol>
       )}
+
+      <ApplyBlueprintDialog
+        open={applyOpen}
+        onOpenChange={setApplyOpen}
+        operationId={operationId}
+        defaultAnchor={operation.planned_start ?? null}
+      />
 
       <StepDialog
         open={dialog !== null}
