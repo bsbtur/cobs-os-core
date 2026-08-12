@@ -131,8 +131,9 @@ function StepDialog({
         _step_kind: kind,
         _idempotency_key: idempotencyKey.current,
         _traveler_facing: travelerFacing,
-        _presence_requirement: explicitRequirement,
+        ...(explicitRequirement ? { _presence_requirement: explicitRequirement } : {}),
         _presence_population: population,
+
 
         ...(description.trim() ? { _description: description.trim() } : {}),
         ...(location.trim() ? { _location_label: location.trim() } : {}),
