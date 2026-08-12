@@ -566,7 +566,13 @@ function StepActions({
   });
 
 
-  const actions: Array<{ fn: string; label: string; gated?: boolean; className?: string }> = [];
+  const actions: Array<{
+    fn: string;
+    label: string;
+    gated?: boolean;
+    className?: string;
+    requiresArrival?: boolean;
+  }> = [];
   if (step.step_kind === "meeting") actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
   // DEF-PILOT-009: boarding action set is driven by the backend contract
   // (presence_requirement = 'boarded'), not only by step_kind = 'boarding'.
