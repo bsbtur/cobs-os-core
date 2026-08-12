@@ -579,17 +579,19 @@ function ApplyBlueprintDialog({
   open,
   onOpenChange,
   operationId,
-  defaultAnchor,
+  plannedStart,
+  timezone,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   operationId: string;
-  defaultAnchor: string | null;
+  plannedStart: string | null;
+  timezone: string | null;
 }) {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [versionId, setVersionId] = React.useState("");
-  const [anchor, setAnchor] = React.useState("");
+  const [anchorInput, setAnchorInput] = React.useState("");
   const idempotencyKey = React.useRef(newIdempotencyKey());
 
   const catalog = useQuery({
@@ -625,20 +627,49 @@ function ApplyBlueprintDialog({
     if (!open) return;
     idempotencyKey.current = newIdempotencyKey();
     setVersionId("");
-    setAnchor(defaultAnchor ? toLocalInput(defaultAnchor) : "");
-  }, [open, defaultAnchor]);
+    setAnchorInput("");
+  }, [open]);
 
   const selected = options.find((entry) => entry.version?.id === versionId) ?? null;
 
+  /* Effective anchor: manual override wins, otherwise the operation planned start. */
+  const anchor = resolveEffectiveAnchor(anchorInput, plannedStart);
+
+  /* Preview of the selected published version — RLS scopes it to the tenant. */
+  const preview = useQuery({
+    queryKey: ["blueprint-version-steps", versionId],
+    enabled: open && versionId !== "",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("journey_blueprint_steps")
+        .select("*")
+        .eq("version_id", versionId)
+        .order("sequence", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as BlueprintStepRow[];
+    },
+  });
+
+  const previewState: PreviewState = !versionId
+    ? "idle"
+    : preview.isLoading
+      ? "loading"
+      : preview.isError
+        ? "error"
+        : (preview.data ?? []).length === 0
+          ? "empty"
+          : "ready";
+
+  const rows = React.useMemo(
+    () => buildPreviewRows(preview.data ?? [], anchor),
+    [preview.data, anchor],
+  );
+
   const apply = useMutation({
     mutationFn: async () => {
-      const anchorIso = toIsoOrNull(anchor);
-      const { data, error } = await supabase.rpc("apply_journey_blueprint_to_operation", {
-        _operation_id: operationId,
-        _version_id: versionId,
-        _idempotency_key: idempotencyKey.current,
-        ...(anchorIso ? { _anchor_start: anchorIso } : {}),
-      });
+      const payload = buildApplyPayload(operationId, versionId, idempotencyKey.current, anchor);
+      if (!payload) throw new Error("invalid_application_state");
+      const { data, error } = await supabase.rpc("apply_journey_blueprint_to_operation", payload);
       if (error) throw error;
       return readStepCount(data);
     },
@@ -654,9 +685,19 @@ function ApplyBlueprintDialog({
     onError: (error) => feedback.error(humanizeBlueprintError(error, t)),
   });
 
+  const canSubmit = canSubmitApplication({
+    versionId,
+    anchor,
+    previewState,
+    pending: apply.isPending,
+  });
+
+  const dt = (iso: string | null) =>
+    iso ? formatDateTime(iso, { locale, timeZone: timezone ?? undefined }) : "—";
+
   return (
     <Dialog open={open} onOpenChange={(next) => (apply.isPending ? null : onOpenChange(next))}>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("bp.apply.title")}</DialogTitle>
         </DialogHeader>
@@ -689,25 +730,106 @@ function ApplyBlueprintDialog({
               </select>
             </div>
 
+            {/* Effective anchor */}
             <div className="space-y-1.5">
+              {plannedStart ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("bp.apply.plannedStart")}:{" "}
+                  <span className="tabular-nums text-foreground">{dt(plannedStart)}</span>
+                </p>
+              ) : null}
               <Label htmlFor="apply-anchor">{t("bp.apply.anchor")}</Label>
               <Input
                 id="apply-anchor"
                 type="datetime-local"
-                value={anchor}
-                onChange={(e) => setAnchor(e.target.value)}
+                value={anchorInput}
+                aria-invalid={!anchor.ok && anchor.reason === "invalid"}
+                onChange={(e) => setAnchorInput(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">{t("bp.apply.anchorHint")}</p>
+              {anchor.ok ? (
+                <p className="text-sm">
+                  {t("bp.apply.anchorEffective")}{" "}
+                  <span className="font-medium tabular-nums">{dt(anchor.iso)}</span>{" "}
+                  <span className="text-xs text-muted-foreground">
+                    (
+                    {anchor.source === "manual"
+                      ? t("bp.apply.anchorFromManual")
+                      : t("bp.apply.anchorFromPlanned")}
+                    )
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-destructive">
+                  {anchor.reason === "invalid"
+                    ? t("bp.apply.anchorInvalid")
+                    : t("bp.apply.anchorMissing")}
+                </p>
+              )}
             </div>
 
+            {/* Step preview */}
             {selected?.version ? (
-              <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
-                {t("bp.apply.version")} {selected.version.version_number} ·{" "}
-                {selected.version.step_count} ·{" "}
-                {selected.version.published_at
-                  ? formatDateTime(selected.version.published_at, { locale })
-                  : ""}
-              </p>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="text-sm font-semibold">{t("bp.apply.preview")}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {t("bp.apply.version")} {selected.version.version_number} ·{" "}
+                    {selected.version.step_count} {t("bp.stepCount").toLowerCase()}
+                    {selected.version.published_at
+                      ? ` · ${formatDateTime(selected.version.published_at, { locale })}`
+                      : ""}
+                  </p>
+                </div>
+
+                {previewState === "loading" ? (
+                  <PanelSkeleton rows={3} />
+                ) : previewState === "error" ? (
+                  <p className="surface-panel px-4 py-3 text-sm text-destructive">
+                    {t("bp.apply.previewError")}
+                  </p>
+                ) : previewState === "empty" ? (
+                  <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
+                    {t("bp.apply.previewEmpty")}
+                  </p>
+                ) : (
+                  <ol className="space-y-2">
+                    {rows.map((row) => (
+                      <li key={row.sequence} className="surface-panel p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Chip className="bg-primary-soft text-primary">
+                            {t("bp.step.sequence")} {row.sequence}
+                          </Chip>
+                          <Chip className="border border-border text-muted-foreground">
+                            {t(`w04.kind.${row.stepKind}`)}
+                          </Chip>
+                          <Chip className="border border-border text-muted-foreground">
+                            {t(`w04.requirement.${row.requirement}`)} ·{" "}
+                            {t(`w04.population.${row.population}`)}
+                          </Chip>
+                          {row.travelerFacing ? (
+                            <Chip className="border border-border text-muted-foreground">
+                              {t("bp.apply.travelerFacing")}
+                            </Chip>
+                          ) : null}
+                        </div>
+                        <p className="mt-1.5 text-sm font-medium">{row.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatOffset(row.offsetMinutes, t)}
+                          {" · "}
+                          {row.durationMinutes === null
+                            ? t("bp.apply.noDuration")
+                            : `${row.durationMinutes} min`}
+                        </p>
+                        <p className="text-sm tabular-nums">
+                          {t("bp.apply.colStart")}: {dt(row.startIso)}
+                          {row.endIso ? ` · ${t("bp.apply.colEnd")}: ${dt(row.endIso)}` : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
             ) : null}
 
             <p className="text-xs text-muted-foreground">{t("bp.apply.atomic")}</p>
@@ -715,7 +837,11 @@ function ApplyBlueprintDialog({
         )}
 
         <div aria-live="polite" className="sr-only">
-          {apply.isPending ? t("bp.apply.working") : ""}
+          {apply.isPending
+            ? t("bp.apply.working")
+            : previewState === "loading"
+              ? t("bp.apply.previewLoading")
+              : ""}
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
@@ -729,8 +855,11 @@ function ApplyBlueprintDialog({
           </Button>
           <Button
             className="min-h-11"
-            disabled={apply.isPending || !versionId}
-            onClick={() => apply.mutate()}
+            disabled={!canSubmit}
+            onClick={() => {
+              if (!canSubmit) return;
+              apply.mutate();
+            }}
           >
             {apply.isPending ? t("bp.apply.working") : t("bp.apply.confirm")}
           </Button>
