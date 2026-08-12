@@ -1097,6 +1097,15 @@ function JourneyPlanPage() {
                         {t("w04.contract.historical")}
                       </Chip>
                     ) : null}
+                    {(() => {
+                      const label = stepOriginLabel(step, journeyOrigin, {
+                        prefix: t("bp.origin.step"),
+                        versionShort: t("bp.versionShort"),
+                      });
+                      return label ? (
+                        <Chip className="border border-border text-muted-foreground">{label}</Chip>
+                      ) : null;
+                    })()}
 
                   </div>
                   <h3 className="mt-2 text-base font-semibold">{step.title}</h3>
