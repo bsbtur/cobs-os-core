@@ -11,6 +11,7 @@ import { W08_DICTIONARIES } from "./i18n-w08";
 import { W09_DICTIONARIES } from "./i18n-w09";
 import { W10_DICTIONARIES } from "./i18n-w10";
 import { ACCESS_DICTIONARIES } from "./i18n-access";
+import { BLUEPRINT_DICTIONARIES } from "./i18n-blueprints";
 
 /**
  * COBS OS — i18n foundation (W00)
@@ -199,6 +200,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W09_DICTIONARIES["pt-BR"],
     ...W10_DICTIONARIES["pt-BR"],
     ...ACCESS_DICTIONARIES["pt-BR"],
+    ...BLUEPRINT_DICTIONARIES["pt-BR"],
   },
   "en-US": {
     ...enUS,
@@ -213,6 +215,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W09_DICTIONARIES["en-US"],
     ...W10_DICTIONARIES["en-US"],
     ...ACCESS_DICTIONARIES["en-US"],
+    ...BLUEPRINT_DICTIONARIES["en-US"],
   },
   "es-ES": {
     ...esES,
@@ -227,6 +230,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W09_DICTIONARIES["es-ES"],
     ...W10_DICTIONARIES["es-ES"],
     ...ACCESS_DICTIONARIES["es-ES"],
+    ...BLUEPRINT_DICTIONARIES["es-ES"],
   },
 };
 

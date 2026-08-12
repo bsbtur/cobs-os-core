@@ -25,6 +25,14 @@ import {
   type PresenceRequirement,
   type StepKind,
 } from "@/lib/w04";
+import {
+  canEditBlueprints,
+  humanizeBlueprintError,
+  latestPublishedVersion,
+  readStepCount,
+  type BlueprintRow,
+  type BlueprintVersionRow,
+} from "@/lib/blueprints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +76,14 @@ function Chip({ children, className = "" }: { children: React.ReactNode; classNa
       {children}
     </span>
   );
+}
+
+/** ISO instant -> value accepted by <input type="datetime-local"> in local time. */
+function toLocalInput(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function toIsoOrNull(value: string) {
@@ -556,6 +572,175 @@ function PlaybookEditor({
 }
 
 /* ------------------------------------------------------------------ */
+/* Apply a published blueprint                                         */
+/* ------------------------------------------------------------------ */
+
+function ApplyBlueprintDialog({
+  open,
+  onOpenChange,
+  operationId,
+  defaultAnchor,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  operationId: string;
+  defaultAnchor: string | null;
+}) {
+  const { t, locale } = useI18n();
+  const queryClient = useQueryClient();
+  const [versionId, setVersionId] = React.useState("");
+  const [anchor, setAnchor] = React.useState("");
+  const idempotencyKey = React.useRef(newIdempotencyKey());
+
+  const catalog = useQuery({
+    queryKey: ["blueprint-catalog"],
+    enabled: open,
+    queryFn: async () => {
+      const [blueprints, versions] = await Promise.all([
+        supabase.from("journey_blueprints").select("*").eq("status", "active").order("name"),
+        supabase
+          .from("journey_blueprint_versions")
+          .select("*")
+          .eq("status", "published")
+          .order("version_number", { ascending: false }),
+      ]);
+      if (blueprints.error) throw blueprints.error;
+      if (versions.error) throw versions.error;
+      const rows = (blueprints.data ?? []) as BlueprintRow[];
+      const published = (versions.data ?? []) as BlueprintVersionRow[];
+      return rows
+        .map((blueprint) => ({
+          blueprint,
+          version: latestPublishedVersion(
+            published.filter((v) => v.blueprint_id === blueprint.id),
+          ),
+        }))
+        .filter((entry) => entry.version !== null);
+    },
+  });
+
+  const options = catalog.data ?? [];
+
+  React.useEffect(() => {
+    if (!open) return;
+    idempotencyKey.current = newIdempotencyKey();
+    setVersionId("");
+    setAnchor(defaultAnchor ? toLocalInput(defaultAnchor) : "");
+  }, [open, defaultAnchor]);
+
+  const selected = options.find((entry) => entry.version?.id === versionId) ?? null;
+
+  const apply = useMutation({
+    mutationFn: async () => {
+      const anchorIso = toIsoOrNull(anchor);
+      const { data, error } = await supabase.rpc("apply_journey_blueprint_to_operation", {
+        _operation_id: operationId,
+        _version_id: versionId,
+        _idempotency_key: idempotencyKey.current,
+        ...(anchorIso ? { _anchor_start: anchorIso } : {}),
+      });
+      if (error) throw error;
+      return readStepCount(data);
+    },
+    onSuccess: (count) => {
+      feedback.success(
+        t("bp.apply.success"),
+        count === null ? undefined : `${count} ${t("bp.apply.successCount")}`,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["journey-provisioning", operationId] });
+      onOpenChange(false);
+    },
+    onError: (error) => feedback.error(humanizeBlueprintError(error, t)),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => (apply.isPending ? null : onOpenChange(next))}>
+      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t("bp.apply.title")}</DialogTitle>
+        </DialogHeader>
+
+        {catalog.isLoading ? (
+          <PanelSkeleton rows={2} />
+        ) : options.length === 0 ? (
+          <EmptyState
+            icon={RouteIcon}
+            title={t("bp.apply.noBlueprints")}
+            body={t("bp.apply.noBlueprintsBody")}
+          />
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="apply-version">{t("bp.apply.blueprint")}</Label>
+              <select
+                id="apply-version"
+                className={SELECT_CLASS}
+                value={versionId}
+                onChange={(e) => setVersionId(e.target.value)}
+              >
+                <option value="">—</option>
+                {options.map((entry) => (
+                  <option key={entry.version!.id} value={entry.version!.id}>
+                    {entry.blueprint.name} · {t("bp.versionShort")}
+                    {entry.version!.version_number} · {entry.version!.step_count}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="apply-anchor">{t("bp.apply.anchor")}</Label>
+              <Input
+                id="apply-anchor"
+                type="datetime-local"
+                value={anchor}
+                onChange={(e) => setAnchor(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">{t("bp.apply.anchorHint")}</p>
+            </div>
+
+            {selected?.version ? (
+              <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
+                {t("bp.apply.version")} {selected.version.version_number} ·{" "}
+                {selected.version.step_count} ·{" "}
+                {selected.version.published_at
+                  ? formatDateTime(selected.version.published_at, { locale })
+                  : ""}
+              </p>
+            ) : null}
+
+            <p className="text-xs text-muted-foreground">{t("bp.apply.atomic")}</p>
+          </div>
+        )}
+
+        <div aria-live="polite" className="sr-only">
+          {apply.isPending ? t("bp.apply.working") : ""}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            variant="ghost"
+            className="min-h-11"
+            disabled={apply.isPending}
+            onClick={() => onOpenChange(false)}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            className="min-h-11"
+            disabled={apply.isPending || !versionId}
+            onClick={() => apply.mutate()}
+          >
+            {apply.isPending ? t("bp.apply.working") : t("bp.apply.confirm")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -566,6 +751,21 @@ function JourneyPlanPage() {
   const queryClient = useQueryClient();
   const [dialog, setDialog] = React.useState<null | "planned" | "ad_hoc">(null);
   const [forecastStep, setForecastStep] = React.useState<JourneyStepRow | null>(null);
+  const [applyOpen, setApplyOpen] = React.useState(false);
+  const { role } = useTenant();
+
+  const provisioning = useQuery({
+    queryKey: ["journey-provisioning", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("operation_journey_provisionings")
+        .select("*, journey_blueprint_versions(version_number, blueprint_id)")
+        .eq("operation_id", operationId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const journey = useQuery({
     queryKey: ["journey", operationId],
@@ -654,15 +854,32 @@ function JourneyPlanPage() {
             {t("w04.journey.subtitle")}
           </p>
         </div>
-        <Button
-          className="min-h-11"
-          onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
-          disabled={operation.status === "completed" || operation.status === "cancelled"}
-        >
-          <Plus className="mr-1.5 size-4" aria-hidden="true" />
-          {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (
+            <Button variant="outline" className="min-h-11" onClick={() => setApplyOpen(true)}>
+              <RouteIcon className="mr-1.5 size-4" aria-hidden="true" />
+              {t("bp.apply.action")}
+            </Button>
+          ) : null}
+          <Button
+            className="min-h-11"
+            onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
+            disabled={operation.status === "completed" || operation.status === "cancelled"}
+          >
+            <Plus className="mr-1.5 size-4" aria-hidden="true" />
+            {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
+          </Button>
+        </div>
       </header>
+
+      {provisioning.data ? (
+        <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
+          {t("bp.origin.provisioned")} · {t("bp.origin.appliedAt")}{" "}
+          {formatDateTime(provisioning.data.applied_at, { locale })}
+        </p>
+      ) : steps.length > 0 ? (
+        <p className="text-xs text-muted-foreground">{t("bp.origin.manual")}</p>
+      ) : null}
 
       {!baselineOpen ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
@@ -788,6 +1005,13 @@ function JourneyPlanPage() {
           ))}
         </ol>
       )}
+
+      <ApplyBlueprintDialog
+        open={applyOpen}
+        onOpenChange={setApplyOpen}
+        operationId={operationId}
+        defaultAnchor={operation.planned_start ?? null}
+      />
 
       <StepDialog
         open={dialog !== null}
