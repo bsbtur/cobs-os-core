@@ -372,3 +372,187 @@ export function slugifyBlueprint(value: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 }
+
+/* ------------------------------------------------------------------ */
+/* Application: effective anchor, preview and payload                  */
+/* POST_PILOT_RELEASE_05.1 — L2/L3/L4/L5 gap closure                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The anchor is the single instant every relative offset is measured from.
+ * A manual override wins; otherwise the operation's planned start is used and
+ * `_anchor_start` is omitted so the backend resolves the very same instant.
+ */
+export type AnchorResolution =
+  | { ok: true; iso: string; source: "manual" | "planned" }
+  | { ok: false; reason: "missing" | "invalid" };
+
+function toIso(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+export function resolveEffectiveAnchor(
+  manualValue: string | null | undefined,
+  plannedStart: string | null | undefined,
+): AnchorResolution {
+  const manualRaw = (manualValue ?? "").trim();
+  if (manualRaw !== "") {
+    const iso = toIso(manualRaw);
+    return iso ? { ok: true, iso, source: "manual" } : { ok: false, reason: "invalid" };
+  }
+  const planned = toIso(plannedStart ?? null);
+  if (planned) return { ok: true, iso: planned, source: "planned" };
+  return { ok: false, reason: "missing" };
+}
+
+export type ApplyBlueprintArgs =
+  Database["public"]["Functions"]["apply_journey_blueprint_to_operation"]["Args"];
+
+/**
+ * Only the four contract arguments are ever sent. `_allow_existing_journey` does not exist
+ * in this surface: the application never merges, replaces or re-provisions.
+ */
+export function buildApplyPayload(
+  operationId: string,
+  versionId: string,
+  idempotencyKey: string,
+  anchor: AnchorResolution,
+): ApplyBlueprintArgs | null {
+  if (!operationId || !versionId || !idempotencyKey || !anchor.ok) return null;
+  return {
+    _operation_id: operationId,
+    _version_id: versionId,
+    _idempotency_key: idempotencyKey,
+    ...(anchor.source === "manual" ? { _anchor_start: anchor.iso } : {}),
+  };
+}
+
+/** Steps are always previewed and applied in ascending sequence. */
+export function sortStepsBySequence<T extends { sequence: number }>(steps: T[]): T[] {
+  return [...steps].sort((a, b) => a.sequence - b.sequence);
+}
+
+/** NULL in the row means "canonical default for this kind" — resolved through @/lib/w04. */
+export function effectiveRequirement(
+  step: Pick<BlueprintStepRow, "step_kind" | "presence_requirement">,
+): PresenceRequirement {
+  return step.presence_requirement ?? defaultPresenceRequirement(step.step_kind);
+}
+
+export type PreviewRow = {
+  sequence: number;
+  title: string;
+  stepKind: StepKind;
+  offsetMinutes: number;
+  durationMinutes: number | null;
+  startIso: string | null;
+  endIso: string | null;
+  requirement: PresenceRequirement;
+  population: PresencePopulation;
+  travelerFacing: boolean;
+};
+
+/** Pure projection of a published version against an anchor — no W04 rule is redefined here. */
+export function buildPreviewRows(
+  steps: Pick<
+    BlueprintStepRow,
+    | "sequence"
+    | "title"
+    | "step_kind"
+    | "start_offset_minutes"
+    | "duration_minutes"
+    | "presence_requirement"
+    | "presence_population"
+    | "traveler_facing"
+  >[],
+  anchor: AnchorResolution,
+): PreviewRow[] {
+  const anchorIso = anchor.ok ? anchor.iso : null;
+  return sortStepsBySequence(steps).map((step) => ({
+    sequence: step.sequence,
+    title: step.title,
+    stepKind: step.step_kind,
+    offsetMinutes: step.start_offset_minutes,
+    durationMinutes: step.duration_minutes,
+    startIso: previewInstant(anchorIso, step.start_offset_minutes),
+    endIso: previewEnd(anchorIso, step.start_offset_minutes, step.duration_minutes),
+    requirement: effectiveRequirement(step),
+    population: step.presence_population,
+    travelerFacing: step.traveler_facing,
+  }));
+}
+
+export type PreviewState = "idle" | "loading" | "error" | "empty" | "ready";
+
+/** Single decision point for the confirm button and for calling the RPC at all. */
+export function canSubmitApplication(input: {
+  versionId: string;
+  anchor: AnchorResolution;
+  previewState: PreviewState;
+  pending: boolean;
+}): boolean {
+  return (
+    !input.pending &&
+    input.versionId !== "" &&
+    input.anchor.ok &&
+    input.previewState === "ready"
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Journey origin (banner + per-step chip) — never exposes identifiers */
+/* ------------------------------------------------------------------ */
+
+export type JourneyOrigin = {
+  blueprintName: string;
+  versionNumber: number;
+  checksumShort: string;
+  stepCount: number | null;
+  appliedAt: string;
+  versionId: string;
+};
+
+/**
+ * Builds the operator-facing origin from data already loaded for the banner.
+ * Returns null when the provisioning cannot be resolved to a named blueprint;
+ * no identifier is ever surfaced.
+ */
+export function buildJourneyOrigin(input: {
+  appliedAt: string | null | undefined;
+  versionId: string | null | undefined;
+  versionNumber: number | null | undefined;
+  checksum: string | null | undefined;
+  stepCount: number | null | undefined;
+  blueprintName: string | null | undefined;
+}): JourneyOrigin | null {
+  if (!input.appliedAt || !input.versionId) return null;
+  if (!input.blueprintName || typeof input.versionNumber !== "number") return null;
+  return {
+    blueprintName: input.blueprintName,
+    versionNumber: input.versionNumber,
+    checksumShort: shortChecksum(input.checksum ?? null),
+    stepCount: typeof input.stepCount === "number" ? input.stepCount : null,
+    appliedAt: input.appliedAt,
+    versionId: input.versionId,
+  };
+}
+
+/**
+ * Per-step chip label. Only steps materialised from the provisioned version get one;
+ * null source ids are normal (manual steps) and never an error.
+ */
+export function stepOriginLabel(
+  step: {
+    source_blueprint_version_id?: string | null;
+    source_blueprint_step_id?: string | null;
+  },
+  origin: JourneyOrigin | null,
+  labels: { prefix: string; versionShort: string },
+): string | null {
+  if (!origin) return null;
+  if (!step.source_blueprint_version_id || !step.source_blueprint_step_id) return null;
+  if (step.source_blueprint_version_id !== origin.versionId) return null;
+  return `${labels.prefix} ${origin.blueprintName} ${labels.versionShort}${origin.versionNumber}`;
+}
