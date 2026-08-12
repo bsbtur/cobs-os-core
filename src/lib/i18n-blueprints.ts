@@ -161,11 +161,25 @@ export const BLUEPRINT_PT: Record<string, string> = {
   "bp.apply.hasJourney":
     "Esta operação já possui uma jornada e não pode receber outro roteiro.",
   "bp.apply.working": "Aplicando roteiro",
+  "bp.apply.previewLoading": "Carregando prévia das etapas",
+  "bp.apply.previewError": "Não foi possível carregar a prévia das etapas.",
+  "bp.apply.previewEmpty": "Esta versão não possui etapas e não pode ser aplicada.",
+  "bp.apply.plannedStart": "Início planejado da operação",
+  "bp.apply.anchorEffective": "Os horários serão calculados a partir de:",
+  "bp.apply.anchorFromPlanned": "usando o início planejado da operação",
+  "bp.apply.anchorFromManual":
+    "referência informada manualmente; substitui o início planejado apenas neste provisionamento",
+  "bp.apply.anchorMissing":
+    "Esta operação não tem início planejado. Informe a data e hora de início da jornada para continuar.",
+  "bp.apply.anchorInvalid": "Data e hora inválidas.",
+  "bp.apply.colStart": "Início",
+  "bp.apply.colEnd": "Fim",
+  "bp.apply.noDuration": "sem duração definida",
+  "bp.apply.travelerFacing": "Visível ao viajante",
 
   "bp.origin.title": "Origem da jornada",
   "bp.origin.provisioned": "Provisionada a partir do roteiro",
   "bp.origin.appliedAt": "Aplicada em",
-  "bp.origin.appliedBy": "Aplicada por",
   "bp.origin.step": "Origem: roteiro",
   "bp.origin.manual": "Criada manualmente",
 
