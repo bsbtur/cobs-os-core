@@ -519,10 +519,13 @@ function ChecklistPanel({
 function StepActions({
   step,
   ready,
+  arrived,
   onRefresh,
 }: {
   step: JourneyStepRow;
   ready: boolean;
+  /** DEF-PILOT-023 / 025: ARRIVED exists on this step. */
+  arrived: boolean;
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
