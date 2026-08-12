@@ -14,7 +14,10 @@ import {
   PRESENCE_POPULATIONS,
   PRESENCE_REQUIREMENTS,
   STEP_KINDS,
+  allowedPresenceRequirements,
   defaultPresenceRequirement,
+  isCanonicalPresence,
+
   newIdempotencyKey,
   type JourneyStepRow,
   type PlaybookItemRow,
