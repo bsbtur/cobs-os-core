@@ -161,9 +161,9 @@ describe("15 · error humanization", () => {
     expect(humanizeBlueprintError({ code: "23505", message: "duplicate key slug" }, t)).toBe(
       "bp.error.slugTaken",
     );
-    expect(
-      humanizeBlueprintError({ message: "operation already has a journey" }, t),
-    ).toBe("bp.error.operationHasJourney");
+    expect(humanizeBlueprintError({ message: "operation already has a journey" }, t)).toBe(
+      "bp.error.operationHasJourney",
+    );
     expect(humanizeBlueprintError({ code: "42501", message: "permission denied" }, t)).toBe(
       "bp.error.forbidden",
     );

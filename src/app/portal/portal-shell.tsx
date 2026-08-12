@@ -40,14 +40,24 @@ type TabId = "home" | "journey" | "mobility" | "stay" | "events" | "messages";
 
 const PRIMARY: Array<{ id: TabId; icon: typeof Home; labelKey: string; to: string }> = [
   { id: "home", icon: Home, labelKey: "w10.nav.home", to: "/my/$operationId" },
-  { id: "journey", icon: CalendarDays, labelKey: "w10.nav.journey", to: "/my/$operationId/journey" },
+  {
+    id: "journey",
+    icon: CalendarDays,
+    labelKey: "w10.nav.journey",
+    to: "/my/$operationId/journey",
+  },
   { id: "mobility", icon: Bus, labelKey: "w10.nav.mobility", to: "/my/$operationId/mobility" },
   { id: "stay", icon: BedDouble, labelKey: "w10.nav.stay", to: "/my/$operationId/stay" },
 ];
 
 const SECONDARY: Array<{ id: TabId; icon: typeof Home; labelKey: string; to: string }> = [
   { id: "events", icon: Ticket, labelKey: "w10.nav.events", to: "/my/$operationId/events" },
-  { id: "messages", icon: Megaphone, labelKey: "w10.nav.messages", to: "/my/$operationId/messages" },
+  {
+    id: "messages",
+    icon: Megaphone,
+    labelKey: "w10.nav.messages",
+    to: "/my/$operationId/messages",
+  },
 ];
 
 function AccountMenu() {

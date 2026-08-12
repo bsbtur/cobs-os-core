@@ -153,14 +153,7 @@ export function isTerminalMessage(status: MessageStatus) {
 
 /** Mirrors the backend transition matrix — illegal actions are never offered. */
 export type MessageAction =
-  | "edit"
-  | "audience"
-  | "delete"
-  | "schedule"
-  | "unschedule"
-  | "publish"
-  | "cancel"
-  | "correct";
+  "edit" | "audience" | "delete" | "schedule" | "unschedule" | "publish" | "cancel" | "correct";
 
 export const MESSAGE_ACTIONS: Record<MessageStatus, MessageAction[]> = {
   draft: ["edit", "audience", "schedule", "publish", "delete"],

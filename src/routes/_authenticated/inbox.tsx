@@ -10,12 +10,7 @@ import { formatDateTime } from "@/lib/format";
 import { useTenant } from "@/lib/tenant";
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
-import {
-  MESSAGE_PRIORITY_TONE,
-  isExpired,
-  type Inbox,
-  type InboxMessage,
-} from "@/lib/w08";
+import { MESSAGE_PRIORITY_TONE, isExpired, type Inbox, type InboxMessage } from "@/lib/w08";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";

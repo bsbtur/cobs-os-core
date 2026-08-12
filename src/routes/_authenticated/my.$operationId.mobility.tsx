@@ -69,9 +69,7 @@ function PortalMobility() {
 
                 <dl className="mt-2 flex flex-col gap-1">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <dt className="text-xs text-muted-foreground">
-                      {t("w10.mobility.departure")}
-                    </dt>
+                    <dt className="text-xs text-muted-foreground">{t("w10.mobility.departure")}</dt>
                     <dd>
                       <PortalTime
                         planned={leg.plannedDeparture}

@@ -16,7 +16,6 @@ import {
   allowedPresenceRequirements,
   defaultPresenceRequirement,
   isCanonicalPresence,
-
   newIdempotencyKey,
   type JourneyStepRow,
   type PlaybookItemRow,
@@ -161,7 +160,6 @@ function StepDialog({
         ...(explicitRequirement ? { _presence_requirement: explicitRequirement } : {}),
         _presence_population: population,
 
-
         ...(description.trim() ? { _description: description.trim() } : {}),
         ...(location.trim() ? { _location_label: location.trim() } : {}),
         ...(travelerLabel.trim() ? { _traveler_label: travelerLabel.trim() } : {}),
@@ -202,9 +200,7 @@ function StepDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {adHoc ? t("w04.journey.addAdHoc") : t("w04.journey.addStep")}
-          </DialogTitle>
+          <DialogTitle>{adHoc ? t("w04.journey.addAdHoc") : t("w04.journey.addStep")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -285,11 +281,12 @@ function StepDialog({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-muted-foreground">{t(`w04.requirement.${requirement}Hint`)}</p>
+            <p className="text-xs text-muted-foreground">
+              {t(`w04.requirement.${requirement}Hint`)}
+            </p>
             {allowed.length === 1 ? (
               <p className="text-xs text-muted-foreground">{t("w04.contract.fixedByKind")}</p>
             ) : null}
-
           </div>
 
           {requirement !== "none" ? (
@@ -353,11 +350,7 @@ function StepDialog({
             </div>
           ) : null}
 
-          <Button
-            className="min-h-11 w-full"
-            disabled={disabled}
-            onClick={() => save.mutate()}
-          >
+          <Button className="min-h-11 w-full" disabled={disabled} onClick={() => save.mutate()}>
             {t("w04.journey.addStep")}
           </Button>
         </div>
@@ -622,9 +615,7 @@ function ApplyBlueprintDialog({
       return rows
         .map((blueprint) => ({
           blueprint,
-          version: latestPublishedVersion(
-            published.filter((v) => v.blueprint_id === blueprint.id),
-          ),
+          version: latestPublishedVersion(published.filter((v) => v.blueprint_id === blueprint.id)),
         }))
         .filter((entry) => entry.version !== null);
     },
@@ -702,9 +693,7 @@ function ApplyBlueprintDialog({
   });
 
   const dt = (iso: string | null) =>
-    iso
-      ? formatDateTime(iso, timezone ? { locale, timeZone: timezone } : { locale })
-      : "—";
+    iso ? formatDateTime(iso, timezone ? { locale, timeZone: timezone } : { locale }) : "—";
 
   return (
     <Dialog open={open} onOpenChange={(next) => (apply.isPending ? null : onOpenChange(next))}>
@@ -913,7 +902,6 @@ function JourneyPlanPage() {
     },
   });
 
-
   const journey = useQuery({
     queryKey: ["journey", operationId],
     queryFn: async () => {
@@ -930,11 +918,7 @@ function JourneyPlanPage() {
           .eq("operation_id", operationId)
           .eq("is_active", true)
           .order("sequence"),
-        supabase
-          .from("operation_role_types")
-          .select("*")
-          .eq("is_active", true)
-          .order("sort_order"),
+        supabase.from("operation_role_types").select("*").eq("is_active", true).order("sort_order"),
       ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
@@ -1038,7 +1022,9 @@ function JourneyPlanPage() {
             <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
             {t("bp.version")} {t("bp.versionShort")}
             {journeyOrigin.versionNumber}
-            {journeyOrigin.stepCount === null ? "" : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
+            {journeyOrigin.stepCount === null
+              ? ""
+              : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
             {journeyOrigin.checksumShort ? ` · ${t("bp.checksum")}: ` : ""}
             {journeyOrigin.checksumShort ? (
               <span className="font-mono text-xs">{journeyOrigin.checksumShort}</span>
@@ -1053,7 +1039,6 @@ function JourneyPlanPage() {
       ) : steps.length > 0 ? (
         <p className="text-xs text-muted-foreground">{t("bp.origin.manual")}</p>
       ) : null}
-
 
       {!baselineOpen ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
@@ -1106,7 +1091,6 @@ function JourneyPlanPage() {
                         <Chip className="border border-border text-muted-foreground">{label}</Chip>
                       ) : null;
                     })()}
-
                   </div>
                   <h3 className="mt-2 text-base font-semibold">{step.title}</h3>
                   {step.location_label ? (

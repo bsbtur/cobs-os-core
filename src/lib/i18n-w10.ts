@@ -209,8 +209,7 @@ export const W10_DICTIONARIES = {
     "w10.list.subtitle": "Las experiencias a las que tienes acceso.",
     "w10.list.open": "Abrir",
     "w10.list.empty.title": "Todavía no hay viajes",
-    "w10.list.empty.body":
-      "Cuando te incluyan en una experiencia, aparecerá aquí automáticamente.",
+    "w10.list.empty.body": "Cuando te incluyan en una experiencia, aparecerá aquí automáticamente.",
     "w10.list.single": "Continuar a mi viaje",
 
     "w10.home.now": "Ahora",

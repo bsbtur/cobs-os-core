@@ -207,7 +207,7 @@ export const W06_PT: Record<string, string> = {
   "w06.prop.timezone": "Fuso horário (IANA)",
   "w06.prop.notes": "Observações operacionais",
   "w06.room.edit": "Editar quarto",
-  
+
   "w06.stay.editPlan": "Editar plano da hospedagem",
   "w06.stay.notes": "Observações da hospedagem",
   "w06.stay.planFrozen":

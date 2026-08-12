@@ -64,9 +64,9 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/mo
 
 /** Drops undefined keys so optional RPC arguments stay absent rather than explicit undefined. */
 function rpcArgs<T extends Record<string, unknown>>(input: T) {
-  return Object.fromEntries(
-    Object.entries(input).filter(([, value]) => value !== undefined),
-  ) as { [K in keyof T]: Exclude<T[K], undefined> };
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as {
+    [K in keyof T]: Exclude<T[K], undefined>;
+  };
 }
 
 const SELECT_CLASS =
@@ -545,7 +545,10 @@ function StopsPanel({
       ) : (
         <ol className="mt-3 space-y-2">
           {stops.map((stop) => (
-            <li key={stop.transport_leg_stop_id} className="flex flex-wrap items-center gap-2 text-sm">
+            <li
+              key={stop.transport_leg_stop_id}
+              className="flex flex-wrap items-center gap-2 text-sm"
+            >
               <span className="font-medium">{stop.label}</span>
               {stop.is_pickup ? (
                 <span className="rounded bg-primary-soft px-1.5 py-0.5 text-[11px] text-primary">
@@ -554,8 +557,7 @@ function StopsPanel({
               ) : null}
               {stop.reached_at ? (
                 <span className="font-mono text-xs tabular-nums text-success">
-                  {t("w05.stops.reached")} ·{" "}
-                  {formatDateTime(stop.reached_at, { locale, timeZone })}
+                  {t("w05.stops.reached")} · {formatDateTime(stop.reached_at, { locale, timeZone })}
                 </span>
               ) : (
                 <Button
@@ -745,7 +747,11 @@ function SeatsPanel({
           </div>
           <div className="w-32 space-y-1.5">
             <Label htmlFor="seat-label">{t("w05.seats.label")}</Label>
-            <Input id="seat-label" value={seatLabel} onChange={(e) => setSeatLabel(e.target.value)} />
+            <Input
+              id="seat-label"
+              value={seatLabel}
+              onChange={(e) => setSeatLabel(e.target.value)}
+            />
           </div>
           <Button
             className="min-h-11"
@@ -829,7 +835,6 @@ function LegControls({
   const terminal = isTerminalLeg(state);
   /* DEF-002: changing an agreed rendezvous requires a reason (server enforces it too). */
   const returnReasonRequired = Boolean(state?.return_time);
-
 
   const iso = (value: string) => (value ? new Date(value).toISOString() : undefined);
   const done = () => {
@@ -972,7 +977,6 @@ function LegControls({
           {t("w05.action.setReturnTime")}
         </Button>
 
-
         <SectionLabel>{t("w05.action.incident")}</SectionLabel>
         <Textarea
           aria-label={t("w05.action.incident")}
@@ -1007,10 +1011,18 @@ function MobilityPage() {
     queryFn: async () => {
       const [operation, legs, vehicles, drivers, steps, events, overview] = await Promise.all([
         supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
-        supabase.from("transport_legs").select("*").eq("operation_id", operationId).order("sequence"),
+        supabase
+          .from("transport_legs")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
         supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
         supabase.from("drivers").select("*, people(full_name)").eq("is_active", true),
-        supabase.from("journey_steps").select("id, title").eq("operation_id", operationId).order("sequence"),
+        supabase
+          .from("journey_steps")
+          .select("id, title")
+          .eq("operation_id", operationId)
+          .order("sequence"),
         supabase
           .from("transport_events")
           .select("*")
@@ -1189,9 +1201,7 @@ function MobilityPage() {
                     <div key={label as string}>
                       <dt className="text-xs text-muted-foreground">{label}</dt>
                       <dd className="tabular-nums">
-                        {value
-                          ? formatDateTime(value as string, { locale, timeZone })
-                          : "—"}
+                        {value ? formatDateTime(value as string, { locale, timeZone }) : "—"}
                       </dd>
                     </div>
                   ))}
@@ -1277,9 +1287,7 @@ function MobilityPage() {
                   {formatDateTime(event.occurred_at, { locale, timeZone })}
                 </span>
                 <span>{transportEventLabel(event.event_type, t)}</span>
-                {event.note ? (
-                  <span className="text-muted-foreground">— {event.note}</span>
-                ) : null}
+                {event.note ? <span className="text-muted-foreground">— {event.note}</span> : null}
               </li>
             ))}
           </ol>
