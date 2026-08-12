@@ -88,7 +88,6 @@ export const BLUEPRINT_PT: Record<string, string> = {
   "bp.step.moveUp": "Mover para cima",
   "bp.step.moveDown": "Mover para baixo",
   "bp.step.reordered": "Ordem atualizada.",
-  "bp.step.reorderFailed": "Não foi possível reordenar. A ordem anterior foi restaurada.",
 
   "bp.error.required": "Campo obrigatório.",
   "bp.error.invalid_offset": "Informe minutos inteiros a partir de zero.",
@@ -116,8 +115,6 @@ export const BLUEPRINT_PT: Record<string, string> = {
   "bp.validate.invalid": "Foram encontradas pendências nesta versão.",
   "bp.validate.violations": "Pendências",
   "bp.validate.step": "Etapa",
-  "bp.validate.code": "Código",
-  "bp.validate.message": "Mensagem",
   "bp.validate.noStep": "Versão",
   "bp.validate.pending": "Valide a versão antes de publicar.",
 
@@ -126,7 +123,6 @@ export const BLUEPRINT_PT: Record<string, string> = {
   "bp.publish.confirmBody":
     "Depois de publicada, esta versão não poderá ser alterada. Mudanças futuras exigirão uma nova versão.",
   "bp.publish.success": "Versão publicada.",
-  "bp.publish.needsValidation": "Valide a versão sem pendências antes de publicar.",
   "bp.publish.roleHint": "Somente proprietários e administradores publicam versões.",
 
   "bp.newVersion.action": "Criar nova versão",
@@ -158,8 +154,6 @@ export const BLUEPRINT_PT: Record<string, string> = {
   "bp.apply.successCount": "etapas criadas.",
   "bp.apply.noBlueprints": "Nenhum roteiro publicado disponível para aplicar.",
   "bp.apply.noBlueprintsBody": "Publique uma versão de roteiro antes de provisionar jornadas.",
-  "bp.apply.hasJourney":
-    "Esta operação já possui uma jornada e não pode receber outro roteiro.",
   "bp.apply.working": "Aplicando roteiro",
   "bp.apply.previewLoading": "Carregando prévia das etapas",
   "bp.apply.previewError": "Não foi possível carregar a prévia das etapas.",
@@ -270,7 +264,6 @@ export const BLUEPRINT_EN: Record<string, string> = {
   "bp.step.moveUp": "Move up",
   "bp.step.moveDown": "Move down",
   "bp.step.reordered": "Order updated.",
-  "bp.step.reorderFailed": "Reordering failed. The previous order was restored.",
 
   "bp.error.required": "This field is required.",
   "bp.error.invalid_offset": "Enter whole minutes from zero.",
@@ -298,8 +291,6 @@ export const BLUEPRINT_EN: Record<string, string> = {
   "bp.validate.invalid": "This version has pending issues.",
   "bp.validate.violations": "Pending issues",
   "bp.validate.step": "Step",
-  "bp.validate.code": "Code",
-  "bp.validate.message": "Message",
   "bp.validate.noStep": "Version",
   "bp.validate.pending": "Validate the version before publishing.",
 
@@ -308,7 +299,6 @@ export const BLUEPRINT_EN: Record<string, string> = {
   "bp.publish.confirmBody":
     "Once published, this version cannot be changed. Future changes will require a new version.",
   "bp.publish.success": "Version published.",
-  "bp.publish.needsValidation": "Validate the version with no pending issues before publishing.",
   "bp.publish.roleHint": "Only owners and administrators publish versions.",
 
   "bp.newVersion.action": "Create new version",
@@ -339,14 +329,11 @@ export const BLUEPRINT_EN: Record<string, string> = {
   "bp.apply.successCount": "steps created.",
   "bp.apply.noBlueprints": "No published blueprint is available to apply.",
   "bp.apply.noBlueprintsBody": "Publish a blueprint version before provisioning journeys.",
-  "bp.apply.hasJourney":
-    "This operation already has a journey and cannot receive another blueprint.",
   "bp.apply.working": "Applying blueprint",
 
   "bp.origin.title": "Journey origin",
   "bp.origin.provisioned": "Provisioned from blueprint",
   "bp.origin.appliedAt": "Applied on",
-  "bp.origin.appliedBy": "Applied by",
   "bp.origin.step": "Origin: blueprint",
   "bp.origin.manual": "Created manually",
 
