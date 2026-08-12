@@ -19,6 +19,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated/people'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AuthenticatedBlueprintsIndexRouteImport } from './routes/_authenticated/blueprints.index'
 import { Route as AuthenticatedCommerceIndexRouteImport } from './routes/_authenticated/commerce.index'
 import { Route as AuthenticatedCommerceOrderIdRouteImport } from './routes/_authenticated/commerce.$orderId'
 import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_authenticated/experiences.index'
@@ -98,6 +99,12 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBlueprintsIndexRoute =
+  AuthenticatedBlueprintsIndexRouteImport.update({
+    id: '/blueprints/',
+    path: '/blueprints/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCommerceIndexRoute =
   AuthenticatedCommerceIndexRouteImport.update({
     id: '/commerce/',
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/blueprints/': typeof AuthenticatedBlueprintsIndexRoute
   '/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/my/': typeof AuthenticatedMyIndexRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/blueprints': typeof AuthenticatedBlueprintsIndexRoute
   '/commerce': typeof AuthenticatedCommerceIndexRoute
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/my': typeof AuthenticatedMyIndexRoute
@@ -370,6 +379,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/_authenticated/blueprints/': typeof AuthenticatedBlueprintsIndexRoute
   '/_authenticated/commerce/': typeof AuthenticatedCommerceIndexRoute
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/my/': typeof AuthenticatedMyIndexRoute
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/settings/properties'
     | '/settings/venues'
     | '/api/public/health'
+    | '/blueprints/'
     | '/commerce/'
     | '/experiences/'
     | '/my/'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/settings/properties'
     | '/settings/venues'
     | '/api/public/health'
+    | '/blueprints'
     | '/commerce'
     | '/experiences'
     | '/my'
@@ -490,6 +502,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/properties'
     | '/_authenticated/settings_/venues'
     | '/api/public/health'
+    | '/_authenticated/blueprints/'
     | '/_authenticated/commerce/'
     | '/_authenticated/experiences/'
     | '/_authenticated/my/'
@@ -588,6 +601,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/blueprints/': {
+      id: '/_authenticated/blueprints/'
+      path: '/blueprints'
+      fullPath: '/blueprints/'
+      preLoaderRoute: typeof AuthenticatedBlueprintsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/commerce/': {
@@ -892,6 +912,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
   AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
   AuthenticatedSettingsVenuesRoute: typeof AuthenticatedSettingsVenuesRoute
+  AuthenticatedBlueprintsIndexRoute: typeof AuthenticatedBlueprintsIndexRoute
   AuthenticatedCommerceIndexRoute: typeof AuthenticatedCommerceIndexRoute
   AuthenticatedExperiencesIndexRoute: typeof AuthenticatedExperiencesIndexRoute
   AuthenticatedOperationsIndexRoute: typeof AuthenticatedOperationsIndexRoute
@@ -915,6 +936,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
   AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
   AuthenticatedSettingsVenuesRoute: AuthenticatedSettingsVenuesRoute,
+  AuthenticatedBlueprintsIndexRoute: AuthenticatedBlueprintsIndexRoute,
   AuthenticatedCommerceIndexRoute: AuthenticatedCommerceIndexRoute,
   AuthenticatedExperiencesIndexRoute: AuthenticatedExperiencesIndexRoute,
   AuthenticatedOperationsIndexRoute: AuthenticatedOperationsIndexRoute,
