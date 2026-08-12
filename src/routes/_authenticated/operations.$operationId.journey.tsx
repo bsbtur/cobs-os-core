@@ -255,13 +255,17 @@ function StepDialog({
               value={requirement}
               onChange={(event) => setRequirement(event.target.value as PresenceRequirement)}
             >
-              {PRESENCE_REQUIREMENTS.map((value) => (
+              {allowed.map((value) => (
                 <option key={value} value={value}>
                   {t(`w04.requirement.${value}`)}
                 </option>
               ))}
             </select>
             <p className="text-xs text-muted-foreground">{t(`w04.requirement.${requirement}Hint`)}</p>
+            {allowed.length === 1 ? (
+              <p className="text-xs text-muted-foreground">{t("w04.contract.fixedByKind")}</p>
+            ) : null}
+
           </div>
 
           {requirement !== "none" ? (
