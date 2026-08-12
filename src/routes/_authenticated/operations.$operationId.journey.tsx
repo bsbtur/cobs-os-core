@@ -108,22 +108,32 @@ function StepDialog({
     if (open) idempotencyKey.current = newIdempotencyKey();
   }, [open]);
 
+  const allowed = allowedPresenceRequirements(kind);
+  const canonicalDefault = defaultPresenceRequirement(kind);
+
   React.useEffect(() => {
     setRequirement(defaultPresenceRequirement(kind));
   }, [kind]);
+
+  React.useEffect(() => {
+    if (!allowed.includes(requirement)) setRequirement(canonicalDefault);
+  }, [allowed, requirement, canonicalDefault]);
 
   const save = useMutation({
     mutationFn: async () => {
       const startIso = toIsoOrNull(start);
       const endIso = toIsoOrNull(end);
+      // The backend owns the canonical default: send null unless this is a legitimate override.
+      const explicitRequirement = requirement === canonicalDefault ? null : requirement;
       const shared = {
         _operation_id: operationId,
         _title: title.trim(),
         _step_kind: kind,
         _idempotency_key: idempotencyKey.current,
         _traveler_facing: travelerFacing,
-        _presence_requirement: requirement,
+        _presence_requirement: explicitRequirement,
         _presence_population: population,
+
         ...(description.trim() ? { _description: description.trim() } : {}),
         ...(location.trim() ? { _location_label: location.trim() } : {}),
         ...(travelerLabel.trim() ? { _traveler_label: travelerLabel.trim() } : {}),
