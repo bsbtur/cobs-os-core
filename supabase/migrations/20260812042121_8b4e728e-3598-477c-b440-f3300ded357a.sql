@@ -1,0 +1,20 @@
+revoke all on public.journey_blueprints from anon;
+revoke all on public.journey_blueprint_versions from anon;
+revoke all on public.journey_blueprint_steps from anon;
+revoke all on public.operation_journey_provisionings from anon;
+
+revoke all on function public.create_journey_blueprint(uuid,text,text,text,text,text) from anon;
+revoke all on function public.create_blueprint_version(uuid,uuid,text,text) from anon;
+revoke all on function public.add_blueprint_step(uuid,text,journey_step_kind,integer,text,integer,text,integer,text,text,boolean,step_presence_requirement,step_presence_population) from anon;
+revoke all on function public.update_blueprint_step(uuid,text,text,journey_step_kind,integer,integer,boolean,text,text,text,boolean,step_presence_requirement,boolean,step_presence_population) from anon;
+revoke all on function public.remove_blueprint_step(uuid,text) from anon;
+revoke all on function public.reorder_blueprint_steps(uuid,uuid[],text) from anon;
+revoke all on function public.validate_blueprint_version(uuid) from anon;
+revoke all on function public.publish_blueprint_version(uuid,text) from anon;
+revoke all on function public.archive_journey_blueprint(uuid,text,text) from anon;
+revoke all on function public.apply_journey_blueprint_to_operation(uuid,uuid,text,timestamptz) from anon;
+revoke all on function public.guard_blueprint_mutation() from anon, authenticated;
+revoke all on function public.guard_blueprint_version_immutability() from anon, authenticated;
+revoke all on function public.guard_blueprint_step_immutability() from anon, authenticated;
+revoke all on function public.guard_blueprint_provisioning_append_only() from anon, authenticated;
+revoke all on function public.guard_blueprint_no_delete() from anon, authenticated;
