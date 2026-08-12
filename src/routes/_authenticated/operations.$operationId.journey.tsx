@@ -702,6 +702,12 @@ function JourneyPlanPage() {
                         {t(`w04.population.${step.presence_population}`)}
                       </Chip>
                     ) : null}
+                    {!isCanonicalPresence(step.step_kind, step.presence_requirement) ? (
+                      <Chip className="border border-warning/50 text-warning">
+                        {t("w04.contract.historical")}
+                      </Chip>
+                    ) : null}
+
                   </div>
                   <h3 className="mt-2 text-base font-semibold">{step.title}</h3>
                   {step.location_label ? (
