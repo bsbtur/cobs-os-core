@@ -20,6 +20,7 @@ import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedBlueprintsIndexRouteImport } from './routes/_authenticated/blueprints.index'
+import { Route as AuthenticatedBlueprintsBlueprintIdRouteImport } from './routes/_authenticated/blueprints.$blueprintId'
 import { Route as AuthenticatedCommerceIndexRouteImport } from './routes/_authenticated/commerce.index'
 import { Route as AuthenticatedCommerceOrderIdRouteImport } from './routes/_authenticated/commerce.$orderId'
 import { Route as AuthenticatedExperiencesIndexRouteImport } from './routes/_authenticated/experiences.index'
@@ -103,6 +104,12 @@ const AuthenticatedBlueprintsIndexRoute =
   AuthenticatedBlueprintsIndexRouteImport.update({
     id: '/blueprints/',
     path: '/blueprints/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBlueprintsBlueprintIdRoute =
+  AuthenticatedBlueprintsBlueprintIdRouteImport.update({
+    id: '/blueprints/$blueprintId',
+    path: '/blueprints/$blueprintId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCommerceIndexRoute =
@@ -288,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
@@ -369,6 +378,7 @@ export interface FileRoutesById {
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/_authenticated/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/blueprints/$blueprintId'
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/blueprints/$blueprintId'
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
@@ -492,6 +504,7 @@ export interface FileRouteTypes {
     | '/_authenticated/people'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/_authenticated/blueprints/$blueprintId'
     | '/_authenticated/commerce/$orderId'
     | '/_authenticated/experiences/$experienceId'
     | '/_authenticated/invite/$token'
@@ -608,6 +621,13 @@ declare module '@tanstack/react-router' {
       path: '/blueprints'
       fullPath: '/blueprints/'
       preLoaderRoute: typeof AuthenticatedBlueprintsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/blueprints/$blueprintId': {
+      id: '/_authenticated/blueprints/$blueprintId'
+      path: '/blueprints/$blueprintId'
+      fullPath: '/blueprints/$blueprintId'
+      preLoaderRoute: typeof AuthenticatedBlueprintsBlueprintIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/commerce/': {
@@ -904,6 +924,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPeopleRoute: typeof AuthenticatedPeopleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedBlueprintsBlueprintIdRoute: typeof AuthenticatedBlueprintsBlueprintIdRoute
   AuthenticatedCommerceOrderIdRoute: typeof AuthenticatedCommerceOrderIdRoute
   AuthenticatedExperiencesExperienceIdRoute: typeof AuthenticatedExperiencesExperienceIdRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
@@ -926,6 +947,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPeopleRoute: AuthenticatedPeopleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedBlueprintsBlueprintIdRoute:
+    AuthenticatedBlueprintsBlueprintIdRoute,
   AuthenticatedCommerceOrderIdRoute: AuthenticatedCommerceOrderIdRoute,
   AuthenticatedExperiencesExperienceIdRoute:
     AuthenticatedExperiencesExperienceIdRoute,
