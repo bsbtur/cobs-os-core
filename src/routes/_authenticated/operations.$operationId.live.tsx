@@ -190,10 +190,18 @@ function PresencePanel({
 
 
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
+  // DEF-PILOT-025: on a disembarkation step the operational fact is DISEMBARKED,
+  // which the server accepts only after ARRIVED exists on the same step.
   const primaryFact: PresenceFact =
-    step.presence_requirement === "boarded" ? "BOARDED" : "PRESENT_AT_MEETING_POINT";
+    step.step_kind === "disembarkation"
+      ? "DISEMBARKED"
+      : step.presence_requirement === "boarded"
+        ? "BOARDED"
+        : "PRESENT_AT_MEETING_POINT";
   // BOARDED is rejected by the server until boarding is open on this step.
-  const primaryBlocked = primaryFact === "BOARDED" && !boardingStarted;
+  const primaryBlocked =
+    (primaryFact === "BOARDED" && !boardingStarted) ||
+    (primaryFact === "DISEMBARKED" && !arrived);
 
   /**
    * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
@@ -569,13 +577,33 @@ function StepActions({
       className: "border-l border-border/60 pl-3 ml-1",
     });
   }
-  if (step.step_kind === "movement" || step.step_kind === "arrival") {
+  // DEF-PILOT-025: disembarkation also needs ARRIVED before any disembark action.
+  if (
+    step.step_kind === "movement" ||
+    step.step_kind === "arrival" ||
+    step.step_kind === "return" ||
+    step.step_kind === "disembarkation"
+  ) {
     actions.push({ fn: "record_arrival", label: t("w04.action.arrived") });
   }
   if (step.step_kind === "disembarkation") {
-    actions.push({ fn: "complete_disembarkation", label: t("w04.action.disembarked"), gated: true });
+    actions.push({
+      fn: "complete_disembarkation",
+      label: t("w04.action.disembarked"),
+      gated: true,
+      requiresArrival: true,
+    });
   }
-  actions.push({ fn: "complete_journey_step", label: t("w04.action.completeStep"), gated: true });
+  actions.push({
+    fn: "complete_journey_step",
+    label: t("w04.action.completeStep"),
+    gated: true,
+    // DEF-PILOT-023: movement/return/disembarkation cannot close without ARRIVED.
+    requiresArrival:
+      step.step_kind === "movement" ||
+      step.step_kind === "return" ||
+      step.step_kind === "disembarkation",
+  });
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -746,6 +774,7 @@ function LiveRuntimePage() {
   // DEF-PILOT-014: derived from unbounded projections, never from the feed above.
   const resolvedStepIds = live.data?.resolvedStepIds ?? new Set<string>();
   const boardingStartedStepIds = live.data?.boardingStartedStepIds ?? new Set<string>();
+  const arrivedStepIds = live.data?.arrivedStepIds ?? new Set<string>();
   const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
   /**
    * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
@@ -890,6 +919,7 @@ function LiveRuntimePage() {
           roster={live.data?.roster ?? []}
           presence={live.data?.presence ?? []}
           boardingStarted={boardingStartedStepIds.has(current.id)}
+          arrived={arrivedStepIds.has(current.id)}
           onRefresh={refresh}
         />
       ) : null}
