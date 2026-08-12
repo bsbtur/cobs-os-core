@@ -644,7 +644,7 @@ function DraftEditor({
                         setDialogOpen(true);
                       }}
                     >
-                      {t("common.edit")}
+                      {t("bp.step.edit")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -726,7 +726,7 @@ function PublishedVersionCard({
           <Lock className="size-3.5 text-muted-foreground" aria-hidden="true" />
         </div>
         <Button variant="ghost" size="sm" className="min-h-9" onClick={() => setOpen(!open)}>
-          {open ? t("common.close") : t("bp.apply.preview")}
+          {open ? t("bp.step.hide") : t("bp.apply.preview")}
         </Button>
       </div>
       <dl className="grid gap-x-6 gap-y-1 text-xs sm:grid-cols-3">

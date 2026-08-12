@@ -150,6 +150,7 @@ export const BLUEPRINT_PT: Record<string, string> = {
   "bp.apply.anchorHint":
     "Sem preencher, o sistema usa o início planejado da operação como referência.",
   "bp.apply.preview": "Prévia das etapas",
+  "bp.step.hide": "Ocultar etapas",
   "bp.apply.atomic":
     "A aplicação é atômica e nunca substitui uma jornada existente. Nada é criado se algo falhar.",
   "bp.apply.confirm": "Confirmar aplicação",
@@ -316,6 +317,7 @@ export const BLUEPRINT_EN: Record<string, string> = {
   "bp.apply.anchor": "Reference start",
   "bp.apply.anchorHint": "If left empty, the operation's planned start is used as the anchor.",
   "bp.apply.preview": "Step preview",
+  "bp.step.hide": "Hide steps",
   "bp.apply.atomic":
     "The application is atomic and never replaces an existing journey. Nothing is created if anything fails.",
   "bp.apply.confirm": "Confirm application",
