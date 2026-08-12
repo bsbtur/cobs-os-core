@@ -14,7 +14,6 @@ export const BLUEPRINT_PT: Record<string, string> = {
     "Roteiros reutilizáveis e versionados. Publique uma versão e provisione jornadas sem scripts manuais.",
   "bp.open": "Abrir",
   "bp.create": "Criar roteiro",
-  "bp.loading": "Carregando roteiros",
   "bp.empty": "Nenhum roteiro cadastrado.",
   "bp.emptyBody":
     "Nenhum roteiro cadastrado. Crie um roteiro reutilizável para provisionar jornadas sem scripts manuais.",
@@ -190,7 +189,6 @@ export const BLUEPRINT_EN: Record<string, string> = {
     "Reusable, versioned itineraries. Publish a version and provision journeys without manual scripts.",
   "bp.open": "Open",
   "bp.create": "Create blueprint",
-  "bp.loading": "Loading blueprints",
   "bp.empty": "No blueprints yet.",
   "bp.emptyBody":
     "No blueprints yet. Create a reusable blueprint to provision journeys without manual scripts.",
@@ -330,6 +328,21 @@ export const BLUEPRINT_EN: Record<string, string> = {
   "bp.apply.noBlueprints": "No published blueprint is available to apply.",
   "bp.apply.noBlueprintsBody": "Publish a blueprint version before provisioning journeys.",
   "bp.apply.working": "Applying blueprint",
+  "bp.apply.previewLoading": "Loading step preview",
+  "bp.apply.previewError": "The step preview could not be loaded.",
+  "bp.apply.previewEmpty": "This version has no steps and cannot be applied.",
+  "bp.apply.plannedStart": "Operation planned start",
+  "bp.apply.anchorEffective": "Times will be calculated from:",
+  "bp.apply.anchorFromPlanned": "using the operation's planned start",
+  "bp.apply.anchorFromManual":
+    "manually provided reference; it replaces the planned start for this provisioning only",
+  "bp.apply.anchorMissing":
+    "This operation has no planned start. Provide the journey start date and time to continue.",
+  "bp.apply.anchorInvalid": "Invalid date and time.",
+  "bp.apply.colStart": "Start",
+  "bp.apply.colEnd": "End",
+  "bp.apply.noDuration": "no defined duration",
+  "bp.apply.travelerFacing": "Traveler-facing",
 
   "bp.origin.title": "Journey origin",
   "bp.origin.provisioned": "Provisioned from blueprint",
