@@ -11,8 +11,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type JourneyStepRow = Database["public"]["Tables"]["journey_steps"]["Row"];
 export type JourneyEventRow = Database["public"]["Tables"]["journey_events"]["Row"];
-export type PresenceEventRow =
-  Database["public"]["Tables"]["participant_presence_events"]["Row"];
+export type PresenceEventRow = Database["public"]["Tables"]["participant_presence_events"]["Row"];
 export type PlaybookItemRow = Database["public"]["Tables"]["playbook_items"]["Row"];
 export type PlaybookExecutionRow = Database["public"]["Tables"]["playbook_executions"]["Row"];
 
@@ -85,13 +84,9 @@ export function allowedPresenceRequirements(kind: StepKind): PresenceRequirement
 }
 
 /** True when a stored combination predates the canonical contract (historical configuration). */
-export function isCanonicalPresence(
-  kind: StepKind,
-  requirement: PresenceRequirement,
-): boolean {
+export function isCanonicalPresence(kind: StepKind, requirement: PresenceRequirement): boolean {
   return PRESENCE_CONTRACT[kind].includes(requirement);
 }
-
 
 /**
  * BINDING READINESS RULE (server is authoritative; this mirrors it for display only).
@@ -135,6 +130,20 @@ export function eventLabel(type: JourneyEventType, t: (key: string) => string) {
 
 export function presenceLabel(fact: PresenceFact, t: (key: string) => string) {
   return t(`w04.presence.${fact}`);
+}
+
+/** Search names as operators type them: case, accents and surrounding spaces do not matter. */
+export function normalizePersonSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .trim();
+}
+
+export function matchesPersonSearch(name: string | null | undefined, query: string): boolean {
+  const normalizedQuery = normalizePersonSearch(query);
+  return !normalizedQuery || normalizePersonSearch(name ?? "").includes(normalizedQuery);
 }
 
 /** IDEMPOTENCY: one intent = one key, stable across retries on a bad connection. */

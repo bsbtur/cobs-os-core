@@ -14,9 +14,14 @@ async function probe(url: string, apikey: string): Promise<PlaneState> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 4000);
+    const headers = new Headers({ apikey });
+    // Modern publishable keys are opaque API keys, not bearer JWTs.
+    if (!apikey.startsWith("sb_publishable_")) {
+      headers.set("Authorization", `Bearer ${apikey}`);
+    }
     const response = await fetch(url, {
       method: "GET",
-      headers: { apikey, Authorization: `Bearer ${apikey}` },
+      headers,
       signal: controller.signal,
     });
     clearTimeout(timer);

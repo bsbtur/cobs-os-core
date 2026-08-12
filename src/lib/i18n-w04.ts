@@ -49,14 +49,14 @@ export const W04_PT: Record<string, string> = {
   "w04.requirement.accountedHint":
     "Cada pessoa avaliada precisa ter presença, embarque, desembarque ou ausência confirmada.",
   "w04.requirement.boarded": "Todos embarcados",
-  "w04.requirement.boardedHint": "Cada pessoa avaliada precisa estar embarcada ou com ausência confirmada.",
+  "w04.requirement.boardedHint":
+    "Cada pessoa avaliada precisa estar embarcada ou com ausência confirmada.",
   "w04.population.participants": "Somente passageiros",
   "w04.population.all_confirmed": "Todos os confirmados",
   "w04.population.note": "Contagem de passageiros — equipe não incluída.",
   "w04.contract.fixedByKind":
     "A conferência desta etapa é definida pelo tipo e não pode ser alterada.",
-  "w04.contract.historical":
-    "Configuração histórica",
+  "w04.contract.historical": "Configuração histórica",
   "w04.contract.invalid":
     "Combinação inválida: este tipo de etapa não aceita a conferência selecionada.",
 
@@ -128,8 +128,7 @@ export const W04_PT: Record<string, string> = {
   "w04.action.disembarked": "Concluir desembarque",
   "w04.action.incident": "Registrar ocorrência",
   "w04.action.incidentSaved": "Ocorrência registrada.",
-  "w04.action.departureOwnerOnly":
-    "Somente proprietários e administradores autorizam a saída.",
+  "w04.action.departureOwnerOnly": "Somente proprietários e administradores autorizam a saída.",
 
   "w04.presence.mark": "Registrar",
   "w04.presence.PRESENT_AT_MEETING_POINT": "Presente no ponto de encontro",
@@ -140,10 +139,14 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.noShowReason": "Motivo da ausência confirmada",
   "w04.presence.absenceReason": "Motivo da ausência",
   "w04.presence.absenceReasonRequired": "O motivo é obrigatório para registrar uma ausência.",
-  "w04.presence.noShowOwnerOnly":
-    "Somente proprietários e administradores confirmam uma ausência.",
+  "w04.presence.noShowOwnerOnly": "Somente proprietários e administradores confirmam uma ausência.",
   "w04.presence.pending": "Sem registro",
   "w04.presence.rosterNote": "Presença física não altera a situação da pessoa na lista.",
+  "w04.presence.search": "Buscar viajante pelo nome",
+  "w04.presence.filter.all": "Todos",
+  "w04.presence.filter.pending": "Pendentes",
+  "w04.presence.filter.done": "Concluídos",
+  "w04.presence.noResults": "Nenhum viajante encontrado.",
   // DEF-PILOT-011 — a prontidão considera apenas pessoas confirmadas.
   "w04.presence.status.expected": "Aguardando confirmação",
   "w04.presence.status.cancelled": "Cancelado",
@@ -170,8 +173,7 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.correctConfirm": "Confirmar correção",
   "w04.presence.corrected": "Registro corrigido. O histórico foi preservado.",
   "w04.presence.correctErrorAlready": "Este registro já foi corrigido.",
-  "w04.presence.correctErrorNotFound":
-    "Não foi possível encontrar este registro de presença.",
+  "w04.presence.correctErrorNotFound": "Não foi possível encontrar este registro de presença.",
   "w04.presence.correctErrorReason": "O motivo da correção é obrigatório.",
   "w04.presence.correctErrorPermission":
     "Você não tem permissão para corrigir registros de presença.",
@@ -262,8 +264,7 @@ export const W04_EN: Record<string, string> = {
   "w04.population.note": "Passenger count — crew not included.",
   "w04.contract.fixedByKind":
     "The people check for this step kind is fixed by the contract and cannot be changed.",
-  "w04.contract.historical":
-    "Historical configuration",
+  "w04.contract.historical": "Historical configuration",
   "w04.contract.invalid":
     "Invalid combination: this step kind does not accept the selected people check.",
 
@@ -304,7 +305,8 @@ export const W04_EN: Record<string, string> = {
     "All operational steps are finished. The operation stays active until formal closure.",
   "w04.live.goToOverview": "Go to Overview and complete operation",
   "w04.live.notStarted": "This operation is not ready to run yet.",
-  "w04.live.notStartedBody": "Move the operation to “ready” on the overview to unlock live recording.",
+  "w04.live.notStartedBody":
+    "Move the operation to “ready” on the overview to unlock live recording.",
   "w04.live.noSteps": "This operation has no journey yet.",
   "w04.live.noStepsBody": "Build the journey before running it live.",
   "w04.live.noEvents": "No facts recorded yet.",
@@ -348,6 +350,11 @@ export const W04_EN: Record<string, string> = {
   "w04.presence.noShowOwnerOnly": "Only owners and admins confirm a no-show.",
   "w04.presence.pending": "No record",
   "w04.presence.rosterNote": "Physical presence never changes roster status.",
+  "w04.presence.search": "Search traveler by name",
+  "w04.presence.filter.all": "All",
+  "w04.presence.filter.pending": "Pending",
+  "w04.presence.filter.done": "Completed",
+  "w04.presence.noResults": "No travelers found.",
   // DEF-PILOT-011 — readiness evaluates confirmed people only.
   "w04.presence.status.expected": "Awaiting confirmation",
   "w04.presence.status.cancelled": "Cancelled",
@@ -376,8 +383,7 @@ export const W04_EN: Record<string, string> = {
   "w04.presence.correctErrorAlready": "This record has already been corrected.",
   "w04.presence.correctErrorNotFound": "This presence record could not be found.",
   "w04.presence.correctErrorReason": "A reason for the correction is required.",
-  "w04.presence.correctErrorPermission":
-    "You do not have permission to correct presence records.",
+  "w04.presence.correctErrorPermission": "You do not have permission to correct presence records.",
 
   "w04.event.STEP_STARTED": "The step started.",
   "w04.event.STEP_COMPLETED": "The step was completed.",
