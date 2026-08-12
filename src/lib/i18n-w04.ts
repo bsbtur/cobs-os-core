@@ -149,6 +149,10 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.boardingNotOpen":
     "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
 
+  // DEF-PILOT-025 — chegada é pré-requisito do desembarque.
+  "w04.presence.arrivalNotRecorded":
+    "A chegada ainda não foi registrada nesta etapa. Toque em “Registrar chegada” antes de concluir o desembarque.",
+
   // DEF-PILOT-019 — correção de registro de presença (retratação append-only).
   "w04.presence.correct": "Corrigir registro",
   "w04.presence.correctable": "Registro corrigível",
@@ -342,6 +346,10 @@ export const W04_EN: Record<string, string> = {
 
   "w04.presence.boardingNotOpen":
     "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
+
+  // DEF-PILOT-025 — arrival is a precondition for disembarkation.
+  "w04.presence.arrivalNotRecorded":
+    "Arrival has not been recorded on this step yet. Tap “Record arrival” before completing disembarkation.",
 
   // DEF-PILOT-019 — presence record correction (append-only retraction).
   "w04.presence.correct": "Correct record",

@@ -179,6 +179,17 @@ export function humanizeError(error: unknown, locale: string): string {
       "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
       "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
     ],
+    // DEF-PILOT-025: arrival guard on disembarkation / movement steps.
+    [
+      /has not arrived/i,
+      "A chegada ainda não foi registrada nesta etapa. Toque em “Registrar chegada” antes de concluir o desembarque.",
+      "Arrival has not been recorded on this step yet. Tap “Record arrival” before completing disembarkation.",
+    ],
+    [
+      /has not started yet/i,
+      "Esta etapa ainda não foi iniciada. Toque em “Iniciar etapa” antes de registrar esta ação.",
+      "This step has not started yet. Tap “Start step” before recording this action.",
+    ],
   ];
 
 
