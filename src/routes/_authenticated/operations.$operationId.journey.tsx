@@ -976,6 +976,17 @@ function JourneyPlanPage() {
     );
   }
 
+  const provisioned = provisioning.data;
+  const provisionedVersion = provisioned?.journey_blueprint_versions ?? null;
+  const journeyOrigin = buildJourneyOrigin({
+    appliedAt: provisioned?.applied_at,
+    versionId: provisionedVersion?.id,
+    versionNumber: provisionedVersion?.version_number,
+    checksum: provisionedVersion?.checksum,
+    stepCount: provisionedVersion?.step_count,
+    blueprintName: provisionedVersion?.journey_blueprints?.name,
+  });
+
   const steps = journey.data?.steps ?? [];
   const items = journey.data?.items ?? [];
   const roleTypes = journey.data?.roleTypes ?? [];
@@ -1019,21 +1030,21 @@ function JourneyPlanPage() {
         </div>
       </header>
 
-      {origin ? (
+      {journeyOrigin ? (
         <div className="surface-panel px-4 py-3 text-sm">
           <p className="font-medium">{t("bp.origin.title")}</p>
           <p className="mt-1 text-muted-foreground">
             {t("bp.origin.provisioned")}{" "}
-            <span className="text-foreground">{origin.blueprintName}</span> ·{" "}
+            <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
             {t("bp.version")} {t("bp.versionShort")}
-            {origin.versionNumber}
-            {origin.stepCount === null ? "" : ` · ${origin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
-            {origin.checksumShort ? ` · ${t("bp.checksum")}: ` : ""}
-            {origin.checksumShort ? (
-              <span className="font-mono text-xs">{origin.checksumShort}</span>
+            {journeyOrigin.versionNumber}
+            {journeyOrigin.stepCount === null ? "" : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
+            {journeyOrigin.checksumShort ? ` · ${t("bp.checksum")}: ` : ""}
+            {journeyOrigin.checksumShort ? (
+              <span className="font-mono text-xs">{journeyOrigin.checksumShort}</span>
             ) : null}{" "}
-            · {t("bp.origin.appliedAt")}{" "}
-            {formatDateTime(origin.appliedAt, {
+            · {t("bp.journeyOrigin.appliedAt")}{" "}
+            {formatDateTime(journeyOrigin.appliedAt, {
               locale,
               ...(operation.timezone ? { timeZone: operation.timezone } : {}),
             })}
