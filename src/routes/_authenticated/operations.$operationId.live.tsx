@@ -645,9 +645,9 @@ function LiveRuntimePage() {
             .in("event_type", ["STEP_COMPLETED", "STEP_SKIPPED"]),
           supabase
             .from("journey_events")
-            .select("journey_step_id")
+            .select("journey_step_id, event_type")
             .eq("operation_id", operationId)
-            .eq("event_type", "BOARDING_STARTED"),
+            .in("event_type", ["BOARDING_STARTED", "ARRIVED"]),
           supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
           supabase
             .from("playbook_items")
@@ -678,6 +678,15 @@ function LiveRuntimePage() {
         ),
         boardingStartedStepIds: new Set(
           (boardingEvents.data ?? [])
+            .filter((row) => row.event_type === "BOARDING_STARTED")
+            .map((row) => row.journey_step_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+        // DEF-PILOT-025: ARRIVED is a precondition for DISEMBARKED and for
+        // complete_disembarkation; the UI must mirror that backend invariant.
+        arrivedStepIds: new Set(
+          (boardingEvents.data ?? [])
+            .filter((row) => row.event_type === "ARRIVED")
             .map((row) => row.journey_step_id)
             .filter((id): id is string => Boolean(id)),
         ),
