@@ -26,12 +26,21 @@ import {
   type StepKind,
 } from "@/lib/w04";
 import {
+  buildApplyPayload,
+  buildJourneyOrigin,
+  buildPreviewRows,
   canEditBlueprints,
+  canSubmitApplication,
+  formatOffset,
   humanizeBlueprintError,
   latestPublishedVersion,
   readStepCount,
+  resolveEffectiveAnchor,
+  stepOriginLabel,
   type BlueprintRow,
+  type BlueprintStepRow,
   type BlueprintVersionRow,
+  type PreviewState,
 } from "@/lib/blueprints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -693,7 +702,9 @@ function ApplyBlueprintDialog({
   });
 
   const dt = (iso: string | null) =>
-    iso ? formatDateTime(iso, { locale, timeZone: timezone ?? undefined }) : "—";
+    iso
+      ? formatDateTime(iso, timezone ? { locale, timeZone: timezone } : { locale })
+      : "—";
 
   return (
     <Dialog open={open} onOpenChange={(next) => (apply.isPending ? null : onOpenChange(next))}>
@@ -794,7 +805,7 @@ function ApplyBlueprintDialog({
                   </p>
                 ) : (
                   <ol className="space-y-2">
-                    {rows.map((row) => (
+                    {rows.map((row: (typeof rows)[number]) => (
                       <li key={row.sequence} className="surface-panel p-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <Chip className="bg-primary-soft text-primary">
@@ -1139,7 +1150,8 @@ function JourneyPlanPage() {
         open={applyOpen}
         onOpenChange={setApplyOpen}
         operationId={operationId}
-        defaultAnchor={operation.planned_start ?? null}
+        plannedStart={operation.planned_start ?? null}
+        timezone={operation.timezone ?? null}
       />
 
       <StepDialog
