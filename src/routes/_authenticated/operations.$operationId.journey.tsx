@@ -12,9 +12,11 @@ import { roleLabel, type RoleTypeRow } from "@/lib/w03";
 import {
   PLAYBOOK_REQUIREMENTS,
   PRESENCE_POPULATIONS,
-  PRESENCE_REQUIREMENTS,
   STEP_KINDS,
+  allowedPresenceRequirements,
   defaultPresenceRequirement,
+  isCanonicalPresence,
+
   newIdempotencyKey,
   type JourneyStepRow,
   type PlaybookItemRow,
@@ -108,22 +110,33 @@ function StepDialog({
     if (open) idempotencyKey.current = newIdempotencyKey();
   }, [open]);
 
+  const allowed = allowedPresenceRequirements(kind);
+  const canonicalDefault = defaultPresenceRequirement(kind);
+
   React.useEffect(() => {
     setRequirement(defaultPresenceRequirement(kind));
   }, [kind]);
+
+  React.useEffect(() => {
+    if (!allowed.includes(requirement)) setRequirement(canonicalDefault);
+  }, [allowed, requirement, canonicalDefault]);
 
   const save = useMutation({
     mutationFn: async () => {
       const startIso = toIsoOrNull(start);
       const endIso = toIsoOrNull(end);
+      // The backend owns the canonical default: send null unless this is a legitimate override.
+      const explicitRequirement = requirement === canonicalDefault ? null : requirement;
       const shared = {
         _operation_id: operationId,
         _title: title.trim(),
         _step_kind: kind,
         _idempotency_key: idempotencyKey.current,
         _traveler_facing: travelerFacing,
-        _presence_requirement: requirement,
+        ...(explicitRequirement ? { _presence_requirement: explicitRequirement } : {}),
         _presence_population: population,
+
+
         ...(description.trim() ? { _description: description.trim() } : {}),
         ...(location.trim() ? { _location_label: location.trim() } : {}),
         ...(travelerLabel.trim() ? { _traveler_label: travelerLabel.trim() } : {}),
@@ -241,13 +254,17 @@ function StepDialog({
               value={requirement}
               onChange={(event) => setRequirement(event.target.value as PresenceRequirement)}
             >
-              {PRESENCE_REQUIREMENTS.map((value) => (
+              {allowed.map((value) => (
                 <option key={value} value={value}>
                   {t(`w04.requirement.${value}`)}
                 </option>
               ))}
             </select>
             <p className="text-xs text-muted-foreground">{t(`w04.requirement.${requirement}Hint`)}</p>
+            {allowed.length === 1 ? (
+              <p className="text-xs text-muted-foreground">{t("w04.contract.fixedByKind")}</p>
+            ) : null}
+
           </div>
 
           {requirement !== "none" ? (
@@ -684,6 +701,12 @@ function JourneyPlanPage() {
                         {t(`w04.population.${step.presence_population}`)}
                       </Chip>
                     ) : null}
+                    {!isCanonicalPresence(step.step_kind, step.presence_requirement) ? (
+                      <Chip className="border border-warning/50 text-warning">
+                        {t("w04.contract.historical")}
+                      </Chip>
+                    ) : null}
+
                   </div>
                   <h3 className="mt-2 text-base font-semibold">{step.title}</h3>
                   {step.location_label ? (

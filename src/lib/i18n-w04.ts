@@ -53,6 +53,12 @@ export const W04_PT: Record<string, string> = {
   "w04.population.participants": "Somente passageiros",
   "w04.population.all_confirmed": "Todos os confirmados",
   "w04.population.note": "Contagem de passageiros — equipe não incluída.",
+  "w04.contract.fixedByKind":
+    "A conferência desta etapa é definida pelo tipo e não pode ser alterada.",
+  "w04.contract.historical":
+    "Configuração histórica",
+  "w04.contract.invalid":
+    "Combinação inválida: este tipo de etapa não aceita a conferência selecionada.",
 
   "w04.planned": "Planejado",
   "w04.expected": "Previsto",
@@ -254,6 +260,12 @@ export const W04_EN: Record<string, string> = {
   "w04.population.participants": "Passengers only",
   "w04.population.all_confirmed": "Everyone confirmed",
   "w04.population.note": "Passenger count — crew not included.",
+  "w04.contract.fixedByKind":
+    "The people check for this step kind is fixed by the contract and cannot be changed.",
+  "w04.contract.historical":
+    "Historical configuration",
+  "w04.contract.invalid":
+    "Invalid combination: this step kind does not accept the selected people check.",
 
   "w04.planned": "Planned",
   "w04.expected": "Expected",
