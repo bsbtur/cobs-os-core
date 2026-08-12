@@ -621,7 +621,16 @@ function StepActions({
           key={action.fn}
           className={`min-h-12 flex-1 sm:flex-none ${action.className ?? ""}`}
           variant={action.gated ? "default" : "outline"}
-          disabled={call.isPending || (action.gated === true && !ready)}
+          title={
+            action.requiresArrival === true && !arrived
+              ? t("w04.presence.arrivalNotRecorded")
+              : undefined
+          }
+          disabled={
+            call.isPending ||
+            (action.gated === true && !ready) ||
+            (action.requiresArrival === true && !arrived)
+          }
           onClick={() => {
             console.info("[W04_CLICK]", {
               label: action.label,
@@ -878,6 +887,7 @@ function LiveRuntimePage() {
                 <StepActions
                   step={current}
                   ready={readiness?.ready ?? true}
+                  arrived={arrivedStepIds.has(current.id)}
                   onRefresh={refresh}
                 />
               </div>
