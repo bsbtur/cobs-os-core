@@ -1,8 +1,9 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
@@ -16,6 +17,7 @@ const TAB_CLASS =
 
 function OperationWorkspace() {
   const { t } = useI18n();
+  const { operationId } = useParams({ from: "/_authenticated/operations/$operationId" });
 
   return (
     <AppShell activeId="operations" title={t("op.title")}>
@@ -97,11 +99,9 @@ function OperationWorkspace() {
             >
               {t("w08.tab.communication")}
             </Link>
-
           </nav>
 
-
-
+          <JourneyManagementPanel operationId={operationId} />
           <Outlet />
         </RequireTenant>
       </div>
