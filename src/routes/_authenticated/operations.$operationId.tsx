@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { JourneyOperationalCockpit } from "@/components/journey/journey-operational-cockpit";
 import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ function OperationWorkspace() {
             </Link>
           </nav>
 
+          <JourneyOperationalCockpit operationId={operationId} />
           <JourneyManagementPanel operationId={operationId} />
           <Outlet />
         </RequireTenant>
