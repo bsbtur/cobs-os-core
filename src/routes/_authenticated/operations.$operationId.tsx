@@ -102,6 +102,7 @@ function OperationWorkspace() {
             </Link>
           </nav>
 
+          {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
           <JourneyOperationalCockpit operationId={operationId} />
           <JourneyManagementPanel operationId={operationId} />
           <Outlet />
