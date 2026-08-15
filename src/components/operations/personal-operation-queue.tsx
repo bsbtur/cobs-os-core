@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArrowRight, BriefcaseBusiness, CalendarClock, Check, CheckCircle2, Clock3, X } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BriefcaseBusiness, CalendarClock, Check, CheckCircle2, Clock3, X } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -34,8 +34,8 @@ const copy = (locale: string, pt: string, en: string) =>
   locale.toLowerCase().startsWith("pt") ? pt : en;
 
 /**
- * PX12.4-D — Personal queue backed by canonical staff schedule.
- * Staff assignment times win; operation planned/expected remains a compatibility fallback.
+ * PX12.4-D / PX12.6-A — Personal queue backed by canonical staff schedule,
+ * with explicit loading, empty and recoverable error states.
  */
 export function PersonalOperationQueue() {
   const { user } = useAuth();
@@ -222,7 +222,38 @@ export function PersonalOperationQueue() {
     onSuccess: async () => qc.invalidateQueries({ queryKey }),
   });
 
-  if (query.isLoading || query.isError) return null;
+  if (query.isLoading) {
+    return (
+      <section className="surface-panel p-5" aria-label={copy(locale, "Meu dia", "My day")} aria-busy="true">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary"><BriefcaseBusiness className="size-4" aria-hidden="true" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">COBS · {copy(locale, "Meu dia", "My day")}</p>
+            <h3 className="mt-1 text-base font-semibold">{copy(locale, "Carregando sua jornada operacional…", "Loading your operational workday…")}</h3>
+            <div className="mt-3 h-2 w-full max-w-sm animate-pulse rounded-full bg-muted" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <section className="surface-panel p-5" aria-label={copy(locale, "Meu dia", "My day")} role="alert">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 place-items-center rounded-lg bg-destructive/10 text-destructive"><AlertTriangle className="size-4" aria-hidden="true" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-destructive">COBS · {copy(locale, "Meu dia", "My day")}</p>
+            <h3 className="mt-1 text-base font-semibold">{copy(locale, "Não foi possível carregar sua escala", "We couldn't load your schedule")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{copy(locale, "Sua jornada não foi confirmada. Tente atualizar antes de assumir que não há compromissos.", "Your workday could not be confirmed. Refresh before assuming there are no assignments.")}</p>
+            <Button className="mt-3" size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
+              {query.isFetching ? copy(locale, "Atualizando…", "Refreshing…") : copy(locale, "Tentar novamente", "Try again")}
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const now = new Date();
   const items = query.data ?? [];
@@ -260,6 +291,12 @@ export function PersonalOperationQueue() {
         </div>
         <span className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">{items.length} {copy(locale, "compromisso(s)", "commitment(s)")}</span>
       </div>
+
+      {statusMutation.isError ? (
+        <div className="border-b border-destructive/25 bg-destructive/10 px-5 py-3 text-sm text-destructive" role="alert">
+          {copy(locale, "Não foi possível atualizar sua confirmação. Nenhuma mudança foi assumida; tente novamente.", "We couldn't update your confirmation. No change was assumed; try again.")}
+        </div>
+      ) : null}
 
       <div className="space-y-5 p-5">
         {active.length ? <QueueGroup title={copy(locale, "Agora", "Now")} icon={Activity} items={active} locale={locale} fallbackTimeZone={timeZone} emphasis mutation={statusMutation} /> : null}
@@ -304,7 +341,7 @@ function QueueGroup({ title, icon: Icon, items, locale, fallbackTimeZone, emphas
             {item.assignmentId && item.scheduleStatus === "assigned" ? (
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
                 <span className="mr-1 text-xs font-medium text-warning">{copy(locale, "Confirme sua participação nesta escala", "Confirm your participation in this schedule")}</span>
-                <Button size="sm" onClick={() => mutation.mutate({ assignmentId: item.assignmentId!, status: "confirmed" })} disabled={mutation.isPending}><Check className="mr-1 size-3.5" />{copy(locale, "Confirmar", "Confirm")}</Button>
+                <Button size="sm" onClick={() => mutation.mutate({ assignmentId: item.assignmentId!, status: "confirmed" })} disabled={mutation.isPending}><Check className="mr-1 size-3.5" />{mutation.isPending ? copy(locale, "Salvando…", "Saving…") : copy(locale, "Confirmar", "Confirm")}</Button>
                 <Button size="sm" variant="outline" onClick={() => mutation.mutate({ assignmentId: item.assignmentId!, status: "declined" })} disabled={mutation.isPending}><X className="mr-1 size-3.5" />{copy(locale, "Recusar", "Decline")}</Button>
               </div>
             ) : null}
