@@ -107,14 +107,21 @@ function TeamSchedulePage() {
     mutationFn: async () => {
       setError(null);
       const candidate = query.data?.candidates.find((item) => `${item.participationId}:${item.roleTypeId}` === form.candidate);
-      if (!candidate || !tenant?.id || !form.startsAt || !form.endsAt) throw new Error(copy(locale, "Preencha profissional, função, início e fim.", "Fill professional, role, start and end."));
+      if (!candidate || !tenant?.id || !form.startsAt || !form.endsAt) {
+        throw new Error(copy(locale, "Preencha profissional, função, início e fim.", "Fill professional, role, start and end."));
+      }
+      const start = new Date(form.startsAt);
+      const end = new Date(form.endsAt);
+      if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
+        throw new Error(copy(locale, "O fim da escala precisa ser posterior ao início.", "Schedule end must be after start."));
+      }
       const { error: rpcError } = await db.rpc("save_operation_staff_assignment", {
         _tenant_id: tenant.id,
         _operation_id: operationId,
         _participation_id: candidate.participationId,
         _role_type_id: candidate.roleTypeId,
-        _starts_at: new Date(form.startsAt).toISOString(),
-        _ends_at: new Date(form.endsAt).toISOString(),
+        _starts_at: start.toISOString(),
+        _ends_at: end.toISOString(),
         _report_at: form.reportAt ? new Date(form.reportAt).toISOString() : null,
         _notes: form.notes || null,
         _assignment_id: null,
@@ -130,6 +137,7 @@ function TeamSchedulePage() {
 
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: AssignmentStatus }) => {
+      setError(null);
       const { error: rpcError } = await db.rpc("set_operation_staff_assignment_status", { _assignment_id: id, _status: status, _note: null });
       if (rpcError) throw rpcError;
     },
@@ -137,11 +145,38 @@ function TeamSchedulePage() {
     onError: (err: any) => setError(err?.message ?? copy(locale, "Não foi possível alterar a escala.", "Could not update schedule.")),
   });
 
+  const cancelAssignment = (id: string) => {
+    const confirmed = window.confirm(copy(
+      locale,
+      "Cancelar esta escala? O profissional deixará de aparecer como ativo nesta operação.",
+      "Cancel this assignment? The professional will no longer appear as active in this operation.",
+    ));
+    if (!confirmed) return;
+    statusMutation.mutate({ id, status: "cancelled" });
+  };
+
   if (query.isLoading) return <div className="surface-panel p-5 text-sm text-muted-foreground">{copy(locale, "Carregando escala…", "Loading schedule…")}</div>;
-  if (query.isError || !query.data) return <div className="surface-panel p-5 text-sm text-destructive">{copy(locale, "Não foi possível carregar a escala.", "Could not load schedule.")}</div>;
+  if (query.isError || !query.data) {
+    return (
+      <section className="surface-panel p-5">
+        <div className="flex items-start gap-3 text-destructive">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div>
+            <p className="font-semibold">{copy(locale, "Não foi possível carregar a escala.", "Could not load schedule.")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{copy(locale, "Os dados da equipe não foram confirmados. Tente atualizar antes de assumir que não há profissionais escalados.", "Team data could not be confirmed. Retry before assuming no professionals are scheduled.")}</p>
+            <Button className="mt-3" variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isFetching}>
+              {query.isFetching ? copy(locale, "Atualizando…", "Refreshing…") : copy(locale, "Tentar novamente", "Try again")}
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const { operation, assignments, candidates, conflicts, myParticipationId } = query.data;
+  const noCandidates = candidates.length === 0;
   const conflictIds = new Set(conflicts.flatMap((item: any) => [item.assignment_id, item.conflicting_assignment_id]));
+  const actionsPending = save.isPending || statusMutation.isPending;
 
   return (
     <div className="space-y-5">
@@ -166,14 +201,22 @@ function TeamSchedulePage() {
         </section>
       ) : null}
 
+      {error ? <section className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">{error}</section> : null}
+
       {canManage ? (
         <section className="surface-panel p-5">
           <h3 className="font-semibold">{copy(locale, "Adicionar à escala", "Add to schedule")}</h3>
           <p className="mt-1 text-xs text-muted-foreground">{copy(locale, "Somente pessoas e funções já vinculadas à operação aparecem aqui.", "Only people and roles already linked to the operation appear here.")}</p>
+          {noCandidates ? (
+            <div className="mt-4 rounded-lg border border-warning/30 bg-warning-soft p-3">
+              <p className="text-sm font-semibold text-warning">{copy(locale, "Nenhum profissional elegível para escalar", "No eligible professional to schedule")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{copy(locale, "Vincule primeiro uma pessoa e uma função ativa à operação; depois ela aparecerá aqui.", "First link a person and an active role to the operation; then it will appear here.")}</p>
+            </div>
+          ) : null}
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <label className="space-y-1 text-xs font-medium">
               <span>{copy(locale, "Profissional · função", "Professional · role")}</span>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.candidate} onChange={(e) => setForm((v) => ({ ...v, candidate: e.target.value }))}>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.candidate} disabled={noCandidates || actionsPending} onChange={(e) => setForm((v) => ({ ...v, candidate: e.target.value }))}>
                 <option value="">{copy(locale, "Selecione…", "Select…")}</option>
                 {candidates.map((item) => <option key={`${item.participationId}:${item.roleTypeId}`} value={`${item.participationId}:${item.roleTypeId}`}>{item.personName} · {item.roleLabel}</option>)}
               </select>
@@ -183,8 +226,7 @@ function TeamSchedulePage() {
             <Field label={copy(locale, "Fim", "End")} value={form.endsAt} onChange={(value) => setForm((v) => ({ ...v, endsAt: value }))} />
             <label className="space-y-1 text-xs font-medium md:col-span-2"><span>{copy(locale, "Observações", "Notes")}</span><Input value={form.notes} onChange={(e) => setForm((v) => ({ ...v, notes: e.target.value }))} placeholder={copy(locale, "Ex.: chegar uniformizado na Torre de TV", "E.g. arrive in uniform at meeting point")} /></label>
           </div>
-          {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
-          <Button className="mt-4" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? copy(locale, "Salvando…", "Saving…") : copy(locale, "Adicionar escala", "Add schedule")}</Button>
+          <Button className="mt-4" onClick={() => save.mutate()} disabled={actionsPending || noCandidates}>{save.isPending ? copy(locale, "Salvando…", "Saving…") : copy(locale, "Adicionar escala", "Add schedule")}</Button>
         </section>
       ) : null}
 
@@ -219,8 +261,8 @@ function TeamSchedulePage() {
                   </div>
                   {assignment.notes ? <p className="mt-2 text-xs text-muted-foreground">{assignment.notes}</p> : null}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {own && assignment.status === "assigned" ? <><Button size="sm" onClick={() => statusMutation.mutate({ id: assignment.id, status: "confirmed" })}><Check className="mr-1 size-3.5" />{copy(locale, "Confirmar", "Confirm")}</Button><Button size="sm" variant="outline" onClick={() => statusMutation.mutate({ id: assignment.id, status: "declined" })}><X className="mr-1 size-3.5" />{copy(locale, "Recusar", "Decline")}</Button></> : null}
-                    {canManage && ["assigned", "confirmed"].includes(assignment.status) ? <Button size="sm" variant="outline" onClick={() => statusMutation.mutate({ id: assignment.id, status: "cancelled" })}>{copy(locale, "Cancelar escala", "Cancel assignment")}</Button> : null}
+                    {own && assignment.status === "assigned" ? <><Button size="sm" disabled={actionsPending} onClick={() => statusMutation.mutate({ id: assignment.id, status: "confirmed" })}><Check className="mr-1 size-3.5" />{copy(locale, "Confirmar", "Confirm")}</Button><Button size="sm" variant="outline" disabled={actionsPending} onClick={() => statusMutation.mutate({ id: assignment.id, status: "declined" })}><X className="mr-1 size-3.5" />{copy(locale, "Recusar", "Decline")}</Button></> : null}
+                    {canManage && ["assigned", "confirmed"].includes(assignment.status) ? <Button size="sm" variant="outline" disabled={actionsPending} onClick={() => cancelAssignment(assignment.id)}>{statusMutation.isPending ? copy(locale, "Atualizando…", "Updating…") : copy(locale, "Cancelar escala", "Cancel assignment")}</Button> : null}
                   </div>
                 </article>
               );
