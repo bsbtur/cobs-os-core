@@ -1,6 +1,13 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CheckCircle2, ClipboardCheck, Radio, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  ClipboardCheck,
+  Radio,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -127,8 +134,13 @@ function CockpitV2Preview() {
     (row) => row.participation_kind === "participant" && row.status !== "cancelled",
   );
   const confirmed = participants.filter((row) => row.status === "confirmed").length;
+  const unconfirmed = participants.length - confirmed;
 
   const readiness = state?.readiness ?? null;
+  const missingRequiredItems = readiness?.missing_required_items.length ?? 0;
+  const missingPeople = readiness?.missing_participations.length ?? 0;
+  const checklistNeedsAttention = missingRequiredItems > 0;
+  const travelersNeedAttention = unconfirmed > 0 || missingPeople > 0;
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-4 pb-24">
@@ -176,7 +188,11 @@ function CockpitV2Preview() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4" aria-hidden="true" />
+                  {readiness?.ready === false ? (
+                    <AlertTriangle className="size-4" aria-hidden="true" />
+                  ) : (
+                    <CheckCircle2 className="size-4" aria-hidden="true" />
+                  )}
                   <span className="text-sm font-semibold">
                     {readiness?.ready === false
                       ? "Ação necessária antes de avançar"
@@ -220,26 +236,60 @@ function CockpitV2Preview() {
       </article>
 
       <div className="grid grid-cols-2 gap-3">
-        <article className="rounded-2xl border border-border/70 bg-elevated p-4">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <ClipboardCheck className="size-4" aria-hidden="true" />
+        <article
+          className={`rounded-2xl border p-4 ${
+            checklistNeedsAttention
+              ? "border-warning/35 bg-warning-soft text-warning"
+              : "border-border/70 bg-elevated"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {checklistNeedsAttention ? (
+              <AlertTriangle className="size-4" aria-hidden="true" />
+            ) : (
+              <ClipboardCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+            )}
             <Eyebrow>Checklist</Eyebrow>
           </div>
           <p className="mt-2 text-2xl font-semibold tabular-nums">
             {checklistDone}/{currentItems.length}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">itens concluídos na etapa atual</p>
+          {checklistNeedsAttention ? (
+            <p className="mt-1 text-xs font-medium">
+              {missingRequiredItems} obrigatório(s) pendente(s)
+            </p>
+          ) : (
+            <p className="mt-0.5 text-xs text-muted-foreground">sem bloqueio obrigatório</p>
+          )}
         </article>
 
-        <article className="rounded-2xl border border-border/70 bg-elevated p-4">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="size-4" aria-hidden="true" />
+        <article
+          className={`rounded-2xl border p-4 ${
+            travelersNeedAttention
+              ? "border-warning/35 bg-warning-soft text-warning"
+              : "border-border/70 bg-elevated"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {travelersNeedAttention ? (
+              <AlertTriangle className="size-4" aria-hidden="true" />
+            ) : (
+              <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+            )}
             <Eyebrow>Viajantes</Eyebrow>
           </div>
           <p className="mt-2 text-2xl font-semibold tabular-nums">
             {confirmed}/{participants.length}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">confirmados na operação</p>
+          {travelersNeedAttention ? (
+            <p className="mt-1 text-xs font-medium">
+              {unconfirmed > 0
+                ? `${unconfirmed} aguardando confirmação`
+                : `${missingPeople} pendente(s) nesta etapa`}
+            </p>
+          ) : (
+            <p className="mt-0.5 text-xs text-muted-foreground">todos confirmados</p>
+          )}
         </article>
       </div>
 
