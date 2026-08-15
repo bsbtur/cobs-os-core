@@ -31,6 +31,14 @@ function endOf(step: JourneyStepRow | null): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+function clockOf(step: JourneyStepRow | null): string | null {
+  const raw = step?.expected_start ?? step?.planned_start ?? null;
+  if (!raw) return null;
+  const value = new Date(raw);
+  if (!Number.isFinite(value.getTime())) return null;
+  return value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 /** Coarse duration label: "2h 05min" / "45min" / "<1min". */
 export function formatDuration(ms: number): string {
   const totalMinutes = Math.floor(Math.abs(ms) / 60_000);
@@ -106,6 +114,40 @@ function SecondaryTiming({
   );
 }
 
+function NextStepPreview({ next, untilNext }: { next: JourneyStepRow; untilNext: number | null }) {
+  const { t } = useI18n();
+  const start = clockOf(next);
+
+  return (
+    <div className="rounded-2xl border border-border/70 bg-background/55 px-4 py-3.5">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <TimerReset className="size-4 shrink-0" aria-hidden={true} />
+        <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+          {t("w04.live.next")}
+        </span>
+      </div>
+      <div className="mt-1.5 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">{next.title}</p>
+          {next.location_label ? (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{next.location_label}</p>
+          ) : null}
+        </div>
+        <div className="shrink-0 text-right">
+          {start ? <p className="font-mono text-sm font-semibold tabular-nums">{start}</p> : null}
+          {untilNext !== null ? (
+            <p className={`mt-0.5 text-xs ${untilNext < 0 ? "text-warning" : "text-muted-foreground"}`}>
+              {untilNext >= 0
+                ? `${t("w04.timing.nextIn")} ${formatDuration(untilNext)}`
+                : `${t("w04.timing.nextLate")} ${formatDuration(untilNext)}`}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LiveTimingStrip({
   current,
   next,
@@ -126,7 +168,7 @@ export function LiveTimingStrip({
   const elapsed = currentStart !== null && currentStart <= now ? now - currentStart : null;
   const untilNext = nextStart === null ? null : nextStart - now;
 
-  if (remaining === null && elapsed === null && untilNext === null) {
+  if (remaining === null && elapsed === null && untilNext === null && !next) {
     return <p className="mt-3 text-sm text-muted-foreground">{t("w04.timing.none")}</p>;
   }
 
@@ -140,24 +182,15 @@ export function LiveTimingStrip({
         />
       ) : null}
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        {elapsed !== null ? (
-          <SecondaryTiming
-            icon={Hourglass}
-            label={t("w04.timing.elapsed")}
-            value={formatDuration(elapsed)}
-          />
-        ) : null}
+      {elapsed !== null ? (
+        <SecondaryTiming
+          icon={Hourglass}
+          label={t("w04.timing.elapsed")}
+          value={formatDuration(elapsed)}
+        />
+      ) : null}
 
-        {untilNext !== null ? (
-          <SecondaryTiming
-            icon={TimerReset}
-            label={untilNext >= 0 ? t("w04.timing.nextIn") : t("w04.timing.nextLate")}
-            value={formatDuration(untilNext)}
-            tone={untilNext >= 0 ? "muted" : "warning"}
-          />
-        ) : null}
-      </div>
+      {next ? <NextStepPreview next={next} untilNext={untilNext} /> : null}
     </div>
   );
 }
