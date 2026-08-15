@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, MailPlus, ShieldAlert, UserMinus } from "lucide-react";
+import { AlertTriangle, Copy, MailPlus, ShieldAlert, UserMinus } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -62,6 +62,9 @@ type MemberRow = {
   profiles: { display_name: string | null; email: string | null } | null;
 };
 
+const copyText = (locale: string, pt: string, en: string) =>
+  locale.toLowerCase().startsWith("pt") ? pt : en;
+
 function Members() {
   const { t, locale } = useI18n();
   const { tenant, canManage, role: myRole } = useTenant();
@@ -111,7 +114,40 @@ function Members() {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  const confirmRemove = (member: MemberRow) => {
+    const label = member.profiles?.display_name || member.profiles?.email || member.profile_id;
+    const confirmed = window.confirm(copyText(
+      locale,
+      `Remover ${label} da equipe? Essa pessoa perderá o acesso a esta organização.`,
+      `Remove ${label} from the team? This person will lose access to this organization.`,
+    ));
+    if (!confirmed) return;
+    removeMember.mutate(member.id);
+  };
+
   if (members.isLoading) return <PanelSkeleton rows={3} />;
+  if (members.isError) {
+    return (
+      <section className="surface-panel p-5">
+        <div className="flex items-start gap-3 text-destructive">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div>
+            <p className="font-semibold">{copyText(locale, "Não foi possível carregar a equipe.", "Could not load the team.")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{copyText(locale, "A lista não foi confirmada. Tente novamente antes de assumir que não há membros cadastrados.", "The list could not be confirmed. Retry before assuming there are no members.")}</p>
+            <Button className="mt-3" size="sm" variant="outline" onClick={() => members.refetch()} disabled={members.isFetching}>
+              {members.isFetching ? copyText(locale, "Atualizando…", "Refreshing…") : copyText(locale, "Tentar novamente", "Try again")}
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if ((members.data ?? []).length === 0) {
+    return <EmptyState icon={ShieldAlert} title={copyText(locale, "Nenhum membro encontrado", "No members found")} />;
+  }
+
+  const actionsPending = changeRole.isPending || removeMember.isPending;
 
   return (
     <ul className="space-y-2">
@@ -139,6 +175,7 @@ function Members() {
             {canManage && !self ? (
               <Select
                 defaultValue={m.role}
+                disabled={actionsPending}
                 onValueChange={(value) => changeRole.mutate({ id: m.id, role: value as AppRole })}
               >
                 <SelectTrigger className="min-h-11 w-[190px] shrink-0">
@@ -163,7 +200,8 @@ function Members() {
                 size="icon"
                 className="min-h-11 min-w-11 shrink-0 text-destructive"
                 aria-label={t("team.remove")}
-                onClick={() => removeMember.mutate(m.id)}
+                disabled={actionsPending}
+                onClick={() => confirmRemove(m)}
               >
                 <UserMinus className="size-4" />
               </Button>
@@ -198,8 +236,6 @@ function Invitations() {
 
   const invite = useMutation({
     mutationFn: async (email: string) => {
-      // Retry-safe intent: the raw token AND the idempotency key are created once
-      // and reused on every retry, so a lost response never strands the admin.
       const intent: InvitationIntent =
         findPendingIntent(tenant!.id, email) ??
         createInvitationIntent({ tenantId: tenant!.id, email, role });
@@ -242,6 +278,16 @@ function Invitations() {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  const confirmRevoke = (id: string, email: string) => {
+    const confirmed = window.confirm(copyText(
+      locale,
+      `Revogar o convite de ${email}? O link deixará de poder ser usado.`,
+      `Revoke the invitation for ${email}? The link will no longer be usable.`,
+    ));
+    if (!confirmed) return;
+    revoke.mutate(id);
+  };
+
   const copy = async (value: string) => {
     await navigator.clipboard.writeText(value);
     feedback.success(t("team.copied"));
@@ -264,11 +310,11 @@ function Invitations() {
         <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
           <div className="space-y-2">
             <Label htmlFor="inv-email">{t("team.inviteEmail")}</Label>
-            <Input id="inv-email" name="email" type="email" required />
+            <Input id="inv-email" name="email" type="email" required disabled={invite.isPending || revoke.isPending} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-role">{t("team.inviteRole")}</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
+            <Select value={role} disabled={invite.isPending || revoke.isPending} onValueChange={(v) => setRole(v as AppRole)}>
               <SelectTrigger id="inv-role" className="min-h-11">
                 <SelectValue />
               </SelectTrigger>
@@ -282,7 +328,7 @@ function Invitations() {
             </Select>
           </div>
         </div>
-        <Button type="submit" className="min-h-11" disabled={invite.isPending}>
+        <Button type="submit" className="min-h-11" disabled={invite.isPending || revoke.isPending}>
           <MailPlus className="mr-2 size-4" aria-hidden="true" />
           {invite.isPending ? t("common.saving") : t("team.inviteSubmit")}
         </Button>
@@ -305,6 +351,19 @@ function Invitations() {
 
       {invitations.isLoading ? (
         <PanelSkeleton rows={2} />
+      ) : invitations.isError ? (
+        <section className="surface-panel p-5">
+          <div className="flex items-start gap-3 text-destructive">
+            <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="font-semibold">{copyText(locale, "Não foi possível carregar os convites.", "Could not load invitations.")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{copyText(locale, "A lista de convites não foi confirmada. Tente novamente antes de criar ou revogar outro convite.", "The invitation list could not be confirmed. Retry before creating or revoking another invitation.")}</p>
+              <Button className="mt-3" size="sm" variant="outline" onClick={() => invitations.refetch()} disabled={invitations.isFetching}>
+                {invitations.isFetching ? copyText(locale, "Atualizando…", "Refreshing…") : copyText(locale, "Tentar novamente", "Try again")}
+              </Button>
+            </div>
+          </div>
+        </section>
       ) : (invitations.data ?? []).length === 0 ? (
         <EmptyState icon={MailPlus} title={t("team.noInvites")} />
       ) : (
@@ -321,9 +380,7 @@ function Invitations() {
                   <p className="truncate text-sm font-medium">{inv.email}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {t(`role.${inv.role}`)} · {t("team.expires")}{" "}
-                    {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
-                      new Date(inv.expires_at),
-                    )}
+                    {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(inv.expires_at))}
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
@@ -337,6 +394,7 @@ function Invitations() {
                         size="icon"
                         className="min-h-11 min-w-11"
                         aria-label={t("team.copyLink")}
+                        disabled={revoke.isPending}
                         onClick={() => void copy(link)}
                       >
                         <Copy className="size-4" />
@@ -349,9 +407,10 @@ function Invitations() {
                     <Button
                       variant="ghost"
                       className="min-h-11"
-                      onClick={() => revoke.mutate(inv.id)}
+                      disabled={revoke.isPending || invite.isPending}
+                      onClick={() => confirmRevoke(inv.id, inv.email)}
                     >
-                      {t("team.revoke")}
+                      {revoke.isPending ? copyText(locale, "Revogando…", "Revoking…") : t("team.revoke")}
                     </Button>
                   </div>
                 ) : null}
