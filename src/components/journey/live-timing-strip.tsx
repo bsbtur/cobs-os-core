@@ -1,26 +1,73 @@
 import * as React from "react";
-import { Clock3, TimerReset, TriangleAlert } from "lucide-react";
+import { Clock, Hourglass, TimerReset } from "lucide-react";
 
 import type { JourneyStepRow } from "@/lib/w04";
+import { useI18n } from "@/lib/i18n";
 
-function minutesBetween(from: Date, to: Date) {
-  return Math.round((to.getTime() - from.getTime()) / 60000);
+/**
+ * COBS OS · W04 — Live timing strip (display only).
+ * Derives timing purely on the client from expected_* / planned_* values.
+ * Writes nothing, queries nothing, and never affects readiness or step actions.
+ */
+
+const TICK_MS = 30_000;
+
+function startOf(step: JourneyStepRow | null): number | null {
+  const raw = step?.expected_start ?? step?.planned_start ?? null;
+  if (!raw) return null;
+  const value = new Date(raw).getTime();
+  return Number.isFinite(value) ? value : null;
 }
 
-function formatMinutes(value: number) {
-  const absolute = Math.abs(value);
-  if (absolute < 60) return `${absolute} min`;
-  const hours = Math.floor(absolute / 60);
-  const minutes = absolute % 60;
-  return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
+function endOf(step: JourneyStepRow | null): number | null {
+  const raw = step?.expected_end ?? step?.planned_end ?? null;
+  if (!raw) return null;
+  const value = new Date(raw).getTime();
+  return Number.isFinite(value) ? value : null;
 }
 
-function stepStart(step: JourneyStepRow | null) {
-  return step ? step.expected_start ?? step.planned_start : null;
+/** Coarse duration label: "2h 05min" / "45min" / "<1min". */
+export function formatDuration(ms: number): string {
+  const totalMinutes = Math.floor(Math.abs(ms) / 60_000);
+  if (totalMinutes < 1) return "<1min";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours === 0) return `${minutes}min`;
+  return `${hours}h ${String(minutes).padStart(2, "0")}min`;
 }
 
-function stepEnd(step: JourneyStepRow | null) {
-  return step ? step.expected_end ?? step.planned_end : null;
+function useNow(intervalMs = TICK_MS) {
+  const [now, setNow] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    setNow(Date.now());
+    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+function Chip({
+  icon: Icon,
+  label,
+  value,
+  tone = "muted",
+}: {
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  label: string;
+  value: string;
+  tone?: "muted" | "warning";
+}) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm ${
+        tone === "warning" ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground"
+      }`}
+    >
+      <Icon className="size-4" aria-hidden={true} />
+      <span className="font-medium">{label}</span>
+      <span className="tabular-nums">{value}</span>
+    </span>
+  );
 }
 
 export function LiveTimingStrip({
@@ -30,67 +77,79 @@ export function LiveTimingStrip({
   current: JourneyStepRow | null;
   next: JourneyStepRow | null;
 }) {
-  const [now, setNow] = React.useState(() => new Date());
+  const { t } = useI18n();
+  const now = useNow();
 
-  React.useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30000);
-    return () => window.clearInterval(timer);
-  }, []);
+  if (now === null) return null;
 
-  if (!current && !next) return null;
+  const currentStart = startOf(current);
+  const currentEnd = endOf(current);
+  const nextStart = startOf(next);
 
-  const currentStart = stepStart(current);
-  const currentEnd = stepEnd(current);
-  const nextStart = stepStart(next);
+  const chips: React.ReactNode[] = [];
 
-  const endDelta = currentEnd ? minutesBetween(now, new Date(currentEnd)) : null;
-  const startDelta = currentStart ? minutesBetween(new Date(currentStart), now) : null;
-  const nextDelta = nextStart ? minutesBetween(now, new Date(nextStart)) : null;
+  if (currentStart !== null && currentStart <= now) {
+    chips.push(
+      <Chip
+        key="elapsed"
+        icon={Hourglass}
+        label={t("w04.timing.elapsed")}
+        value={formatDuration(now - currentStart)}
+      />,
+    );
+  }
 
-  const delayed = endDelta !== null && endDelta < 0;
-  const beforeStart = currentStart ? now < new Date(currentStart) : false;
+  if (currentEnd !== null) {
+    const remaining = currentEnd - now;
+    chips.push(
+      remaining >= 0 ? (
+        <Chip
+          key="remaining"
+          icon={Clock}
+          label={t("w04.timing.remaining")}
+          value={formatDuration(remaining)}
+        />
+      ) : (
+        <Chip
+          key="late"
+          icon={Clock}
+          label={t("w04.timing.late")}
+          value={formatDuration(remaining)}
+          tone="warning"
+        />
+      ),
+    );
+  }
+
+  if (nextStart !== null) {
+    const untilNext = nextStart - now;
+    chips.push(
+      untilNext >= 0 ? (
+        <Chip
+          key="next"
+          icon={TimerReset}
+          label={t("w04.timing.nextIn")}
+          value={formatDuration(untilNext)}
+        />
+      ) : (
+        <Chip
+          key="next-late"
+          icon={TimerReset}
+          label={t("w04.timing.nextLate")}
+          value={formatDuration(untilNext)}
+          tone="warning"
+        />
+      ),
+    );
+  }
+
+  if (chips.length === 0) {
+    return <p className="mt-3 text-sm text-muted-foreground">{t("w04.timing.none")}</p>;
+  }
 
   return (
-    <div className="mt-3 grid gap-2 sm:grid-cols-3" aria-label="Tempo operacional">
-      <div className={`rounded-lg border px-3 py-2 ${delayed ? "border-warning/40 bg-warning-soft" : "border-border/70 bg-background/50"}`}>
-        <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-          {delayed ? <TriangleAlert className="size-3.5" aria-hidden="true" /> : <Clock3 className="size-3.5" aria-hidden="true" />}
-          Etapa atual
-        </p>
-        <p className={`mt-1 text-sm font-semibold ${delayed ? "text-warning" : ""}`}>
-          {endDelta === null
-            ? "Sem horário final"
-            : delayed
-              ? `${formatMinutes(endDelta)} de atraso`
-              : beforeStart
-                ? `Começa em ${formatMinutes(startDelta ?? 0)}`
-                : `${formatMinutes(endDelta)} restantes`}
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-border/70 bg-background/50 px-3 py-2">
-        <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-          <TimerReset className="size-3.5" aria-hidden="true" /> Tempo decorrido
-        </p>
-        <p className="mt-1 text-sm font-semibold">
-          {currentStart && !beforeStart ? formatMinutes(startDelta ?? 0) : "Ainda não iniciada"}
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-border/70 bg-background/50 px-3 py-2">
-        <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-          <Clock3 className="size-3.5" aria-hidden="true" /> Próxima etapa
-        </p>
-        <p className="mt-1 text-sm font-semibold">
-          {!next
-            ? "Última etapa"
-            : nextDelta === null
-              ? "Horário não definido"
-              : nextDelta >= 0
-                ? `Em ${formatMinutes(nextDelta)}`
-                : `${formatMinutes(nextDelta)} após o previsto`}
-        </p>
-      </div>
+    <div className="mt-3 flex flex-wrap items-center gap-2" aria-live="polite">
+      {chips}
     </div>
   );
 }
