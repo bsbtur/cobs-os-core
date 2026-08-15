@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BellRing, Check, Clock3, ExternalLink } from "lucide-react";
+import { AlertTriangle, BellRing, Check, CheckCircle2, Clock3, ExternalLink, RefreshCw } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { Button } from "@/components/ui/button";
+import { LoadingPulse } from "@/components/feedback/loading";
 
 type InboxMessage = {
   id: string;
@@ -50,7 +51,15 @@ function priorityMeta(priority: string, locale: string) {
   };
 }
 
-/** PX12.5-C/E — canonical W07 inbox projection with operational priority. */
+function AlertSurface({ children, locale }: { children: React.ReactNode; locale: string }) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-primary/30 bg-primary-soft/20" aria-label={copy(locale, "Alertas para mim", "Alerts for me")}>
+      {children}
+    </section>
+  );
+}
+
+/** PX12.5-C/E + PX12.6-A — canonical W07 inbox projection with explicit async states. */
 export function PersonalAlerts() {
   const { tenant } = useTenant();
   const { locale } = useI18n();
@@ -96,12 +105,59 @@ export function PersonalAlerts() {
     },
   });
 
-  if (query.isLoading || query.isError || !query.data?.reminders.length) return null;
+  if (query.isLoading) {
+    return (
+      <AlertSurface locale={locale}>
+        <div className="flex items-center gap-3 px-5 py-4">
+          <span className="grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground"><BellRing className="size-4" aria-hidden="true" /></span>
+          <LoadingPulse label={copy(locale, "Carregando seus alertas operacionais...", "Loading your operational alerts...")} />
+        </div>
+      </AlertSurface>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <AlertSurface locale={locale}>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 place-items-center rounded-lg bg-destructive/10 text-destructive"><AlertTriangle className="size-4" aria-hidden="true" /></span>
+            <div>
+              <p className="font-semibold">{copy(locale, "Não foi possível carregar seus alertas", "Could not load your alerts")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{copy(locale, "Verifique a conexão e tente novamente. Nenhum alerta foi marcado como lido.", "Check your connection and try again. No alert was marked as read.")}</p>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
+            <RefreshCw className={`mr-1 size-3.5 ${query.isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
+            {copy(locale, "Tentar novamente", "Try again")}
+          </Button>
+        </div>
+      </AlertSurface>
+    );
+  }
+
+  if (!query.data?.reminders.length) {
+    return (
+      <AlertSurface locale={locale}>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-lg bg-success-soft text-success"><CheckCircle2 className="size-4" aria-hidden="true" /></span>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">COBS · {copy(locale, "Alertas para mim", "Alerts for me")}</p>
+              <p className="mt-1 font-semibold">{copy(locale, "Nenhum alerta pendente", "No pending alerts")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{copy(locale, "Sua fila está limpa neste momento.", "Your queue is clear right now.")}</p>
+            </div>
+          </div>
+          <Button asChild variant="outline" size="sm"><Link to="/inbox">{copy(locale, "Abrir inbox", "Open inbox")}</Link></Button>
+        </div>
+      </AlertSurface>
+    );
+  }
 
   const { reminders, operationById } = query.data;
 
   return (
-    <section className="overflow-hidden rounded-xl border border-primary/30 bg-primary-soft/20" aria-label={copy(locale, "Alertas para mim", "Alerts for me")}>
+    <AlertSurface locale={locale}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 px-5 py-4">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground">
@@ -165,6 +221,6 @@ export function PersonalAlerts() {
           );
         })}
       </div>
-    </section>
+    </AlertSurface>
   );
 }
