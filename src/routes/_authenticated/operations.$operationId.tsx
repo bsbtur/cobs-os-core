@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { createFileRoute, Link, Outlet, useLocation, useParams } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -61,12 +61,14 @@ function OperationWorkspace() {
   const base = `/operations/${operationId}`;
   const isOverview = location.pathname === base || location.pathname === `${base}/`;
   const isLive = location.pathname.endsWith(`${base}/live`);
+  const isCockpitV2 = location.pathname.endsWith(`${base}/cockpit-v2`);
+  const isFieldFocused = isLive || isCockpitV2;
 
   return (
     <AppShell activeId="operations" title={t("op.title")}>
-      <div className={`mx-auto w-full max-w-5xl space-y-5 ${isLive ? "field-runtime" : ""}`}>
+      <div className={`mx-auto w-full max-w-5xl space-y-5 ${isFieldFocused ? "field-runtime" : ""}`}>
         <RequireTenant>
-          <FieldModePendingFirst operationId={operationId} />
+          {!isCockpitV2 ? <FieldModePendingFirst operationId={operationId} /> : null}
 
           <Button asChild variant="ghost" size="sm" className="-ml-2 min-h-9">
             <Link to="/operations">
@@ -77,6 +79,10 @@ function OperationWorkspace() {
 
           <nav aria-label={t("op.title")} className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1">
             <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.overview")}</Link>
+            <Link from="/operations/$operationId" to="/operations/$operationId/cockpit-v2" className={`${TAB_CLASS} gap-1.5`} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+              <Sparkles className="size-4" aria-hidden="true" />
+              {copy(locale, "Cockpit V2", "Cockpit V2")}
+            </Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.people")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/schedule" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{copy(locale, "Escala", "Schedule")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/journey" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w04.tab.journey")}</Link>
@@ -111,12 +117,16 @@ function OperationWorkspace() {
             </>
           ) : null}
 
-          <LiveNextBestAction operationId={operationId} />
-          <OperationAttentionCenter operationId={operationId} />
-          <FieldBatchPresence operationId={operationId} />
-          {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
-          <JourneyOperationalCockpit operationId={operationId} />
-          <JourneyManagementPanel operationId={operationId} />
+          {!isCockpitV2 ? (
+            <>
+              <LiveNextBestAction operationId={operationId} />
+              <OperationAttentionCenter operationId={operationId} />
+              <FieldBatchPresence operationId={operationId} />
+              {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
+              <JourneyOperationalCockpit operationId={operationId} />
+              <JourneyManagementPanel operationId={operationId} />
+            </>
+          ) : null}
 
           {isOverview ? (
             <OverviewDisclosure
