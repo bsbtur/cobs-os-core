@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle2, ClipboardCheck, Radio, Users } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
+import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
 import { supabase } from "@/integrations/supabase/client";
 import type {
@@ -177,7 +178,9 @@ function CockpitV2Preview() {
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="size-4" aria-hidden="true" />
                   <span className="text-sm font-semibold">
-                    {readiness?.ready === false ? "Ação necessária antes de avançar" : "Etapa pronta para avançar"}
+                    {readiness?.ready === false
+                      ? "Ação necessária antes de avançar"
+                      : "Etapa pronta para avançar"}
                   </span>
                 </div>
                 {readiness ? (
@@ -202,14 +205,17 @@ function CockpitV2Preview() {
           )}
         </div>
 
-        <div className="border-t border-border/70 bg-background/45 p-4 sm:px-6">
-          <Eyebrow>Próxima ação</Eyebrow>
-          <Button asChild className="mt-2 min-h-14 w-full justify-between rounded-2xl px-4 text-base">
+        <div className="space-y-3 border-t border-border/70 bg-background/45 p-4 sm:px-6">
+          <LiveNextBestAction operationId={operationId} />
+          <Button asChild className="min-h-14 w-full justify-between rounded-2xl px-4 text-base">
             <Link to="/operations/$operationId/live" params={{ operationId }}>
-              <span>{current ? "Executar ação da etapa" : next ? "Iniciar próxima etapa" : "Ver operação"}</span>
+              <span>Abrir ação operacional</span>
               <ArrowRight className="size-5" aria-hidden="true" />
             </Link>
           </Button>
+          <p className="text-xs text-muted-foreground">
+            A recomendação é inteligente; a execução permanece no runtime Live validado.
+          </p>
         </div>
       </article>
 
