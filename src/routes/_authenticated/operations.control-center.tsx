@@ -8,7 +8,7 @@ import {
   Clock3,
   HeartPulse,
   Radio,
-  Route,
+  Route as RouteIcon,
   Users,
 } from "lucide-react";
 
@@ -16,7 +16,6 @@ import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
@@ -187,7 +186,7 @@ function OperationHealthCard({ item, index }: { item: ControlItem; index: number
         <div className="mt-3 grid grid-cols-3 gap-2">
           <div className="rounded-xl border border-border/70 bg-background/45 px-3 py-2.5">
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Route className="size-3.5" aria-hidden="true" />
+              <RouteIcon className="size-3.5" aria-hidden="true" />
               <span className="text-[10px] font-medium uppercase tracking-wide">{copy(locale, "Progresso", "Progress")}</span>
             </div>
             <p className="mt-1 text-sm font-semibold tabular-nums">{Math.round(progress)}%</p>
