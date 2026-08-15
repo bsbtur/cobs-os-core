@@ -16,6 +16,7 @@ import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
@@ -290,6 +291,28 @@ function OperationsControlCenter() {
   });
 
   if (query.isLoading) return <PanelSkeleton rows={4} />;
+
+  if (query.isError) {
+    return (
+      <section className="surface-panel p-5" role="alert">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-destructive/10 text-destructive">
+            <AlertTriangle className="size-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-destructive">COBS Operations Control Center</p>
+            <h2 className="mt-1 text-lg font-semibold">{copy(locale, "Não foi possível confirmar o estado das operações", "We couldn't confirm operation status")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {copy(locale, "A saúde operacional não foi confirmada. Não interprete esta falha como ausência de operações críticas.", "Operational health was not confirmed. Do not interpret this failure as absence of critical operations.")}
+            </p>
+            <Button className="mt-3" size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
+              {query.isFetching ? copy(locale, "Atualizando…", "Refreshing…") : copy(locale, "Atualizar", "Refresh")}
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const items = query.data ?? [];
   const healthy = items.filter((item) => item.health === "green").length;
