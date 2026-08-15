@@ -9,6 +9,7 @@ import { JourneyOperationalCockpit } from "@/components/journey/journey-operatio
 import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
 import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
 import { OperationAttentionCenter } from "@/components/operations/operation-attention-center";
+import { OperationControlCenter } from "@/components/operations/operation-control-center";
 import { OperationHistoryTimeline } from "@/components/operations/operation-history-timeline";
 import { OperationIntelligenceCockpit } from "@/components/operations/operation-intelligence-cockpit";
 import { PostOperationDebrief } from "@/components/operations/post-operation-debrief";
@@ -53,6 +54,7 @@ function OperationWorkspace() {
             <Link from="/operations/$operationId" to="/operations/$operationId/communication" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w08.tab.communication")}</Link>
           </nav>
 
+          <OperationControlCenter operationId={operationId} />
           <OperationIntelligenceCockpit operationId={operationId} />
           <PostOperationDebrief operationId={operationId} />
           <OperationHistoryTimeline operationId={operationId} />
