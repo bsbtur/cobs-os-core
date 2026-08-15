@@ -11,10 +11,12 @@ import {
   MessageSquareText,
   Route,
   ShieldCheck,
+  UserCog,
   Users,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant, type AppRole } from "@/lib/tenant";
 import { formatDateTime } from "@/lib/format";
@@ -37,6 +39,7 @@ type Rpc = (
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 type ShortcutKey = "people" | "journey" | "live" | "mobility" | "hospitality" | "events" | "communication";
+type OperationRoleContext = { key: string; label: string; isPrimary: boolean };
 
 const n = (value: number | null | undefined) => value ?? 0;
 const copy = (locale: string, pt: string, en: string) =>
@@ -57,29 +60,74 @@ const ROLE_SHORTCUTS: Record<AppRole, ShortcutKey[]> = {
 };
 
 /**
- * PX12 V1 — role-aware operation home.
- * Role only changes information priority and copy. Authorization remains enforced by the canonical RLS/RPC layer.
+ * PX12.1 — corporate membership + operation role context.
+ * This changes prioritization/copy only. RLS and canonical RPCs remain the authorization boundary.
  */
 export function OperationControlCenter({ operationId }: { operationId: string }) {
   const location = useLocation();
+  const { user } = useAuth();
   const { locale, timeZone } = useI18n();
   const { role } = useTenant();
   const base = `/operations/${operationId}`;
   const isOverview = location.pathname === base || location.pathname === `${base}/`;
 
   const query = useQuery({
-    queryKey: ["px12-role-aware-operation-home", operationId],
+    queryKey: ["px12-operation-role-context", operationId, user?.id],
     enabled: isOverview,
     refetchInterval: isOverview ? 30_000 : false,
     queryFn: async () => {
       const rpc = supabase.rpc as unknown as Rpc;
-      const [operation, intelligence] = await Promise.all([
+      const [operation, intelligence, person] = await Promise.all([
         supabase.from("operations").select("id,name,code,status,operation_kind,primary_city,primary_region,primary_country,timezone,planned_start,planned_end,expected_start,expected_end,archived_at").eq("id", operationId).maybeSingle(),
         rpc("get_operation_intelligence", { _operation_id: operationId }),
+        user?.id
+          ? supabase.from("people").select("id,full_name").eq("profile_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
       ]);
       if (operation.error) throw operation.error;
       if (intelligence.error) throw intelligence.error;
-      return { operation: operation.data, intelligence: intelligence.data as Intelligence };
+      if (person.error) throw person.error;
+
+      let operationRoles: OperationRoleContext[] = [];
+      if (person.data?.id) {
+        const participation = await supabase
+          .from("operation_participations")
+          .select("id")
+          .eq("operation_id", operationId)
+          .eq("person_id", person.data.id)
+          .neq("status", "cancelled")
+          .maybeSingle();
+        if (participation.error) throw participation.error;
+
+        if (participation.data?.id) {
+          const assignments = await supabase
+            .from("operation_role_assignments")
+            .select("is_primary,operation_role_types(key,label,is_active,sort_order)")
+            .eq("participation_id", participation.data.id);
+          if (assignments.error) throw assignments.error;
+          operationRoles = (assignments.data ?? [])
+            .map((assignment) => {
+              const roleType = one(assignment.operation_role_types);
+              if (!roleType?.is_active) return null;
+              return {
+                key: roleType.key,
+                label: roleType.label?.trim() || humanizeRoleKey(roleType.key),
+                isPrimary: assignment.is_primary,
+                sortOrder: roleType.sort_order,
+              };
+            })
+            .filter((item): item is OperationRoleContext & { sortOrder: number } => Boolean(item))
+            .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.sortOrder - b.sortOrder)
+            .map(({ sortOrder: _sortOrder, ...item }) => item);
+        }
+      }
+
+      return {
+        operation: operation.data,
+        intelligence: intelligence.data as Intelligence,
+        personName: person.data?.full_name ?? null,
+        operationRoles,
+      };
     },
   });
 
@@ -87,6 +135,8 @@ export function OperationControlCenter({ operationId }: { operationId: string })
 
   const op = query.data.operation;
   const data = query.data.intelligence;
+  const operationRoles = query.data.operationRoles;
+  const primaryOperationRole = operationRoles.find((item) => item.isPrimary) ?? operationRoles[0];
   const tz = op.timezone || timeZone;
   const start = op.expected_start ?? op.planned_start;
   const end = op.expected_end ?? op.planned_end;
@@ -115,14 +165,20 @@ export function OperationControlCenter({ operationId }: { operationId: string })
     events: { label: copy(locale, "Eventos", "Events"), icon: CalendarDays, to: `${base}/events` },
     communication: { label: copy(locale, "Comunicação", "Communication"), icon: MessageSquareText, to: `${base}/communication` },
   };
-  const shortcuts = ROLE_SHORTCUTS[effectiveRole].map((key) => shortcutCatalog[key]);
+  const shortcutOrder = operationAwareShortcutOrder(primaryOperationRole?.key, ROLE_SHORTCUTS[effectiveRole]);
+  const shortcuts = shortcutOrder.map((key) => shortcutCatalog[key]);
+  const focus = operationRoleFocus(primaryOperationRole?.key, locale);
 
-  const primaryTitle = managerial
-    ? copy(locale, "Acompanhar operação ao vivo", "Monitor live operation")
-    : copy(locale, "Continuar operação", "Continue operation");
-  const primaryDescription = managerial
-    ? copy(locale, "Veja execução, pendências e exceções em tempo real.", "See execution, pending work and exceptions in real time.")
-    : copy(locale, "Abra sua próxima ação, presença e tarefas de campo.", "Open your next action, presence and field tasks.");
+  const primaryTitle = primaryOperationRole
+    ? focus.primaryTitle
+    : managerial
+      ? copy(locale, "Acompanhar operação ao vivo", "Monitor live operation")
+      : copy(locale, "Continuar operação", "Continue operation");
+  const primaryDescription = primaryOperationRole
+    ? focus.primaryDescription
+    : managerial
+      ? copy(locale, "Veja execução, pendências e exceções em tempo real.", "See execution, pending work and exceptions in real time.")
+      : copy(locale, "Abra sua próxima ação, presença e tarefas de campo.", "Open your next action, presence and field tasks.");
 
   return (
     <section className="surface-panel overflow-hidden" aria-label={copy(locale, "Central de controle da operação", "Operation control center")}>
@@ -135,6 +191,12 @@ export function OperationControlCenter({ operationId }: { operationId: string })
                 <ShieldCheck className="size-3" aria-hidden="true" />
                 {roleLabel}
               </span>
+              {primaryOperationRole ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary-soft px-2 py-1 text-[10px] font-semibold text-primary">
+                  <UserCog className="size-3" aria-hidden="true" />
+                  {primaryOperationRole.label}
+                </span>
+              ) : null}
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <h2 className="truncate text-2xl font-semibold">{op.name}</h2>
@@ -151,7 +213,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
           <Summary icon={MapPin} label={copy(locale, "Local principal", "Primary location")} value={[op.primary_city, op.primary_region, op.primary_country].filter(Boolean).join(" · ") || "—"} />
           <Summary
             icon={Users}
-            label={managerial ? copy(locale, "Visão de viajantes", "Traveler overview") : copy(locale, "Pessoas agora", "People now")}
+            label={primaryOperationRole ? focus.peopleLabel : managerial ? copy(locale, "Visão de viajantes", "Traveler overview") : copy(locale, "Pessoas agora", "People now")}
             value={`${n(data.passengers?.confirmed)} ${copy(locale, "confirmados", "confirmed")} · ${n(data.passengers?.current_step?.unresolved)} ${copy(locale, "pendentes agora", "pending now")}`}
           />
         </div>
@@ -161,7 +223,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
         <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr]">
           <div className="rounded-xl border border-border bg-background/60 p-4">
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">
-              {managerial ? copy(locale, "Estado operacional", "Operational state") : copy(locale, "Seu foco agora", "Your focus now")}
+              {primaryOperationRole ? focus.focusLabel : managerial ? copy(locale, "Estado operacional", "Operational state") : copy(locale, "Seu foco agora", "Your focus now")}
             </p>
             <p className="mt-2 text-lg font-semibold">{current ?? (op.status === "completed" ? copy(locale, "Operação concluída", "Operation completed") : copy(locale, "Nenhuma etapa ativa", "No active step"))}</p>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -179,12 +241,12 @@ export function OperationControlCenter({ operationId }: { operationId: string })
           </div>
 
           <Link
-            to={`${base}/live`}
+            to={`${base}/${focus.primaryRoute}`}
             className="group flex min-h-36 flex-col justify-between rounded-xl border border-primary/30 bg-primary px-4 py-4 text-primary-foreground transition-transform hover:-translate-y-0.5"
           >
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-75">
-                {managerial ? copy(locale, "Ação principal", "Primary action") : copy(locale, "Próximo passo", "Next step")}
+                {primaryOperationRole ? copy(locale, "Sua ação principal", "Your primary action") : managerial ? copy(locale, "Ação principal", "Primary action") : copy(locale, "Próximo passo", "Next step")}
               </p>
               <p className="mt-2 text-xl font-semibold">{primaryTitle}</p>
               <p className="mt-1 text-sm opacity-80">{primaryDescription}</p>
@@ -193,9 +255,20 @@ export function OperationControlCenter({ operationId }: { operationId: string })
           </Link>
         </div>
 
+        {operationRoles.length > 1 ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-background/50 px-3 py-2">
+            <span className="text-[11px] text-muted-foreground">{copy(locale, "Funções nesta operação:", "Roles in this operation:")}</span>
+            {operationRoles.map((item) => (
+              <span key={item.key} className={`rounded-full px-2 py-0.5 text-[10px] ${item.isPrimary ? "bg-primary-soft font-semibold text-primary" : "bg-muted text-muted-foreground"}`}>
+                {item.label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
         <div>
           <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            {managerial ? copy(locale, "Acessos da gestão", "Management shortcuts") : copy(locale, "Ferramentas para seu trabalho", "Tools for your work")}
+            {primaryOperationRole ? copy(locale, "Ferramentas priorizadas para sua função", "Tools prioritized for your role") : managerial ? copy(locale, "Acessos da gestão", "Management shortcuts") : copy(locale, "Ferramentas para seu trabalho", "Tools for your work")}
           </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
             {shortcuts.map(({ label, icon: Icon, to, emphasis }) => (
@@ -213,6 +286,84 @@ export function OperationControlCenter({ operationId }: { operationId: string })
       </div>
     </section>
   );
+}
+
+function operationAwareShortcutOrder(roleKey: string | undefined, fallback: ShortcutKey[]): ShortcutKey[] {
+  if (!roleKey) return fallback;
+  const key = normalizeRoleKey(roleKey);
+  const preferred: ShortcutKey[] = key.includes("driver") || key.includes("motorista")
+    ? ["mobility", "live", "people", "journey", "communication", "hospitality", "events"]
+    : key.includes("hotel") || key.includes("hospital") || key.includes("room")
+      ? ["hospitality", "people", "communication", "live", "journey", "mobility", "events"]
+      : key.includes("event") || key.includes("cerimonial") || key.includes("speaker") || key.includes("palestr")
+        ? ["events", "live", "communication", "people", "journey", "mobility", "hospitality"]
+        : key.includes("commun") || key.includes("comunic") || key.includes("support") || key.includes("suporte")
+          ? ["communication", "live", "people", "journey", "mobility", "hospitality", "events"]
+          : ["live", "journey", "people", "mobility", "communication", "hospitality", "events"];
+  return dedupe([...preferred, ...fallback]);
+}
+
+function operationRoleFocus(roleKey: string | undefined, locale: string) {
+  const key = normalizeRoleKey(roleKey ?? "");
+  if (key.includes("driver") || key.includes("motorista")) {
+    return {
+      focusLabel: copy(locale, "Seu deslocamento agora", "Your movement now"),
+      peopleLabel: copy(locale, "Passageiros do deslocamento", "Movement passengers"),
+      primaryTitle: copy(locale, "Abrir mobilidade", "Open mobility"),
+      primaryDescription: copy(locale, "Veja trecho, origem, destino, passageiros e horários.", "See leg, origin, destination, passengers and times."),
+      primaryRoute: "mobility",
+    };
+  }
+  if (key.includes("hotel") || key.includes("hospital") || key.includes("room")) {
+    return {
+      focusLabel: copy(locale, "Seu foco de hospedagem", "Your hospitality focus"),
+      peopleLabel: copy(locale, "Hóspedes da operação", "Operation guests"),
+      primaryTitle: copy(locale, "Abrir hospedagem", "Open hospitality"),
+      primaryDescription: copy(locale, "Veja hóspedes, quartos, check-in e pendências.", "See guests, rooms, check-in and issues."),
+      primaryRoute: "hospitality",
+    };
+  }
+  if (key.includes("event") || key.includes("cerimonial") || key.includes("speaker") || key.includes("palestr")) {
+    return {
+      focusLabel: copy(locale, "Seu foco no evento", "Your event focus"),
+      peopleLabel: copy(locale, "Participantes da operação", "Operation participants"),
+      primaryTitle: copy(locale, "Abrir eventos", "Open events"),
+      primaryDescription: copy(locale, "Veja programação, sessões, espaços e execução.", "See program, sessions, spaces and execution."),
+      primaryRoute: "events",
+    };
+  }
+  if (key.includes("commun") || key.includes("comunic") || key.includes("support") || key.includes("suporte")) {
+    return {
+      focusLabel: copy(locale, "Seu foco de comunicação", "Your communication focus"),
+      peopleLabel: copy(locale, "Público da operação", "Operation audience"),
+      primaryTitle: copy(locale, "Abrir comunicação", "Open communication"),
+      primaryDescription: copy(locale, "Veja mensagens, leituras, avisos e urgências.", "See messages, reads, notices and urgent items."),
+      primaryRoute: "communication",
+    };
+  }
+  return {
+    focusLabel: copy(locale, "Seu foco operacional", "Your operational focus"),
+    peopleLabel: copy(locale, "Viajantes sob acompanhamento", "Travelers under care"),
+    primaryTitle: copy(locale, "Continuar operação ao vivo", "Continue live operation"),
+    primaryDescription: copy(locale, "Execute etapa atual, presença, checklist e próxima ação.", "Execute current step, presence, checklist and next action."),
+    primaryRoute: "live",
+  };
+}
+
+function normalizeRoleKey(value: string) {
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_");
+}
+
+function humanizeRoleKey(value: string) {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function dedupe<T>(values: T[]): T[] {
+  return [...new Set(values)];
+}
+
+function one<T>(value: T | T[] | null | undefined): T | undefined {
+  return Array.isArray(value) ? value[0] : value ?? undefined;
 }
 
 function Summary({ icon: Icon, label, value }: { icon: typeof Clock3; label: string; value: string }) {
