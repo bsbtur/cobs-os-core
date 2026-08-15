@@ -4,6 +4,7 @@ import { Activity, Building2, CalendarRange, ShieldCheck, Users } from "lucide-r
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { PersonalOperationQueue } from "@/components/operations/personal-operation-queue";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
@@ -113,6 +114,7 @@ function CommandCenter() {
 
         <RequireTenant>
           <div className="animate-rise space-y-6" style={{ animationDelay: "80ms" }}>
+            <PersonalOperationQueue />
             <Posture />
             <section className="surface-panel p-5">
               <h3 className="text-base font-semibold">{t("nav.section.system")}</h3>
