@@ -302,6 +302,14 @@ export const W04_EN: Record<string, string> = {
   "w04.live.subtitle": "Recorded facts only. Nothing here is estimated.",
   "w04.live.now": "NOW",
   "w04.live.next": "NEXT",
+
+  "w04.timing.elapsed": "Elapsed",
+  "w04.timing.remaining": "Remaining",
+  "w04.timing.late": "Late",
+  "w04.timing.nextIn": "Next in",
+  "w04.timing.nextLate": "Next overdue",
+  "w04.timing.none": "No times set for this step.",
+
   "w04.live.attention": "ATTENTION",
   "w04.live.people": "PEOPLE",
   "w04.live.checklist": "CHECKLIST",
