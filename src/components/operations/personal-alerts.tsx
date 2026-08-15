@@ -29,7 +29,28 @@ type InboxPayload = {
 const copy = (locale: string, pt: string, en: string) =>
   locale.toLowerCase().startsWith("pt") ? pt : en;
 
-/** PX12.5-C — canonical W07 inbox projection for unread staff reminders. */
+const priorityWeight: Record<string, number> = { urgent: 0, important: 1, normal: 2 };
+
+function priorityMeta(priority: string, locale: string) {
+  if (priority === "urgent") {
+    return {
+      label: copy(locale, "Crítico", "Critical"),
+      className: "border-destructive/35 bg-destructive/10 text-destructive",
+    };
+  }
+  if (priority === "important") {
+    return {
+      label: copy(locale, "Importante", "Important"),
+      className: "border-warning/35 bg-warning-soft text-warning",
+    };
+  }
+  return {
+    label: copy(locale, "Normal", "Normal"),
+    className: "border-border bg-background text-muted-foreground",
+  };
+}
+
+/** PX12.5-C/E — canonical W07 inbox projection with operational priority. */
 export function PersonalAlerts() {
   const { tenant } = useTenant();
   const { locale } = useI18n();
@@ -46,6 +67,11 @@ export function PersonalAlerts() {
       const payload = (inbox.data ?? { person_id: null, messages: [] }) as InboxPayload;
       const reminders = (payload.messages ?? [])
         .filter((message) => message.kind === "reminder" && !message.first_read_at)
+        .sort((a, b) => {
+          const priorityDelta = (priorityWeight[a.priority] ?? 9) - (priorityWeight[b.priority] ?? 9);
+          if (priorityDelta !== 0) return priorityDelta;
+          return new Date(b.published_at ?? 0).getTime() - new Date(a.published_at ?? 0).getTime();
+        })
         .slice(0, 5);
 
       const operationIds = [...new Set(reminders.map((message) => message.operation_id).filter(Boolean))] as string[];
@@ -94,12 +120,16 @@ export function PersonalAlerts() {
       <div className="divide-y divide-primary/15">
         {reminders.map((message) => {
           const operation = message.operation_id ? operationById.get(message.operation_id) : undefined;
+          const priority = priorityMeta(message.priority, locale);
           return (
             <article key={message.id} className="p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{message.title}</p>
+                    <span className={`rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${priority.className}`}>
+                      {priority.label}
+                    </span>
                     <span className="rounded-full border border-primary/25 bg-background px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-primary">
                       {copy(locale, "novo", "new")}
                     </span>
