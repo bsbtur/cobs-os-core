@@ -1,7 +1,15 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Clock, Radio, Search, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  MoreHorizontal,
+  Radio,
+  Search,
+  Users,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
