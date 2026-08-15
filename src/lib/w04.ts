@@ -11,8 +11,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type JourneyStepRow = Database["public"]["Tables"]["journey_steps"]["Row"];
 export type JourneyEventRow = Database["public"]["Tables"]["journey_events"]["Row"];
-export type PresenceEventRow =
-  Database["public"]["Tables"]["participant_presence_events"]["Row"];
+export type PresenceEventRow = Database["public"]["Tables"]["participant_presence_events"]["Row"];
 export type PlaybookItemRow = Database["public"]["Tables"]["playbook_items"]["Row"];
 export type PlaybookExecutionRow = Database["public"]["Tables"]["playbook_executions"]["Row"];
 
@@ -49,13 +48,6 @@ export const PLAYBOOK_REQUIREMENTS: PlaybookRequirement[] = [
   "informational",
 ];
 
-/**
- * CANONICAL PRESENCE CONTRACT (POST_PILOT_RELEASE_02).
- * Single source of truth on the client; mirrors app_private.w04_assert_presence_contract
- * and app_private.w04_default_presence_requirement byte-for-byte in behaviour.
- * "boarded" exists only on boarding steps. Movement/return never re-check boarding;
- * their completion is gated by ARRIVED, not by presence.
- */
 export const PRESENCE_CONTRACT: Record<StepKind, PresenceRequirement[]> = {
   meeting: ["accounted"],
   boarding: ["boarded"],
@@ -72,31 +64,20 @@ export const PRESENCE_CONTRACT: Record<StepKind, PresenceRequirement[]> = {
   other: ["none"],
 };
 
-/** Mirrors app_private.w04_default_presence_requirement — the UI proposes what the DB would. */
 export function defaultPresenceRequirement(kind: StepKind): PresenceRequirement {
   if (kind === "boarding") return "boarded";
   if (kind === "meeting" || kind === "disembarkation") return "accounted";
   return "none";
 }
 
-/** Requirements the operator may legitimately pick for a kind. */
 export function allowedPresenceRequirements(kind: StepKind): PresenceRequirement[] {
   return PRESENCE_CONTRACT[kind];
 }
 
-/** True when a stored combination predates the canonical contract (historical configuration). */
-export function isCanonicalPresence(
-  kind: StepKind,
-  requirement: PresenceRequirement,
-): boolean {
+export function isCanonicalPresence(kind: StepKind, requirement: PresenceRequirement): boolean {
   return PRESENCE_CONTRACT[kind].includes(requirement);
 }
 
-
-/**
- * BINDING READINESS RULE (server is authoritative; this mirrors it for display only).
- * ABSENCE_NOTED never satisfies readiness. DISEMBARKED counts as accounted.
- */
 export const SATISFYING_FACTS: Record<PresenceRequirement, PresenceFact[]> = {
   none: [],
   accounted: ["PRESENT_AT_MEETING_POINT", "BOARDED", "DISEMBARKED", "NO_SHOW_CONFIRMED"],
@@ -128,7 +109,6 @@ export type RuntimeState = {
   readiness: Readiness | null;
 };
 
-/** Raw enums never reach the interface — every fact is humanized through i18n. */
 export function eventLabel(type: JourneyEventType, t: (key: string) => string) {
   return t(`w04.event.${type}`);
 }
@@ -137,7 +117,20 @@ export function presenceLabel(fact: PresenceFact, t: (key: string) => string) {
   return t(`w04.presence.${fact}`);
 }
 
-/** IDEMPOTENCY: one intent = one key, stable across retries on a bad connection. */
+/** Search names as operators type them: case, accents and surrounding spaces do not matter. */
+export function normalizePersonSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .trim();
+}
+
+export function matchesPersonSearch(name: string | null | undefined, query: string): boolean {
+  const normalizedQuery = normalizePersonSearch(query);
+  return !normalizedQuery || normalizePersonSearch(name ?? "").includes(normalizedQuery);
+}
+
 export function newIdempotencyKey() {
   return globalThis.crypto.randomUUID();
 }
