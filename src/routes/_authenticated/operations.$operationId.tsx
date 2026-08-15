@@ -78,6 +78,7 @@ function OperationWorkspace() {
           <nav aria-label={t("op.title")} className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1">
             <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.overview")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.people")}</Link>
+            <Link from="/operations/$operationId" to="/operations/$operationId/schedule" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{copy(locale, "Escala", "Schedule")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/journey" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w04.tab.journey")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/live" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w04.tab.live")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/mobility" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w05.tab.mobility")}</Link>
