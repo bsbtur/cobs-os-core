@@ -131,6 +131,7 @@ export const W04_PT: Record<string, string> = {
   "w04.action.departureOwnerOnly": "Somente proprietários e administradores autorizam a saída.",
 
   "w04.presence.mark": "Registrar",
+  "w04.presence.more": "Mais",
   "w04.presence.PRESENT_AT_MEETING_POINT": "Presente no ponto de encontro",
   "w04.presence.BOARDED": "Embarcou",
   "w04.presence.DISEMBARKED": "Desembarcou",
@@ -339,6 +340,7 @@ export const W04_EN: Record<string, string> = {
   "w04.action.departureOwnerOnly": "Only owners and admins authorize departure.",
 
   "w04.presence.mark": "Record",
+  "w04.presence.more": "More",
   "w04.presence.PRESENT_AT_MEETING_POINT": "Present at meeting point",
   "w04.presence.BOARDED": "Boarded",
   "w04.presence.DISEMBARKED": "Disembarked",
