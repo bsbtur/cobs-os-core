@@ -31,7 +31,7 @@ type Assignment = {
   ends_at: string;
   status: AssignmentStatus;
   notes: string | null;
-  operation_participations?: { people?: { full_name?: string | null } | null } | null;
+  operation_participations?: { people?: { id?: string | null; full_name?: string | null } | null } | null;
   operation_role_types?: { label?: string | null; key?: string | null } | null;
 };
 
@@ -56,11 +56,11 @@ function TeamSchedulePage() {
       const [operation, assignments, participations, conflicts, me] = await Promise.all([
         db.from("operations").select("id,name,code,timezone,planned_start,planned_end").eq("id", operationId).single(),
         db.from("operation_staff_assignments")
-          .select("id,participation_id,role_type_id,report_at,starts_at,ends_at,status,notes,operation_participations(people(full_name)),operation_role_types(label,key)")
+          .select("id,participation_id,role_type_id,report_at,starts_at,ends_at,status,notes,operation_participations(people(id,full_name)),operation_role_types(label,key)")
           .eq("operation_id", operationId)
           .order("starts_at"),
         db.from("operation_participations")
-          .select("id,status,people(full_name),operation_role_assignments(role_type_id,operation_role_types(id,label,key,is_active))")
+          .select("id,status,people(id,full_name),operation_role_assignments(role_type_id,operation_role_types(id,label,key,is_active))")
           .eq("operation_id", operationId)
           .neq("status", "cancelled"),
         db.rpc("get_operation_staff_assignment_conflicts", {
