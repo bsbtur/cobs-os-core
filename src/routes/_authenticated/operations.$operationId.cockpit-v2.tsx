@@ -236,12 +236,15 @@ function CockpitV2Preview() {
       </article>
 
       <div className="grid grid-cols-2 gap-3">
-        <article
-          className={`rounded-2xl border p-4 ${
+        <Link
+          to="/operations/$operationId/live"
+          params={{ operationId }}
+          className={`group rounded-2xl border p-4 transition-colors hover:bg-elevated/80 focus-ring ${
             checklistNeedsAttention
               ? "border-warning/35 bg-warning-soft text-warning"
               : "border-border/70 bg-elevated"
           }`}
+          aria-label={checklistNeedsAttention ? "Abrir checklist pendente" : "Abrir checklist"}
         >
           <div className="flex items-center gap-2">
             {checklistNeedsAttention ? (
@@ -250,25 +253,29 @@ function CockpitV2Preview() {
               <ClipboardCheck className="size-4 text-muted-foreground" aria-hidden="true" />
             )}
             <Eyebrow>Checklist</Eyebrow>
+            <ArrowRight className="ml-auto size-4 opacity-60 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </div>
           <p className="mt-2 text-2xl font-semibold tabular-nums">
             {checklistDone}/{currentItems.length}
           </p>
           {checklistNeedsAttention ? (
             <p className="mt-1 text-xs font-medium">
-              {missingRequiredItems} obrigatório(s) pendente(s)
+              {missingRequiredItems} obrigatório(s) pendente(s) · tocar para resolver
             </p>
           ) : (
             <p className="mt-0.5 text-xs text-muted-foreground">sem bloqueio obrigatório</p>
           )}
-        </article>
+        </Link>
 
-        <article
-          className={`rounded-2xl border p-4 ${
+        <Link
+          to="/operations/$operationId/people"
+          params={{ operationId }}
+          className={`group rounded-2xl border p-4 transition-colors hover:bg-elevated/80 focus-ring ${
             travelersNeedAttention
               ? "border-warning/35 bg-warning-soft text-warning"
               : "border-border/70 bg-elevated"
           }`}
+          aria-label={travelersNeedAttention ? "Abrir viajantes pendentes" : "Abrir viajantes"}
         >
           <div className="flex items-center gap-2">
             {travelersNeedAttention ? (
@@ -277,6 +284,7 @@ function CockpitV2Preview() {
               <Users className="size-4 text-muted-foreground" aria-hidden="true" />
             )}
             <Eyebrow>Viajantes</Eyebrow>
+            <ArrowRight className="ml-auto size-4 opacity-60 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </div>
           <p className="mt-2 text-2xl font-semibold tabular-nums">
             {confirmed}/{participants.length}
@@ -284,13 +292,13 @@ function CockpitV2Preview() {
           {travelersNeedAttention ? (
             <p className="mt-1 text-xs font-medium">
               {unconfirmed > 0
-                ? `${unconfirmed} aguardando confirmação`
-                : `${missingPeople} pendente(s) nesta etapa`}
+                ? `${unconfirmed} aguardando confirmação · tocar para resolver`
+                : `${missingPeople} pendente(s) nesta etapa · tocar para resolver`}
             </p>
           ) : (
             <p className="mt-0.5 text-xs text-muted-foreground">todos confirmados</p>
           )}
-        </article>
+        </Link>
       </div>
 
       {next ? (
