@@ -912,7 +912,7 @@ if (state.error) throw state.error;
         <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
       </header>
 
-      {operation.status !== "active" ? (
+      {operation.status !== "active" && operation.status !== "completed" ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
           {t("w04.live.notStarted")} {t("w04.live.notStartedBody")}
         </p>
@@ -1001,13 +1001,17 @@ if (state.error) throw state.error;
               <div className="mt-2 space-y-3">
                 <h3 className="text-lg font-semibold">{t("w04.live.journeyCompleted")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t("w04.live.journeyCompletedBody")}
-                </p>
-                <Button asChild className="min-h-11" variant="default">
-                  <Link to="/operations/$operationId" params={{ operationId }}>
-                    {t("w04.live.goToOverview")}
-                  </Link>
-                </Button>
+  {operation.status === "completed"
+    ? "Esta operação foi encerrada. Os fatos registrados permanecem disponíveis para consulta."
+    : t("w04.live.journeyCompletedBody")}
+</p>
+                {operation.status === "active" ? (
+  <Button asChild className="min-h-11" variant="default">
+    <Link to="/operations/$operationId" params={{ operationId }}>
+      {t("w04.live.goToOverview")}
+    </Link>
+  </Button>
+) : null}
               </div>
             ) : (
               <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.noCurrentBody")}</p>
