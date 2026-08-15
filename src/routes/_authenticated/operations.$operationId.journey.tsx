@@ -16,7 +16,6 @@ import {
   allowedPresenceRequirements,
   defaultPresenceRequirement,
   isCanonicalPresence,
-
   newIdempotencyKey,
   type JourneyStepRow,
   type PlaybookItemRow,
@@ -101,6 +100,14 @@ function toIsoOrNull(value: string) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
+function invalidWindow(start: string, end: string) {
+  if (!start || !end) return false;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return true;
+  return endDate.getTime() < startDate.getTime();
+}
+
 /* ------------------------------------------------------------------ */
 /* Step editor                                                         */
 /* ------------------------------------------------------------------ */
@@ -137,6 +144,7 @@ function StepDialog({
 
   const allowed = allowedPresenceRequirements(kind);
   const canonicalDefault = defaultPresenceRequirement(kind);
+  const windowInvalid = invalidWindow(start, end);
 
   React.useEffect(() => {
     setRequirement(defaultPresenceRequirement(kind));
@@ -148,9 +156,9 @@ function StepDialog({
 
   const save = useMutation({
     mutationFn: async () => {
+      if (windowInvalid) throw new Error("journey_window_invalid");
       const startIso = toIsoOrNull(start);
       const endIso = toIsoOrNull(end);
-      // The backend owns the canonical default: send null unless this is a legitimate override.
       const explicitRequirement = requirement === canonicalDefault ? null : requirement;
       const shared = {
         _operation_id: operationId,
@@ -160,8 +168,6 @@ function StepDialog({
         _traveler_facing: travelerFacing,
         ...(explicitRequirement ? { _presence_requirement: explicitRequirement } : {}),
         _presence_population: population,
-
-
         ...(description.trim() ? { _description: description.trim() } : {}),
         ...(location.trim() ? { _location_label: location.trim() } : {}),
         ...(travelerLabel.trim() ? { _traveler_label: travelerLabel.trim() } : {}),
@@ -196,10 +202,11 @@ function StepDialog({
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  const disabled = !title.trim() || (adHoc && !reason.trim()) || save.isPending;
+  const disabled =
+    !title.trim() || (adHoc && !reason.trim()) || windowInvalid || save.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(next) => (save.isPending ? null : onOpenChange(next))}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
@@ -243,6 +250,7 @@ function StepDialog({
                 id="step-start"
                 type="datetime-local"
                 value={start}
+                aria-invalid={windowInvalid}
                 onChange={(event) => setStart(event.target.value)}
                 className="min-h-11"
               />
@@ -255,11 +263,21 @@ function StepDialog({
                 id="step-end"
                 type="datetime-local"
                 value={end}
+                aria-invalid={windowInvalid}
                 onChange={(event) => setEnd(event.target.value)}
                 className="min-h-11"
               />
             </div>
           </div>
+          {windowInvalid ? (
+            <p className="text-sm text-destructive">
+              {locale === "pt-BR"
+                ? "O fim deve ser igual ou posterior ao início."
+                : locale === "es-ES"
+                  ? "El fin debe ser igual o posterior al inicio."
+                  : "End must be at or after start."}
+            </p>
+          ) : null}
 
           <div className="space-y-1.5">
             <Label htmlFor="step-location">{t("w04.field.location")}</Label>
@@ -289,7 +307,6 @@ function StepDialog({
             {allowed.length === 1 ? (
               <p className="text-xs text-muted-foreground">{t("w04.contract.fixedByKind")}</p>
             ) : null}
-
           </div>
 
           {requirement !== "none" ? (
@@ -353,11 +370,7 @@ function StepDialog({
             </div>
           ) : null}
 
-          <Button
-            className="min-h-11 w-full"
-            disabled={disabled}
-            onClick={() => save.mutate()}
-          >
+          <Button className="min-h-11 w-full" disabled={disabled} onClick={() => save.mutate()}>
             {t("w04.journey.addStep")}
           </Button>
         </div>
@@ -384,6 +397,7 @@ function ForecastDialog({
   const [start, setStart] = React.useState("");
   const [end, setEnd] = React.useState("");
   const [reason, setReason] = React.useState("");
+  const windowInvalid = invalidWindow(start, end);
 
   React.useEffect(() => {
     setStart("");
@@ -393,6 +407,7 @@ function ForecastDialog({
 
   const save = useMutation({
     mutationFn: async () => {
+      if (windowInvalid) throw new Error("journey_window_invalid");
       const { error } = await supabase.rpc("set_step_expected_window", {
         _journey_step_id: step!.id,
         _expected_start: toIsoOrNull(start) as unknown as string,
@@ -410,7 +425,10 @@ function ForecastDialog({
   });
 
   return (
-    <Dialog open={Boolean(step)} onOpenChange={onOpenChange}>
+    <Dialog
+      open={Boolean(step)}
+      onOpenChange={(next) => (save.isPending ? null : onOpenChange(next))}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("w04.expected.change")}</DialogTitle>
@@ -423,6 +441,7 @@ function ForecastDialog({
                 id="fc-start"
                 type="datetime-local"
                 value={start}
+                aria-invalid={windowInvalid}
                 onChange={(event) => setStart(event.target.value)}
                 className="min-h-11"
               />
@@ -433,11 +452,21 @@ function ForecastDialog({
                 id="fc-end"
                 type="datetime-local"
                 value={end}
+                aria-invalid={windowInvalid}
                 onChange={(event) => setEnd(event.target.value)}
                 className="min-h-11"
               />
             </div>
           </div>
+          {windowInvalid ? (
+            <p className="text-sm text-destructive">
+              {locale === "pt-BR"
+                ? "O fim previsto deve ser igual ou posterior ao início previsto."
+                : locale === "es-ES"
+                  ? "El fin previsto debe ser igual o posterior al inicio previsto."
+                  : "Expected end must be at or after expected start."}
+            </p>
+          ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="fc-reason">{t("w04.field.reason")}</Label>
             <Textarea
@@ -450,7 +479,7 @@ function ForecastDialog({
           </div>
           <Button
             className="min-h-11 w-full"
-            disabled={!reason.trim() || save.isPending}
+            disabled={!reason.trim() || windowInvalid || save.isPending}
             onClick={() => save.mutate()}
           >
             {t("w04.expected.change")}
@@ -477,13 +506,18 @@ function PlaybookEditor({
   const [title, setTitle] = React.useState("");
   const [requirement, setRequirement] = React.useState<PlaybookRequirement>("required");
   const [ownerRole, setOwnerRole] = React.useState("");
+  const idempotencyKey = React.useRef(newIdempotencyKey());
+
+  const rotateKey = () => {
+    idempotencyKey.current = newIdempotencyKey();
+  };
 
   const add = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.rpc("create_playbook_item", {
         _journey_step_id: step.id,
         _title: title.trim(),
-        _idempotency_key: newIdempotencyKey(),
+        _idempotency_key: idempotencyKey.current,
         _requirement: requirement,
         ...(ownerRole ? { _owner_role_type_id: ownerRole } : {}),
       });
@@ -492,6 +526,7 @@ function PlaybookEditor({
     onSuccess: () => {
       feedback.success(t("w04.playbook.added"));
       setTitle("");
+      idempotencyKey.current = newIdempotencyKey();
       void queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
@@ -537,7 +572,10 @@ function PlaybookEditor({
         <Input
           aria-label={t("w04.playbook.add")}
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            rotateKey();
+          }}
           placeholder={t("w04.playbook.add")}
           className="min-h-11 flex-1"
         />
@@ -545,7 +583,10 @@ function PlaybookEditor({
           aria-label={t("w04.field.presenceRequirement")}
           className={`${SELECT_CLASS} sm:w-44`}
           value={requirement}
-          onChange={(event) => setRequirement(event.target.value as PlaybookRequirement)}
+          onChange={(event) => {
+            setRequirement(event.target.value as PlaybookRequirement);
+            rotateKey();
+          }}
         >
           {PLAYBOOK_REQUIREMENTS.map((value) => (
             <option key={value} value={value}>
@@ -557,7 +598,10 @@ function PlaybookEditor({
           aria-label={t("w04.playbook.owner")}
           className={`${SELECT_CLASS} sm:w-48`}
           value={ownerRole}
-          onChange={(event) => setOwnerRole(event.target.value)}
+          onChange={(event) => {
+            setOwnerRole(event.target.value);
+            rotateKey();
+          }}
         >
           <option value="">{t("w04.playbook.owner")}</option>
           {roleTypes.map((role) => (
@@ -640,11 +684,8 @@ function ApplyBlueprintDialog({
   }, [open]);
 
   const selected = options.find((entry) => entry.version?.id === versionId) ?? null;
-
-  /* Effective anchor: manual override wins, otherwise the operation planned start. */
   const anchor = resolveEffectiveAnchor(anchorInput, plannedStart);
 
-  /* Preview of the selected published version — RLS scopes it to the tenant. */
   const preview = useQuery({
     queryKey: ["blueprint-version-steps", versionId],
     enabled: open && versionId !== "",
@@ -715,6 +756,18 @@ function ApplyBlueprintDialog({
 
         {catalog.isLoading ? (
           <PanelSkeleton rows={2} />
+        ) : catalog.isError ? (
+          <div className="surface-panel space-y-3 px-4 py-4">
+            <p className="text-sm text-destructive">{humanizeBlueprintError(catalog.error, t)}</p>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              disabled={catalog.isFetching}
+              onClick={() => void catalog.refetch()}
+            >
+              {t("state.error.retry")}
+            </Button>
+          </div>
         ) : options.length === 0 ? (
           <EmptyState
             icon={RouteIcon}
@@ -741,7 +794,6 @@ function ApplyBlueprintDialog({
               </select>
             </div>
 
-            {/* Effective anchor */}
             <div className="space-y-1.5">
               {plannedStart ? (
                 <p className="text-sm text-muted-foreground">
@@ -779,7 +831,6 @@ function ApplyBlueprintDialog({
               )}
             </div>
 
-            {/* Step preview */}
             {selected?.version ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -796,9 +847,17 @@ function ApplyBlueprintDialog({
                 {previewState === "loading" ? (
                   <PanelSkeleton rows={3} />
                 ) : previewState === "error" ? (
-                  <p className="surface-panel px-4 py-3 text-sm text-destructive">
-                    {t("bp.apply.previewError")}
-                  </p>
+                  <div className="surface-panel space-y-3 px-4 py-3">
+                    <p className="text-sm text-destructive">{t("bp.apply.previewError")}</p>
+                    <Button
+                      variant="outline"
+                      className="min-h-11"
+                      disabled={preview.isFetching}
+                      onClick={() => void preview.refetch()}
+                    >
+                      {t("state.error.retry")}
+                    </Button>
+                  </div>
                 ) : previewState === "empty" ? (
                   <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
                     {t("bp.apply.previewEmpty")}
@@ -894,10 +953,6 @@ function JourneyPlanPage() {
   const [applyOpen, setApplyOpen] = React.useState(false);
   const { role } = useTenant();
 
-  /**
-   * Provisioning origin: one row joined to its version and blueprint, so the banner and the
-   * per-step chips are served by a single query (never one query per step).
-   */
   const provisioning = useQuery({
     queryKey: ["journey-provisioning", operationId],
     queryFn: async () => {
@@ -912,7 +967,6 @@ function JourneyPlanPage() {
       return data;
     },
   });
-
 
   const journey = useQuery({
     queryKey: ["journey", operationId],
@@ -1038,7 +1092,9 @@ function JourneyPlanPage() {
             <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
             {t("bp.version")} {t("bp.versionShort")}
             {journeyOrigin.versionNumber}
-            {journeyOrigin.stepCount === null ? "" : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
+            {journeyOrigin.stepCount === null
+              ? ""
+              : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
             {journeyOrigin.checksumShort ? ` · ${t("bp.checksum")}: ` : ""}
             {journeyOrigin.checksumShort ? (
               <span className="font-mono text-xs">{journeyOrigin.checksumShort}</span>
@@ -1053,7 +1109,6 @@ function JourneyPlanPage() {
       ) : steps.length > 0 ? (
         <p className="text-xs text-muted-foreground">{t("bp.origin.manual")}</p>
       ) : null}
-
 
       {!baselineOpen ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
@@ -1106,7 +1161,6 @@ function JourneyPlanPage() {
                         <Chip className="border border-border text-muted-foreground">{label}</Chip>
                       ) : null;
                     })()}
-
                   </div>
                   <h3 className="mt-2 text-base font-semibold">{step.title}</h3>
                   {step.location_label ? (
