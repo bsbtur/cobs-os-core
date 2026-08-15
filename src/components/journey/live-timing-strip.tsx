@@ -5,9 +5,14 @@ import type { JourneyStepRow } from "@/lib/w04";
 import { useI18n } from "@/lib/i18n";
 
 /**
- * COBS OS · W04 — Live timing strip (display only).
- * Derives timing purely on the client from expected_* / planned_* values.
- * Writes nothing, queries nothing, and never affects readiness or step actions.
+ * COBS OS · Cockpit UX V2 — live timing strip (display only).
+ *
+ * Principle: in field operation, show less information and more direction.
+ * The component promotes the most operationally relevant clock state
+ * (remaining/late) and keeps elapsed/next timing as secondary context.
+ *
+ * It derives timing only from expected_* / planned_* values, writes nothing,
+ * queries nothing, and never affects readiness or step actions.
  */
 
 const TICK_MS = 30_000;
@@ -46,7 +51,36 @@ function useNow(intervalMs = TICK_MS) {
   return now;
 }
 
-function Chip({
+function PrimaryTiming({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "normal" | "warning";
+}) {
+  return (
+    <div
+      className={`min-w-0 rounded-2xl border px-4 py-4 sm:px-5 ${
+        tone === "warning"
+          ? "border-warning/35 bg-warning-soft text-warning"
+          : "border-primary/25 bg-primary-soft text-primary"
+      }`}
+      aria-live="polite"
+    >
+      <div className="flex items-center gap-2">
+        <Clock className="size-4 shrink-0" aria-hidden={true} />
+        <span className="text-xs font-semibold uppercase tracking-[0.14em]">{label}</span>
+      </div>
+      <p className="mt-1 font-mono text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SecondaryTiming({
   icon: Icon,
   label,
   value,
@@ -58,15 +92,17 @@ function Chip({
   tone?: "muted" | "warning";
 }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm ${
-        tone === "warning" ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground"
+    <div
+      className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-sm ${
+        tone === "warning"
+          ? "border-warning/30 bg-warning-soft text-warning"
+          : "border-border/70 bg-background/55 text-muted-foreground"
       }`}
     >
-      <Icon className="size-4" aria-hidden={true} />
-      <span className="font-medium">{label}</span>
-      <span className="tabular-nums">{value}</span>
-    </span>
+      <Icon className="size-4 shrink-0" aria-hidden={true} />
+      <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
+      <span className="shrink-0 font-mono font-medium tabular-nums">{value}</span>
+    </div>
   );
 }
 
@@ -86,70 +122,42 @@ export function LiveTimingStrip({
   const currentEnd = endOf(current);
   const nextStart = startOf(next);
 
-  const chips: React.ReactNode[] = [];
+  const remaining = currentEnd === null ? null : currentEnd - now;
+  const elapsed = currentStart !== null && currentStart <= now ? now - currentStart : null;
+  const untilNext = nextStart === null ? null : nextStart - now;
 
-  if (currentStart !== null && currentStart <= now) {
-    chips.push(
-      <Chip
-        key="elapsed"
-        icon={Hourglass}
-        label={t("w04.timing.elapsed")}
-        value={formatDuration(now - currentStart)}
-      />,
-    );
-  }
-
-  if (currentEnd !== null) {
-    const remaining = currentEnd - now;
-    chips.push(
-      remaining >= 0 ? (
-        <Chip
-          key="remaining"
-          icon={Clock}
-          label={t("w04.timing.remaining")}
-          value={formatDuration(remaining)}
-        />
-      ) : (
-        <Chip
-          key="late"
-          icon={Clock}
-          label={t("w04.timing.late")}
-          value={formatDuration(remaining)}
-          tone="warning"
-        />
-      ),
-    );
-  }
-
-  if (nextStart !== null) {
-    const untilNext = nextStart - now;
-    chips.push(
-      untilNext >= 0 ? (
-        <Chip
-          key="next"
-          icon={TimerReset}
-          label={t("w04.timing.nextIn")}
-          value={formatDuration(untilNext)}
-        />
-      ) : (
-        <Chip
-          key="next-late"
-          icon={TimerReset}
-          label={t("w04.timing.nextLate")}
-          value={formatDuration(untilNext)}
-          tone="warning"
-        />
-      ),
-    );
-  }
-
-  if (chips.length === 0) {
+  if (remaining === null && elapsed === null && untilNext === null) {
     return <p className="mt-3 text-sm text-muted-foreground">{t("w04.timing.none")}</p>;
   }
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2" aria-live="polite">
-      {chips}
+    <div className="mt-4 space-y-2.5">
+      {remaining !== null ? (
+        <PrimaryTiming
+          label={remaining >= 0 ? t("w04.timing.remaining") : t("w04.timing.late")}
+          value={formatDuration(remaining)}
+          tone={remaining >= 0 ? "normal" : "warning"}
+        />
+      ) : null}
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        {elapsed !== null ? (
+          <SecondaryTiming
+            icon={Hourglass}
+            label={t("w04.timing.elapsed")}
+            value={formatDuration(elapsed)}
+          />
+        ) : null}
+
+        {untilNext !== null ? (
+          <SecondaryTiming
+            icon={TimerReset}
+            label={untilNext >= 0 ? t("w04.timing.nextIn") : t("w04.timing.nextLate")}
+            value={formatDuration(untilNext)}
+            tone={untilNext >= 0 ? "muted" : "warning"}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
