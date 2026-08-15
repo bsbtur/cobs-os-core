@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { FieldModePendingFirst } from "@/components/journey/field-mode-pending-first";
 import { JourneyOperationalCockpit } from "@/components/journey/journey-operational-cockpit";
 import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
 import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
@@ -29,6 +30,8 @@ function OperationWorkspace() {
     <AppShell activeId="operations" title={t("op.title")}>
       <div className={`mx-auto w-full max-w-5xl space-y-5 ${isLive ? "field-runtime" : ""}`}>
         <RequireTenant>
+          <FieldModePendingFirst operationId={operationId} />
+
           <Button asChild variant="ghost" size="sm" className="-ml-2 min-h-9">
             <Link to="/operations">
               <ArrowLeft className="mr-2 size-4" aria-hidden="true" />
