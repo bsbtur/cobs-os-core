@@ -1,5 +1,6 @@
+import type { ReactNode } from "react";
 import { createFileRoute, Link, Outlet, useLocation, useParams } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -24,11 +25,42 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId")(
 const TAB_CLASS =
   "inline-flex min-h-11 items-center rounded-lg px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground";
 
+const copy = (locale: string, pt: string, en: string) =>
+  locale.toLowerCase().startsWith("pt") ? pt : en;
+
+function OverviewDisclosure({
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="group surface-panel overflow-hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:content-none hover:bg-elevated/40 focus-ring">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">{eyebrow}</p>
+          <p className="mt-1 text-sm font-semibold">{title}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        </div>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      <div className="border-t border-border bg-background/30 p-3 sm:p-4">{children}</div>
+    </details>
+  );
+}
+
 function OperationWorkspace() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const location = useLocation();
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId" });
-  const isLive = location.pathname.endsWith(`/operations/${operationId}/live`);
+  const base = `/operations/${operationId}`;
+  const isOverview = location.pathname === base || location.pathname === `${base}/`;
+  const isLive = location.pathname.endsWith(`${base}/live`);
 
   return (
     <AppShell activeId="operations" title={t("op.title")}>
@@ -54,17 +86,48 @@ function OperationWorkspace() {
             <Link from="/operations/$operationId" to="/operations/$operationId/communication" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w08.tab.communication")}</Link>
           </nav>
 
-          <OperationControlCenter operationId={operationId} />
-          <OperationIntelligenceCockpit operationId={operationId} />
-          <PostOperationDebrief operationId={operationId} />
-          <OperationHistoryTimeline operationId={operationId} />
+          {isOverview ? (
+            <>
+              <OperationControlCenter operationId={operationId} />
+
+              <OverviewDisclosure
+                eyebrow="COBS Intelligence"
+                title={copy(locale, "Indicadores detalhados", "Detailed intelligence")}
+                description={copy(locale, "Jornada, presença, mobilidade, hospedagem, comunicação e financeiro.", "Journey, presence, mobility, hospitality, communication and finance.")}
+              >
+                <OperationIntelligenceCockpit operationId={operationId} />
+              </OverviewDisclosure>
+
+              <PostOperationDebrief operationId={operationId} />
+
+              <OverviewDisclosure
+                eyebrow="Audit trail"
+                title={copy(locale, "Histórico da operação", "Operation history")}
+                description={copy(locale, "Linha do tempo factual para auditoria e investigação.", "Factual timeline for audit and investigation.")}
+              >
+                <OperationHistoryTimeline operationId={operationId} />
+              </OverviewDisclosure>
+            </>
+          ) : null}
+
           <LiveNextBestAction operationId={operationId} />
           <OperationAttentionCenter operationId={operationId} />
           <FieldBatchPresence operationId={operationId} />
           {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
           <JourneyOperationalCockpit operationId={operationId} />
           <JourneyManagementPanel operationId={operationId} />
-          <Outlet />
+
+          {isOverview ? (
+            <OverviewDisclosure
+              eyebrow={copy(locale, "Administração", "Administration")}
+              title={copy(locale, "Planejamento e ciclo de vida", "Planning & lifecycle")}
+              description={copy(locale, "Janelas planned/expected, status, arquivamento e controles administrativos.", "Planned/expected windows, status, archiving and administrative controls.")}
+            >
+              <Outlet />
+            </OverviewDisclosure>
+          ) : (
+            <Outlet />
+          )}
         </RequireTenant>
       </div>
     </AppShell>
