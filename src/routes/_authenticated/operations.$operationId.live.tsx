@@ -1,7 +1,15 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Clock, Radio, Search, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  MoreHorizontal,
+  Radio,
+  Search,
+  Users,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
@@ -34,6 +42,13 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/operations/$operationId/live")({
   head: () => ({
@@ -312,58 +327,68 @@ function PresencePanel({
                   {fact ? presenceLabel(fact, t) : t("w04.presence.pending")}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-0 sm:flex sm:flex-wrap sm:gap-1.5">
+              <div className="mt-3 flex items-center gap-2 sm:mt-0 sm:w-auto">
                 <Button
                   size="sm"
-                  className="col-span-2 min-h-11 sm:col-span-1 sm:min-h-10"
+                  className="min-h-12 flex-1 text-sm sm:min-h-10 sm:flex-none"
                   disabled={record.isPending || primaryBlocked}
                   title={primaryBlocked ? t("w04.presence.boardingNotOpen") : undefined}
                   onClick={() => record.mutate({ participationId: row.id, fact: primaryFact })}
                 >
                   {presenceLabel(primaryFact, t)}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="min-h-10"
-                  disabled={record.isPending}
-                  onClick={() => {
-                    setReason("");
-                    setReasonPrompt({ row, fact: "ABSENCE_NOTED" });
-                  }}
-                >
-                  {presenceLabel("ABSENCE_NOTED", t)}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="min-h-10 border border-border/60 sm:border-0"
-                  onClick={() => {
-                    setReason("");
-                    setReasonPrompt({ row, fact: "NO_SHOW_CONFIRMED" });
-                  }}
-                >
-                  {presenceLabel("NO_SHOW_CONFIRMED", t)}
-                </Button>
-                {effective ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="col-span-2 min-h-10 text-muted-foreground sm:col-span-1"
-                    disabled={retract.isPending}
-                    onClick={() => {
-                      setCorrectReason("");
-                      setCorrectPrompt({
-                        row,
-                        event: effective,
-                        idempotencyKey: crypto.randomUUID(),
-                      });
-                    }}
-                  >
-                    {t("w04.presence.correct")}
-                  </Button>
-                ) : null}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="min-h-12 shrink-0 px-3 sm:min-h-10"
+                      aria-label={t("w04.presence.more")}
+                    >
+                      <MoreHorizontal className="size-4" aria-hidden="true" />
+                      <span className="ml-1 sm:sr-only">{t("w04.presence.more")}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-60">
+                    <DropdownMenuItem
+                      disabled={record.isPending}
+                      onSelect={() => {
+                        setReason("");
+                        setReasonPrompt({ row, fact: "ABSENCE_NOTED" });
+                      }}
+                    >
+                      {presenceLabel("ABSENCE_NOTED", t)}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setReason("");
+                        setReasonPrompt({ row, fact: "NO_SHOW_CONFIRMED" });
+                      }}
+                    >
+                      {presenceLabel("NO_SHOW_CONFIRMED", t)}
+                    </DropdownMenuItem>
+                    {effective ? (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          disabled={retract.isPending}
+                          onSelect={() => {
+                            setCorrectReason("");
+                            setCorrectPrompt({
+                              row,
+                              event: effective,
+                              idempotencyKey: crypto.randomUUID(),
+                            });
+                          }}
+                        >
+                          {t("w04.presence.correct")}
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
             </li>
           );
         })}
