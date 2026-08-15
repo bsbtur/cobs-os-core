@@ -10,6 +10,7 @@ type GeneratorResult = {
   created?: number;
   skipped_duplicate?: number;
   skipped_ineligible?: number;
+  promoted_important?: number;
 };
 
 function json(body: unknown, status = 200) {
@@ -77,7 +78,54 @@ async function runStaffAlertScheduler(request: Request) {
       continue;
     }
 
-    results.push({ tenantId: tenant.id, result: (response.data ?? {}) as GeneratorResult });
+    const generated = (response.data ?? {}) as GeneratorResult;
+
+    // PX12.5-E — reuse the canonical message_priority enum.
+    // Product language: normal = Normal, important = Importante, urgent = Crítico.
+    // Staff presentation/start reminders are important; shift-end reminders remain normal.
+    const candidates = await supabase
+      .from("messages")
+      .select("id,priority,metadata")
+      .eq("tenant_id", tenant.id)
+      .eq("kind", "reminder")
+      .gte("published_at", windowStart.toISOString())
+      .lte("published_at", new Date().toISOString())
+      .contains("metadata", { source: "px12_staff_journey_alert" });
+
+    if (candidates.error) {
+      console.error(`[PX12.5-E] Priority lookup failed for tenant ${tenant.id}`, candidates.error);
+      results.push({ tenantId: tenant.id, error: candidates.error.message });
+      continue;
+    }
+
+    const importantIds = (candidates.data ?? [])
+      .filter((message) => {
+        const metadata = (message.metadata ?? {}) as Record<string, unknown>;
+        return (
+          message.priority === "normal" &&
+          (metadata["milestone"] === "report_at" || metadata["milestone"] === "starts_at")
+        );
+      })
+      .map((message) => message.id);
+
+    if (importantIds.length) {
+      const promoted = await supabase
+        .from("messages")
+        .update({ priority: "important" })
+        .eq("tenant_id", tenant.id)
+        .in("id", importantIds);
+
+      if (promoted.error) {
+        console.error(`[PX12.5-E] Priority promotion failed for tenant ${tenant.id}`, promoted.error);
+        results.push({ tenantId: tenant.id, error: promoted.error.message });
+        continue;
+      }
+    }
+
+    results.push({
+      tenantId: tenant.id,
+      result: { ...generated, promoted_important: importantIds.length },
+    });
   }
 
   const totals = results.reduce(
@@ -86,9 +134,16 @@ async function runStaffAlertScheduler(request: Request) {
       acc.created += item.result?.created ?? 0;
       acc.skippedDuplicate += item.result?.skipped_duplicate ?? 0;
       acc.skippedIneligible += item.result?.skipped_ineligible ?? 0;
+      acc.promotedImportant += item.result?.promoted_important ?? 0;
       return acc;
     },
-    { created: 0, skippedDuplicate: 0, skippedIneligible: 0, failedTenants: 0 },
+    {
+      created: 0,
+      skippedDuplicate: 0,
+      skippedIneligible: 0,
+      promotedImportant: 0,
+      failedTenants: 0,
+    },
   );
 
   return json({
