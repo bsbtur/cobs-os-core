@@ -41,6 +41,8 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
+import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
