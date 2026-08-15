@@ -5,6 +5,7 @@ import {
   ArrowRight,
   CheckCircle2,
   ClipboardCheck,
+  LayoutDashboard,
   Radio,
   Users,
 } from "lucide-react";
@@ -143,7 +144,7 @@ function CockpitV2Preview() {
   const travelersNeedAttention = unconfirmed > 0 || missingPeople > 0;
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-4 pb-24">
+    <section className="mx-auto w-full max-w-3xl space-y-4 pb-28 sm:pb-24">
       <header className="space-y-1 px-1">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -332,6 +333,39 @@ function CockpitV2Preview() {
       <p className="px-1 text-xs text-muted-foreground">
         Preview V2: leitura operacional resumida. As ações continuam sendo executadas no runtime Live validado.
       </p>
+
+      <nav
+        aria-label="Navegação rápida do Cockpit"
+        className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-md rounded-2xl border border-border/80 bg-background/95 p-1.5 shadow-lg backdrop-blur sm:hidden"
+      >
+        <div className="grid grid-cols-3 gap-1">
+          <Link
+            to="/operations/$operationId/cockpit-v2"
+            params={{ operationId }}
+            aria-current="page"
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl bg-primary-soft px-2 text-primary focus-ring"
+          >
+            <LayoutDashboard className="size-5" aria-hidden="true" />
+            <span className="text-[11px] font-semibold">Cockpit</span>
+          </Link>
+          <Link
+            to="/operations/$operationId/people"
+            params={{ operationId }}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-2 text-muted-foreground transition-colors hover:bg-elevated hover:text-foreground focus-ring"
+          >
+            <Users className="size-5" aria-hidden="true" />
+            <span className="text-[11px] font-semibold">Passageiros</span>
+          </Link>
+          <Link
+            to="/operations/$operationId/live"
+            params={{ operationId }}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-2 text-muted-foreground transition-colors hover:bg-elevated hover:text-foreground focus-ring"
+          >
+            <Radio className="size-5" aria-hidden="true" />
+            <span className="text-[11px] font-semibold">Operação</span>
+          </Link>
+        </div>
+      </nav>
     </section>
   );
 }
