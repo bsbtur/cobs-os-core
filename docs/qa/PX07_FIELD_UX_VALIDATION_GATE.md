@@ -1,6 +1,6 @@
 # PX07 — Field UX Validation Gate
 
-Status: READY FOR HUMAN FIELD QA  
+Status: STATIC PREFLIGHT COMPLETE · HUMAN FIELD QA PENDING  
 Scope: preview/alpha-productization-px01 only  
 Purpose: validate the mobile Live workflow before adding more product surface.
 
@@ -9,6 +9,32 @@ Purpose: validate the mobile Live workflow before adding more product surface.
 PX07 does not add domain behavior. Validate only through existing UI/RPC paths. Do not bypass RLS, migrations, lifecycle guards, readiness, presence retractions, BOARDING_STARTED, ARRIVED, or tenant isolation.
 
 The batch path remains auditable by design: it calls `record_presence_fact` once per selected participation, sequentially. A partial failure must remain visible as partial success/failure; do not simulate atomic bulk behavior.
+
+## Static preflight findings
+
+### PX07-P2-001 — duplicated passenger blocker
+
+Observed: Next Best Action already presents unresolved/unconfirmed travelers as the current blocker, while Attention Center could repeat the same passenger condition.
+
+Resolution applied in preview: passenger readiness blockers remain owned by PX04/readiness. PX05 is focused on exceptional/cross-domain attention. No domain rule changed.
+
+### PX07-P2-002 — green Attention Center consumes mobile space
+
+Observed: when there is no exceptional attention, a positive green card adds vertical height before the canonical Live runtime.
+
+Resolution applied in preview: the empty-success Attention Center remains visible on larger screens but is hidden on mobile. Exceptional attention remains visible.
+
+### PX07-P2-003 — too many simultaneous attention rows
+
+Observed: an operation with multiple W09 signals can create a tall block before the current-step runtime.
+
+Resolution applied in preview: show the top 3 attention signals in severity order and summarize the remainder. Critical ordering is preserved.
+
+### PX07-P2-004 — finance is not a field-runtime priority
+
+Observed: outstanding balance is useful in the executive cockpit but competes with operational exceptions in Live.
+
+Resolution applied in preview: financial balance remains in the executive Overview cockpit; it is no longer promoted in the Live Attention Center.
 
 ## Device baseline
 
@@ -100,7 +126,7 @@ FAIL: any UI path records DISEMBARKED before ARRIVED.
 
 ### G8 — Attention Center
 
-Create/use existing QA facts that produce attention signals. Verify critical signals sort before warning/info and that the center does not invent a state not present in W09 intelligence/runtime data.
+Create/use existing QA facts that produce attention signals. Verify critical signals sort before warning/info, current-step passenger blockers are not duplicated from PX04, and the center does not invent a state not present in W09 intelligence/runtime data.
 
 ### G9 — Completion and next step
 
