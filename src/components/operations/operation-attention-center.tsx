@@ -11,8 +11,6 @@ type Intelligence = {
   incidents?: { total?: number };
   hospitality?: { stays?: Array<{ issues?: number }> };
   communications?: { urgent_unread?: number };
-  commerce?: { currency?: string | null; outstanding_minor?: number };
-  passengers?: { current_step?: { unresolved?: number } };
   journey?: { delay?: { minutes?: number; status?: string } };
 };
 type Rpc = (fn: "get_operation_intelligence", args: { _operation_id: string }) => PromiseLike<{ data: unknown; error: unknown }>;
@@ -20,10 +18,6 @@ type Attention = { severity: "critical" | "warning" | "info"; title: string; det
 
 const n = (value: number | null | undefined) => value ?? 0;
 const copy = (locale: string, pt: string, en: string) => locale.toLowerCase().startsWith("pt") ? pt : en;
-
-function money(value: number | null | undefined, currency = "BRL") {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(n(value) / 100);
-}
 
 export function OperationAttentionCenter({ operationId }: { operationId: string }) {
   const location = useLocation();
@@ -45,7 +39,7 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
   if (!isLive || query.isLoading || query.isError || !query.data) return null;
   const data = query.data;
   const attentions: Attention[] = [];
-  const healthReasons = data.health?.reasons ?? [];
+  const healthReasons = (data.health?.reasons ?? []).filter((reason) => !isCurrentStepPassengerBlocker(reason.code));
 
   for (const reason of healthReasons) {
     if (!reason.code) continue;
@@ -65,21 +59,15 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
   const urgentUnread = n(data.communications?.urgent_unread);
   if (urgentUnread > 0) attentions.push({ severity: "critical", title: copy(locale, "Alerta urgente não lido", "Unread urgent alert"), detail: copy(locale, `${urgentUnread} leitura(s) urgente(s) ainda pendentes.`, `${urgentUnread} urgent read(s) are still pending.`) });
 
-  const unresolved = n(data.passengers?.current_step?.unresolved);
-  if (unresolved > 0 && !healthReasons.some((r) => r.code?.includes("UNRESOLVED"))) attentions.push({ severity: "warning", title: copy(locale, "Viajantes pendentes", "Pending travelers"), detail: copy(locale, `${unresolved} viajante(s) ainda não resolvidos na etapa atual.`, `${unresolved} traveler(s) remain unresolved in the current step.`) });
-
   const delay = n(data.journey?.delay?.minutes);
   if (delay > 0 && !healthReasons.some((r) => r.code?.includes("DELAY"))) attentions.push({ severity: delay >= 15 ? "critical" : "warning", title: copy(locale, "Atraso operacional", "Operational delay"), detail: copy(locale, `A etapa está ${delay} min atrasada.`, `The step is ${delay} min late.`) });
-
-  const outstanding = n(data.commerce?.outstanding_minor);
-  if (outstanding > 0) attentions.push({ severity: "info", title: copy(locale, "Saldo financeiro pendente", "Outstanding financial balance"), detail: money(outstanding, data.commerce?.currency ?? "BRL") });
 
   const order = { critical: 0, warning: 1, info: 2 } as const;
   attentions.sort((a, b) => order[a.severity] - order[b.severity]);
 
   if (attentions.length === 0) {
     return (
-      <section className="rounded-xl border border-success/30 bg-success-soft px-4 py-3">
+      <section className="hidden rounded-xl border border-success/30 bg-success-soft px-4 py-3 sm:block">
         <div className="flex items-start gap-2.5">
           <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden="true" />
           <div><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-success">{copy(locale, "Central de atenção", "Attention center")}</p><p className="mt-1 text-sm font-semibold text-success">{copy(locale, "Nenhuma atenção crítica agora", "No critical attention needed now")}</p></div>
@@ -95,8 +83,9 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
         <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold">{attentions.length}</span>
       </div>
       <div className="mt-3 space-y-2">
-        {attentions.slice(0, 5).map((item, index) => <AttentionRow key={`${item.title}-${index}`} item={item} />)}
+        {attentions.slice(0, 3).map((item, index) => <AttentionRow key={`${item.title}-${index}`} item={item} />)}
       </div>
+      {attentions.length > 3 ? <p className="mt-2 text-[11px] text-muted-foreground">+{attentions.length - 3} {copy(locale, "outro(s) sinal(is)", "more signal(s)")}</p> : null}
     </section>
   );
 }
@@ -107,11 +96,13 @@ function AttentionRow({ item }: { item: Attention }) {
   return <div className={`flex items-start gap-2.5 rounded-lg border px-3 py-2 ${classes}`}><Icon className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><div><p className="text-xs font-semibold">{item.title}</p><p className="mt-0.5 text-[11px] opacity-80">{item.detail}</p></div></div>;
 }
 
+function isCurrentStepPassengerBlocker(code?: string) {
+  return code === "UNRESOLVED_PASSENGERS" || code === "EXPECTED_PARTICIPATIONS_REMAIN";
+}
+
 function humanizeCode(code: string, locale: string) {
   const known: Record<string, [string, string]> = {
     CURRENT_STEP_DELAYED: ["Etapa atual atrasada", "Current step delayed"],
-    UNRESOLVED_PASSENGERS: ["Viajantes pendentes", "Pending travelers"],
-    EXPECTED_PARTICIPATIONS_REMAIN: ["Participações ainda esperadas", "Expected participations remain"],
   };
   const value = known[code];
   if (value) return copy(locale, value[0], value[1]);
