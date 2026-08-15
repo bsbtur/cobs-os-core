@@ -1,9 +1,11 @@
 import { useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, AlertTriangle, BellRing, CheckCircle2, Info } from "lucide-react";
+import { AlertCircle, AlertTriangle, BellRing, CheckCircle2, Info, RefreshCw } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
+import { LoadingPulse } from "@/components/feedback/loading";
 
 type Reason = { code?: string; severity?: string; value?: number | string | null };
 type Intelligence = {
@@ -36,7 +38,37 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
     },
   });
 
-  if (!isLive || query.isLoading || query.isError || !query.data) return null;
+  if (!isLive) return null;
+
+  if (query.isLoading) {
+    return (
+      <section className="rounded-xl border border-border bg-background/70 px-4 py-3" aria-live="polite">
+        <div className="flex items-center gap-2"><BellRing className="size-4 text-primary" aria-hidden="true" /><LoadingPulse label={copy(locale, "Atualizando saúde operacional...", "Updating operational health...")} /></div>
+      </section>
+    );
+  }
+
+  if (query.isError || !query.data) {
+    return (
+      <section className="rounded-xl border border-warning/30 bg-warning-soft px-4 py-3" role="alert">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true" />
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-warning">{copy(locale, "Central de atenção", "Attention center")}</p>
+              <p className="mt-1 text-sm font-semibold">{copy(locale, "Não foi possível atualizar os sinais operacionais", "Could not refresh operational signals")}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{copy(locale, "Não interprete a ausência de alertas como operação saudável até a atualização concluir.", "Do not treat missing alerts as a healthy operation until refresh completes.")}</p>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
+            <RefreshCw className={`mr-1 size-3.5 ${query.isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
+            {copy(locale, "Atualizar", "Refresh")}
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
   const data = query.data;
   const attentions: Attention[] = [];
   const healthReasons = (data.health?.reasons ?? []).filter((reason) => !isCurrentStepPassengerBlocker(reason.code));
