@@ -9,6 +9,7 @@ import { JourneyOperationalCockpit } from "@/components/journey/journey-operatio
 import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
 import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
 import { OperationAttentionCenter } from "@/components/operations/operation-attention-center";
+import { OperationHistoryTimeline } from "@/components/operations/operation-history-timeline";
 import { OperationIntelligenceCockpit } from "@/components/operations/operation-intelligence-cockpit";
 import { PostOperationDebrief } from "@/components/operations/post-operation-debrief";
 import { useI18n } from "@/lib/i18n";
@@ -54,6 +55,7 @@ function OperationWorkspace() {
 
           <OperationIntelligenceCockpit operationId={operationId} />
           <PostOperationDebrief operationId={operationId} />
+          <OperationHistoryTimeline operationId={operationId} />
           <LiveNextBestAction operationId={operationId} />
           <OperationAttentionCenter operationId={operationId} />
           <FieldBatchPresence operationId={operationId} />
