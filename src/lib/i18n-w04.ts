@@ -85,6 +85,14 @@ export const W04_PT: Record<string, string> = {
   "w04.live.subtitle": "Somente fatos registrados. Nada aqui é estimado.",
   "w04.live.now": "AGORA",
   "w04.live.next": "PRÓXIMO",
+
+  "w04.timing.elapsed": "Decorrido",
+  "w04.timing.remaining": "Restam",
+  "w04.timing.late": "Atraso",
+  "w04.timing.nextIn": "Próxima em",
+  "w04.timing.nextLate": "Próxima atrasada",
+  "w04.timing.none": "Sem horários definidos para esta etapa.",
+
   "w04.live.attention": "ATENÇÃO",
   "w04.live.people": "PESSOAS",
   "w04.live.checklist": "CHECKLIST",
