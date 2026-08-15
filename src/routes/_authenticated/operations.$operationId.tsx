@@ -5,6 +5,7 @@ import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { JourneyOperationalCockpit } from "@/components/journey/journey-operational-cockpit";
 import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
+import { OperationIntelligenceCockpit } from "@/components/operations/operation-intelligence-cockpit";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
@@ -102,6 +103,7 @@ function OperationWorkspace() {
             </Link>
           </nav>
 
+          <OperationIntelligenceCockpit operationId={operationId} />
           {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
           <JourneyOperationalCockpit operationId={operationId} />
           <JourneyManagementPanel operationId={operationId} />
