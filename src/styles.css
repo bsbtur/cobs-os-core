@@ -195,47 +195,21 @@
 }
 
 @keyframes rise {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
 }
 
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 @keyframes sheen {
-  0% {
-    transform: translate3d(-15%, -10%, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(12%, 8%, 0) scale(1.08);
-  }
-  100% {
-    transform: translate3d(-15%, -10%, 0) scale(1);
-  }
+  0% { transform: translate3d(-15%, -10%, 0) scale(1); }
+  50% { transform: translate3d(12%, 8%, 0) scale(1.08); }
+  100% { transform: translate3d(-15%, -10%, 0) scale(1); }
 }
 
 @keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(0.82);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
 }
 
 @utility surface-panel {
@@ -245,41 +219,58 @@
   box-shadow: var(--shadow-soft);
 }
 
-@utility command-canvas {
-  background-image: var(--gradient-command);
-}
+@utility command-canvas { background-image: var(--gradient-command); }
 
 @utility hairline-grid {
   background-image:
-    linear-gradient(
-      to right,
-      color-mix(in oklab, var(--color-border) 70%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--color-border) 70%, transparent) 1px,
-      transparent 1px
-    );
+    linear-gradient(to right, color-mix(in oklab, var(--color-border) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-border) 70%, transparent) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
 @utility focus-ring {
-  &:focus-visible {
-    outline: 2px solid var(--color-ring);
-    outline-offset: 2px;
+  &:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+}
+
+/* PX06 — field runtime optimizations. Mobile only: preserve desktop workspace. */
+@media (max-width: 639px) {
+  .field-runtime {
+    padding-bottom: calc(6.75rem + env(safe-area-inset-bottom));
+  }
+
+  .field-runtime .surface-panel {
+    border-radius: var(--radius-lg);
+    box-shadow: none;
+  }
+
+  .field-runtime button,
+  .field-runtime [role="button"] {
+    touch-action: manipulation;
+  }
+
+  .field-sticky-action {
+    position: sticky;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    z-index: 30;
+    margin-inline: -0.25rem;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-xl);
+    background: color-mix(in oklab, var(--color-background) 92%, transparent);
+    box-shadow: var(--shadow-lift);
+    backdrop-filter: blur(14px);
+  }
+
+  .field-sticky-action button {
+    min-height: 3.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
   }
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
-
-  html {
-    -webkit-text-size-adjust: 100%;
-  }
-
+  * { border-color: var(--color-border); }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -287,24 +278,11 @@
     font-feature-settings: "cv02", "ss01";
     text-rendering: optimizeLegibility;
   }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: var(--font-display);
-    letter-spacing: -0.02em;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--color-ring);
-    outline-offset: 2px;
-  }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  :focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
 
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
