@@ -1,8 +1,9 @@
 import { useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, AlertTriangle, BedDouble, Bus, CalendarDays, MessageSquare, Users, WalletCards } from "lucide-react";
+import { Activity, AlertTriangle, BedDouble, Bus, CalendarDays, MessageSquare, RefreshCw, Users, WalletCards } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 type Intelligence = {
   operation?: { status?: string };
@@ -71,13 +72,22 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
   });
 
   if (!isOverview) return null;
-  if (query.isLoading) return <div className="surface-panel h-36 animate-pulse" />;
+  if (query.isLoading) return <div className="surface-panel h-36 animate-pulse" aria-label="Carregando cockpit operacional" />;
   if (query.isError || !query.data) {
     return (
-      <section className="surface-panel p-4">
-        <div className="flex items-center gap-2 text-destructive">
-          <AlertTriangle className="size-4" />
-          <p className="text-sm font-medium">Cockpit operacional indisponível.</p>
+      <section className="surface-panel p-4" role="alert">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-2 text-destructive">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-medium">Cockpit operacional indisponível.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Os dados atuais não puderam ser confirmados. Tente atualizar antes de tomar uma decisão operacional.</p>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
+            <RefreshCw className={`mr-1 size-3.5 ${query.isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
+            Atualizar
+          </Button>
         </div>
       </section>
     );
@@ -93,7 +103,7 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
   const checkedIn = stays.reduce((sum, stay) => sum + n(stay.checked_in), 0);
   const issues = stays.reduce((sum, stay) => sum + n(stay.issues), 0);
   const health = data.health?.level ?? "green";
-  const healthLabel = health === "red" ? "Crítico" : health === "yellow" ? "Atenção" : "Sob controle";
+  const healthLabel = health === "red" ? "Crítica" : health === "yellow" ? "Atenção" : "Saudável";
   const healthClass = health === "red"
     ? "border-destructive/40 bg-destructive/10 text-destructive"
     : health === "yellow"
@@ -131,7 +141,7 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Metric icon={Bus} label="Mobilidade" value={`${arrived}/${legs.length}`} detail="deslocamentos que chegaram" />
-          <Metric icon={BedDouble} label="Hospedagem" value={`${checkedIn}/${guests}`} detail={issues ? `${issues} issue(s)` : `${stays.length} hospedagem(ns)`} />
+          <Metric icon={BedDouble} label="Hospedagem" value={`${checkedIn}/${guests}`} detail={issues ? `${issues} pendência(s)` : `${stays.length} hospedagem(ns)`} />
           <Metric icon={CalendarDays} label="Eventos" value={`${n(data.events?.completed)}/${n(data.events?.total)}`} detail={`${n(data.events?.completed_sessions)}/${n(data.events?.total_sessions)} sessões concluídas`} />
           <Metric icon={Users} label="Presença efetiva" value={String(n(passengers?.effective_facts?.present))} detail={`${n(passengers?.effective_facts?.boarded)} embarcado(s) · ${n(passengers?.effective_facts?.no_show)} no-show`} />
         </div>
