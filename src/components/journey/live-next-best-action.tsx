@@ -21,15 +21,19 @@ function copy(locale: string, pt: string, en: string) {
  * PX04 — display-only operational guidance.
  * It reads canonical runtime facts and never writes, calls an action RPC, or
  * creates an alternative lifecycle. StepActions remains the execution layer.
+ * Cockpit V2 reuses this exact guidance so there is only one recommendation
+ * engine for both the validated Live runtime and the preview experience.
  */
 export function LiveNextBestAction({ operationId }: { operationId: string }) {
   const location = useLocation();
   const { locale } = useI18n();
-  const isLive = location.pathname.endsWith(`/operations/${operationId}/live`);
+  const isGuidanceSurface =
+    location.pathname.endsWith(`/operations/${operationId}/live`) ||
+    location.pathname.endsWith(`/operations/${operationId}/cockpit-v2`);
 
   const guidanceQuery = useQuery({
     queryKey: ["px04-next-best-action", operationId],
-    enabled: isLive,
+    enabled: isGuidanceSurface,
     refetchInterval: 20_000,
     queryFn: async () => {
       const [steps, state, roster, facts] = await Promise.all([
@@ -90,7 +94,13 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
     },
   });
 
-  if (!isLive || guidanceQuery.isLoading || guidanceQuery.isError || !guidanceQuery.data) return null;
+  if (
+    !isGuidanceSurface ||
+    guidanceQuery.isLoading ||
+    guidanceQuery.isError ||
+    !guidanceQuery.data
+  )
+    return null;
 
   const { current, next, readiness, unconfirmedCount, boardingStarted, arrived } = guidanceQuery.data;
   const guidance = deriveGuidance({
@@ -199,7 +209,11 @@ function deriveGuidance({
   if (current.presence_requirement === "boarded" && !boardingStarted) {
     return {
       title: copy(locale, "Inicie o embarque", "Start boarding"),
-      detail: copy(locale, "Abra o embarque antes de registrar passageiros embarcados.", "Open boarding before recording boarded travelers."),
+      detail: copy(
+        locale,
+        "Abra o embarque antes de registrar passageiros embarcados.",
+        "Open boarding before recording boarded travelers.",
+      ),
       icon: ArrowRight,
       tone: "primary",
     };
@@ -212,7 +226,11 @@ function deriveGuidance({
   if ((readiness?.ready ?? true) && requiresArrival && !arrived) {
     return {
       title: copy(locale, "Registre a chegada", "Record arrival"),
-      detail: copy(locale, "A chegada é necessária antes de concluir esta etapa.", "Arrival is required before this step can be completed."),
+      detail: copy(
+        locale,
+        "A chegada é necessária antes de concluir esta etapa.",
+        "Arrival is required before this step can be completed.",
+      ),
       icon: MapPin,
       tone: "primary",
     };
@@ -221,7 +239,11 @@ function deriveGuidance({
   if (readiness?.ready ?? true) {
     return {
       title: copy(locale, "Etapa pronta para conclusão", "Step ready to complete"),
-      detail: copy(locale, "Os bloqueios conhecidos estão resolvidos. Confirme a ação principal abaixo.", "Known blockers are resolved. Confirm the main action below."),
+      detail: copy(
+        locale,
+        "Os bloqueios conhecidos estão resolvidos. Confirme a ação principal abaixo.",
+        "Known blockers are resolved. Confirm the main action below.",
+      ),
       icon: CheckCircle2,
       tone: "success",
     };
@@ -229,7 +251,11 @@ function deriveGuidance({
 
   return {
     title: copy(locale, "Revise os bloqueios da etapa", "Review step blockers"),
-    detail: copy(locale, "Consulte pessoas, checklist e fatos operacionais antes de avançar.", "Review people, checklist, and operational facts before advancing."),
+    detail: copy(
+      locale,
+      "Consulte pessoas, checklist e fatos operacionais antes de avançar.",
+      "Review people, checklist, and operational facts before advancing.",
+    ),
     icon: ClipboardCheck,
     tone: "muted",
   };
