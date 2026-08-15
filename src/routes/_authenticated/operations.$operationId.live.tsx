@@ -788,8 +788,15 @@ function LiveRuntimePage() {
       ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
+      if (events.error) throw events.error;
       if (resolutionEvents.error) throw resolutionEvents.error;
       if (boardingEvents.error) throw boardingEvents.error;
+      if (presence.error) throw presence.error;
+if (items.error) throw items.error;
+if (executions.error) throw executions.error;
+if (roster.error) throw roster.error;
+if (state.error) throw state.error;
+      
       return {
         operation: operation.data,
         steps: steps.data ?? [],
@@ -827,6 +834,23 @@ function LiveRuntimePage() {
   };
 
   if (live.isLoading) return <PanelSkeleton />;
+  if (live.isError) {
+  return (
+    <EmptyState
+      icon={AlertTriangle}
+      title="Não foi possível confirmar o estado operacional"
+      body="Os dados da operação não puderam ser atualizados. As ações permanecem bloqueadas até uma nova confirmação."
+      action={
+        <Button
+          className="min-h-11"
+          onClick={() => void live.refetch()}
+        >
+          Tentar novamente
+        </Button>
+      }
+    />
+  );
+}
 
   const operation = live.data?.operation;
   if (!operation) {
@@ -959,7 +983,7 @@ function LiveRuntimePage() {
               <div className="mt-2">
                 <StepActions
                   step={current}
-                  ready={readiness?.ready ?? true}
+                  ready={readiness?.ready ?? false}
                   arrived={arrivedStepIds.has(current.id)}
                   onRefresh={refresh}
                 />
