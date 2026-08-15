@@ -6,6 +6,8 @@ import {
   BedDouble,
   Bus,
   CalendarDays,
+  CheckCircle2,
+  CheckSquare2,
   Clock3,
   MapPin,
   MessageSquareText,
@@ -25,8 +27,8 @@ import { StatusPill } from "@/components/feedback/status-pill";
 type Intelligence = {
   journey?: {
     progress_percent?: number;
-    current_step?: { title?: string } | null;
-    next_step?: { title?: string } | null;
+    current_step?: { id?: string; title?: string } | null;
+    next_step?: { id?: string; title?: string } | null;
   };
   passengers?: { confirmed?: number; current_step?: { unresolved?: number } };
   incidents?: { total?: number };
@@ -39,7 +41,16 @@ type Rpc = (
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 type ShortcutKey = "people" | "journey" | "live" | "mobility" | "hospitality" | "events" | "communication";
-type OperationRoleContext = { key: string; label: string; isPrimary: boolean };
+type OperationRoleContext = { id: string; key: string; label: string; isPrimary: boolean };
+type MyWorkItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  requirement: string;
+  journeyStepId: string | null;
+  journeyStepTitle: string | null;
+  completed: boolean;
+};
 
 const n = (value: number | null | undefined) => value ?? 0;
 const copy = (locale: string, pt: string, en: string) =>
@@ -60,8 +71,9 @@ const ROLE_SHORTCUTS: Record<AppRole, ShortcutKey[]> = {
 };
 
 /**
- * PX12.1 — corporate membership + operation role context.
- * This changes prioritization/copy only. RLS and canonical RPCs remain the authorization boundary.
+ * PX12.2 — contextual "My Work" projection.
+ * Reads canonical operation roles + role-owned playbook items + append-only executions.
+ * It never creates task state or authorization outside the existing domain model.
  */
 export function OperationControlCenter({ operationId }: { operationId: string }) {
   const location = useLocation();
@@ -72,7 +84,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
   const isOverview = location.pathname === base || location.pathname === `${base}/`;
 
   const query = useQuery({
-    queryKey: ["px12-operation-role-context", operationId, user?.id],
+    queryKey: ["px12-my-work-context", operationId, user?.id],
     enabled: isOverview,
     refetchInterval: isOverview ? 30_000 : false,
     queryFn: async () => {
@@ -102,7 +114,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
         if (participation.data?.id) {
           const assignments = await supabase
             .from("operation_role_assignments")
-            .select("is_primary,operation_role_types(key,label,is_active,sort_order)")
+            .select("is_primary,operation_role_types(id,key,label,is_active,sort_order)")
             .eq("participation_id", participation.data.id);
           if (assignments.error) throw assignments.error;
           operationRoles = (assignments.data ?? [])
@@ -110,6 +122,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
               const roleType = one(assignment.operation_role_types);
               if (!roleType?.is_active) return null;
               return {
+                id: roleType.id,
                 key: roleType.key,
                 label: roleType.label?.trim() || humanizeRoleKey(roleType.key),
                 isPrimary: assignment.is_primary,
@@ -122,11 +135,52 @@ export function OperationControlCenter({ operationId }: { operationId: string })
         }
       }
 
+      const roleTypeIds = operationRoles.map((item) => item.id);
+      let myWork: MyWorkItem[] = [];
+      if (roleTypeIds.length) {
+        const items = await supabase
+          .from("playbook_items")
+          .select("id,title,description,requirement,sequence,journey_step_id,owner_role_type_id,journey_steps(title)")
+          .eq("operation_id", operationId)
+          .eq("is_active", true)
+          .in("owner_role_type_id", roleTypeIds)
+          .order("sequence")
+          .limit(30);
+        if (items.error) throw items.error;
+
+        const itemIds = (items.data ?? []).map((item) => item.id);
+        const executions = itemIds.length
+          ? await supabase
+              .from("playbook_executions")
+              .select("playbook_item_id,execution_action,occurred_at")
+              .eq("operation_id", operationId)
+              .in("playbook_item_id", itemIds)
+              .order("occurred_at", { ascending: false })
+          : { data: [], error: null };
+        if (executions.error) throw executions.error;
+
+        const latestAction = new Map<string, string>();
+        for (const event of executions.data ?? []) {
+          if (!latestAction.has(event.playbook_item_id)) latestAction.set(event.playbook_item_id, event.execution_action);
+        }
+
+        myWork = (items.data ?? []).map((item) => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          requirement: item.requirement,
+          journeyStepId: item.journey_step_id,
+          journeyStepTitle: one(item.journey_steps)?.title ?? null,
+          completed: latestAction.get(item.id) === "completed",
+        }));
+      }
+
       return {
         operation: operation.data,
         intelligence: intelligence.data as Intelligence,
         personName: person.data?.full_name ?? null,
         operationRoles,
+        myWork,
       };
     },
   });
@@ -141,6 +195,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
   const start = op.expected_start ?? op.planned_start;
   const end = op.expected_end ?? op.planned_end;
   const current = data.journey?.current_step?.title;
+  const currentStepId = data.journey?.current_step?.id;
   const effectiveRole: AppRole = role ?? "member";
   const managerial = effectiveRole === "owner" || effectiveRole === "admin";
   const roleLabel = copy(locale, ROLE_LABEL[effectiveRole].pt, ROLE_LABEL[effectiveRole].en);
@@ -168,6 +223,15 @@ export function OperationControlCenter({ operationId }: { operationId: string })
   const shortcutOrder = operationAwareShortcutOrder(primaryOperationRole?.key, ROLE_SHORTCUTS[effectiveRole]);
   const shortcuts = shortcutOrder.map((key) => shortcutCatalog[key]);
   const focus = operationRoleFocus(primaryOperationRole?.key, locale);
+
+  const orderedMyWork = [...query.data.myWork].sort((a, b) => {
+    const aCurrent = a.journeyStepId && a.journeyStepId === currentStepId ? 1 : 0;
+    const bCurrent = b.journeyStepId && b.journeyStepId === currentStepId ? 1 : 0;
+    if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed);
+    return bCurrent - aCurrent;
+  });
+  const pendingMyWork = orderedMyWork.filter((item) => !item.completed);
+  const myWorkPreview = orderedMyWork.slice(0, 5);
 
   const primaryTitle = primaryOperationRole
     ? focus.primaryTitle
@@ -254,6 +318,47 @@ export function OperationControlCenter({ operationId }: { operationId: string })
             <ArrowRight className="mt-4 size-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         </div>
+
+        {primaryOperationRole ? (
+          <div className="rounded-xl border border-border bg-background/60 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">{copy(locale, "Meu trabalho nesta operação", "My work in this operation")}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {query.data.personName ? `${query.data.personName} · ` : ""}{primaryOperationRole.label} · {pendingMyWork.length} {copy(locale, "pendência(s)", "pending")}
+                </p>
+              </div>
+              <Link to={`${base}/live`} className="text-xs font-semibold text-primary hover:underline">
+                {copy(locale, "Abrir execução", "Open execution")} →
+              </Link>
+            </div>
+
+            {myWorkPreview.length ? (
+              <div className="mt-3 divide-y divide-border/70 rounded-lg border border-border/70">
+                {myWorkPreview.map((item) => {
+                  const isCurrent = Boolean(item.journeyStepId && item.journeyStepId === currentStepId);
+                  return (
+                    <div key={item.id} className="flex gap-3 px-3 py-3">
+                      {item.completed ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" /> : <CheckSquare2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className={`text-sm font-medium ${item.completed ? "text-muted-foreground line-through" : ""}`}>{item.title}</p>
+                          {isCurrent ? <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-primary">{copy(locale, "agora", "now")}</span> : null}
+                          {item.requirement === "required" ? <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] uppercase tracking-[0.1em] text-muted-foreground">{copy(locale, "obrigatório", "required")}</span> : null}
+                        </div>
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.journeyStepTitle ?? copy(locale, "Operação geral", "General operation")}{item.description ? ` · ${item.description}` : ""}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-3 rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
+                {copy(locale, "Nenhum checklist foi atribuído à sua função nesta operação.", "No checklist is assigned to your role in this operation.")}
+              </div>
+            )}
+          </div>
+        ) : null}
 
         {operationRoles.length > 1 ? (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-background/50 px-3 py-2">
