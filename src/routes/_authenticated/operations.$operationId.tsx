@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { FieldBatchPresence } from "@/components/journey/field-batch-presence";
 import { FieldModePendingFirst } from "@/components/journey/field-mode-pending-first";
 import { JourneyOperationalCockpit } from "@/components/journey/journey-operational-cockpit";
 import { JourneyManagementPanel } from "@/components/journey/journey-management-panel";
@@ -39,10 +40,7 @@ function OperationWorkspace() {
             </Link>
           </Button>
 
-          <nav
-            aria-label={t("op.title")}
-            className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1"
-          >
+          <nav aria-label={t("op.title")} className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1">
             <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.overview")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.people")}</Link>
             <Link from="/operations/$operationId" to="/operations/$operationId/journey" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w04.tab.journey")}</Link>
@@ -56,6 +54,7 @@ function OperationWorkspace() {
           <OperationIntelligenceCockpit operationId={operationId} />
           <LiveNextBestAction operationId={operationId} />
           <OperationAttentionCenter operationId={operationId} />
+          <FieldBatchPresence operationId={operationId} />
           {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
           <JourneyOperationalCockpit operationId={operationId} />
           <JourneyManagementPanel operationId={operationId} />
