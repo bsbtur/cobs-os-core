@@ -24,8 +24,31 @@ jobs:
       - name: Typecheck
         run: bunx tsc --noEmit
       - name: Lint
-        run: bun run lint
+        shell: bash
+        run: |
+          set +e
+          bunx eslint . --format json > /tmp/eslint.json
+          status=$?
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          rows=json.loads(Path('/tmp/eslint.json').read_text())
+          errors=[]
+          warnings=[]
+          for row in rows:
+              rel=row['filePath'].split('/cobs-os-core/')[-1]
+              for m in row.get('messages',[]):
+                  item=(rel,m.get('line'),m.get('column'),m.get('ruleId'),m.get('message'))
+                  (errors if m.get('severity')==2 else warnings).append(item)
+          print(f'LINT_ERRORS={len(errors)} LINT_WARNINGS={len(warnings)}')
+          print('RULES_ERRORS=' + repr(dict(Counter(x[3] or 'parser' for x in errors))))
+          print('RULES_WARNINGS=' + repr(dict(Counter(x[3] or 'parser' for x in warnings))))
+          for x in errors[:200]: print('ERR', *x, sep=' | ')
+          for x in warnings[:50]: print('WARN', *x, sep=' | ')
+          PY
+          exit $status
       - name: Build
         run: bun run build
 
-# Strict gate: no soft failures.
+# Strict gate: no soft failures. Lint diagnostics are compact but remain fatal.
