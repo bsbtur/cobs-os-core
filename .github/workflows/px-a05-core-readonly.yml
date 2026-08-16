@@ -1,0 +1,140 @@
+name: PX-A05 core readonly UX
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+    paths:
+      - .github/workflows/px-a05-core-readonly.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+          fetch-depth: 0
+      - name: Apply People Journey Live read-only UX
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def load(path):
+              return Path(path).read_text()
+          def save(path, s):
+              Path(path).write_text(s)
+          def rep(s, old, new, label, count=1):
+              n = s.count(old)
+              if n < count:
+                  raise SystemExit(f'{label}: expected >= {count}, found {n}: {old[:120]!r}')
+              return s.replace(old, new, count)
+
+          # Shared presentation helper only; backend remains authority.
+          helper = Path('src/lib/operation-lock.tsx')
+          if helper.exists():
+              raise SystemExit('operation-lock helper already exists unexpectedly')
+          helper.write_text('''import { Lock } from "lucide-react";\n\nimport { useI18n } from "@/lib/i18n";\n\nexport function isOperationClosed(status: string | null | undefined): boolean {\n  return status === "completed" || status === "cancelled";\n}\n\nexport function ReadOnlyNotice({ className = "" }: { className?: string }) {\n  const { t } = useI18n();\n  return (\n    <div className={`flex items-start gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 text-xs text-muted-foreground ${className}`} role="note">\n      <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />\n      <span><strong className="font-medium text-foreground">{t("op.readOnly")}</strong>{" "}{t("op.readOnlyBody")}</span>\n    </div>\n  );\n}\n''')
+
+          p='src/lib/i18n-w02.ts'; s=load(p)
+          s=rep(s,'  "op.statusChanged": "Status atualizado.",','  "op.statusChanged": "Status atualizado.",\n  "op.readOnly": "Operação encerrada.",\n  "op.readOnlyBody": "Este espaço é histórico e somente leitura. Nenhuma alteração é permitida.",','i18n pt')
+          s=rep(s,'  "op.statusChanged": "Status updated.",','  "op.statusChanged": "Status updated.",\n  "op.readOnly": "Operation closed.",\n  "op.readOnlyBody": "This workspace is historical and read-only. No changes are allowed.",','i18n en')
+          save(p,s)
+
+          # PEOPLE ----------------------------------------------------
+          p='src/routes/_authenticated/operations.$operationId.people.tsx'; s=load(p)
+          s=rep(s,'import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";','import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";\nimport { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";','people import')
+          s=rep(s,'  roleTypes,\n  operationId,\n}: {\n  row: RosterRow;\n  roleTypes: RoleTypeRow[];\n  operationId: string;\n}) {','  roleTypes,\n  operationId,\n  operationClosed,\n}: {\n  row: RosterRow;\n  roleTypes: RoleTypeRow[];\n  operationId: string;\n  operationClosed: boolean;\n}) {','people card signature')
+          s=rep(s,'              {expanded ? (','              {expanded && !operationClosed ? (','people role mutation')
+          s=rep(s,'                value=""\n                onChange={(e) => {','                value=""\n                disabled={operationClosed}\n                onChange={(e) => {','people assign select')
+          s=rep(s,'            disabled={row.status === "cancelled"}','            disabled={row.status === "cancelled" || operationClosed}','people portal')
+          s=rep(s,'          <div className="flex flex-wrap gap-2">\n            {transitions','          {!operationClosed ? (\n          <div className="flex flex-wrap gap-2">\n            {transitions','people transitions open')
+          s=rep(s,'              ))}\n          </div>\n\n          {transitions.includes("cancelled") ? (','              ))}\n          </div>\n          ) : null}\n\n          {!operationClosed && transitions.includes("cancelled") ? (','people transitions close')
+          marker='  const roster = useQuery({'
+          query='''  const operation = useQuery({\n    queryKey: ["operation-status", operationId],\n    enabled: Boolean(tenant?.id) && canOperate,\n    queryFn: async () => {\n      const { data, error } = await supabase.from("operations").select("id, status").eq("id", operationId).single();\n      if (error) throw error;\n      return data;\n    },\n  });\n\n'''
+          s=rep(s,marker,query+marker,'people operation query')
+          s=rep(s,'  if (roster.isLoading || roleTypes.isLoading) return <PanelSkeleton rows={4} />;','  if (roster.isLoading || roleTypes.isLoading || operation.isLoading) return <PanelSkeleton rows={4} />;','people loading')
+          s=rep(s,'  const rows = roster.data ?? [];','  const operationClosed = isOperationClosed(operation.data?.status);\n\n  const rows = roster.data ?? [];','people closed var')
+          s=rep(s,'    <div className="space-y-5">\n      <section className="animate-rise flex flex-wrap items-start justify-between gap-3">','    <div className="space-y-5">\n      {operationClosed ? <ReadOnlyNotice /> : null}\n      <section className="animate-rise flex flex-wrap items-start justify-between gap-3">','people notice')
+          addbtn='''        <Button className="min-h-11" onClick={() => setAddOpen(true)}>\n          <Plus className="mr-2 size-4" aria-hidden="true" />\n          {t("roster.add")}\n        </Button>'''
+          s=rep(s,addbtn,'{!operationClosed ? (\n'+addbtn+'\n        ) : null}','people add button')
+          s=rep(s,'          action={\n            <Button className="mt-2 min-h-11" onClick={() => setAddOpen(true)}>\n              {t("roster.add")}\n            </Button>\n          }','          action={\n            !operationClosed ? (\n              <Button className="mt-2 min-h-11" onClick={() => setAddOpen(true)}>\n                {t("roster.add")}\n              </Button>\n            ) : undefined\n          }','people empty add')
+          s=rep(s,'                  operationId={operationId}\n                />','                  operationId={operationId}\n                  operationClosed={operationClosed}\n                />','people card prop')
+          s=rep(s,'        open={addOpen}\n        onOpenChange={setAddOpen}','        open={addOpen && !operationClosed}\n        onOpenChange={(open) => setAddOpen(operationClosed ? false : open)}','people dialog')
+          save(p,s)
+
+          # JOURNEY ---------------------------------------------------
+          p='src/routes/_authenticated/operations.$operationId.journey.tsx'; s=load(p)
+          s=rep(s,'import { useTenant } from "@/lib/tenant";','import { useTenant } from "@/lib/tenant";\nimport { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";','journey import')
+          s=rep(s,'  roleTypes,\n  operationId,\n}: {\n  step: JourneyStepRow;\n  items: PlaybookItemRow[];\n  roleTypes: RoleTypeRow[];\n  operationId: string;\n}) {','  roleTypes,\n  operationId,\n  operationClosed,\n}: {\n  step: JourneyStepRow;\n  items: PlaybookItemRow[];\n  roleTypes: RoleTypeRow[];\n  operationId: string;\n  operationClosed: boolean;\n}) {','journey playbook signature')
+          s=rep(s,'      <div className="mt-3 flex flex-col gap-2 sm:flex-row">','      {!operationClosed ? (\n        <>\n          <div className="mt-3 flex flex-col gap-2 sm:flex-row">','journey playbook open')
+          s=rep(s,'      <p className="mt-2 text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>','          <p className="mt-2 text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>\n        </>\n      ) : null}','journey playbook close')
+          s=rep(s,'  const baselineOpen = operation.status === "draft" || operation.status === "planning";','  const baselineOpen = operation.status === "draft" || operation.status === "planning";\n  const operationClosed = isOperationClosed(operation.status);','journey closed var')
+          s=rep(s,'  const move = (index: number, direction: -1 | 1) => {','  const move = (index: number, direction: -1 | 1) => {\n    if (operationClosed) return;','journey move guard')
+          s=rep(s,'{canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (','{!operationClosed && canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (','journey blueprint')
+          old='''          <Button\n            className="min-h-11"\n            onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}\n            disabled={operation.status === "completed" || operation.status === "cancelled"}\n          >\n            <Plus className="mr-1.5 size-4" aria-hidden="true" />\n            {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}\n          </Button>'''
+          new='''          {!operationClosed ? (\n            <Button\n              className="min-h-11"\n              onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}\n            >\n              <Plus className="mr-1.5 size-4" aria-hidden="true" />\n              {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}\n            </Button>\n          ) : null}'''
+          s=rep(s,old,new,'journey add step')
+          s=rep(s,'      </header>\n\n      {journeyOrigin ? (','      </header>\n\n      {operationClosed ? <ReadOnlyNotice /> : null}\n\n      {journeyOrigin ? (','journey notice')
+          s=rep(s,'                  {baselineOpen ? (','                  {baselineOpen && !operationClosed ? (','journey reorder')
+          forecast='''                  <Button\n                    variant="outline"\n                    size="sm"\n                    className="min-h-10"\n                    onClick={() => setForecastStep(step)}\n                  >\n                    {t("w04.expected.change")}\n                  </Button>'''
+          s=rep(s,forecast,'                  {!operationClosed ? (\n'+forecast+'\n                  ) : null}','journey forecast')
+          s=rep(s,'                operationId={operationId}\n              />','                operationId={operationId}\n                operationClosed={operationClosed}\n              />','journey playbook prop')
+          s=rep(s,'        open={applyOpen}\n        onOpenChange={setApplyOpen}','        open={applyOpen && !operationClosed}\n        onOpenChange={(open) => setApplyOpen(operationClosed ? false : open)}','journey apply dialog')
+          s=rep(s,'        open={dialog !== null}\n        onOpenChange={(open) => setDialog(open ? dialog : null)}','        open={dialog !== null && !operationClosed}\n        onOpenChange={(open) => setDialog(operationClosed ? null : open ? dialog : null)}','journey step dialog')
+          s=rep(s,'        step={forecastStep}\n        onOpenChange={(open) => setForecastStep(open ? forecastStep : null)}','        step={operationClosed ? null : forecastStep}\n        onOpenChange={(open) => setForecastStep(operationClosed ? null : open ? forecastStep : null)}','journey forecast dialog')
+          save(p,s)
+
+          # LIVE ------------------------------------------------------
+          p='src/routes/_authenticated/operations.$operationId.live.tsx'; s=load(p)
+          s=rep(s,'import { LiveTimingStrip } from "@/components/journey/live-timing-strip";','import { LiveTimingStrip } from "@/components/journey/live-timing-strip";\nimport { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";','live import')
+          s=rep(s,'  arrived,\n  onRefresh,\n}: {\n  step: JourneyStepRow;','  arrived,\n  onRefresh,\n  operationClosed,\n}: {\n  step: JourneyStepRow;','live presence props1')
+          s=rep(s,'  arrived: boolean;\n  onRefresh: () => void;\n}) {','  arrived: boolean;\n  onRefresh: () => void;\n  operationClosed: boolean;\n}) {','live presence props2')
+          s=rep(s,'disabled={record.isPending || primaryBlocked}','disabled={record.isPending || primaryBlocked || operationClosed}','live presence primary')
+          s=rep(s,'aria-label={t("w04.presence.more")}\n                    >','aria-label={t("w04.presence.more")}\n                      disabled={operationClosed}\n                    >','live presence more')
+          s=s.replace('disabled={record.isPending}\n                      onSelect={() => {','disabled={record.isPending || operationClosed}\n                      onSelect={() => {',1)
+          s=rep(s,'                    <DropdownMenuItem\n                      onSelect={() => {','                    <DropdownMenuItem\n                      disabled={operationClosed}\n                      onSelect={() => {','live no show')
+          s=rep(s,'disabled={retract.isPending}\n                          onSelect={() => {','disabled={retract.isPending || operationClosed}\n                          onSelect={() => {','live retract')
+          s=rep(s,'  executions,\n  onRefresh,\n}: {\n  items: PlaybookItemRow[];\n  executions: PlaybookExecutionRow[];\n  onRefresh: () => void;\n}) {','  executions,\n  onRefresh,\n  operationClosed,\n}: {\n  items: PlaybookItemRow[];\n  executions: PlaybookExecutionRow[];\n  onRefresh: () => void;\n  operationClosed: boolean;\n}) {','live checklist props')
+          s=rep(s,'disabled={act.isPending}\n                onClick={() => act.mutate','disabled={act.isPending || operationClosed}\n                onClick={() => act.mutate','live checklist disable')
+          s=rep(s,'  arrived,\n  onRefresh,\n}: {\n  step: JourneyStepRow;\n  ready: boolean;','  arrived,\n  onRefresh,\n  operationClosed,\n}: {\n  step: JourneyStepRow;\n  ready: boolean;','live actions props1')
+          # There are now two arrived/onRefresh signatures; replace the StepActions-specific comment vicinity only.
+          s=s.replace('  /** DEF-PILOT-023 / 025: ARRIVED exists on this step. */\n  arrived: boolean;\n  onRefresh: () => void;\n}) {','  /** DEF-PILOT-023 / 025: ARRIVED exists on this step. */\n  arrived: boolean;\n  onRefresh: () => void;\n  operationClosed: boolean;\n}) {',1)
+          s=rep(s,'            call.isPending ||\n            (action.gated === true && !ready)','            call.isPending ||\n            operationClosed ||\n            (action.gated === true && !ready)','live action disable')
+          s=rep(s,'  const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));','  const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));\n  const operationClosed = isOperationClosed(operation.status);','live closed var')
+          s=rep(s,'        <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>\n      </header>','        <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>\n      </header>\n\n      {operationClosed ? <ReadOnlyNotice /> : null}','live notice')
+          s=rep(s,'                  arrived={arrivedStepIds.has(current.id)}\n                  onRefresh={refresh}\n                />','                  arrived={arrivedStepIds.has(current.id)}\n                  onRefresh={refresh}\n                  operationClosed={operationClosed}\n                />','live actions pass')
+          s=rep(s,'                <StartNext step={next} onRefresh={refresh} />','                <StartNext step={next} onRefresh={refresh} operationClosed={operationClosed} />','live start next pass')
+          s=rep(s,'          arrived={arrivedStepIds.has(current.id)}\n          onRefresh={refresh}\n        />','          arrived={arrivedStepIds.has(current.id)}\n          onRefresh={refresh}\n          operationClosed={operationClosed}\n        />','live presence pass')
+          s=rep(s,'          executions={live.data?.executions ?? []}\n          onRefresh={refresh}\n        />','          executions={live.data?.executions ?? []}\n          onRefresh={refresh}\n          operationClosed={operationClosed}\n        />','live checklist pass')
+          old='function StartNext({ step, onRefresh }: { step: JourneyStepRow; onRefresh: () => void }) {'
+          new='function StartNext({ step, onRefresh, operationClosed }: { step: JourneyStepRow; onRefresh: () => void; operationClosed: boolean }) {'
+          s=rep(s,old,new,'live start next signature')
+          s=rep(s,'disabled={start.isPending}\n      onClick={() => start.mutate()}','disabled={start.isPending || operationClosed}\n      onClick={() => start.mutate()}','live start next disable')
+          save(p,s)
+          PY
+
+      - name: Sanity checks
+        shell: bash
+        run: |
+          grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.people.tsx'
+          grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.journey.tsx'
+          grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.live.tsx'
+          grep -q 'px04-next-best-action' 'src/routes/_authenticated/operations.$operationId.live.tsx'
+          grep -q 'readinessCountLabel' 'src/routes/_authenticated/operations.$operationId.live.tsx'
+          git diff --check
+
+      - name: Commit core read-only UX and remove one-shot workflow
+        shell: bash
+        run: |
+          rm .github/workflows/px-a05-core-readonly.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(alpha): lock completed operation core UX"
+          git push origin HEAD:preview/alpha-productization-px01
