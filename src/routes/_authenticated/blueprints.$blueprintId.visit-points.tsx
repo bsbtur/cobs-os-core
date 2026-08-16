@@ -398,11 +398,7 @@ function StepPoints({
             {removing ? `“${removing.title}” será removido somente desta versão draft.` : ""}
           </p>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setRemoving(null)}
-              disabled={remove.isPending}
-            >
+            <Button variant="ghost" onClick={() => setRemoving(null)} disabled={remove.isPending}>
               Cancelar
             </Button>
             <Button
@@ -469,8 +465,8 @@ function LibraryWorkspace({ blueprintId }: { blueprintId: string }) {
     : [];
   const editable = Boolean(
     selectedVersion?.status === "draft" &&
-      query.data?.blueprint?.status === "active" &&
-      canEditBlueprints(role),
+    query.data?.blueprint?.status === "active" &&
+    canEditBlueprints(role),
   );
 
   if (!canViewBlueprints(role)) {
