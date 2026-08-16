@@ -1,12 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  CheckCircle2,
-  ClipboardCheck,
-  MapPin,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardCheck, MapPin, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,15 +78,15 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
         : 0;
       const boardingStarted = Boolean(
         current &&
-          (facts.data ?? []).some(
-            (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
-          ),
+        (facts.data ?? []).some(
+          (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
+        ),
       );
       const arrived = Boolean(
         current &&
-          (facts.data ?? []).some(
-            (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
-          ),
+        (facts.data ?? []).some(
+          (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
+        ),
       );
 
       return {
