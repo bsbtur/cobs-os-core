@@ -1829,6 +1829,80 @@ export type Database = {
           },
         ];
       };
+      journey_blueprint_visit_points: {
+        Row: {
+          blueprint_step_id: string;
+          created_at: string;
+          created_by: string | null;
+          guide_tip: string | null;
+          id: string;
+          interpretation: string | null;
+          metadata: Json;
+          sequence: number;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          version_id: string;
+        };
+        Insert: {
+          blueprint_step_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          guide_tip?: string | null;
+          id?: string;
+          interpretation?: string | null;
+          metadata?: Json;
+          sequence: number;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+          version_id: string;
+        };
+        Update: {
+          blueprint_step_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          guide_tip?: string | null;
+          id?: string;
+          interpretation?: string | null;
+          metadata?: Json;
+          sequence?: number;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "journey_blueprint_visit_points_blueprint_step_id_fkey";
+            columns: ["blueprint_step_id"];
+            isOneToOne: false;
+            referencedRelation: "journey_blueprint_steps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journey_blueprint_visit_points_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journey_blueprint_visit_points_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journey_blueprint_visit_points_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "journey_blueprint_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       journey_blueprints: {
         Row: {
           created_at: string;
@@ -4818,6 +4892,16 @@ export type Database = {
         };
         Returns: Json;
       };
+      add_blueprint_visit_point: {
+        Args: {
+          _blueprint_step_id: string;
+          _guide_tip?: string;
+          _idempotency_key: string;
+          _interpretation?: string;
+          _title: string;
+        };
+        Returns: Json;
+      };
       add_message_audience_people: {
         Args: {
           _idempotency_key?: string;
@@ -5875,6 +5959,10 @@ export type Database = {
         Args: { _idempotency_key: string; _step_id: string };
         Returns: Json;
       };
+      remove_blueprint_visit_point: {
+        Args: { _idempotency_key: string; _visit_point_id: string };
+        Returns: Json;
+      };
       remove_event_staff: {
         Args: { _assignment_id: string; _idempotency_key: string };
         Returns: Json;
@@ -5913,6 +6001,14 @@ export type Database = {
           _idempotency_key: string;
           _ordered_step_ids: string[];
           _version_id: string;
+        };
+        Returns: Json;
+      };
+      reorder_blueprint_visit_points: {
+        Args: {
+          _blueprint_step_id: string;
+          _idempotency_key: string;
+          _ordered_visit_point_ids: string[];
         };
         Returns: Json;
       };
@@ -6224,6 +6320,16 @@ export type Database = {
           _title?: string;
           _traveler_facing?: boolean;
           _traveler_label?: string;
+        };
+        Returns: Json;
+      };
+      update_blueprint_visit_point: {
+        Args: {
+          _guide_tip?: string;
+          _idempotency_key: string;
+          _interpretation?: string;
+          _title: string;
+          _visit_point_id: string;
         };
         Returns: Json;
       };

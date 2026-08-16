@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import {
   canEditBlueprints,
   canViewBlueprints,
@@ -50,15 +51,7 @@ export const Route = createFileRoute("/_authenticated/blueprints/$blueprintId/vi
   component: BlueprintVisitPointLibraryPage,
 });
 
-type VisitPoint = {
-  id: string;
-  version_id: string;
-  blueprint_step_id: string;
-  sequence: number;
-  title: string;
-  interpretation: string | null;
-  guide_tip: string | null;
-};
+type VisitPoint = Database["public"]["Tables"]["journey_blueprint_visit_points"]["Row"];
 
 type PointForm = { title: string; interpretation: string; guideTip: string };
 const EMPTY_POINT: PointForm = { title: "", interpretation: "", guideTip: "" };
@@ -96,15 +89,21 @@ function PointEditor({
   const save = useMutation({
     mutationFn: async () => {
       if (!form.title.trim()) throw new Error("Informe o título do ponto.");
-      const args = {
+      const args: {
+        _title: string;
+        _idempotency_key: string;
+        _interpretation?: string;
+        _guide_tip?: string;
+      } = {
         _title: form.title.trim(),
-        _interpretation: form.interpretation.trim() || undefined,
-        _guide_tip: form.guideTip.trim() || undefined,
         _idempotency_key: key.current,
       };
+      const interpretation = form.interpretation.trim();
+      const guideTip = form.guideTip.trim();
+      if (interpretation) args._interpretation = interpretation;
+      if (guideTip) args._guide_tip = guideTip;
 
       if (point) {
-        // @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.
         const { error } = await supabase.rpc("update_blueprint_visit_point", {
           ...args,
           _visit_point_id: point.id,
@@ -113,7 +112,6 @@ function PointEditor({
         return;
       }
 
-      // @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.
       const { error } = await supabase.rpc("add_blueprint_visit_point", {
         ...args,
         _blueprint_step_id: stepId,
@@ -209,13 +207,13 @@ function StepPoints({
     queryKey,
     queryFn: async () => {
       const result = await supabase
-        // @ts-expect-error V3.5 QA table will enter generated types in the housekeeping commit.
         .from("journey_blueprint_visit_points")
-        .select("*");
+        .select("*")
+        .eq("version_id", versionId)
+        .eq("blueprint_step_id", step.id)
+        .order("sequence");
       if (result.error) throw result.error;
-      return ((result.data ?? []) as unknown as VisitPoint[])
-        .filter((point) => point.version_id === versionId && point.blueprint_step_id === step.id)
-        .sort((a, b) => a.sequence - b.sequence);
+      return result.data ?? [];
     },
   });
 
@@ -224,7 +222,6 @@ function StepPoints({
 
   const reorder = useMutation({
     mutationFn: async (ordered: VisitPoint[]) => {
-      // @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.
       const { error } = await supabase.rpc("reorder_blueprint_visit_points", {
         _blueprint_step_id: step.id,
         _ordered_visit_point_ids: ordered.map((point) => point.id),
@@ -244,7 +241,6 @@ function StepPoints({
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      // @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.
       const { error } = await supabase.rpc("remove_blueprint_visit_point", {
         _visit_point_id: id,
         _idempotency_key: newIdempotencyKey(),
