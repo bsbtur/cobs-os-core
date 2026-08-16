@@ -1,0 +1,191 @@
+from pathlib import Path
+
+types_path = Path("src/integrations/supabase/types.ts")
+text = types_path.read_text()
+
+table_block = '''      journey_blueprint_visit_points: {
+        Row: {
+          blueprint_step_id: string;
+          created_at: string;
+          created_by: string | null;
+          guide_tip: string | null;
+          id: string;
+          interpretation: string | null;
+          metadata: Json;
+          sequence: number;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          version_id: string;
+        };
+        Insert: {
+          blueprint_step_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          guide_tip?: string | null;
+          id?: string;
+          interpretation?: string | null;
+          metadata?: Json;
+          sequence: number;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+          version_id: string;
+        };
+        Update: {
+          blueprint_step_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          guide_tip?: string | null;
+          id?: string;
+          interpretation?: string | null;
+          metadata?: Json;
+          sequence?: number;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "journey_blueprint_visit_points_blueprint_step_id_fkey";
+            columns: ["blueprint_step_id"];
+            isOneToOne: false;
+            referencedRelation: "journey_blueprint_steps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journey_blueprint_visit_points_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journey_blueprint_visit_points_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journey_blueprint_visit_points_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "journey_blueprint_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+'''
+if "journey_blueprint_visit_points: {" not in text:
+    anchor = "      journey_blueprints: {"
+    if anchor not in text:
+        raise SystemExit("blueprint table anchor not found")
+    text = text.replace(anchor, table_block + anchor, 1)
+
+additions = [
+    (
+        "      add_message_audience_people: {",
+        '''      add_blueprint_visit_point: {
+        Args: {
+          _blueprint_step_id: string;
+          _guide_tip?: string;
+          _idempotency_key: string;
+          _interpretation?: string;
+          _title: string;
+        };
+        Returns: Json;
+      };
+''',
+    ),
+    (
+        "      remove_event_staff: {",
+        '''      remove_blueprint_visit_point: {
+        Args: { _idempotency_key: string; _visit_point_id: string };
+        Returns: Json;
+      };
+''',
+    ),
+    (
+        "      reorder_event_sessions: {",
+        '''      reorder_blueprint_visit_points: {
+        Args: {
+          _blueprint_step_id: string;
+          _idempotency_key: string;
+          _ordered_visit_point_ids: string[];
+        };
+        Returns: Json;
+      };
+''',
+    ),
+    (
+        "      update_draft_message: {",
+        '''      update_blueprint_visit_point: {
+        Args: {
+          _guide_tip?: string;
+          _idempotency_key: string;
+          _interpretation?: string;
+          _title: string;
+          _visit_point_id: string;
+        };
+        Returns: Json;
+      };
+''',
+    ),
+]
+for anchor, block in additions:
+    name = block.split(":", 1)[0].strip()
+    if f"{name}: {{" not in text:
+        if anchor not in text:
+            raise SystemExit(f"function anchor not found: {anchor}")
+        text = text.replace(anchor, block + anchor, 1)
+
+types_path.write_text(text)
+
+route_path = Path("src/routes/_authenticated/blueprints.$blueprintId.visit-points.tsx")
+route = route_path.read_text()
+client_import = 'import { supabase } from "@/integrations/supabase/client";'
+if 'import type { Database } from "@/integrations/supabase/types";' not in route:
+    route = route.replace(
+        client_import,
+        client_import + '\nimport type { Database } from "@/integrations/supabase/types";',
+        1,
+    )
+
+start = route.index("type VisitPoint = {")
+end = route.index("\n\ntype PointForm", start)
+route = (
+    route[:start]
+    + 'type VisitPoint = Database["public"]["Tables"]["journey_blueprint_visit_points"]["Row"];'
+    + route[end:]
+)
+
+route = route.replace(
+    "// @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.\n",
+    "",
+)
+route = route.replace(
+    "// @ts-expect-error V3.5 QA table will enter generated types in the housekeeping commit.\n",
+    "",
+)
+
+old_query = '''      const result = await supabase
+        .from("journey_blueprint_visit_points")
+        .select("*");
+      if (result.error) throw result.error;
+      return ((result.data ?? []) as unknown as VisitPoint[])
+        .filter((point) => point.version_id === versionId && point.blueprint_step_id === step.id)
+        .sort((a, b) => a.sequence - b.sequence);'''
+new_query = '''      const result = await supabase
+        .from("journey_blueprint_visit_points")
+        .select("*")
+        .eq("version_id", versionId)
+        .eq("blueprint_step_id", step.id)
+        .order("sequence");
+      if (result.error) throw result.error;
+      return result.data ?? [];'''
+if old_query not in route:
+    raise SystemExit("typed query replacement anchor not found")
+route = route.replace(old_query, new_query, 1)
+route_path.write_text(route)
