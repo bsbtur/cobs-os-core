@@ -58,8 +58,12 @@ function statusLabel(status: VisitPointStatus) {
 function pointStatusClass(status: VisitPointStatus, selected: boolean) {
   if (selected) return "border-primary bg-primary text-primary-foreground shadow-sm";
   if (status === "visited") return "border-success/30 bg-success-soft text-success";
-  if (status === "unavailable") return "border-border bg-muted text-muted-foreground opacity-65";
-  if (status === "ignored") return "border-border bg-background text-muted-foreground opacity-65";
+  if (status === "unavailable") {
+    return "border-border bg-muted text-muted-foreground opacity-65";
+  }
+  if (status === "ignored") {
+    return "border-border bg-background text-muted-foreground opacity-65";
+  }
   return "border-border bg-background text-muted-foreground";
 }
 
@@ -115,7 +119,8 @@ export function VisitPointsPanel({
   });
 
   const points = query.data ?? [];
-  const firstAvailable = points.find((point) => point.status === "available") ?? points[0] ?? null;
+  const firstAvailable =
+    points.find((point) => point.status === "available") ?? points[0] ?? null;
   const selected = points.find((point) => point.id === selectedId) ?? firstAvailable;
   const selectedIndex = selected ? points.findIndex((point) => point.id === selected.id) : -1;
   const visitedCount = points.filter((point) => point.status === "visited").length;
@@ -131,7 +136,13 @@ export function VisitPointsPanel({
   }, [firstAvailable?.id, points, selectedId]);
 
   const statusMutation = useMutation({
-    mutationFn: async ({ pointId, status }: { pointId: string; status: VisitPointStatus }) => {
+    mutationFn: async ({
+      pointId,
+      status,
+    }: {
+      pointId: string;
+      status: VisitPointStatus;
+    }) => {
       const { error } = await supabase.rpc("set_journey_visit_point_status", {
         _visit_point_id: pointId,
         _status: status,
@@ -152,7 +163,9 @@ export function VisitPointsPanel({
       }
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o ponto.");
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível atualizar o ponto.",
+      );
     },
   });
 
@@ -190,7 +203,10 @@ export function VisitPointsPanel({
           </div>
         </div>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Progresso dos pontos da visita">
+        <div
+          className="mt-4 flex gap-2 overflow-x-auto pb-1"
+          aria-label="Progresso dos pontos da visita"
+        >
           {points.map((point, index) => {
             const isSelected = point.id === selected.id;
             return (
@@ -224,7 +240,9 @@ export function VisitPointsPanel({
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-75">
                   Visita concluída
                 </p>
-                <p className="mt-0.5 text-lg font-semibold">Todos os pontos foram apresentados</p>
+                <p className="mt-0.5 text-lg font-semibold">
+                  Todos os pontos foram apresentados
+                </p>
               </div>
             </div>
             <p className="mt-3 text-sm leading-relaxed opacity-85">
@@ -262,9 +280,13 @@ export function VisitPointsPanel({
               <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/45 p-4">
                 <div className="flex items-center gap-2 text-primary">
                   <Lightbulb className="size-4" aria-hidden="true" />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]">Dica ao guia</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]">
+                    Dica ao guia
+                  </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-foreground/90">{selected.guide_tip}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground/90">
+                  {selected.guide_tip}
+                </p>
               </div>
             ) : null}
 
@@ -274,7 +296,9 @@ export function VisitPointsPanel({
                   <Button
                     className="min-h-14 w-full rounded-2xl text-base font-semibold shadow-sm"
                     disabled={statusMutation.isPending}
-                    onClick={() => statusMutation.mutate({ pointId: selected.id, status: "visited" })}
+                    onClick={() =>
+                      statusMutation.mutate({ pointId: selected.id, status: "visited" })
+                    }
                   >
                     <CheckCircle2 className="mr-2 size-5" aria-hidden="true" />
                     Ponto apresentado
@@ -334,7 +358,10 @@ export function VisitPointsPanel({
                   </p>
                   <p className="mt-1 truncate text-sm font-semibold">{nextAvailable.title}</p>
                 </div>
-                <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <ArrowRight
+                  className="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </button>
             ) : null}
           </>
