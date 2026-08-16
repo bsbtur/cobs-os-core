@@ -5,16 +5,16 @@ import type { JourneyStepRow } from "@/lib/w04";
 import { useI18n } from "@/lib/i18n";
 
 /**
- * COBS OS · Cockpit UX V2 — live timing strip (display only).
+ * COBS OS · live timing strip (display only).
  *
  * Principle: in field operation, show less information and more direction.
  * The component promotes the most operationally relevant clock state
  * (remaining/late) and keeps elapsed timing as secondary context.
  *
  * It derives timing only from expected_* / planned_* values, writes nothing,
- * queries nothing, and never affects readiness or step actions. The next step
- * is rendered by the canonical "next" surface outside this timing strip so the
- * operator does not see the same information twice.
+ * queries nothing, and never affects readiness or step actions. Consumers that
+ * need the same timing classification must reuse deriveTimingSnapshot so there
+ * is one canonical clock calculation across Cockpit surfaces.
  */
 
 const TICK_MS = 30_000;
@@ -31,6 +31,32 @@ function endOf(step: JourneyStepRow | null): number | null {
   if (!raw) return null;
   const value = new Date(raw).getTime();
   return Number.isFinite(value) ? value : null;
+}
+
+export type TimingSnapshot = {
+  startAt: number | null;
+  endAt: number | null;
+  remainingMs: number | null;
+  elapsedMs: number | null;
+  lateMs: number;
+};
+
+export function deriveTimingSnapshot(
+  step: JourneyStepRow | null,
+  now: number,
+): TimingSnapshot {
+  const startAt = startOf(step);
+  const endAt = endOf(step);
+  const remainingMs = endAt === null ? null : endAt - now;
+  const elapsedMs = startAt !== null && startAt <= now ? now - startAt : null;
+
+  return {
+    startAt,
+    endAt,
+    remainingMs,
+    elapsedMs,
+    lateMs: remainingMs !== null && remainingMs < 0 ? Math.abs(remainingMs) : 0,
+  };
 }
 
 /** Coarse duration label: "2h 05min" / "45min" / "<1min". */
@@ -100,41 +126,34 @@ function SecondaryTiming({
   );
 }
 
-export function LiveTimingStrip({
-  current,
-}: {
-  current: JourneyStepRow | null;
-  next?: JourneyStepRow | null;
-}) {
+export function LiveTimingStrip({ current }: { current: JourneyStepRow | null }) {
   const { t } = useI18n();
   const now = useNow();
 
   if (now === null) return null;
 
-  const currentStart = startOf(current);
-  const currentEnd = endOf(current);
-  const remaining = currentEnd === null ? null : currentEnd - now;
-  const elapsed = currentStart !== null && currentStart <= now ? now - currentStart : null;
+  const timing = deriveTimingSnapshot(current, now);
+  const { remainingMs, elapsedMs } = timing;
 
-  if (remaining === null && elapsed === null) {
+  if (remainingMs === null && elapsedMs === null) {
     return <p className="mt-3 text-sm text-muted-foreground">{t("w04.timing.none")}</p>;
   }
 
   return (
     <div className="mt-4 space-y-2.5">
-      {remaining !== null ? (
+      {remainingMs !== null ? (
         <PrimaryTiming
-          label={remaining >= 0 ? t("w04.timing.remaining") : t("w04.timing.late")}
-          value={formatDuration(remaining)}
-          tone={remaining >= 0 ? "normal" : "warning"}
+          label={remainingMs >= 0 ? t("w04.timing.remaining") : t("w04.timing.late")}
+          value={formatDuration(remainingMs)}
+          tone={remainingMs >= 0 ? "normal" : "warning"}
         />
       ) : null}
 
-      {elapsed !== null ? (
+      {elapsedMs !== null ? (
         <SecondaryTiming
           icon={Hourglass}
           label={t("w04.timing.elapsed")}
-          value={formatDuration(elapsed)}
+          value={formatDuration(elapsedMs)}
         />
       ) : null}
     </div>
