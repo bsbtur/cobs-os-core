@@ -20,6 +20,7 @@ declare
   _src_step public.journey_blueprint_steps;
   _new_step public.journey_blueprint_steps;
   _next int;
+  _inserted_points int;
   _visit_point_count int := 0;
 begin
   select * into _b from public.journey_blueprints b where b.id = _blueprint_id;
@@ -86,7 +87,8 @@ begin
     where p.blueprint_step_id = _src_step.id
     order by p.sequence;
 
-    get diagnostics _visit_point_count = _visit_point_count + row_count;
+    get diagnostics _inserted_points = row_count;
+    _visit_point_count := _visit_point_count + _inserted_points;
   end loop;
 
   update public.journey_blueprint_versions set step_count = (
@@ -101,18 +103,14 @@ begin
       'blueprint_id', _b.id,
       'version_number', _next,
       'cloned_from', _src.id,
-      'visit_point_count', (
-        select count(*) from public.journey_blueprint_visit_points p where p.version_id = _v.id
-      )
+      'visit_point_count', _visit_point_count
     )
   );
 
   _existing := jsonb_build_object(
     'version_id', _v.id,
     'version_number', _next,
-    'visit_point_count', (
-      select count(*) from public.journey_blueprint_visit_points p where p.version_id = _v.id
-    )
+    'visit_point_count', _visit_point_count
   );
   insert into public.idempotency_keys (tenant_id, actor_profile_id, action, idempotency_key, result)
   values (_b.tenant_id, auth.uid(), 'blueprint.version_create', _key, _existing);
