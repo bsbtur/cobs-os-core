@@ -146,14 +146,19 @@ export function VisitPointsPanel({
       await queryClient.invalidateQueries({
         queryKey: ["visit-points", operationId, journeyStepId],
       });
-      if (variables.status === "visited") {
+
+      if (variables.status !== "available") {
         const currentIndex = points.findIndex((point) => point.id === variables.pointId);
         const nextAvailable = points
           .slice(currentIndex + 1)
           .find((point) => point.status === "available");
         if (nextAvailable) setSelectedId(nextAvailable.id);
-        toast.success("Ponto apresentado.");
       }
+
+      if (variables.status === "visited") toast.success("Ponto apresentado. Próximo ponto carregado.");
+      if (variables.status === "unavailable") toast("Ponto indisponível. Seguimos para o próximo.");
+      if (variables.status === "ignored") toast("Ponto ignorado. Seguimos para o próximo.");
+      if (variables.status === "available") toast.success("Ponto restaurado como disponível.");
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o ponto.");
