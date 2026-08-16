@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Json, Tables } from "@/integrations/supabase/types";
 
 type VisitPoint = Tables<"journey_visit_points">;
 type VisitPointEvent = Tables<"journey_visit_point_events">;
@@ -23,6 +23,15 @@ type VisitPointStatus = "available" | "visited" | "unavailable" | "ignored";
 type PointWithStatus = VisitPoint & {
   status: VisitPointStatus;
 };
+
+function isArchived(metadata: Json) {
+  return Boolean(
+    metadata &&
+    typeof metadata === "object" &&
+    !Array.isArray(metadata) &&
+    metadata["archived"] === true,
+  );
+}
 
 function latestStatus(pointId: string, events: VisitPointEvent[]): VisitPointStatus {
   const latest = events
@@ -79,10 +88,12 @@ export function VisitPointsPanel({
       if (eventsResult.error) throw eventsResult.error;
 
       const events = eventsResult.data ?? [];
-      return (pointsResult.data ?? []).map<PointWithStatus>((point) => ({
-        ...point,
-        status: latestStatus(point.id, events),
-      }));
+      return (pointsResult.data ?? [])
+        .filter((point) => !isArchived(point.metadata))
+        .map<PointWithStatus>((point) => ({
+          ...point,
+          status: latestStatus(point.id, events),
+        }));
     },
   });
 

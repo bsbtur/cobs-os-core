@@ -18,9 +18,9 @@ type VisitPoint = Tables<"journey_visit_points">;
 function isArchived(metadata: Json) {
   return Boolean(
     metadata &&
-      typeof metadata === "object" &&
-      !Array.isArray(metadata) &&
-      metadata.archived === true,
+    typeof metadata === "object" &&
+    !Array.isArray(metadata) &&
+    metadata["archived"] === true,
   );
 }
 
@@ -59,7 +59,9 @@ export function VisitPointsEditor({
 
   const refresh = React.useCallback(async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["journey-visit-points", operationId, journeyStepId] }),
+      queryClient.invalidateQueries({
+        queryKey: ["journey-visit-points", operationId, journeyStepId],
+      }),
       queryClient.invalidateQueries({ queryKey: ["visit-points", operationId, journeyStepId] }),
     ]);
   }, [journeyStepId, operationId, queryClient]);
@@ -175,7 +177,9 @@ export function VisitPointsEditor({
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor={`visit-point-interpretation-${journeyStepId}`}>Conteúdo interpretativo</Label>
+        <Label htmlFor={`visit-point-interpretation-${journeyStepId}`}>
+          Conteúdo interpretativo
+        </Label>
         <Textarea
           id={`visit-point-interpretation-${journeyStepId}`}
           value={interpretation}
@@ -205,7 +209,8 @@ export function VisitPointsEditor({
           <div>
             <p className="text-sm font-semibold">Pontos da visita</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Conteúdo interpretativo que orienta o guia durante esta etapa. Não substitui o checklist.
+              Conteúdo interpretativo que orienta o guia durante esta etapa. Não substitui o
+              checklist.
             </p>
           </div>
         </div>
@@ -301,37 +306,75 @@ export function VisitPointsEditor({
         </ol>
       )}
 
-      <Dialog open={createOpen} onOpenChange={(next) => (createPoint.isPending ? null : setCreateOpen(next))}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(next) => (createPoint.isPending ? null : setCreateOpen(next))}
+      >
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Novo ponto da visita</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Novo ponto da visita</DialogTitle>
+          </DialogHeader>
           {formFields}
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" className="min-h-11" disabled={createPoint.isPending} onClick={() => setCreateOpen(false)}>Cancelar</Button>
-            <Button className="min-h-11" disabled={!title.trim() || createPoint.isPending} onClick={() => createPoint.mutate()}>
+            <Button
+              variant="ghost"
+              className="min-h-11"
+              disabled={createPoint.isPending}
+              onClick={() => setCreateOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="min-h-11"
+              disabled={!title.trim() || createPoint.isPending}
+              onClick={() => createPoint.mutate()}
+            >
               {createPoint.isPending ? "Salvando…" : "Criar ponto"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(editing)} onOpenChange={(next) => (updatePoint.isPending ? null : !next && setEditing(null))}>
+      <Dialog
+        open={Boolean(editing)}
+        onOpenChange={(next) => (updatePoint.isPending ? null : !next && setEditing(null))}
+      >
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Editar ponto da visita</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Editar ponto da visita</DialogTitle>
+          </DialogHeader>
           {formFields}
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" className="min-h-11" disabled={updatePoint.isPending} onClick={() => setEditing(null)}>Cancelar</Button>
-            <Button className="min-h-11" disabled={!title.trim() || updatePoint.isPending} onClick={() => updatePoint.mutate()}>
+            <Button
+              variant="ghost"
+              className="min-h-11"
+              disabled={updatePoint.isPending}
+              onClick={() => setEditing(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="min-h-11"
+              disabled={!title.trim() || updatePoint.isPending}
+              onClick={() => updatePoint.mutate()}
+            >
               {updatePoint.isPending ? "Salvando…" : "Salvar alterações"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(archiving)} onOpenChange={(next) => (archivePoint.isPending ? null : !next && setArchiving(null))}>
+      <Dialog
+        open={Boolean(archiving)}
+        onOpenChange={(next) => (archivePoint.isPending ? null : !next && setArchiving(null))}
+      >
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Arquivar ponto da visita</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Arquivar ponto da visita</DialogTitle>
+          </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            O ponto deixa de aparecer no planejamento ativo e no Cockpit, mas permanece preservado no histórico.
+            O ponto deixa de aparecer no planejamento ativo e no Cockpit, mas permanece preservado
+            no histórico.
           </p>
           <div className="space-y-1.5">
             <Label htmlFor={`visit-point-archive-${journeyStepId}`}>Motivo (opcional)</Label>
@@ -344,8 +387,18 @@ export function VisitPointsEditor({
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" disabled={archivePoint.isPending} onClick={() => setArchiving(null)}>Cancelar</Button>
-            <Button variant="destructive" disabled={archivePoint.isPending} onClick={() => archivePoint.mutate()}>
+            <Button
+              variant="ghost"
+              disabled={archivePoint.isPending}
+              onClick={() => setArchiving(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={archivePoint.isPending}
+              onClick={() => archivePoint.mutate()}
+            >
               {archivePoint.isPending ? "Arquivando…" : "Arquivar ponto"}
             </Button>
           </div>

@@ -5301,6 +5301,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      archive_journey_visit_point: {
+        Args: { _reason?: string; _visit_point_id: string };
+        Returns: Json;
+      };
       create_journey_visit_point: {
         Args: {
           _guide_tip?: string;
@@ -6011,6 +6015,19 @@ export type Database = {
           _is_active: boolean;
           _property_id: string;
           _reason?: string;
+        };
+        Returns: Json;
+      };
+      reorder_journey_visit_points: {
+        Args: { _journey_step_id: string; _visit_point_ids: string[] };
+        Returns: Json;
+      };
+      update_journey_visit_point: {
+        Args: {
+          _guide_tip?: string;
+          _interpretation?: string;
+          _title: string;
+          _visit_point_id: string;
         };
         Returns: Json;
       };
