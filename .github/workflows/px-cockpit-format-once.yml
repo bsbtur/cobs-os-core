@@ -1,0 +1,35 @@
+name: PX cockpit format once
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+    paths:
+      - .github/workflows/px-cockpit-format-once.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx prettier --write src/components/journey/live-next-best-action.tsx
+      - run: bunx tsc --noEmit
+      - run: bun run lint
+      - name: Commit formatted file
+        run: |
+          git config user.name "bsbtur"
+          git config user.email "contato.bsbtur@gmail.com"
+          git add src/components/journey/live-next-best-action.tsx
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "style(cockpit-v2): format blocker resolution guidance"
+          git push origin HEAD:preview/alpha-productization-px01
