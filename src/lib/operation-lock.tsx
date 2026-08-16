@@ -5,6 +5,10 @@ export function isOperationClosed(status: string | null | undefined): boolean {
   return status === "completed" || status === "cancelled";
 }
 
+export function canUseLiveOperationalHealth(status: string | null | undefined): boolean {
+  return Boolean(status) && !isOperationClosed(status);
+}
+
 export function operationEmptyBody(
   operationClosed: boolean, locale: string, historicalPt: string, historicalEn: string, editableBody: string,
 ): string {
