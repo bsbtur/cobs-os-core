@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ChevronDown, ChevronUp, ListChecks, Lock, Plus } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Lightbulb, ListChecks, Lock, Plus } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -915,6 +915,12 @@ function BlueprintWorkspace({ blueprintId }: { blueprintId: string }) {
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="min-h-11">
+            <a href={`/blueprints/${blueprintId}/visit-points`}>
+              <Lightbulb className="mr-1.5 size-4" aria-hidden="true" />
+              Biblioteca interpretativa
+            </a>
+          </Button>
           {mayCreateVersion ? (
             <Button variant="outline" className="min-h-11" onClick={() => setNewVersionOpen(true)}>
               {t("bp.newVersion.action")}
