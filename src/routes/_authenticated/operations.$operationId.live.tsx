@@ -42,6 +42,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -907,6 +908,7 @@ if (state.error) throw state.error;
   const boardingStartedStepIds = live.data?.boardingStartedStepIds ?? new Set<string>();
   const arrivedStepIds = live.data?.arrivedStepIds ?? new Set<string>();
   const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
+  const operationClosed = isOperationClosed(operation.status);
   /**
    * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
    * They are invisible to public.w04_step_readiness, so the operator must see them.
@@ -927,6 +929,8 @@ if (state.error) throw state.error;
         <h2 className="text-xl font-semibold">{t("w04.live.title")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
       </header>
+
+      {operationClosed ? <ReadOnlyNotice /> : null}
 
       {operation.status !== "active" && operation.status !== "completed" ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
@@ -993,24 +997,26 @@ if (state.error) throw state.error;
               </div>
             ) : null}
 
-            <div className="mt-4">
-              <SectionLabel>{t("w04.live.action")}</SectionLabel>
-              <div className="mt-2">
-                <StepActions
-                  step={current}
-                  ready={readiness?.ready ?? false}
-                  arrived={arrivedStepIds.has(current.id)}
-                  onRefresh={refresh}
-                />
+            {!operationClosed ? (
+              <div className="mt-4">
+                <SectionLabel>{t("w04.live.action")}</SectionLabel>
+                <div className="mt-2">
+                  <StepActions
+                    step={current}
+                    ready={readiness?.ready ?? false}
+                    arrived={arrivedStepIds.has(current.id)}
+                    onRefresh={refresh}
+                  />
+                </div>
               </div>
-            </div>
+            ) : null}
           </>
         ) : (
           <>
             {next ? (
               <>
                 <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.noCurrentBody")}</p>
-                <StartNext step={next} onRefresh={refresh} />
+                {!operationClosed ? <StartNext step={next} onRefresh={refresh} /> : null}
               </>
             ) : journeyResolved ? (
               <div className="mt-2 space-y-3">
@@ -1050,7 +1056,7 @@ if (state.error) throw state.error;
         </article>
       ) : null}
 
-      {current && current.presence_requirement !== "none" ? (
+      {current && !operationClosed && current.presence_requirement !== "none" ? (
         <PresencePanel
           step={current}
           roster={live.data?.roster ?? []}
@@ -1061,7 +1067,7 @@ if (state.error) throw state.error;
         />
       ) : null}
 
-      {current ? (
+      {current && !operationClosed ? (
         <ChecklistPanel
           items={(live.data?.items ?? []).filter((item) => item.journey_step_id === current.id)}
           executions={live.data?.executions ?? []}
