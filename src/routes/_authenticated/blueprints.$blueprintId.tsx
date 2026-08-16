@@ -84,6 +84,28 @@ function Chip({ children, className = "" }: { children: React.ReactNode; classNa
   );
 }
 
+type InterpretiveCoverage = "empty" | "partial" | "complete";
+
+function interpretiveCoverage(pointCount: number): InterpretiveCoverage {
+  if (pointCount === 0) return "empty";
+  if (pointCount < 4) return "partial";
+  return "complete";
+}
+
+function interpretiveCoverageLabel(pointCount: number) {
+  const coverage = interpretiveCoverage(pointCount);
+  if (coverage === "empty") return "Sem conteúdo";
+  if (coverage === "partial") return "Parcial";
+  return "Completa";
+}
+
+function interpretiveCoverageClass(pointCount: number) {
+  const coverage = interpretiveCoverage(pointCount);
+  if (coverage === "complete") return "bg-primary-soft text-primary";
+  if (coverage === "partial") return "bg-warning-soft text-warning";
+  return "border border-border text-muted-foreground";
+}
+
 /* ------------------------------------------------------------------ */
 /* Step dialog                                                         */
 /* ------------------------------------------------------------------ */
@@ -511,6 +533,7 @@ function DraftEditor({
     (total, step) => total + (visitPointCounts.get(step.id) ?? 0),
     0,
   );
+  const coveredStepCount = order.filter((step) => (visitPointCounts.get(step.id) ?? 0) > 0).length;
 
   return (
     <section className="space-y-4">
@@ -524,6 +547,9 @@ function DraftEditor({
             <Lightbulb className="mr-1 size-3.5" aria-hidden="true" />
             {visitPointTotal}{" "}
             {visitPointTotal === 1 ? "ponto interpretativo" : "pontos interpretativos"}
+          </Chip>
+          <Chip className="border border-border text-muted-foreground">
+            {coveredStepCount}/{order.length} etapas com conteúdo
           </Chip>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -609,15 +635,10 @@ function DraftEditor({
                     <Chip className="border border-border text-muted-foreground">
                       {t(`w04.kind.${step.step_kind}`)}
                     </Chip>
-                    <Chip
-                      className={
-                        (visitPointCounts.get(step.id) ?? 0) > 0
-                          ? "bg-primary-soft text-primary"
-                          : "border border-border text-muted-foreground"
-                      }
-                    >
+                    <Chip className={interpretiveCoverageClass(visitPointCounts.get(step.id) ?? 0)}>
                       <Lightbulb className="mr-1 size-3.5" aria-hidden="true" />
-                      {visitPointCounts.get(step.id) ?? 0} pontos
+                      {visitPointCounts.get(step.id) ?? 0} pontos ·{" "}
+                      {interpretiveCoverageLabel(visitPointCounts.get(step.id) ?? 0)}
                     </Chip>
                     {step.presence_requirement ? (
                       <Chip className="bg-primary-soft text-primary">
@@ -734,6 +755,7 @@ function PublishedVersionCard({
     (total, step) => total + (visitPointCounts.get(step.id) ?? 0),
     0,
   );
+  const coveredStepCount = steps.filter((step) => (visitPointCounts.get(step.id) ?? 0) > 0).length;
   return (
     <article className="surface-panel space-y-2 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -754,6 +776,9 @@ function PublishedVersionCard({
           <Chip className="border border-border text-muted-foreground">
             <Lightbulb className="mr-1 size-3.5" aria-hidden="true" />
             {visitPointTotal} pontos
+          </Chip>
+          <Chip className="border border-border text-muted-foreground">
+            {coveredStepCount}/{steps.length} etapas com conteúdo
           </Chip>
         </div>
         <Button variant="ghost" size="sm" className="min-h-9" onClick={() => setOpen(!open)}>
@@ -788,7 +813,8 @@ function PublishedVersionCard({
                 <span>{formatOffset(step.start_offset_minutes, t)}</span>
                 <span className="inline-flex items-center gap-1">
                   <Lightbulb className="size-3.5" aria-hidden="true" />
-                  {visitPointCounts.get(step.id) ?? 0} pontos
+                  {visitPointCounts.get(step.id) ?? 0} pontos ·{" "}
+                  {interpretiveCoverageLabel(visitPointCounts.get(step.id) ?? 0)}
                 </span>
               </div>
             </li>
