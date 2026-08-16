@@ -29,9 +29,9 @@ type PointWithStatus = VisitPoint & {
 function isArchived(metadata: Json) {
   return Boolean(
     metadata &&
-      typeof metadata === "object" &&
-      !Array.isArray(metadata) &&
-      metadata["archived"] === true,
+    typeof metadata === "object" &&
+    !Array.isArray(metadata) &&
+    metadata["archived"] === true,
   );
 }
 
@@ -118,9 +118,8 @@ export function VisitPointsPanel({
     },
   });
 
-  const points = query.data ?? [];
-  const firstAvailable =
-    points.find((point) => point.status === "available") ?? points[0] ?? null;
+  const points = React.useMemo(() => query.data ?? [], [query.data]);
+  const firstAvailable = points.find((point) => point.status === "available") ?? points[0] ?? null;
   const selected = points.find((point) => point.id === selectedId) ?? firstAvailable;
   const selectedIndex = selected ? points.findIndex((point) => point.id === selected.id) : -1;
   const visitedCount = points.filter((point) => point.status === "visited").length;
@@ -136,13 +135,7 @@ export function VisitPointsPanel({
   }, [firstAvailable?.id, points, selectedId]);
 
   const statusMutation = useMutation({
-    mutationFn: async ({
-      pointId,
-      status,
-    }: {
-      pointId: string;
-      status: VisitPointStatus;
-    }) => {
+    mutationFn: async ({ pointId, status }: { pointId: string; status: VisitPointStatus }) => {
       const { error } = await supabase.rpc("set_journey_visit_point_status", {
         _visit_point_id: pointId,
         _status: status,
@@ -163,9 +156,7 @@ export function VisitPointsPanel({
       }
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Não foi possível atualizar o ponto.",
-      );
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o ponto.");
     },
   });
 
@@ -240,9 +231,7 @@ export function VisitPointsPanel({
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-75">
                   Visita concluída
                 </p>
-                <p className="mt-0.5 text-lg font-semibold">
-                  Todos os pontos foram apresentados
-                </p>
+                <p className="mt-0.5 text-lg font-semibold">Todos os pontos foram apresentados</p>
               </div>
             </div>
             <p className="mt-3 text-sm leading-relaxed opacity-85">
@@ -280,13 +269,9 @@ export function VisitPointsPanel({
               <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/45 p-4">
                 <div className="flex items-center gap-2 text-primary">
                   <Lightbulb className="size-4" aria-hidden="true" />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]">
-                    Dica ao guia
-                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]">Dica ao guia</p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-foreground/90">
-                  {selected.guide_tip}
-                </p>
+                <p className="mt-2 text-sm leading-6 text-foreground/90">{selected.guide_tip}</p>
               </div>
             ) : null}
 
@@ -358,10 +343,7 @@ export function VisitPointsPanel({
                   </p>
                   <p className="mt-1 truncate text-sm font-semibold">{nextAvailable.title}</p>
                 </div>
-                <ArrowRight
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               </button>
             ) : null}
           </>
