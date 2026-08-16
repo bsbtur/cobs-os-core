@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowRight,
-  CheckCircle2,
   ClipboardCheck,
   LayoutDashboard,
   Radio,
@@ -180,32 +179,6 @@ function CockpitV2Preview() {
               </p>
 
               <LiveTimingStrip current={current} next={next} />
-
-              <div
-                className={`mt-4 rounded-2xl px-4 py-3 ${
-                  readiness?.ready === false
-                    ? "bg-warning-soft text-warning"
-                    : "bg-success-soft text-success"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {readiness?.ready === false ? (
-                    <AlertTriangle className="size-4" aria-hidden="true" />
-                  ) : (
-                    <CheckCircle2 className="size-4" aria-hidden="true" />
-                  )}
-                  <span className="text-sm font-semibold">
-                    {readiness?.ready === false
-                      ? "Ação necessária antes de avançar"
-                      : "Etapa pronta para avançar"}
-                  </span>
-                </div>
-                {readiness ? (
-                  <p className="mt-1 text-xs opacity-85">
-                    {readiness.satisfied}/{readiness.evaluated} requisitos de presença atendidos
-                  </p>
-                ) : null}
-              </div>
             </>
           ) : next ? (
             <>
