@@ -52,7 +52,6 @@ export function PersonalOperationQueue() {
   const { tenant } = useTenant();
   const { locale, timeZone } = useI18n();
   const qc = useQueryClient();
-  const db = supabase as any;
 
   const queryKey = ["px12.4d-personal-operation-queue", tenant?.id, user?.id];
   const query = useQuery({
@@ -96,7 +95,7 @@ export function PersonalOperationQueue() {
           )
           .eq("tenant_id", tenant!.id)
           .in("participation_id", participationIds),
-        db
+        supabase
           .from("operation_staff_assignments")
           .select(
             "id,participation_id,role_type_id,report_at,starts_at,ends_at,status,operation_role_types(id,key,label)",
@@ -164,7 +163,8 @@ export function PersonalOperationQueue() {
           latestAction.set(event.playbook_item_id, event.execution_action);
       }
 
-      const staffByParticipation = new Map<string, any[]>();
+      type StaffAssignmentRow = NonNullable<typeof staffAssignments.data>[number];
+      const staffByParticipation = new Map<string, StaffAssignmentRow[]>();
       for (const row of staffAssignments.data ?? []) {
         const current = staffByParticipation.get(row.participation_id) ?? [];
         current.push(row);
@@ -253,10 +253,9 @@ export function PersonalOperationQueue() {
       assignmentId: string;
       status: "confirmed" | "declined";
     }) => {
-      const result = await db.rpc("set_operation_staff_assignment_status", {
+      const result = await supabase.rpc("set_operation_staff_assignment_status", {
         _assignment_id: assignmentId,
         _status: status,
-        _note: null,
       });
       if (result.error) throw result.error;
     },
@@ -480,7 +479,7 @@ function QueueGroup({
   fallbackTimeZone: string;
   emphasis?: boolean;
   mutation: ReturnType<
-    typeof useMutation<any, Error, { assignmentId: string; status: "confirmed" | "declined" }>
+    typeof useMutation<void, Error, { assignmentId: string; status: "confirmed" | "declined" }>
   >;
 }) {
   return (

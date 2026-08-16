@@ -75,14 +75,16 @@ export function PersonalAlerts() {
   const { tenant } = useTenant();
   const { locale } = useI18n();
   const qc = useQueryClient();
-  const db = supabase as any;
 
   const query = useQuery({
     queryKey: ["px12.5-personal-alerts", tenant?.id],
     enabled: Boolean(tenant?.id),
     refetchInterval: 30_000,
     queryFn: async () => {
-      const inbox = await db.rpc("get_my_message_inbox", { _tenant_id: tenant!.id, _limit: 50 });
+      const inbox = await supabase.rpc("get_my_message_inbox", {
+        _tenant_id: tenant!.id,
+        _limit: 50,
+      });
       if (inbox.error) throw inbox.error;
       const payload = (inbox.data ?? { person_id: null, messages: [] }) as InboxPayload;
       const reminders = (payload.messages ?? [])
@@ -112,7 +114,7 @@ export function PersonalAlerts() {
 
   const markRead = useMutation({
     mutationFn: async (messageId: string) => {
-      const result = await db.rpc("mark_message_read", { _message_id: messageId });
+      const result = await supabase.rpc("mark_message_read", { _message_id: messageId });
       if (result.error) throw result.error;
     },
     onSuccess: async () => {

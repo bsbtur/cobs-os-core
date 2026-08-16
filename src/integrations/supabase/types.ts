@@ -2814,6 +2814,112 @@ export type Database = {
           },
         ];
       };
+      operation_staff_assignments: {
+        Row: {
+          cancelled_at: string | null;
+          completed_at: string | null;
+          confirmed_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          declined_at: string | null;
+          ends_at: string;
+          id: string;
+          notes: string | null;
+          operation_id: string;
+          participation_id: string;
+          report_at: string | null;
+          role_type_id: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["staff_assignment_status"];
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          cancelled_at?: string | null;
+          completed_at?: string | null;
+          confirmed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          declined_at?: string | null;
+          ends_at: string;
+          id?: string;
+          notes?: string | null;
+          operation_id: string;
+          participation_id: string;
+          report_at?: string | null;
+          role_type_id: string;
+          starts_at: string;
+          status?: Database["public"]["Enums"]["staff_assignment_status"];
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          cancelled_at?: string | null;
+          completed_at?: string | null;
+          confirmed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          declined_at?: string | null;
+          ends_at?: string;
+          id?: string;
+          notes?: string | null;
+          operation_id?: string;
+          participation_id?: string;
+          report_at?: string | null;
+          role_type_id?: string;
+          starts_at?: string;
+          status?: Database["public"]["Enums"]["staff_assignment_status"];
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "operation_staff_assignments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "operation_staff_assignments_operation_fk";
+            columns: ["operation_id", "tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "operations";
+            referencedColumns: ["id", "tenant_id"];
+          },
+          {
+            foreignKeyName: "operation_staff_assignments_participation_fk";
+            columns: ["participation_id", "tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "operation_participations";
+            referencedColumns: ["id", "tenant_id"];
+          },
+          {
+            foreignKeyName: "operation_staff_assignments_role_type_fk";
+            columns: ["role_type_id", "tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "operation_role_types";
+            referencedColumns: ["id", "tenant_id"];
+          },
+          {
+            foreignKeyName: "operation_staff_assignments_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "operation_staff_assignments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       operations: {
         Row: {
           archived_at: string | null;
@@ -5241,6 +5347,42 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      generate_due_staff_journey_alerts: {
+        Args: { _tenant_id: string; _window_end?: string; _window_start?: string };
+        Returns: Json;
+      };
+      get_operation_staff_assignment_conflicts: {
+        Args: { _from: string; _tenant_id: string; _to: string };
+        Returns: {
+          assignment_id: string;
+          conflicting_assignment_id: string;
+          overlap_end: string;
+          overlap_start: string;
+          participation_id: string;
+        }[];
+      };
+      save_operation_staff_assignment: {
+        Args: {
+          _assignment_id?: string;
+          _ends_at: string;
+          _notes?: string;
+          _operation_id: string;
+          _participation_id: string;
+          _report_at?: string;
+          _role_type_id: string;
+          _starts_at: string;
+          _tenant_id: string;
+        };
+        Returns: string;
+      };
+      set_operation_staff_assignment_status: {
+        Args: {
+          _assignment_id: string;
+          _note?: string;
+          _status: Database["public"]["Enums"]["staff_assignment_status"];
+        };
+        Returns: undefined;
+      };
       get_commerce_catalog: { Args: { _tenant_id: string }; Returns: Json };
       get_event_program: { Args: { _event_id: string }; Returns: Json };
       get_event_runtime_state: { Args: { _event_id: string }; Returns: Json };
@@ -6283,6 +6425,7 @@ export type Database = {
       price_status: "active" | "archived";
       sellable_kind: "offering" | "merchandise" | "ticket" | "service" | "fee_item";
       sellable_status: "active" | "archived";
+      staff_assignment_status: "assigned" | "confirmed" | "declined" | "cancelled" | "completed";
       step_plan_origin: "planned" | "ad_hoc";
       step_presence_population: "participants" | "all_confirmed";
       step_presence_requirement: "none" | "accounted" | "boarded";

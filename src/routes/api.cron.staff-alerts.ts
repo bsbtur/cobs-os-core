@@ -65,13 +65,8 @@ async function runStaffAlertScheduler(request: Request) {
   const windowStart = new Date(Date.now() - 5 * 60_000);
   const results: Array<{ tenantId: string; result?: GeneratorResult; error?: string }> = [];
 
-  const generateDueAlerts = supabase.rpc as unknown as (
-    fn: "generate_due_staff_journey_alerts",
-    args: { _tenant_id: string; _window_start: string; _window_end: string },
-  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-
   for (const tenant of tenantQuery.data ?? []) {
-    const response = await generateDueAlerts("generate_due_staff_journey_alerts", {
+    const response = await supabase.rpc("generate_due_staff_journey_alerts", {
       _tenant_id: tenant.id,
       _window_start: windowStart.toISOString(),
       _window_end: windowEnd.toISOString(),

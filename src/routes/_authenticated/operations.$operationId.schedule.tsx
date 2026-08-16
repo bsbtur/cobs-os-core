@@ -46,7 +46,6 @@ function TeamSchedulePage() {
   const { user } = useAuth();
   const { tenant, role } = useTenant();
   const qc = useQueryClient();
-  const db = supabase as any;
   const canManage = role === "owner" || role === "admin" || role === "operations_agent";
   const [form, setForm] = React.useState({
     candidate: "",
@@ -62,32 +61,32 @@ function TeamSchedulePage() {
     enabled: Boolean(tenant?.id),
     queryFn: async () => {
       const [operation, assignments, participations, conflicts, me] = await Promise.all([
-        db
+        supabase
           .from("operations")
           .select("id,name,code,timezone,planned_start,planned_end,status")
           .eq("id", operationId)
           .single(),
-        db
+        supabase
           .from("operation_staff_assignments")
           .select(
             "id,participation_id,role_type_id,report_at,starts_at,ends_at,status,notes,operation_participations(people(id,full_name)),operation_role_types(label,key)",
           )
           .eq("operation_id", operationId)
           .order("starts_at"),
-        db
+        supabase
           .from("operation_participations")
           .select(
             "id,status,people(id,full_name),operation_role_assignments(role_type_id,operation_role_types(id,label,key,is_active))",
           )
           .eq("operation_id", operationId)
           .neq("status", "cancelled"),
-        db.rpc("get_operation_staff_assignment_conflicts", {
+        supabase.rpc("get_operation_staff_assignment_conflicts", {
           _tenant_id: tenant!.id,
           _from: new Date(Date.now() - 86_400_000).toISOString(),
           _to: new Date(Date.now() + 90 * 86_400_000).toISOString(),
         }),
         user?.id
-          ? db.from("people").select("id").eq("profile_id", user.id).maybeSingle()
+          ? supabase.from("people").select("id").eq("profile_id", user.id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
       ]);
       for (const result of [operation, assignments, participations, conflicts, me])
@@ -109,10 +108,14 @@ function TeamSchedulePage() {
       }
 
       let myParticipationId: string | null = null;
-      if (me.data?.id) {
-        const mine = (participations.data ?? []).find((p: any) => one(p.people)?.id === me.data.id);
+      const meId = me.data?.id;
+      if (meId) {
+        const mine = (participations.data ?? []).find((p) => one(p.people)?.id === meId);
         myParticipationId = mine?.id ?? null;
       }
+
+      if (!operation.data)
+        throw new Error(copy(locale, "Operação não encontrada.", "Operation not found."));
 
       return {
         operation: operation.data,
@@ -150,16 +153,15 @@ function TeamSchedulePage() {
           ),
         );
       }
-      const { error: rpcError } = await db.rpc("save_operation_staff_assignment", {
+      const { error: rpcError } = await supabase.rpc("save_operation_staff_assignment", {
         _tenant_id: tenant.id,
         _operation_id: operationId,
         _participation_id: candidate.participationId,
         _role_type_id: candidate.roleTypeId,
         _starts_at: start.toISOString(),
         _ends_at: end.toISOString(),
-        _report_at: form.reportAt ? new Date(form.reportAt).toISOString() : null,
-        _notes: form.notes || null,
-        _assignment_id: null,
+        ...(form.reportAt ? { _report_at: new Date(form.reportAt).toISOString() } : {}),
+        ...(form.notes ? { _notes: form.notes } : {}),
       });
       if (rpcError) throw rpcError;
     },
@@ -167,29 +169,30 @@ function TeamSchedulePage() {
       setForm({ candidate: "", reportAt: "", startsAt: "", endsAt: "", notes: "" });
       await qc.invalidateQueries({ queryKey: ["px12-team-schedule", tenant?.id, operationId] });
     },
-    onError: (err: any) =>
+    onError: (err: unknown) =>
       setError(
-        err?.message ??
-          copy(locale, "Não foi possível salvar a escala.", "Could not save schedule."),
+        err instanceof Error
+          ? err.message
+          : copy(locale, "Não foi possível salvar a escala.", "Could not save schedule."),
       ),
   });
 
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: AssignmentStatus }) => {
       setError(null);
-      const { error: rpcError } = await db.rpc("set_operation_staff_assignment_status", {
+      const { error: rpcError } = await supabase.rpc("set_operation_staff_assignment_status", {
         _assignment_id: id,
         _status: status,
-        _note: null,
       });
       if (rpcError) throw rpcError;
     },
     onSuccess: async () =>
       qc.invalidateQueries({ queryKey: ["px12-team-schedule", tenant?.id, operationId] }),
-    onError: (err: any) =>
+    onError: (err: unknown) =>
       setError(
-        err?.message ??
-          copy(locale, "Não foi possível alterar a escala.", "Could not update schedule."),
+        err instanceof Error
+          ? err.message
+          : copy(locale, "Não foi possível alterar a escala.", "Could not update schedule."),
       ),
   });
 
@@ -253,7 +256,7 @@ function TeamSchedulePage() {
   const operationClosed = operation.status === "completed" || operation.status === "cancelled";
   const noCandidates = candidates.length === 0;
   const conflictIds = new Set(
-    conflicts.flatMap((item: any) => [item.assignment_id, item.conflicting_assignment_id]),
+    conflicts.flatMap((item) => [item.assignment_id, item.conflicting_assignment_id]),
   );
   const actionsPending = save.isPending || statusMutation.isPending;
 
