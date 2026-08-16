@@ -92,17 +92,24 @@ alter table public.payment_charges enable row level security;
 alter table public.payment_attempts enable row level security;
 alter table public.payment_events enable row level security;
 
--- Reuse the existing tenant membership helper used throughout the COBS Core.
-create policy payment_charges_tenant_read on public.payment_charges
-  for select to authenticated using (public.is_tenant_member(tenant_id));
-create policy payment_attempts_tenant_read on public.payment_attempts
-  for select to authenticated using (public.is_tenant_member(tenant_id));
-create policy payment_events_tenant_read on public.payment_events
-  for select to authenticated using (public.is_tenant_member(tenant_id));
+-- Match the existing Commerce read boundary. Financial writes remain server-side only.
+create policy payment_charges_commerce_read on public.payment_charges
+  for select to authenticated using (
+    app_private.has_tenant_role(tenant_id, array['owner'::public.app_role, 'admin'::public.app_role, 'operations_agent'::public.app_role])
+  );
+create policy payment_attempts_commerce_read on public.payment_attempts
+  for select to authenticated using (
+    app_private.has_tenant_role(tenant_id, array['owner'::public.app_role, 'admin'::public.app_role, 'operations_agent'::public.app_role])
+  );
+create policy payment_events_commerce_read on public.payment_events
+  for select to authenticated using (
+    app_private.has_tenant_role(tenant_id, array['owner'::public.app_role, 'admin'::public.app_role, 'operations_agent'::public.app_role])
+  );
 
--- Writes are intentionally server-side only. Edge Functions/RPCs use privileged
--- credentials after authorization/signature validation; clients cannot mutate money.
+-- No INSERT/UPDATE/DELETE policies are intentionally exposed to authenticated clients.
+-- Edge Functions/RPCs write with privileged credentials only after authorization or
+-- provider-signature validation. The browser cannot self-approve money.
 
-comment on table public.payment_charges is 'Provider-agnostic receivables/cobranças linked to COBS orders.';
+comment on table public.payment_charges is 'Provider-agnostic receivables/cobrancas linked to COBS orders.';
 comment on table public.payment_attempts is 'Individual Pix/card provider attempts with mandatory idempotency.';
-comment on table public.payment_events is 'Immutable-ish inbound/outbound payment event evidence and webhook deduplication.';
+comment on table public.payment_events is 'Inbound/outbound payment event evidence and webhook deduplication.';
