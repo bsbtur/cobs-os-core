@@ -102,15 +102,15 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
         : 0;
       const boardingStarted = Boolean(
         current &&
-          (facts.data ?? []).some(
-            (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
-          ),
+        (facts.data ?? []).some(
+          (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
+        ),
       );
       const arrived = Boolean(
         current &&
-          (facts.data ?? []).some(
-            (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
-          ),
+        (facts.data ?? []).some(
+          (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
+        ),
       );
 
       return {
@@ -169,7 +169,12 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
         </div>
 
         {isCockpitV2 && guidance.target ? (
-          <Button asChild size="sm" variant="outline" className="mt-3 min-h-10 w-full bg-background/60">
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="mt-3 min-h-10 w-full bg-background/60"
+          >
             <Link
               to={
                 guidance.target === "people"
