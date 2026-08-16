@@ -1,0 +1,59 @@
+name: PX final fix pack apply v3
+on:
+  push:
+    branches: [preview/alpha-productization-px01]
+    paths: [.github/workflows/px-final-fix-pack-apply-v3.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Apply scoped patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          def r(path, old, new, label, count=1):
+              p=Path(path); s=p.read_text(); n=s.count(old); print(label,n)
+              if n != count: raise SystemExit(f'unexpected {label}: {n}')
+              p.write_text(s.replace(old,new,count))
+          r('src/components/journey/field-mode-pending-first.tsx','next.dataset.fieldFocus = "true";\n        window.setTimeout(() => delete next.dataset.fieldFocus, 900);','next.dataset["fieldFocus"] = "true";\n        window.setTimeout(() => delete next.dataset["fieldFocus"], 900);','field dataset')
+          r('src/components/journey/journey-management-panel.tsx','_planned_start: startIso,\n        _planned_end: endIso,','_planned_start: startIso ?? undefined,\n        _planned_end: endIso ?? undefined,','journey null args')
+          r('src/components/journey/journey-operational-cockpit.tsx','const focusStep = steps[plannedIndex] ?? steps[0];','const focusStep = steps[plannedIndex] ?? steps[0]!;','cockpit focus')
+          r('src/app/shell/command-palette.tsx','.select("id,name,operation_id,status,hospitality_properties(name,city,region),operations(name,code)")','.select("id,name,operation_id,status,hospitality_properties!hospitality_stays_property_id_fkey(name,city,region),operations!hospitality_stays_operation_id_fkey(name,code)")','hospitality fk')
+          r('src/app/shell/command-palette.tsx','                        icon={step.location_label ? MapPin : undefined}\n','                        {...(step.location_label ? { icon: MapPin } : {})}\n','optional icon')
+          r('src/components/operations/operation-control-center.tsx','to={`${base}/${focus.primaryRoute}`}','to={`${base}/${focus.primaryRoute}` as never}','primary route')
+          r('src/components/operations/operation-control-center.tsx','<Link to={`${base}/live`} className="text-xs font-semibold text-primary hover:underline">','<Link to="/operations/$operationId/live" params={{ operationId }} className="text-xs font-semibold text-primary hover:underline">','live route')
+          p=Path('src/components/operations/operation-history-timeline.tsx'); s=p.read_text()
+          for field in ['journey_step_id','participation_id','playbook_item_id','transport_leg_id','stay_id','event_id','session_id','message_id','person_id']:
+              s=s.replace(f'.get(row.{field})',f'.get(row.{field} ?? "")')
+          p.write_text(s)
+          r('src/components/operations/personal-alerts.tsx','<Link to={`/operations/${message.operation_id}`}>','<Link to="/operations/$operationId" params={{ operationId: message.operation_id }}>','alert route')
+          p=Path('src/components/operations/personal-operation-queue.tsx'); s=p.read_text(); old='to={`/operations/${item.operationId}`}'
+          if s.count(old) != 2: raise SystemExit(f'unexpected queue routes: {s.count(old)}')
+          p.write_text(s.replace(old,'to="/operations/$operationId" params={{ operationId: item.operationId }}'))
+          r('src/routes/_authenticated/operations.$operationId.events.tsx','canOperate={liveCanOperate}','canOperate={canOperate}','events operate')
+          p=Path('src/routes/api.cron.staff-alerts.ts'); s=p.read_text(); marker='  const results: Array<{ tenantId: string; result?: GeneratorResult; error?: string }> = [];\n\n'
+          if marker not in s: raise SystemExit('staff marker missing')
+          insert=marker+'  const generateDueAlerts = supabase.rpc as unknown as (\n    fn: "generate_due_staff_journey_alerts",\n    args: { _tenant_id: string; _window_start: string; _window_end: string },\n  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;\n\n'
+          s=s.replace(marker,insert,1).replace('const response = await supabase.rpc("generate_due_staff_journey_alerts", {','const response = await generateDueAlerts("generate_due_staff_journey_alerts", {',1)
+          p.write_text(s)
+          PY
+          git diff --check
+      - name: Commit scoped fix
+        run: |
+          rm -f .github/workflows/px-final-fix-pack-apply.yml .github/workflows/px-final-fix-pack-apply-v2.yml .github/workflows/px-final-fix-pack-apply-v3.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(alpha): resolve final type safety gaps"
+          git push origin HEAD:preview/alpha-productization-px01
