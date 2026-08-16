@@ -126,10 +126,7 @@ export function VisitPointsEditor({
         </ol>
       )}
 
-      <Dialog
-        open={open}
-        onOpenChange={(next) => (createPoint.isPending ? null : setOpen(next))}
-      >
+      <Dialog open={open} onOpenChange={(next) => (createPoint.isPending ? null : setOpen(next))}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Novo ponto da visita</DialogTitle>

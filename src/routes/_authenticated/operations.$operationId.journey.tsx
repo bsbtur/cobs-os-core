@@ -49,6 +49,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
+import { VisitPointsEditor } from "@/components/journey/visit-points-editor";
 import { feedback } from "@/components/feedback/feedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -1247,6 +1248,11 @@ function JourneyPlanPage() {
                 roleTypes={roleTypes}
                 operationId={operationId}
                 operationClosed={operationClosed}
+              />
+              <VisitPointsEditor
+                operationId={operationId}
+                journeyStepId={step.id}
+                editable={baselineOpen && !operationClosed}
               />
             </li>
           ))}
