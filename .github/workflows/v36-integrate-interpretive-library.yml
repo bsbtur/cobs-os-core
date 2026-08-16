@@ -32,10 +32,8 @@ jobs:
               raise SystemExit('lucide import anchor not found')
           text = text.replace(old_import, new_import, 1)
 
-          anchor = '''        <div className="flex flex-wrap gap-2">
-          {mayCreateVersion ? ('''
-          replacement = '''        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="min-h-11">
+          anchor = '          {mayCreateVersion ? ('
+          replacement = '''          <Button asChild variant="outline" className="min-h-11">
             <a href={`/blueprints/${blueprintId}/visit-points`}>
               <Lightbulb className="mr-1.5 size-4" aria-hidden="true" />
               Biblioteca interpretativa
