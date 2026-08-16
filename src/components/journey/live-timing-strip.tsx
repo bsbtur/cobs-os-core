@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Clock, Hourglass, TimerReset } from "lucide-react";
+import { Clock, Hourglass } from "lucide-react";
 
 import type { JourneyStepRow } from "@/lib/w04";
 import { useI18n } from "@/lib/i18n";
@@ -9,10 +9,12 @@ import { useI18n } from "@/lib/i18n";
  *
  * Principle: in field operation, show less information and more direction.
  * The component promotes the most operationally relevant clock state
- * (remaining/late) and keeps elapsed/next timing as secondary context.
+ * (remaining/late) and keeps elapsed timing as secondary context.
  *
  * It derives timing only from expected_* / planned_* values, writes nothing,
- * queries nothing, and never affects readiness or step actions.
+ * queries nothing, and never affects readiness or step actions. The next step
+ * is rendered by the canonical "next" surface outside this timing strip so the
+ * operator does not see the same information twice.
  */
 
 const TICK_MS = 30_000;
@@ -29,14 +31,6 @@ function endOf(step: JourneyStepRow | null): number | null {
   if (!raw) return null;
   const value = new Date(raw).getTime();
   return Number.isFinite(value) ? value : null;
-}
-
-function clockOf(step: JourneyStepRow | null): string | null {
-  const raw = step?.expected_start ?? step?.planned_start ?? null;
-  if (!raw) return null;
-  const value = new Date(raw);
-  if (!Number.isFinite(value.getTime())) return null;
-  return value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 /** Coarse duration label: "2h 05min" / "45min" / "<1min". */
@@ -92,21 +86,13 @@ function SecondaryTiming({
   icon: Icon,
   label,
   value,
-  tone = "muted",
 }: {
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   label: string;
   value: string;
-  tone?: "muted" | "warning";
 }) {
   return (
-    <div
-      className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-sm ${
-        tone === "warning"
-          ? "border-warning/30 bg-warning-soft text-warning"
-          : "border-border/70 bg-background/55 text-muted-foreground"
-      }`}
-    >
+    <div className="flex min-w-0 items-center gap-2 rounded-xl border border-border/70 bg-background/55 px-3 py-2.5 text-sm text-muted-foreground">
       <Icon className="size-4 shrink-0" aria-hidden={true} />
       <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
       <span className="shrink-0 font-mono font-medium tabular-nums">{value}</span>
@@ -114,48 +100,11 @@ function SecondaryTiming({
   );
 }
 
-function NextStepPreview({ next, untilNext }: { next: JourneyStepRow; untilNext: number | null }) {
-  const { t } = useI18n();
-  const start = clockOf(next);
-
-  return (
-    <div className="rounded-2xl border border-border/70 bg-background/55 px-4 py-3.5">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <TimerReset className="size-4 shrink-0" aria-hidden={true} />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">
-          {t("w04.live.next")}
-        </span>
-      </div>
-      <div className="mt-1.5 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">{next.title}</p>
-          {next.location_label ? (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{next.location_label}</p>
-          ) : null}
-        </div>
-        <div className="shrink-0 text-right">
-          {start ? <p className="font-mono text-sm font-semibold tabular-nums">{start}</p> : null}
-          {untilNext !== null ? (
-            <p
-              className={`mt-0.5 text-xs ${untilNext < 0 ? "text-warning" : "text-muted-foreground"}`}
-            >
-              {untilNext >= 0
-                ? `${t("w04.timing.nextIn")} ${formatDuration(untilNext)}`
-                : `${t("w04.timing.nextLate")} ${formatDuration(untilNext)}`}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function LiveTimingStrip({
   current,
-  next,
 }: {
   current: JourneyStepRow | null;
-  next: JourneyStepRow | null;
+  next?: JourneyStepRow | null;
 }) {
   const { t } = useI18n();
   const now = useNow();
@@ -164,13 +113,10 @@ export function LiveTimingStrip({
 
   const currentStart = startOf(current);
   const currentEnd = endOf(current);
-  const nextStart = startOf(next);
-
   const remaining = currentEnd === null ? null : currentEnd - now;
   const elapsed = currentStart !== null && currentStart <= now ? now - currentStart : null;
-  const untilNext = nextStart === null ? null : nextStart - now;
 
-  if (remaining === null && elapsed === null && untilNext === null && !next) {
+  if (remaining === null && elapsed === null) {
     return <p className="mt-3 text-sm text-muted-foreground">{t("w04.timing.none")}</p>;
   }
 
@@ -191,8 +137,6 @@ export function LiveTimingStrip({
           value={formatDuration(elapsed)}
         />
       ) : null}
-
-      {next ? <NextStepPreview next={next} untilNext={untilNext} /> : null}
     </div>
   );
 }
