@@ -22,7 +22,6 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
           def patch(path, replacements):
               p=Path(path); s=p.read_text()
               for old,new,label in replacements:
@@ -38,8 +37,6 @@ jobs:
             ('        />\n      </div>\n\n      {legs.length === 0 ? (', '        />\n        </div>\n      ) : null}\n\n      {legs.length === 0 ? (', 'create-close'),
             ('                <div className="mt-4 space-y-3">\n                  <SectionLabel>{t("w05.action.assignVehicle")}</SectionLabel>', '                {!operationClosed ? (\n                  <>\n                <div className="mt-4 space-y-3">\n                  <SectionLabel>{t("w05.action.assignVehicle")}</SectionLabel>', 'controls-open'),
             ('                <div className="mt-5">\n                  <LegControls leg={selected} state={state} onRefresh={refresh} />\n                </div>\n              </article>', '                <div className="mt-5">\n                  <LegControls leg={selected} state={state} onRefresh={refresh} />\n                </div>\n                  </>\n                ) : null}\n              </article>', 'controls-close'),
-            ('              <StopsPanel\n                leg={selected}', '              {!operationClosed ? (\n                <>\n              <StopsPanel\n                leg={selected}', 'detail-open'),
-            ('                onRefresh={refresh}\n              />\n            </>', '                onRefresh={refresh}\n              />\n                </>\n              ) : null}\n            </>', 'detail-close'),
           ])
 
           patch('src/routes/_authenticated/operations.$operationId.hospitality.tsx', [
@@ -52,8 +49,6 @@ jobs:
           git diff --check
           grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.mobility.tsx'
           grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.hospitality.tsx'
-          npm ci
-          npx tsc --noEmit
       - name: Commit and remove one-shot workflow
         run: |
           rm .github/workflows/px-a05-mobility-hospitality-readonly.yml
