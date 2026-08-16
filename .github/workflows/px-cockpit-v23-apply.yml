@@ -160,3 +160,5 @@ jobs:
           fi
           git commit -m "refactor(cockpit-v2): reuse canonical journey step actions"
           git push origin HEAD:preview/alpha-productization-px01
+
+# one-shot trigger
