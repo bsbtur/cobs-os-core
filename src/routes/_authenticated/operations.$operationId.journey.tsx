@@ -8,6 +8,7 @@ import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import { useTenant } from "@/lib/tenant";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 import { roleLabel, type RoleTypeRow } from "@/lib/w03";
 import {
   PLAYBOOK_REQUIREMENTS,
@@ -495,11 +496,13 @@ function PlaybookEditor({
   items,
   roleTypes,
   operationId,
+  operationClosed,
 }: {
   step: JourneyStepRow;
   items: PlaybookItemRow[];
   roleTypes: RoleTypeRow[];
   operationId: string;
+  operationClosed: boolean;
 }) {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
@@ -568,7 +571,9 @@ function PlaybookEditor({
         </ul>
       )}
 
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+      {!operationClosed ? (
+        <>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <Input
           aria-label={t("w04.playbook.add")}
           value={title}
@@ -619,7 +624,9 @@ function PlaybookEditor({
           {t("w04.playbook.add")}
         </Button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -1045,8 +1052,10 @@ function JourneyPlanPage() {
   const items = journey.data?.items ?? [];
   const roleTypes = journey.data?.roleTypes ?? [];
   const baselineOpen = operation.status === "draft" || operation.status === "planning";
+  const operationClosed = isOperationClosed(operation.status);
 
   const move = (index: number, direction: -1 | 1) => {
+    if (operationClosed) return;
     const next = [...steps];
     const target = index + direction;
     const a = next[index];
@@ -1067,22 +1076,25 @@ function JourneyPlanPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (
+          {!operationClosed && canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (
             <Button variant="outline" className="min-h-11" onClick={() => setApplyOpen(true)}>
               <RouteIcon className="mr-1.5 size-4" aria-hidden="true" />
               {t("bp.apply.action")}
             </Button>
           ) : null}
-          <Button
-            className="min-h-11"
-            onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
-            disabled={operation.status === "completed" || operation.status === "cancelled"}
-          >
-            <Plus className="mr-1.5 size-4" aria-hidden="true" />
-            {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
-          </Button>
+          {!operationClosed ? (
+            <Button
+              className="min-h-11"
+              onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
+            >
+              <Plus className="mr-1.5 size-4" aria-hidden="true" />
+              {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
+            </Button>
+          ) : null}
         </div>
       </header>
+
+      {operationClosed ? <ReadOnlyNotice /> : null}
 
       {journeyOrigin ? (
         <div className="surface-panel px-4 py-3 text-sm">
@@ -1199,7 +1211,7 @@ function JourneyPlanPage() {
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {baselineOpen ? (
+                  {baselineOpen && !operationClosed ? (
                     <>
                       <Button
                         variant="ghost"
@@ -1221,6 +1233,7 @@ function JourneyPlanPage() {
                       </Button>
                     </>
                   ) : null}
+                  {!operationClosed ? (
                   <Button
                     variant="outline"
                     size="sm"
@@ -1229,6 +1242,7 @@ function JourneyPlanPage() {
                   >
                     {t("w04.expected.change")}
                   </Button>
+                  ) : null}
                 </div>
               </div>
 
@@ -1237,6 +1251,7 @@ function JourneyPlanPage() {
                 items={items.filter((item) => item.journey_step_id === step.id)}
                 roleTypes={roleTypes}
                 operationId={operationId}
+                operationClosed={operationClosed}
               />
             </li>
           ))}
@@ -1244,22 +1259,22 @@ function JourneyPlanPage() {
       )}
 
       <ApplyBlueprintDialog
-        open={applyOpen}
-        onOpenChange={setApplyOpen}
+        open={applyOpen && !operationClosed}
+        onOpenChange={(open) => setApplyOpen(operationClosed ? false : open)}
         operationId={operationId}
         plannedStart={operation.planned_start ?? null}
         timezone={operation.timezone ?? null}
       />
 
       <StepDialog
-        open={dialog !== null}
-        onOpenChange={(open) => setDialog(open ? dialog : null)}
+        open={dialog !== null && !operationClosed}
+        onOpenChange={(open) => setDialog(operationClosed ? null : open ? dialog : null)}
         operationId={operationId}
         adHoc={dialog === "ad_hoc"}
       />
       <ForecastDialog
-        step={forecastStep}
-        onOpenChange={(open) => setForecastStep(open ? forecastStep : null)}
+        step={operationClosed ? null : forecastStep}
+        onOpenChange={(open) => setForecastStep(operationClosed ? null : open ? forecastStep : null)}
         operationId={operationId}
       />
     </section>
