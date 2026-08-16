@@ -3,7 +3,9 @@ from pathlib import Path
 path = Path("src/routes/_authenticated/blueprints.$blueprintId.tsx")
 text = path.read_text()
 
-old_counts = '''  const completeStepCount = order.filter((step) => (visitPointCounts.get(step.id) ?? 0) >= 4).length;
+old_counts = '''  const completeStepCount = order.filter(
+    (step) => (visitPointCounts.get(step.id) ?? 0) >= 4,
+  ).length;
   const partialStepCount = order.filter((step) => {
     const count = visitPointCounts.get(step.id) ?? 0;
     return count > 0 && count < 4;
@@ -12,7 +14,9 @@ old_counts = '''  const completeStepCount = order.filter((step) => (visitPointCo
   const nextInterpretiveGap =
     order.find((step) => (visitPointCounts.get(step.id) ?? 0) < 4) ?? null;
 '''
-new_counts = '''  const completeStepCount = order.filter((step) => (visitPointCounts.get(step.id) ?? 0) >= 4).length;
+new_counts = '''  const completeStepCount = order.filter(
+    (step) => (visitPointCounts.get(step.id) ?? 0) >= 4,
+  ).length;
   const partialStepCount = order.filter((step) => {
     const count = visitPointCounts.get(step.id) ?? 0;
     return count > 0 && count < 4;
