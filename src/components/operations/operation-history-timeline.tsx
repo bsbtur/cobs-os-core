@@ -191,7 +191,9 @@ function mobilityPhrase(type: string, locale: string, leg?: string | null) {
     INCIDENT_RECORDED: `Incident recorded on ${target}`,
   };
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return map[type] ?? `${fallback(type, locale)} · ${leg ?? copy(locale, "Mobilidade", "Mobility")}`;
+  return (
+    map[type] ?? `${fallback(type, locale)} · ${leg ?? copy(locale, "Mobilidade", "Mobility")}`
+  );
 }
 
 function hospitalityPhrase(type: string, locale: string, stay?: string | null) {
@@ -215,7 +217,9 @@ function hospitalityPhrase(type: string, locale: string, stay?: string | null) {
     ROOM_RELEASED: `Room released at ${target}`,
   };
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return map[type] ?? `${fallback(type, locale)} · ${stay ?? copy(locale, "Hospedagem", "Hospitality")}`;
+  return (
+    map[type] ?? `${fallback(type, locale)} · ${stay ?? copy(locale, "Hospedagem", "Hospitality")}`
+  );
 }
 
 function eventPhrase(type: string, locale: string, event?: string | null, session?: string | null) {
@@ -237,7 +241,10 @@ function eventPhrase(type: string, locale: string, event?: string | null, sessio
     COMPLETED: `${target} completed`,
   };
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return map[type] ?? `${fallback(type, locale)} · ${session ?? event ?? copy(locale, "Eventos", "Events")}`;
+  return (
+    map[type] ??
+    `${fallback(type, locale)} · ${session ?? event ?? copy(locale, "Eventos", "Events")}`
+  );
 }
 
 function communicationPhrase(
@@ -263,7 +270,10 @@ function communicationPhrase(
     CANCELLED: `${target} cancelled`,
   };
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return map[type] ?? `${fallback(type, locale)} · ${message ?? copy(locale, "Comunicação", "Communication")}`;
+  return (
+    map[type] ??
+    `${fallback(type, locale)} · ${message ?? copy(locale, "Comunicação", "Communication")}`
+  );
 }
 
 export function OperationHistoryTimeline({ operationId }: { operationId: string }) {
@@ -441,7 +451,9 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
           occurredAt: row.occurred_at,
           note: row.note,
           context:
-            pointName.get(row.visit_point_id ?? "") ?? stepName.get(row.journey_step_id ?? "") ?? null,
+            pointName.get(row.visit_point_id ?? "") ??
+            stepName.get(row.journey_step_id ?? "") ??
+            null,
         })),
         ...(presence.data ?? []).map((row) => ({
           id: row.id,
