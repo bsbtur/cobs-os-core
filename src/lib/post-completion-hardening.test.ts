@@ -7,6 +7,7 @@ import {
 } from "./operation-lock";
 
 const read = (p: string) => readFileSync(p, "utf8");
+const compact = (value: string) => value.replace(/\s+/g, " ");
 
 describe("PILOT-03 post-completion hardening", () => {
   test("closed lifecycle", () => {
@@ -21,7 +22,7 @@ describe("PILOT-03 post-completion hardening", () => {
   });
 
   test("schedule controls are closed-gated", () => {
-    const s = read("src/routes/_authenticated/operations.$operationId.schedule.tsx");
+    const s = compact(read("src/routes/_authenticated/operations.$operationId.schedule.tsx"));
     expect(s).toContain("!operationClosed && own && assignment.status");
     expect(s).toContain("!operationClosed && canManage &&");
   });
@@ -87,7 +88,7 @@ describe("PILOT-03 post-completion hardening", () => {
   });
 
   test("active intelligence failure and retry behavior remains available", () => {
-    const s = read("src/components/operations/operation-intelligence-cockpit.tsx");
+    const s = compact(read("src/components/operations/operation-intelligence-cockpit.tsx"));
     expect(s).toContain("Cockpit operacional indisponível.");
     expect(s).toContain("Tente atualizar antes de tomar uma decisão operacional.");
     expect(s).toContain("onClick={() => query.refetch()}");
