@@ -545,7 +545,11 @@ function LibraryWorkspace({ blueprintId }: { blueprintId: string }) {
       ) : (
         <ol className="space-y-4">
           {steps.map((step) => (
-            <li key={step.id} className="surface-panel p-4 sm:p-5">
+            <li
+              key={step.id}
+              id={`step-${step.id}`}
+              className="surface-panel scroll-mt-24 p-4 transition-shadow target:ring-2 target:ring-primary/40 sm:p-5"
+            >
               <div className="flex items-start gap-3">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border font-mono text-xs font-semibold">
                   {step.sequence}

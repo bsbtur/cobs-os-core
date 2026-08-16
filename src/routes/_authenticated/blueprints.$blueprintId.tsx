@@ -640,6 +640,17 @@ function DraftEditor({
                       {visitPointCounts.get(step.id) ?? 0} pontos ·{" "}
                       {interpretiveCoverageLabel(visitPointCounts.get(step.id) ?? 0)}
                     </Chip>
+                    {(visitPointCounts.get(step.id) ?? 0) < 4 ? (
+                      <Button asChild variant="ghost" size="sm" className="min-h-9 px-2 text-xs">
+                        <a
+                          href={`/blueprints/${version.blueprint_id}/visit-points#step-${step.id}`}
+                        >
+                          {(visitPointCounts.get(step.id) ?? 0) === 0
+                            ? "Adicionar conteúdo"
+                            : "Completar biblioteca"}
+                        </a>
+                      </Button>
+                    ) : null}
                     {step.presence_requirement ? (
                       <Chip className="bg-primary-soft text-primary">
                         {t(`w04.requirement.${step.presence_requirement}`)}
