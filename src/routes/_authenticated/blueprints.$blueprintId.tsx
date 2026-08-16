@@ -534,6 +534,16 @@ function DraftEditor({
     0,
   );
   const coveredStepCount = order.filter((step) => (visitPointCounts.get(step.id) ?? 0) > 0).length;
+  const completeStepCount = order.filter(
+    (step) => (visitPointCounts.get(step.id) ?? 0) >= 4,
+  ).length;
+  const partialStepCount = order.filter((step) => {
+    const count = visitPointCounts.get(step.id) ?? 0;
+    return count > 0 && count < 4;
+  }).length;
+  const emptyStepCount = order.length - completeStepCount - partialStepCount;
+  const nextInterpretiveGap =
+    order.find((step) => (visitPointCounts.get(step.id) ?? 0) < 4) ?? null;
 
   return (
     <section className="space-y-4">
@@ -585,6 +595,56 @@ function DraftEditor({
           ) : null}
         </div>
       </header>
+
+      <section
+        className="surface-panel p-4 sm:p-5"
+        aria-label="Qualidade interpretativa da experiência"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Qualidade interpretativa
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Acompanhe a cobertura editorial das etapas antes de publicar a experiência.
+            </p>
+          </div>
+          {nextInterpretiveGap ? (
+            <Button asChild variant="outline" className="min-h-10">
+              <a
+                href={`/blueprints/${version.blueprint_id}/visit-points#step-${nextInterpretiveGap.id}`}
+              >
+                Continuar enriquecimento
+              </a>
+            </Button>
+          ) : order.length > 0 ? (
+            <Chip className="bg-primary-soft text-primary">Experiência enriquecida</Chip>
+          ) : null}
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="rounded-xl border border-border bg-background/50 p-3">
+            <p className="text-2xl font-semibold tabular-nums">{order.length}</p>
+            <p className="text-xs text-muted-foreground">Etapas totais</p>
+          </div>
+          <div className="rounded-xl border border-border bg-primary-soft/40 p-3">
+            <p className="text-2xl font-semibold tabular-nums text-primary">{completeStepCount}</p>
+            <p className="text-xs text-muted-foreground">Completas</p>
+          </div>
+          <div className="rounded-xl border border-border bg-warning-soft/40 p-3">
+            <p className="text-2xl font-semibold tabular-nums text-warning">{partialStepCount}</p>
+            <p className="text-xs text-muted-foreground">Parciais</p>
+          </div>
+          <div className="rounded-xl border border-border bg-background/50 p-3">
+            <p className="text-2xl font-semibold tabular-nums">{emptyStepCount}</p>
+            <p className="text-xs text-muted-foreground">Sem conteúdo</p>
+          </div>
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          {coveredStepCount}/{order.length} etapas possuem ao menos um ponto interpretativo.
+        </p>
+      </section>
 
       {mayPublish && !canPublishNow ? (
         <p className="text-xs text-muted-foreground">{t("bp.validate.pending")}</p>
