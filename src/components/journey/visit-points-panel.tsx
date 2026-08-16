@@ -155,7 +155,8 @@ export function VisitPointsPanel({
         if (nextAvailable) setSelectedId(nextAvailable.id);
       }
 
-      if (variables.status === "visited") toast.success("Ponto apresentado. Próximo ponto carregado.");
+      if (variables.status === "visited")
+        toast.success("Ponto apresentado. Próximo ponto carregado.");
       if (variables.status === "unavailable") toast("Ponto indisponível. Seguimos para o próximo.");
       if (variables.status === "ignored") toast("Ponto ignorado. Seguimos para o próximo.");
       if (variables.status === "available") toast.success("Ponto restaurado como disponível.");
