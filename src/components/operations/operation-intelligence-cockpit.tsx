@@ -4,6 +4,8 @@ import { Activity, AlertTriangle, BedDouble, Bus, CalendarDays, MessageSquare, R
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
+import { isOperationClosed } from "@/lib/operation-lock";
 
 type Intelligence = {
   operation?: { status?: string };
@@ -36,6 +38,7 @@ type Rpc = (
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 const n = (value: number | null | undefined) => value ?? 0;
+const copy = (locale: string, pt: string, en: string) => locale.toLowerCase().startsWith("pt") ? pt : en;
 
 function money(value: number | null | undefined, currency = "BRL") {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(n(value) / 100);
@@ -56,13 +59,30 @@ function Metric({ label, value, detail, icon: Icon }: { label: string; value: st
 
 export function OperationIntelligenceCockpit({ operationId }: { operationId: string }) {
   const location = useLocation();
+  const { locale } = useI18n();
   const path = `/operations/${operationId}`;
   const isOverview = location.pathname === path || location.pathname === `${path}/`;
 
+  const operation = useQuery({
+    queryKey: ["operation-status", operationId],
+    enabled: isOverview,
+    staleTime: 10_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("operations")
+        .select("status")
+        .eq("id", operationId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const operationClosed = isOperationClosed(operation.data?.status);
+
   const query = useQuery({
     queryKey: ["operation-intelligence", operationId],
-    enabled: isOverview,
-    refetchInterval: isOverview ? 30_000 : false,
+    enabled: isOverview && operation.isSuccess && !operationClosed,
+    refetchInterval: isOverview && !operationClosed ? 30_000 : false,
     queryFn: async () => {
       const rpc = supabase.rpc as unknown as Rpc;
       const { data, error } = await rpc("get_operation_intelligence", { _operation_id: operationId });
@@ -72,6 +92,33 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
   });
 
   if (!isOverview) return null;
+  if (operation.isLoading) return <div className="surface-panel h-36 animate-pulse" aria-label="Carregando cockpit operacional" />;
+
+  if (operationClosed) {
+    const completed = operation.data?.status === "completed";
+    return (
+      <section className="surface-panel p-4" role="status">
+        <div className="flex items-start gap-3">
+          <Activity className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+          <div>
+            <p className="text-sm font-medium">
+              {completed
+                ? copy(locale, "Operação concluída.", "Operation completed.")
+                : copy(locale, "Operação encerrada.", "Operation closed.")}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {copy(
+                locale,
+                "Os indicadores operacionais em tempo real não são mais atualizados. Consulte o histórico da operação abaixo.",
+                "Real-time operational indicators are no longer updated. Review the operation history below.",
+              )}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (query.isLoading) return <div className="surface-panel h-36 animate-pulse" aria-label="Carregando cockpit operacional" />;
   if (query.isError || !query.data) {
     return (
