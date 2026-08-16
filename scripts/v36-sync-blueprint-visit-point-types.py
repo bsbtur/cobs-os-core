@@ -162,6 +162,28 @@ if "type VisitPoint = {" in route:
         + route[end:]
     )
 
+old_args = '''      const args = {
+        _title: form.title.trim(),
+        _interpretation: form.interpretation.trim() || undefined,
+        _guide_tip: form.guideTip.trim() || undefined,
+        _idempotency_key: key.current,
+      };'''
+new_args = '''      const args: {
+        _title: string;
+        _idempotency_key: string;
+        _interpretation?: string;
+        _guide_tip?: string;
+      } = {
+        _title: form.title.trim(),
+        _idempotency_key: key.current,
+      };
+      const interpretation = form.interpretation.trim();
+      const guideTip = form.guideTip.trim();
+      if (interpretation) args._interpretation = interpretation;
+      if (guideTip) args._guide_tip = guideTip;'''
+if old_args in route:
+    route = route.replace(old_args, new_args, 1)
+
 old_query = '''      const result = await supabase
         // @ts-expect-error V3.5 QA table will enter generated types in the housekeeping commit.
         .from("journey_blueprint_visit_points")
