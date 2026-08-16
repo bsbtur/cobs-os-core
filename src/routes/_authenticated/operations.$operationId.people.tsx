@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 
 export const Route = createFileRoute("/_authenticated/operations/$operationId/people")({
   head: () => ({
@@ -588,10 +589,12 @@ function RosterCard({
   row,
   roleTypes,
   operationId,
+  operationClosed,
 }: {
   row: RosterRow;
   roleTypes: RoleTypeRow[];
   operationId: string;
+  operationClosed: boolean;
 }) {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
@@ -709,7 +712,7 @@ function RosterCard({
             >
               {roleLabel(a.operation_role_types, t)}
               {a.is_primary ? <span className="font-mono text-[9px]">★</span> : null}
-              {expanded ? (
+              {expanded && !operationClosed ? (
                 <>
                   {!a.is_primary ? (
                     <button
@@ -754,6 +757,7 @@ function RosterCard({
                 id={`assign-${row.id}`}
                 className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm"
                 value=""
+                disabled={operationClosed}
                 onChange={(e) => {
                   if (e.target.value) assign.mutate(e.target.value);
                 }}
@@ -771,10 +775,11 @@ function RosterCard({
           <PortalAccessAction
             operationId={operationId}
             personId={row.person_id}
-            disabled={row.status === "cancelled"}
+            disabled={row.status === "cancelled" || operationClosed}
           />
 
 
+          {!operationClosed ? (
           <div className="flex flex-wrap gap-2">
             {transitions
               .filter((s) => s !== "cancelled")
@@ -794,8 +799,9 @@ function RosterCard({
                 </Button>
               ))}
           </div>
+          ) : null}
 
-          {transitions.includes("cancelled") ? (
+          {!operationClosed && transitions.includes("cancelled") ? (
             <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
               <div className="space-y-1.5">
                 <Label htmlFor={`cancel-${row.id}`}>{t("roster.cancelReason")}</Label>
@@ -890,6 +896,16 @@ function Roster() {
     },
   });
 
+  const operation = useQuery({
+    queryKey: ["operation-status", operationId],
+    enabled: Boolean(tenant?.id) && canOperate,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("operations").select("id, status").eq("id", operationId).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const roster = useQuery({
     queryKey: ["roster", operationId],
     enabled: Boolean(tenant?.id) && canOperate,
@@ -912,7 +928,9 @@ function Roster() {
     );
   }
 
-  if (roster.isLoading || roleTypes.isLoading) return <PanelSkeleton rows={4} />;
+  if (roster.isLoading || roleTypes.isLoading || operation.isLoading) return <PanelSkeleton rows={4} />;
+
+  const operationClosed = isOperationClosed(operation.data?.status);
 
   const rows = roster.data ?? [];
   const active = rows.filter((r) => r.status !== "cancelled");
@@ -935,15 +953,18 @@ function Roster() {
 
   return (
     <div className="space-y-5">
+      {operationClosed ? <ReadOnlyNotice /> : null}
       <section className="animate-rise flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold lg:text-3xl">{t("roster.title")}</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("roster.subtitle")}</p>
         </div>
+        {!operationClosed ? (
         <Button className="min-h-11" onClick={() => setAddOpen(true)}>
           <Plus className="mr-2 size-4" aria-hidden="true" />
           {t("roster.add")}
         </Button>
+        ) : null}
       </section>
 
       {rows.length === 0 ? (
@@ -952,9 +973,11 @@ function Roster() {
           title={t("roster.empty")}
           body={t("roster.emptyBody")}
           action={
-            <Button className="mt-2 min-h-11" onClick={() => setAddOpen(true)}>
-              {t("roster.add")}
-            </Button>
+            !operationClosed ? (
+              <Button className="mt-2 min-h-11" onClick={() => setAddOpen(true)}>
+                {t("roster.add")}
+              </Button>
+            ) : undefined
           }
         />
       ) : (
@@ -1018,6 +1041,7 @@ function Roster() {
                   row={row}
                   roleTypes={roleTypes.data ?? []}
                   operationId={operationId}
+                  operationClosed={operationClosed}
                 />
               ))}
             </ul>
@@ -1028,8 +1052,8 @@ function Roster() {
       )}
 
       <AddPersonDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
+        open={addOpen && !operationClosed}
+        onOpenChange={(open) => setAddOpen(operationClosed ? false : open)}
         operationId={operationId}
         roleTypes={roleTypes.data ?? []}
         rosterPersonIds={rows.map((r) => r.person_id)}
