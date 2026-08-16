@@ -1,0 +1,38 @@
+name: PX visit points editor once
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+    paths:
+      - .github/workflows/px-visit-points-editor-once.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: python3 .github/scripts/integrate_visit_points_editor.py
+      - run: bunx prettier --write 'src/routes/_authenticated/operations.$operationId.journey.tsx' src/components/journey/visit-points-editor.tsx
+      - run: bun test
+      - run: bunx tsc --noEmit
+      - run: bun run lint
+      - run: bun run build
+      - name: Commit planning integration
+        run: |
+          git config user.name "bsbtur"
+          git config user.email "contato.bsbtur@gmail.com"
+          git add -- 'src/routes/_authenticated/operations.$operationId.journey.tsx' src/components/journey/visit-points-editor.tsx
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "feat(visit-points): add journey planning editor"
+          git push origin HEAD:preview/alpha-productization-px01
