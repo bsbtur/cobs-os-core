@@ -33,3 +33,5 @@ jobs:
           fi
           git commit -m "style(cockpit-v2): format blocker resolution guidance"
           git push origin HEAD:preview/alpha-productization-px01
+
+# trigger
