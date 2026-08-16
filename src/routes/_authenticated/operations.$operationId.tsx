@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { createFileRoute, Link, Outlet, useLocation, useParams } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ChevronDown, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
@@ -27,6 +28,27 @@ const TAB_CLASS =
 
 const copy = (locale: string, pt: string, en: string) =>
   locale.toLowerCase().startsWith("pt") ? pt : en;
+
+function OperationRuntimeQuerySync({ operationId }: { operationId: string }) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return queryClient.getQueryCache().subscribe((event) => {
+      const queryKey = event?.query?.queryKey;
+      if (!queryKey || queryKey[0] !== "live" || queryKey[1] !== operationId) return;
+
+      // PX-A01: Live mutations/refetches change the canonical facts used by
+      // recommendation and attention surfaces. Keep all three views in sync
+      // immediately instead of waiting for their independent 20s polling tick.
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["px04-next-best-action", operationId] }),
+        queryClient.invalidateQueries({ queryKey: ["px05-operation-attention", operationId] }),
+      ]);
+    });
+  }, [operationId, queryClient]);
+
+  return null;
+}
 
 function OverviewDisclosure({
   eyebrow,
@@ -68,6 +90,7 @@ function OperationWorkspace() {
     <AppShell activeId="operations" title={t("op.title")}>
       <div className={`mx-auto w-full max-w-5xl space-y-5 ${isFieldFocused ? "field-runtime" : ""}`}>
         <RequireTenant>
+          <OperationRuntimeQuerySync operationId={operationId} />
           {!isCockpitV2 ? <FieldModePendingFirst operationId={operationId} /> : null}
 
           <Button asChild variant="ghost" size="sm" className="-ml-2 min-h-9">
