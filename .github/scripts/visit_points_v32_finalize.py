@@ -37,6 +37,11 @@ if "      reorder_journey_visit_points: {" not in text:
 
 types_path.write_text(text)
 
+# Keep strict index-signature access in the planning editor.
+editor_path = Path("src/components/journey/visit-points-editor.tsx")
+editor = editor_path.read_text().replace('metadata.archived === true', 'metadata["archived"] === true')
+editor_path.write_text(editor)
+
 # Archived visit points must never surface in the runtime Cockpit.
 panel_path = Path("src/components/journey/visit-points-panel.tsx")
 panel = panel_path.read_text()
@@ -56,7 +61,7 @@ function isArchived(metadata: Json) {
     metadata &&
       typeof metadata === "object" &&
       !Array.isArray(metadata) &&
-      metadata.archived === true,
+      metadata["archived"] === true,
   );
 }
 '''
