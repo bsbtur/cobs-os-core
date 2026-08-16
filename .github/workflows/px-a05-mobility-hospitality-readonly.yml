@@ -1,0 +1,64 @@
+name: PX-A05 mobility hospitality readonly UX
+
+on:
+  push:
+    branches: [preview/alpha-productization-px01]
+    paths: [.github/workflows/px-a05-mobility-hospitality-readonly.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+          fetch-depth: 0
+      - name: Apply operation read-only UX
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def patch(path, replacements):
+              p=Path(path); s=p.read_text()
+              for old,new,label in replacements:
+                  n=s.count(old); print(path,label,'matches=',n)
+                  if n < 1: raise SystemExit(f'{path} {label}: missing expected pattern')
+                  s=s.replace(old,new,1)
+              p.write_text(s)
+
+          patch('src/routes/_authenticated/operations.$operationId.mobility.tsx', [
+            ('import { formatDateTime } from "@/lib/format";', 'import { formatDateTime } from "@/lib/format";\nimport { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";', 'import'),
+            ('  const planning = operation.status === "draft" || operation.status === "planning";', '  const planning = operation.status === "draft" || operation.status === "planning";\n  const operationClosed = isOperationClosed(operation.status);', 'closed-var'),
+            ('      <div className="flex flex-wrap gap-2">\n        {planning ? (', '      {operationClosed ? <ReadOnlyNotice /> : null}\n\n      {!operationClosed ? (\n        <div className="flex flex-wrap gap-2">\n        {planning ? (', 'create-open'),
+            ('        />\n      </div>\n\n      {legs.length === 0 ? (', '        />\n        </div>\n      ) : null}\n\n      {legs.length === 0 ? (', 'create-close'),
+            ('                <div className="mt-4 space-y-3">\n                  <SectionLabel>{t("w05.action.assignVehicle")}</SectionLabel>', '                {!operationClosed ? (\n                  <>\n                <div className="mt-4 space-y-3">\n                  <SectionLabel>{t("w05.action.assignVehicle")}</SectionLabel>', 'controls-open'),
+            ('                <div className="mt-5">\n                  <LegControls leg={selected} state={state} onRefresh={refresh} />\n                </div>\n              </article>', '                <div className="mt-5">\n                  <LegControls leg={selected} state={state} onRefresh={refresh} />\n                </div>\n                  </>\n                ) : null}\n              </article>', 'controls-close'),
+            ('              <StopsPanel\n                leg={selected}', '              {!operationClosed ? (\n                <>\n              <StopsPanel\n                leg={selected}', 'detail-open'),
+            ('                onRefresh={refresh}\n              />\n            </>', '                onRefresh={refresh}\n              />\n                </>\n              ) : null}\n            </>', 'detail-close'),
+          ])
+
+          patch('src/routes/_authenticated/operations.$operationId.hospitality.tsx', [
+            ('import { formatDateTime } from "@/lib/format";', 'import { formatDateTime } from "@/lib/format";\nimport { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";', 'import'),
+            ('  const terminal = isTerminalStay(overview?.status);', '  const operationClosed = isOperationClosed(operation.status);\n  const terminal = operationClosed || isTerminalStay(overview?.status);', 'terminal'),
+            ('      <div className="flex flex-wrap gap-2">\n        <CreateStayDialog', '      {operationClosed ? <ReadOnlyNotice /> : null}\n\n      {!operationClosed ? (\n        <div className="flex flex-wrap gap-2">\n        <CreateStayDialog', 'create-open'),
+            ('          onDone={refresh}\n        />\n      </div>', '          onDone={refresh}\n        />\n        </div>\n      ) : null}', 'create-close'),
+          ])
+          PY
+          git diff --check
+          grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.mobility.tsx'
+          grep -q 'operationClosed' 'src/routes/_authenticated/operations.$operationId.hospitality.tsx'
+          npm ci
+          npx tsc --noEmit
+      - name: Commit and remove one-shot workflow
+        run: |
+          rm .github/workflows/px-a05-mobility-hospitality-readonly.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(alpha): lock completed mobility and hospitality UX"
+          git push origin HEAD:preview/alpha-productization-px01
