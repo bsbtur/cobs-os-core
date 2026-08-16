@@ -810,7 +810,7 @@ function ProgramPanel({
                   session={session}
                   event={event}
                   spaces={spaces}
-                  canOperate={liveCanOperate}
+                  canOperate={canOperate}
                   onChanged={onChanged}
                 />
               </div>

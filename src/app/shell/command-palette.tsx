@@ -94,7 +94,7 @@ export function CommandPalette({
           .limit(80),
         supabase
           .from("hospitality_stays")
-          .select("id,name,operation_id,status,hospitality_properties(name,city,region),operations(name,code)")
+          .select("id,name,operation_id,status,hospitality_properties!hospitality_stays_property_id_fkey(name,city,region),operations!hospitality_stays_operation_id_fkey(name,code)")
           .eq("tenant_id", tenant!.id)
           .order("updated_at", { ascending: false })
           .limit(60),
@@ -215,7 +215,7 @@ export function CommandPalette({
                       <ResultText
                         title={step.title}
                         detail={`${operation?.name ?? copy(locale, "Operação", "Operation")}${step.location_label ? ` · ${step.location_label}` : ""}`}
-                        icon={step.location_label ? MapPin : undefined}
+                        {...(step.location_label ? { icon: MapPin } : {})}
                       />
                     </CommandItem>
                   );

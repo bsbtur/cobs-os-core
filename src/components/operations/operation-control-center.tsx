@@ -305,7 +305,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
           </div>
 
           <Link
-            to={`${base}/${focus.primaryRoute}`}
+            to={`${base}/${focus.primaryRoute}` as never}
             className="group flex min-h-36 flex-col justify-between rounded-xl border border-primary/30 bg-primary px-4 py-4 text-primary-foreground transition-transform hover:-translate-y-0.5"
           >
             <div>
@@ -328,7 +328,7 @@ export function OperationControlCenter({ operationId }: { operationId: string })
                   {query.data.personName ? `${query.data.personName} · ` : ""}{primaryOperationRole.label} · {pendingMyWork.length} {copy(locale, "pendência(s)", "pending")}
                 </p>
               </div>
-              <Link to={`${base}/live`} className="text-xs font-semibold text-primary hover:underline">
+              <Link to="/operations/$operationId/live" params={{ operationId }} className="text-xs font-semibold text-primary hover:underline">
                 {copy(locale, "Abrir execução", "Open execution")} →
               </Link>
             </div>

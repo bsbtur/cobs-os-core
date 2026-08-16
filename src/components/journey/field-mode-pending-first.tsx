@@ -45,8 +45,8 @@ export function FieldModePendingFirst({ operationId }: { operationId: string }) 
       window.requestAnimationFrame(() => {
         next.scrollIntoView({ behavior: "smooth", block: "center" });
         primary?.focus({ preventScroll: true });
-        next.dataset.fieldFocus = "true";
-        window.setTimeout(() => delete next.dataset.fieldFocus, 900);
+        next.dataset["fieldFocus"] = "true";
+        window.setTimeout(() => delete next.dataset["fieldFocus"], 900);
       });
     };
 

@@ -320,13 +320,13 @@ function QueueGroup({ title, icon: Icon, items, locale, fallbackTimeZone, emphas
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link to={`/operations/${item.operationId}`} className="truncate font-semibold hover:text-primary hover:underline">{item.operationName}</Link>
+                  <Link to="/operations/$operationId" params={{ operationId: item.operationId }} className="truncate font-semibold hover:text-primary hover:underline">{item.operationName}</Link>
                   <StatusPill status={item.operationStatus} />
                   {item.scheduleStatus ? <SchedulePill status={item.scheduleStatus} locale={locale} /> : null}
                 </div>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{item.operationCode}{item.primaryRole ? ` · ${item.primaryRole}` : ""}</p>
               </div>
-              <Link to={`/operations/${item.operationId}`} aria-label={copy(locale, "Abrir operação", "Open operation")}><ArrowRight className="mt-1 size-4 shrink-0 text-muted-foreground hover:text-primary" aria-hidden="true" /></Link>
+              <Link to="/operations/$operationId" params={{ operationId: item.operationId }} aria-label={copy(locale, "Abrir operação", "Open operation")}><ArrowRight className="mt-1 size-4 shrink-0 text-muted-foreground hover:text-primary" aria-hidden="true" /></Link>
             </div>
 
             <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">

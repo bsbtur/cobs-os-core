@@ -201,7 +201,7 @@ export function PersonalAlerts() {
               <div className="mt-3 flex flex-wrap gap-2">
                 {message.operation_id ? (
                   <Button asChild size="sm">
-                    <Link to={`/operations/${message.operation_id}`}>
+                    <Link to="/operations/$operationId" params={{ operationId: message.operation_id }}>
                       <ExternalLink className="mr-1 size-3.5" aria-hidden="true" />
                       {copy(locale, "Abrir operação", "Open operation")}
                     </Link>

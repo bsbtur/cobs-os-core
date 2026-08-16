@@ -95,7 +95,7 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
     : -1;
 
   const plannedIndex = currentIndex >= 0 ? currentIndex : nextIndex >= 0 ? nextIndex : 0;
-  const focusStep = steps[plannedIndex] ?? steps[0];
+  const focusStep = steps[plannedIndex] ?? steps[0]!;
   const previousStep = plannedIndex > 0 ? steps[plannedIndex - 1] : null;
   const followingStep = steps[plannedIndex + 1] ?? null;
   const focusItems = items.filter((item) => item.journey_step_id === focusStep.id);
