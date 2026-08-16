@@ -111,7 +111,9 @@ export function VisitPointsPanel({
       if (error) throw error;
     },
     onSuccess: async (_, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ["visit-points", operationId, journeyStepId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["visit-points", operationId, journeyStepId],
+      });
       if (variables.status === "visited") {
         const currentIndex = points.findIndex((point) => point.id === variables.pointId);
         const nextAvailable = points
@@ -129,7 +131,8 @@ export function VisitPointsPanel({
   if (query.isLoading || query.isError || !selected || points.length === 0) return null;
 
   const previous = selectedIndex > 0 ? points[selectedIndex - 1] : null;
-  const next = selectedIndex >= 0 && selectedIndex < points.length - 1 ? points[selectedIndex + 1] : null;
+  const next =
+    selectedIndex >= 0 && selectedIndex < points.length - 1 ? points[selectedIndex + 1] : null;
   const allPresented = visitedCount === points.length;
 
   return (
@@ -192,7 +195,9 @@ export function VisitPointsPanel({
             <div className="mt-4 rounded-2xl border border-primary/20 bg-primary-soft/40 p-3.5">
               <div className="flex items-center gap-2 text-primary">
                 <Lightbulb className="size-4" aria-hidden="true" />
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">Dica ao guia</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+                  Dica ao guia
+                </p>
               </div>
               <p className="mt-1.5 text-sm leading-relaxed">{selected.guide_tip}</p>
             </div>
@@ -204,9 +209,7 @@ export function VisitPointsPanel({
                 <Button
                   className="min-h-14 w-full rounded-2xl text-base"
                   disabled={statusMutation.isPending}
-                  onClick={() =>
-                    statusMutation.mutate({ pointId: selected.id, status: "visited" })
-                  }
+                  onClick={() => statusMutation.mutate({ pointId: selected.id, status: "visited" })}
                 >
                   <CheckCircle2 className="mr-2 size-5" aria-hidden="true" />
                   Ponto apresentado
