@@ -1,0 +1,35 @@
+name: V3.5 format visit-points
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+    paths:
+      - src/routes/_authenticated/blueprints.$blueprintId.visit-points.tsx
+      - .github/workflows/v35-format-visit-points.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Format target
+        run: bunx prettier --write 'src/routes/_authenticated/blueprints.$blueprintId.visit-points.tsx'
+      - name: Commit formatting when needed
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 'src/routes/_authenticated/blueprints.$blueprintId.visit-points.tsx'
+          git commit -m 'style(blueprints): apply project prettier to interpretive library'
+          git push
