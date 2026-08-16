@@ -254,7 +254,10 @@ function CockpitV2Preview() {
               <ClipboardCheck className="size-4 text-muted-foreground" aria-hidden="true" />
             )}
             <Eyebrow>Checklist</Eyebrow>
-            <ArrowRight className="ml-auto size-4 opacity-60 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            <ArrowRight
+              className="ml-auto size-4 opacity-60 transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </div>
           <p className="mt-2 text-2xl font-semibold tabular-nums">
             {checklistDone}/{currentItems.length}
@@ -285,7 +288,10 @@ function CockpitV2Preview() {
               <Users className="size-4 text-muted-foreground" aria-hidden="true" />
             )}
             <Eyebrow>Viajantes</Eyebrow>
-            <ArrowRight className="ml-auto size-4 opacity-60 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            <ArrowRight
+              className="ml-auto size-4 opacity-60 transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </div>
           <p className="mt-2 text-2xl font-semibold tabular-nums">
             {confirmed}/{participants.length}
@@ -331,7 +337,8 @@ function CockpitV2Preview() {
       </div>
 
       <p className="px-1 text-xs text-muted-foreground">
-        Preview V2: leitura operacional resumida. As ações continuam sendo executadas no runtime Live validado.
+        Preview V2: leitura operacional resumida. As ações continuam sendo executadas no runtime
+        Live validado.
       </p>
 
       <nav

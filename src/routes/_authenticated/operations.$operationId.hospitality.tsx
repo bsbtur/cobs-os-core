@@ -1467,16 +1467,26 @@ function HospitalityPage() {
 
       {!operationClosed ? (
         <div className="flex flex-wrap gap-2">
-        <CreateStayDialog
-          operationId={operationId}
-          properties={base.data?.properties ?? []}
-          onDone={refresh}
-        />
+          <CreateStayDialog
+            operationId={operationId}
+            properties={base.data?.properties ?? []}
+            onDone={refresh}
+          />
         </div>
       ) : null}
 
       {stays.length === 0 ? (
-        <EmptyState icon={BedDouble} title={t("w06.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhuma hospedagem foi registrada nesta operação.", "No accommodation was recorded for this operation.", t("w06.emptyBody"))} />
+        <EmptyState
+          icon={BedDouble}
+          title={t("w06.empty")}
+          body={operationEmptyBody(
+            operationClosed,
+            locale,
+            "Nenhuma hospedagem foi registrada nesta operação.",
+            "No accommodation was recorded for this operation.",
+            t("w06.emptyBody"),
+          )}
+        />
       ) : (
         <>
           <nav

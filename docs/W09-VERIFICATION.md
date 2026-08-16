@@ -14,13 +14,13 @@ Total assertions executed: **101 — 101 passed, 0 failed.**
 
 ## 1. Verification identities
 
-| Actor | Tenant | Role |
-|---|---|---|
-| A_owner | Tenant A (`W09VER Tenant A`) | owner |
-| A_admin | Tenant A | admin (via invitation + acceptance) |
-| A_agent | Tenant A | operations_agent (via invitation + acceptance) |
-| A_member | Tenant A | member (via invitation + acceptance) |
-| B_owner | Tenant B (`W09VER Tenant B`) | owner |
+| Actor    | Tenant                       | Role                                           |
+| -------- | ---------------------------- | ---------------------------------------------- |
+| A_owner  | Tenant A (`W09VER Tenant A`) | owner                                          |
+| A_admin  | Tenant A                     | admin (via invitation + acceptance)            |
+| A_agent  | Tenant A                     | operations_agent (via invitation + acceptance) |
+| A_member | Tenant A                     | member (via invitation + acceptance)           |
+| B_owner  | Tenant B (`W09VER Tenant B`) | owner                                          |
 
 All memberships were granted through the real W01 invitation flow
 (`create_invitation` → `accept_invitation`), not by direct DML.
@@ -29,14 +29,14 @@ All memberships were granted through the real W01 invitation flow
 
 ## 2. Static contract conformance
 
-| Item | Contract | Observed |
-|---|---|---|
-| Tables | 6 | 6 (`sellables`, `prices`, `orders`, `order_items`, `commercial_reservations`, `financial_facts`) |
-| Enums | 8 | 8 (`sellable_kind`, `sellable_status`, `price_basis`, `price_status`, `order_status`, `commercial_reservation_status`, `financial_fact_type`, `payment_method`) |
-| Private helpers | 18 | 18 (`app_private.w09_*`) |
-| Realtime tables | 1 | `financial_facts` only |
-| Reservation TTL | 30 minutes, server-controlled | `app_private.w09_reservation_ttl() = interval '30 minutes'` |
-| `payment_method` values | `cash`, `bank_transfer`, `other` | exact match; `pix` rejected at the type boundary |
+| Item                    | Contract                         | Observed                                                                                                                                                        |
+| ----------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tables                  | 6                                | 6 (`sellables`, `prices`, `orders`, `order_items`, `commercial_reservations`, `financial_facts`)                                                                |
+| Enums                   | 8                                | 8 (`sellable_kind`, `sellable_status`, `price_basis`, `price_status`, `order_status`, `commercial_reservation_status`, `financial_fact_type`, `payment_method`) |
+| Private helpers         | 18                               | 18 (`app_private.w09_*`)                                                                                                                                        |
+| Realtime tables         | 1                                | `financial_facts` only                                                                                                                                          |
+| Reservation TTL         | 30 minutes, server-controlled    | `app_private.w09_reservation_ttl() = interval '30 minutes'`                                                                                                     |
+| `payment_method` values | `cash`, `bank_transfer`, `other` | exact match; `pix` rejected at the type boundary                                                                                                                |
 
 ---
 
@@ -59,6 +59,7 @@ All memberships were granted through the real W01 invitation flow
 ## 4. Behavioural results
 
 ### Catalog & pricing (27/27)
+
 - Offering-kind sellable requires an offering; duplicate active offering
   sellable rejected; cross-tenant offering injection rejected.
 - Price windows: exact touch accepted; **one-microsecond overlap rejected**;
@@ -66,6 +67,7 @@ All memberships were granted through the real W01 invitation flow
 - Agent cannot create sellables or prices (owner/admin only).
 
 ### Orders, items and money arithmetic (32/32)
+
 - `line_total = unit × quantity − discount`, checked BIGINT.
   Multiplication overflow at `9223372036854775807 × 2` rejected ("out of range").
 - Discount above subtotal rejected; beneficiary only allowed at quantity 1;
@@ -76,6 +78,7 @@ All memberships were granted through the real W01 invitation flow
 - Price snapshot survives publication of a new price on the same sellable.
 
 ### Capacity & reservations
+
 - Multi-item submit is atomic: a capacity failure on one line rejects the
   whole submit and leaves **zero** reservations.
 - **Concurrent last-capacity race** (two actors, capacity 2, each requesting 2):
@@ -89,9 +92,11 @@ All memberships were granted through the real W01 invitation flow
 - `complete_order` retains confirmed capacity; a completed order cannot be cancelled.
 
 ### Lazy expiry (11/11)
+
 Verified in real time by temporarily reducing the TTL to 5 seconds through two
 migrations and **restoring the contractual 30 minutes immediately afterwards**
 (confirmed post-restore). No test hook, flag or artefact remains in the schema.
+
 - Live hold consumes capacity; after expiry the read model reports it as
   no longer consuming (`effective_occupancy` drops, `remaining` restored).
 - `confirm_order` after expiry **reacquires** capacity when still free.
@@ -101,6 +106,7 @@ migrations and **restoring the contractual 30 minutes immediately afterwards**
 - Releasing an expired hold is a safe no-op; cancelling an expired-hold order works.
 
 ### Financial ledger (20/21 probes; the one non-match is an observation, below)
+
 - Partial payment, settlement, refund and reversal arithmetic all exact.
 - Duplicate `reference` accepted (global uniqueness correctly removed).
 - Refund requires payment lineage; refund beyond the remaining lineage rejected.

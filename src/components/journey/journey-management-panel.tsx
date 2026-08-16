@@ -76,18 +76,18 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
     queryFn: async (): Promise<ManagementData> => {
       const [operation, steps, items, roles] = await Promise.all([
         supabase.from("operations").select("status").eq("id", operationId).single(),
-        supabase.from("journey_steps").select("*").eq("operation_id", operationId).order("sequence"),
+        supabase
+          .from("journey_steps")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
         supabase
           .from("playbook_items")
           .select("*")
           .eq("operation_id", operationId)
           .eq("is_active", true)
           .order("sequence"),
-        supabase
-          .from("operation_role_types")
-          .select("*")
-          .eq("is_active", true)
-          .order("sort_order"),
+        supabase.from("operation_role_types").select("*").eq("is_active", true).order("sort_order"),
       ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
@@ -111,8 +111,17 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
 
   if (management.isLoading) {
     return (
-      <section className="surface-panel p-4" aria-label={copy(locale, "Gerenciamento da jornada", "Journey management")}>
-        <p className="text-sm text-muted-foreground">{copy(locale, "Carregando controles de correção da jornada…", "Loading journey correction controls…")}</p>
+      <section
+        className="surface-panel p-4"
+        aria-label={copy(locale, "Gerenciamento da jornada", "Journey management")}
+      >
+        <p className="text-sm text-muted-foreground">
+          {copy(
+            locale,
+            "Carregando controles de correção da jornada…",
+            "Loading journey correction controls…",
+          )}
+        </p>
       </section>
     );
   }
@@ -123,12 +132,30 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden="true" />
           <div>
-            <p className="font-medium text-destructive">{copy(locale, "Não foi possível carregar os controles de edição.", "Could not load editing controls.")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {copy(locale, "A jornada continua visível, mas o estado de edição não foi confirmado. Não assuma que editar ou excluir está indisponível.", "The journey remains visible, but its editing state could not be confirmed. Do not assume editing or removal is unavailable.")}
+            <p className="font-medium text-destructive">
+              {copy(
+                locale,
+                "Não foi possível carregar os controles de edição.",
+                "Could not load editing controls.",
+              )}
             </p>
-            <Button className="mt-3" size="sm" variant="outline" onClick={() => management.refetch()} disabled={management.isFetching}>
-              {management.isFetching ? copy(locale, "Atualizando…", "Refreshing…") : copy(locale, "Tentar novamente", "Try again")}
+            <p className="mt-1 text-sm text-muted-foreground">
+              {copy(
+                locale,
+                "A jornada continua visível, mas o estado de edição não foi confirmado. Não assuma que editar ou excluir está indisponível.",
+                "The journey remains visible, but its editing state could not be confirmed. Do not assume editing or removal is unavailable.",
+              )}
+            </p>
+            <Button
+              className="mt-3"
+              size="sm"
+              variant="outline"
+              onClick={() => management.refetch()}
+              disabled={management.isFetching}
+            >
+              {management.isFetching
+                ? copy(locale, "Atualizando…", "Refreshing…")
+                : copy(locale, "Tentar novamente", "Try again")}
             </Button>
           </div>
         </div>
@@ -140,11 +167,19 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
 
   if (!editable) {
     return (
-      <section className="surface-panel p-4" aria-label={copy(locale, "Gerenciamento da jornada", "Journey management")}>
+      <section
+        className="surface-panel p-4"
+        aria-label={copy(locale, "Gerenciamento da jornada", "Journey management")}
+      >
         <div className="flex items-start gap-3">
-          <LockKeyhole className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <LockKeyhole
+            className="mt-0.5 size-5 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
           <div>
-            <p className="font-medium">{copy(locale, "Planejamento da jornada congelado", "Journey planning is frozen")}</p>
+            <p className="font-medium">
+              {copy(locale, "Planejamento da jornada congelado", "Journey planning is frozen")}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {copy(
                 locale,
@@ -160,12 +195,19 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
 
   return (
     <>
-      <section className="surface-panel p-4" aria-label={copy(locale, "Gerenciamento da jornada", "Journey management")}>
+      <section
+        className="surface-panel p-4"
+        aria-label={copy(locale, "Gerenciamento da jornada", "Journey management")}
+      >
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="font-medium">{copy(locale, "Gerenciar jornada", "Manage journey")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {copy(locale, "Corrija etapas e itens de checklist antes da operação. Exclusões são arquivadas ou desativadas para preservar histórico.", "Correct steps and checklist items before the operation. Removals are archived or deactivated to preserve history.")}
+              {copy(
+                locale,
+                "Corrija etapas e itens de checklist antes da operação. Exclusões são arquivadas ou desativadas para preservar histórico.",
+                "Correct steps and checklist items before the operation. Removals are archived or deactivated to preserve history.",
+              )}
             </p>
           </div>
           <span className="rounded-full border border-border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
@@ -175,24 +217,43 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
 
         {management.data.steps.length === 0 ? (
           <div className="mt-3 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-            {copy(locale, "Nenhuma etapa ativa para editar. Crie uma etapa ou aplique um roteiro antes de usar estes controles.", "No active steps to edit. Create a step or apply a journey template before using these controls.")}
+            {copy(
+              locale,
+              "Nenhuma etapa ativa para editar. Crie uma etapa ou aplique um roteiro antes de usar estes controles.",
+              "No active steps to edit. Create a step or apply a journey template before using these controls.",
+            )}
           </div>
         ) : (
           <div className="mt-3 space-y-2">
             {management.data.steps.map((step) => {
-              const stepItems = management.data.items.filter((item) => item.journey_step_id === step.id);
-              const blueprintLocked = Boolean(step.source_blueprint_version_id || step.source_blueprint_step_id);
+              const stepItems = management.data.items.filter(
+                (item) => item.journey_step_id === step.id,
+              );
+              const blueprintLocked = Boolean(
+                step.source_blueprint_version_id || step.source_blueprint_step_id,
+              );
               return (
-                <div key={step.id} className="rounded-xl border border-border/70 bg-background/40 p-3">
+                <div
+                  key={step.id}
+                  className="rounded-xl border border-border/70 bg-background/40 p-3"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{step.sequence}. {step.title}</p>
+                      <p className="truncate text-sm font-medium">
+                        {step.sequence}. {step.title}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {t(`w04.kind.${step.step_kind}`)} · {stepItems.length} {copy(locale, "item(ns) de checklist", "checklist item(s)")}
+                        {t(`w04.kind.${step.step_kind}`)} · {stepItems.length}{" "}
+                        {copy(locale, "item(ns) de checklist", "checklist item(s)")}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm" className="min-h-9" onClick={() => setEditStep(step)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-9"
+                        onClick={() => setEditStep(step)}
+                      >
                         <Pencil className="mr-1.5 size-3.5" aria-hidden="true" />
                         {copy(locale, "Editar", "Edit")}
                       </Button>
@@ -203,9 +264,17 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
                         disabled={blueprintLocked || stepItems.length > 0}
                         title={
                           blueprintLocked
-                            ? copy(locale, "Etapas de blueprint não podem ser arquivadas individualmente.", "Blueprint steps cannot be archived individually.")
+                            ? copy(
+                                locale,
+                                "Etapas de blueprint não podem ser arquivadas individualmente.",
+                                "Blueprint steps cannot be archived individually.",
+                              )
                             : stepItems.length > 0
-                              ? copy(locale, "Desative os itens de checklist antes de arquivar a etapa.", "Deactivate checklist items before archiving the step.")
+                              ? copy(
+                                  locale,
+                                  "Desative os itens de checklist antes de arquivar a etapa.",
+                                  "Deactivate checklist items before archiving the step.",
+                                )
                               : undefined
                         }
                         onClick={() => setArchiveStep(step)}
@@ -223,14 +292,29 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
                       </p>
                       <ul className="space-y-1.5">
                         {stepItems.map((item) => (
-                          <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-elevated/40 px-2.5 py-2">
+                          <li
+                            key={item.id}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-elevated/40 px-2.5 py-2"
+                          >
                             <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
                             <div className="flex gap-1.5">
-                              <Button variant="ghost" size="sm" className="min-h-8" onClick={() => setEditItem(item)}>
-                                <Pencil className="mr-1 size-3.5" aria-hidden="true" /> {copy(locale, "Editar", "Edit")}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="min-h-8"
+                                onClick={() => setEditItem(item)}
+                              >
+                                <Pencil className="mr-1 size-3.5" aria-hidden="true" />{" "}
+                                {copy(locale, "Editar", "Edit")}
                               </Button>
-                              <Button variant="ghost" size="sm" className="min-h-8 text-destructive" onClick={() => setDeactivateItem(item)}>
-                                <Trash2 className="mr-1 size-3.5" aria-hidden="true" /> {copy(locale, "Excluir", "Remove")}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="min-h-8 text-destructive"
+                                onClick={() => setDeactivateItem(item)}
+                              >
+                                <Trash2 className="mr-1 size-3.5" aria-hidden="true" />{" "}
+                                {copy(locale, "Excluir", "Remove")}
                               </Button>
                             </div>
                           </li>
@@ -245,15 +329,43 @@ export function JourneyManagementPanel({ operationId }: { operationId: string })
         )}
       </section>
 
-      <EditStepDialog step={editStep} operationId={operationId} onClose={() => setEditStep(null)} onSaved={refresh} />
-      <ArchiveStepDialog step={archiveStep} onClose={() => setArchiveStep(null)} onSaved={refresh} />
-      <EditItemDialog item={editItem} roleTypes={management.data.roleTypes} onClose={() => setEditItem(null)} onSaved={refresh} />
-      <DeactivateItemDialog item={deactivateItem} onClose={() => setDeactivateItem(null)} onSaved={refresh} />
+      <EditStepDialog
+        step={editStep}
+        operationId={operationId}
+        onClose={() => setEditStep(null)}
+        onSaved={refresh}
+      />
+      <ArchiveStepDialog
+        step={archiveStep}
+        onClose={() => setArchiveStep(null)}
+        onSaved={refresh}
+      />
+      <EditItemDialog
+        item={editItem}
+        roleTypes={management.data.roleTypes}
+        onClose={() => setEditItem(null)}
+        onSaved={refresh}
+      />
+      <DeactivateItemDialog
+        item={deactivateItem}
+        onClose={() => setDeactivateItem(null)}
+        onSaved={refresh}
+      />
     </>
   );
 }
 
-function EditStepDialog({ step, operationId: _operationId, onClose, onSaved }: { step: ManagedStep | null; operationId: string; onClose: () => void; onSaved: () => void }) {
+function EditStepDialog({
+  step,
+  operationId: _operationId,
+  onClose,
+  onSaved,
+}: {
+  step: ManagedStep | null;
+  operationId: string;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const { t, locale } = useI18n();
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
@@ -278,9 +390,12 @@ function EditStepDialog({ step, operationId: _operationId, onClose, onSaved }: {
     setPopulation(step.presence_population);
   }, [step]);
 
-  const allowed = step ? allowedPresenceRequirements(step.step_kind) : ["none" as PresenceRequirement];
+  const allowed = step
+    ? allowedPresenceRequirements(step.step_kind)
+    : ["none" as PresenceRequirement];
   React.useEffect(() => {
-    if (step && !allowed.includes(requirement)) setRequirement(defaultPresenceRequirement(step.step_kind));
+    if (step && !allowed.includes(requirement))
+      setRequirement(defaultPresenceRequirement(step.step_kind));
   }, [allowed, requirement, step]);
 
   const save = useMutation({
@@ -288,10 +403,18 @@ function EditStepDialog({ step, operationId: _operationId, onClose, onSaved }: {
       if (!step) return;
       const startIso = toIsoOrNull(start);
       const endIso = toIsoOrNull(end);
-      if (start && !startIso) throw new Error(copy(locale, "Horário inicial inválido.", "Invalid start time."));
-      if (end && !endIso) throw new Error(copy(locale, "Horário final inválido.", "Invalid end time."));
+      if (start && !startIso)
+        throw new Error(copy(locale, "Horário inicial inválido.", "Invalid start time."));
+      if (end && !endIso)
+        throw new Error(copy(locale, "Horário final inválido.", "Invalid end time."));
       if (startIso && endIso && new Date(endIso).getTime() <= new Date(startIso).getTime()) {
-        throw new Error(copy(locale, "O fim planejado precisa ser posterior ao início.", "Planned end must be after start."));
+        throw new Error(
+          copy(
+            locale,
+            "O fim planejado precisa ser posterior ao início.",
+            "Planned end must be after start.",
+          ),
+        );
       }
       const { error } = await supabase.rpc("update_journey_step", {
         _journey_step_id: step.id,
@@ -317,52 +440,225 @@ function EditStepDialog({ step, operationId: _operationId, onClose, onSaved }: {
   });
 
   return (
-    <Dialog open={Boolean(step)} onOpenChange={(open) => (!open && !save.isPending ? onClose() : null)}>
+    <Dialog
+      open={Boolean(step)}
+      onOpenChange={(open) => (!open && !save.isPending ? onClose() : null)}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader><DialogTitle>{copy(locale, "Editar etapa", "Edit step")}</DialogTitle></DialogHeader>
-        {step ? <div className="space-y-4">
-          <div className="space-y-1.5"><Label>{copy(locale, "Título", "Title")}</Label><Input value={title} disabled={save.isPending} onChange={(e) => setTitle(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>{copy(locale, "Descrição", "Description")}</Label><Textarea value={description} disabled={save.isPending} onChange={(e) => setDescription(e.target.value)} rows={2} /></div>
-          <div className="space-y-1.5"><Label>{copy(locale, "Local", "Location")}</Label><Input value={location} disabled={save.isPending} onChange={(e) => setLocation(e.target.value)} /></div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5"><Label>{copy(locale, "Início planejado", "Planned start")}</Label><Input type="datetime-local" value={start} disabled={step.plan_origin !== "planned" || save.isPending} onChange={(e) => setStart(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>{copy(locale, "Fim planejado", "Planned end")}</Label><Input type="datetime-local" value={end} disabled={step.plan_origin !== "planned" || save.isPending} onChange={(e) => setEnd(e.target.value)} /></div>
+        <DialogHeader>
+          <DialogTitle>{copy(locale, "Editar etapa", "Edit step")}</DialogTitle>
+        </DialogHeader>
+        {step ? (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>{copy(locale, "Título", "Title")}</Label>
+              <Input
+                value={title}
+                disabled={save.isPending}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{copy(locale, "Descrição", "Description")}</Label>
+              <Textarea
+                value={description}
+                disabled={save.isPending}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{copy(locale, "Local", "Location")}</Label>
+              <Input
+                value={location}
+                disabled={save.isPending}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>{copy(locale, "Início planejado", "Planned start")}</Label>
+                <Input
+                  type="datetime-local"
+                  value={start}
+                  disabled={step.plan_origin !== "planned" || save.isPending}
+                  onChange={(e) => setStart(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{copy(locale, "Fim planejado", "Planned end")}</Label>
+                <Input
+                  type="datetime-local"
+                  value={end}
+                  disabled={step.plan_origin !== "planned" || save.isPending}
+                  onChange={(e) => setEnd(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("w04.field.presenceRequirement")}</Label>
+              <select
+                className={SELECT_CLASS}
+                value={requirement}
+                disabled={save.isPending}
+                onChange={(e) => setRequirement(e.target.value as PresenceRequirement)}
+              >
+                {allowed.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`w04.requirement.${value}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {requirement !== "none" ? (
+              <div className="space-y-1.5">
+                <Label>{t("w04.field.presencePopulation")}</Label>
+                <select
+                  className={SELECT_CLASS}
+                  value={population}
+                  disabled={save.isPending}
+                  onChange={(e) => setPopulation(e.target.value as PresencePopulation)}
+                >
+                  {PRESENCE_POPULATIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {t(`w04.population.${value}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+            <div className="space-y-1.5">
+              <Label>{copy(locale, "Nome para o viajante", "Traveler label")}</Label>
+              <Input
+                value={travelerLabel}
+                disabled={save.isPending}
+                onChange={(e) => setTravelerLabel(e.target.value)}
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={travelerFacing}
+                  disabled={save.isPending}
+                  onCheckedChange={(value) => setTravelerFacing(value === true)}
+                />{" "}
+                {copy(locale, "Visível para o viajante", "Visible to traveler")}
+              </label>
+            </div>
+            <Button
+              className="w-full"
+              disabled={!title.trim() || save.isPending}
+              onClick={() => save.mutate()}
+            >
+              {save.isPending
+                ? copy(locale, "Salvando…", "Saving…")
+                : copy(locale, "Salvar alterações", "Save changes")}
+            </Button>
           </div>
-          <div className="space-y-1.5"><Label>{t("w04.field.presenceRequirement")}</Label><select className={SELECT_CLASS} value={requirement} disabled={save.isPending} onChange={(e) => setRequirement(e.target.value as PresenceRequirement)}>{allowed.map((value) => <option key={value} value={value}>{t(`w04.requirement.${value}`)}</option>)}</select></div>
-          {requirement !== "none" ? <div className="space-y-1.5"><Label>{t("w04.field.presencePopulation")}</Label><select className={SELECT_CLASS} value={population} disabled={save.isPending} onChange={(e) => setPopulation(e.target.value as PresencePopulation)}>{PRESENCE_POPULATIONS.map((value) => <option key={value} value={value}>{t(`w04.population.${value}`)}</option>)}</select></div> : null}
-          <div className="space-y-1.5"><Label>{copy(locale, "Nome para o viajante", "Traveler label")}</Label><Input value={travelerLabel} disabled={save.isPending} onChange={(e) => setTravelerLabel(e.target.value)} /><label className="flex items-center gap-2 text-sm"><Checkbox checked={travelerFacing} disabled={save.isPending} onCheckedChange={(value) => setTravelerFacing(value === true)} /> {copy(locale, "Visível para o viajante", "Visible to traveler")}</label></div>
-          <Button className="w-full" disabled={!title.trim() || save.isPending} onClick={() => save.mutate()}>{save.isPending ? copy(locale, "Salvando…", "Saving…") : copy(locale, "Salvar alterações", "Save changes")}</Button>
-        </div> : null}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-function ArchiveStepDialog({ step, onClose, onSaved }: { step: ManagedStep | null; onClose: () => void; onSaved: () => void }) {
+function ArchiveStepDialog({
+  step,
+  onClose,
+  onSaved,
+}: {
+  step: ManagedStep | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const { locale } = useI18n();
   const [reason, setReason] = React.useState("");
   React.useEffect(() => setReason(""), [step?.id]);
   const archive = useMutation({
     mutationFn: async () => {
       if (!step) return;
-      const { error } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>)("archive_journey_step", {
+      const { error } = await (
+        supabase.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ error: unknown }>
+      )("archive_journey_step", {
         _journey_step_id: step.id,
         _reason: reason.trim(),
       });
       if (error) throw error;
     },
-    onSuccess: () => { feedback.success(copy(locale, "Etapa arquivada. O histórico foi preservado.", "Step archived. History was preserved.")); onSaved(); onClose(); },
+    onSuccess: () => {
+      feedback.success(
+        copy(
+          locale,
+          "Etapa arquivada. O histórico foi preservado.",
+          "Step archived. History was preserved.",
+        ),
+      );
+      onSaved();
+      onClose();
+    },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
-  return <Dialog open={Boolean(step)} onOpenChange={(open) => (!open && !archive.isPending ? onClose() : null)}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>{copy(locale, "Arquivar etapa", "Archive step")}</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">{copy(locale, "A etapa sairá da jornada ativa, mas não será apagada fisicamente.", "The step will leave the active journey but will not be physically deleted.")}</p><div className="space-y-1.5"><Label>{copy(locale, "Motivo do arquivamento", "Archive reason")}</Label><Textarea value={reason} disabled={archive.isPending} onChange={(e) => setReason(e.target.value)} rows={3} /></div><Button variant="destructive" disabled={!reason.trim() || archive.isPending} onClick={() => archive.mutate()}>{archive.isPending ? copy(locale, "Arquivando…", "Archiving…") : copy(locale, "Confirmar arquivamento", "Confirm archive")}</Button></DialogContent></Dialog>;
+  return (
+    <Dialog
+      open={Boolean(step)}
+      onOpenChange={(open) => (!open && !archive.isPending ? onClose() : null)}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{copy(locale, "Arquivar etapa", "Archive step")}</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {copy(
+            locale,
+            "A etapa sairá da jornada ativa, mas não será apagada fisicamente.",
+            "The step will leave the active journey but will not be physically deleted.",
+          )}
+        </p>
+        <div className="space-y-1.5">
+          <Label>{copy(locale, "Motivo do arquivamento", "Archive reason")}</Label>
+          <Textarea
+            value={reason}
+            disabled={archive.isPending}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <Button
+          variant="destructive"
+          disabled={!reason.trim() || archive.isPending}
+          onClick={() => archive.mutate()}
+        >
+          {archive.isPending
+            ? copy(locale, "Arquivando…", "Archiving…")
+            : copy(locale, "Confirmar arquivamento", "Confirm archive")}
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-function EditItemDialog({ item, roleTypes, onClose, onSaved }: { item: PlaybookItemRow | null; roleTypes: RoleTypeRow[]; onClose: () => void; onSaved: () => void }) {
+function EditItemDialog({
+  item,
+  roleTypes,
+  onClose,
+  onSaved,
+}: {
+  item: PlaybookItemRow | null;
+  roleTypes: RoleTypeRow[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const { t, locale } = useI18n();
   const [title, setTitle] = React.useState("");
   const [requirement, setRequirement] = React.useState<PlaybookRequirement>("required");
   const [ownerRole, setOwnerRole] = React.useState("");
-  React.useEffect(() => { if (item) { setTitle(item.title); setRequirement(item.requirement); setOwnerRole(item.owner_role_type_id ?? ""); } }, [item]);
+  React.useEffect(() => {
+    if (item) {
+      setTitle(item.title);
+      setRequirement(item.requirement);
+      setOwnerRole(item.owner_role_type_id ?? "");
+    }
+  }, [item]);
   const save = useMutation({
     mutationFn: async () => {
       if (!item) return;
@@ -374,24 +670,150 @@ function EditItemDialog({ item, roleTypes, onClose, onSaved }: { item: PlaybookI
       });
       if (error) throw error;
     },
-    onSuccess: () => { feedback.success(copy(locale, "Item do checklist atualizado.", "Checklist item updated.")); onSaved(); onClose(); },
+    onSuccess: () => {
+      feedback.success(copy(locale, "Item do checklist atualizado.", "Checklist item updated."));
+      onSaved();
+      onClose();
+    },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
-  return <Dialog open={Boolean(item)} onOpenChange={(open) => (!open && !save.isPending ? onClose() : null)}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>{copy(locale, "Editar item do checklist", "Edit checklist item")}</DialogTitle></DialogHeader><div className="space-y-3"><div className="space-y-1.5"><Label>{copy(locale, "Título", "Title")}</Label><Input value={title} disabled={save.isPending} onChange={(e) => setTitle(e.target.value)} /></div><div className="space-y-1.5"><Label>{copy(locale, "Obrigatoriedade", "Requirement")}</Label><select className={SELECT_CLASS} value={requirement} disabled={save.isPending} onChange={(e) => setRequirement(e.target.value as PlaybookRequirement)}>{PLAYBOOK_REQUIREMENTS.map((value) => <option key={value} value={value}>{t(`w04.requirementLabel.${value}`)}</option>)}</select></div><div className="space-y-1.5"><Label>{copy(locale, "Responsabilidade", "Responsibility")}</Label><select className={SELECT_CLASS} value={ownerRole} disabled={save.isPending} onChange={(e) => setOwnerRole(e.target.value)}><option value="">{copy(locale, "Sem alteração", "No change")}</option>{roleTypes.map((role) => <option key={role.id} value={role.id}>{roleLabel(role, t)}</option>)}</select></div><Button className="w-full" disabled={!title.trim() || save.isPending} onClick={() => save.mutate()}>{save.isPending ? copy(locale, "Salvando…", "Saving…") : copy(locale, "Salvar item", "Save item")}</Button></div></DialogContent></Dialog>;
+  return (
+    <Dialog
+      open={Boolean(item)}
+      onOpenChange={(open) => (!open && !save.isPending ? onClose() : null)}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {copy(locale, "Editar item do checklist", "Edit checklist item")}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>{copy(locale, "Título", "Title")}</Label>
+            <Input
+              value={title}
+              disabled={save.isPending}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{copy(locale, "Obrigatoriedade", "Requirement")}</Label>
+            <select
+              className={SELECT_CLASS}
+              value={requirement}
+              disabled={save.isPending}
+              onChange={(e) => setRequirement(e.target.value as PlaybookRequirement)}
+            >
+              {PLAYBOOK_REQUIREMENTS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`w04.requirementLabel.${value}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{copy(locale, "Responsabilidade", "Responsibility")}</Label>
+            <select
+              className={SELECT_CLASS}
+              value={ownerRole}
+              disabled={save.isPending}
+              onChange={(e) => setOwnerRole(e.target.value)}
+            >
+              <option value="">{copy(locale, "Sem alteração", "No change")}</option>
+              {roleTypes.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {roleLabel(role, t)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button
+            className="w-full"
+            disabled={!title.trim() || save.isPending}
+            onClick={() => save.mutate()}
+          >
+            {save.isPending
+              ? copy(locale, "Salvando…", "Saving…")
+              : copy(locale, "Salvar item", "Save item")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-function DeactivateItemDialog({ item, onClose, onSaved }: { item: PlaybookItemRow | null; onClose: () => void; onSaved: () => void }) {
+function DeactivateItemDialog({
+  item,
+  onClose,
+  onSaved,
+}: {
+  item: PlaybookItemRow | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const { locale } = useI18n();
   const [reason, setReason] = React.useState("");
   React.useEffect(() => setReason(""), [item?.id]);
   const deactivate = useMutation({
     mutationFn: async () => {
       if (!item) return;
-      const { error } = await supabase.rpc("deactivate_playbook_item", { _playbook_item_id: item.id, _reason: reason.trim() });
+      const { error } = await supabase.rpc("deactivate_playbook_item", {
+        _playbook_item_id: item.id,
+        _reason: reason.trim(),
+      });
       if (error) throw error;
     },
-    onSuccess: () => { feedback.success(copy(locale, "Item removido do checklist ativo.", "Item removed from the active checklist.")); onSaved(); onClose(); },
+    onSuccess: () => {
+      feedback.success(
+        copy(
+          locale,
+          "Item removido do checklist ativo.",
+          "Item removed from the active checklist.",
+        ),
+      );
+      onSaved();
+      onClose();
+    },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
-  return <Dialog open={Boolean(item)} onOpenChange={(open) => (!open && !deactivate.isPending ? onClose() : null)}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>{copy(locale, "Excluir item do checklist", "Remove checklist item")}</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">{copy(locale, "O item será desativado, preservando o registro para auditoria.", "The item will be deactivated, preserving its audit record.")}</p><div className="space-y-1.5"><Label>{copy(locale, "Motivo", "Reason")}</Label><Textarea value={reason} disabled={deactivate.isPending} onChange={(e) => setReason(e.target.value)} rows={3} /></div><Button variant="destructive" disabled={!reason.trim() || deactivate.isPending} onClick={() => deactivate.mutate()}>{deactivate.isPending ? copy(locale, "Excluindo…", "Removing…") : copy(locale, "Confirmar exclusão", "Confirm removal")}</Button></DialogContent></Dialog>;
+  return (
+    <Dialog
+      open={Boolean(item)}
+      onOpenChange={(open) => (!open && !deactivate.isPending ? onClose() : null)}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {copy(locale, "Excluir item do checklist", "Remove checklist item")}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {copy(
+            locale,
+            "O item será desativado, preservando o registro para auditoria.",
+            "The item will be deactivated, preserving its audit record.",
+          )}
+        </p>
+        <div className="space-y-1.5">
+          <Label>{copy(locale, "Motivo", "Reason")}</Label>
+          <Textarea
+            value={reason}
+            disabled={deactivate.isPending}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <Button
+          variant="destructive"
+          disabled={!reason.trim() || deactivate.isPending}
+          onClick={() => deactivate.mutate()}
+        >
+          {deactivate.isPending
+            ? copy(locale, "Excluindo…", "Removing…")
+            : copy(locale, "Confirmar exclusão", "Confirm removal")}
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
 }

@@ -52,7 +52,19 @@ export function CommandPalette({
     enabled: open && Boolean(tenant?.id),
     staleTime: 30_000,
     queryFn: async () => {
-      const [operations, people, steps, vehicles, drivers, legs, stays, events, sessions, messages, playbooks] = await Promise.all([
+      const [
+        operations,
+        people,
+        steps,
+        vehicles,
+        drivers,
+        legs,
+        stays,
+        events,
+        sessions,
+        messages,
+        playbooks,
+      ] = await Promise.all([
         supabase
           .from("operations")
           .select("id,name,code,status,primary_city,primary_region")
@@ -88,13 +100,17 @@ export function CommandPalette({
           .limit(60),
         supabase
           .from("transport_legs")
-          .select("id,title,operation_id,origin_label,destination_label,sequence,operations(name,code)")
+          .select(
+            "id,title,operation_id,origin_label,destination_label,sequence,operations(name,code)",
+          )
           .eq("tenant_id", tenant!.id)
           .order("updated_at", { ascending: false })
           .limit(80),
         supabase
           .from("hospitality_stays")
-          .select("id,name,operation_id,status,hospitality_properties!hospitality_stays_property_id_fkey(name,city,region),operations!hospitality_stays_operation_id_fkey(name,code)")
+          .select(
+            "id,name,operation_id,status,hospitality_properties!hospitality_stays_property_id_fkey(name,city,region),operations!hospitality_stays_operation_id_fkey(name,code)",
+          )
           .eq("tenant_id", tenant!.id)
           .order("updated_at", { ascending: false })
           .limit(60),
@@ -118,14 +134,28 @@ export function CommandPalette({
           .limit(80),
         supabase
           .from("playbook_items")
-          .select("id,title,operation_id,journey_step_id,requirement,is_active,operations(name,code),journey_steps(title)")
+          .select(
+            "id,title,operation_id,journey_step_id,requirement,is_active,operations(name,code),journey_steps(title)",
+          )
           .eq("tenant_id", tenant!.id)
           .eq("is_active", true)
           .order("updated_at", { ascending: false })
           .limit(80),
       ]);
 
-      const results = { operations, people, steps, vehicles, drivers, legs, stays, events, sessions, messages, playbooks };
+      const results = {
+        operations,
+        people,
+        steps,
+        vehicles,
+        drivers,
+        legs,
+        stays,
+        events,
+        sessions,
+        messages,
+        playbooks,
+      };
       for (const result of Object.values(results)) {
         if (result.error) throw result.error;
       }
@@ -180,7 +210,11 @@ export function CommandPalette({
                     onSelect={() => closeAndNavigate(`/operations/${op.id}`)}
                   >
                     <Activity className="mr-2 size-4 text-primary" aria-hidden="true" />
-                    <ResultText title={op.name} detail={`${op.code} · ${op.status}${op.primary_city ? ` · ${op.primary_city}` : ""}`} mono />
+                    <ResultText
+                      title={op.name}
+                      detail={`${op.code} · ${op.status}${op.primary_city ? ` · ${op.primary_city}` : ""}`}
+                      mono
+                    />
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -195,7 +229,10 @@ export function CommandPalette({
                     onSelect={() => closeAndNavigate("/people")}
                   >
                     <UserRound className="mr-2 size-4 text-primary" aria-hidden="true" />
-                    <ResultText title={person.full_name} detail={person.email ?? copy(locale, "Cadastro de pessoa", "Person record")} />
+                    <ResultText
+                      title={person.full_name}
+                      detail={person.email ?? copy(locale, "Cadastro de pessoa", "Person record")}
+                    />
                   </CommandItem>
                 ))}
               </SearchGroup>
@@ -232,7 +269,10 @@ export function CommandPalette({
                     onSelect={() => closeAndNavigate("/operations")}
                   >
                     <CarFront className="mr-2 size-4 text-primary" aria-hidden="true" />
-                    <ResultText title={vehicle.label} detail={`${vehicle.vehicle_kind}${vehicle.identifier ? ` · ${vehicle.identifier}` : ""}${vehicle.operator_name ? ` · ${vehicle.operator_name}` : ""}`} />
+                    <ResultText
+                      title={vehicle.label}
+                      detail={`${vehicle.vehicle_kind}${vehicle.identifier ? ` · ${vehicle.identifier}` : ""}${vehicle.operator_name ? ` · ${vehicle.operator_name}` : ""}`}
+                    />
                   </CommandItem>
                 ))}
                 {data.drivers.slice(0, 12).map((driver) => {
@@ -244,7 +284,10 @@ export function CommandPalette({
                       onSelect={() => closeAndNavigate("/operations")}
                     >
                       <UserRound className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={person?.full_name ?? copy(locale, "Motorista", "Driver")} detail={`${driver.driver_code ?? copy(locale, "Motorista ativo", "Active driver")}${driver.operator_name ? ` · ${driver.operator_name}` : ""}`} />
+                      <ResultText
+                        title={person?.full_name ?? copy(locale, "Motorista", "Driver")}
+                        detail={`${driver.driver_code ?? copy(locale, "Motorista ativo", "Active driver")}${driver.operator_name ? ` · ${driver.operator_name}` : ""}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -257,7 +300,10 @@ export function CommandPalette({
                       onSelect={() => closeAndNavigate(`/operations/${leg.operation_id}/mobility`)}
                     >
                       <Bus className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={leg.title} detail={`${operation?.name ?? copy(locale, "Operação", "Operation")}${leg.origin_label || leg.destination_label ? ` · ${leg.origin_label ?? "?"} → ${leg.destination_label ?? "?"}` : ""}`} />
+                      <ResultText
+                        title={leg.title}
+                        detail={`${operation?.name ?? copy(locale, "Operação", "Operation")}${leg.origin_label || leg.destination_label ? ` · ${leg.origin_label ?? "?"} → ${leg.destination_label ?? "?"}` : ""}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -273,10 +319,15 @@ export function CommandPalette({
                     <CommandItem
                       key={`stay-${stay.id}`}
                       value={`${stay.name} ${property?.name ?? ""} ${property?.city ?? ""} ${property?.region ?? ""} ${operation?.name ?? ""} ${operation?.code ?? ""} hotel hospedagem`}
-                      onSelect={() => closeAndNavigate(`/operations/${stay.operation_id}/hospitality`)}
+                      onSelect={() =>
+                        closeAndNavigate(`/operations/${stay.operation_id}/hospitality`)
+                      }
                     >
                       <BedDouble className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={stay.name} detail={`${property?.name ?? copy(locale, "Hospedagem", "Stay")} · ${operation?.name ?? stay.status}`} />
+                      <ResultText
+                        title={stay.name}
+                        detail={`${property?.name ?? copy(locale, "Hospedagem", "Stay")} · ${operation?.name ?? stay.status}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -294,7 +345,10 @@ export function CommandPalette({
                       onSelect={() => closeAndNavigate(`/operations/${event.operation_id}/events`)}
                     >
                       <CalendarDays className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={event.name} detail={`${operation?.name ?? copy(locale, "Operação", "Operation")} · ${event.status}`} />
+                      <ResultText
+                        title={event.name}
+                        detail={`${operation?.name ?? copy(locale, "Operação", "Operation")} · ${event.status}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -305,10 +359,16 @@ export function CommandPalette({
                     <CommandItem
                       key={`session-${session.id}`}
                       value={`${session.title} ${session.session_kind} ${event?.name ?? ""} ${operation?.name ?? ""} ${operation?.code ?? ""} sessão palestra programação`}
-                      onSelect={() => event?.operation_id && closeAndNavigate(`/operations/${event.operation_id}/events`)}
+                      onSelect={() =>
+                        event?.operation_id &&
+                        closeAndNavigate(`/operations/${event.operation_id}/events`)
+                      }
                     >
                       <CalendarDays className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={session.title} detail={`${event?.name ?? copy(locale, "Sessão", "Session")}${operation?.name ? ` · ${operation.name}` : ""}`} />
+                      <ResultText
+                        title={session.title}
+                        detail={`${event?.name ?? copy(locale, "Sessão", "Session")}${operation?.name ? ` · ${operation.name}` : ""}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -323,10 +383,16 @@ export function CommandPalette({
                     <CommandItem
                       key={`message-${message.id}`}
                       value={`${message.title} ${message.kind} ${message.priority} ${message.status} ${operation?.name ?? ""} ${operation?.code ?? ""} mensagem comunicação aviso`}
-                      onSelect={() => message.operation_id && closeAndNavigate(`/operations/${message.operation_id}/communication`)}
+                      onSelect={() =>
+                        message.operation_id &&
+                        closeAndNavigate(`/operations/${message.operation_id}/communication`)
+                      }
                     >
                       <MessageSquareText className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={message.title} detail={`${operation?.name ?? copy(locale, "Comunicação", "Communication")} · ${message.priority} · ${message.status}`} />
+                      <ResultText
+                        title={message.title}
+                        detail={`${operation?.name ?? copy(locale, "Comunicação", "Communication")} · ${message.priority} · ${message.status}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -345,7 +411,10 @@ export function CommandPalette({
                       onSelect={() => closeAndNavigate(`/operations/${item.operation_id}/journey`)}
                     >
                       <CheckSquare2 className="mr-2 size-4 text-primary" aria-hidden="true" />
-                      <ResultText title={item.title} detail={`${operation?.name ?? copy(locale, "Operação", "Operation")}${step?.title ? ` · ${step.title}` : ""} · ${item.requirement}`} />
+                      <ResultText
+                        title={item.title}
+                        detail={`${operation?.name ?? copy(locale, "Operação", "Operation")}${step?.title ? ` · ${step.title}` : ""} · ${item.requirement}`}
+                      />
                     </CommandItem>
                   );
                 })}
@@ -404,7 +473,9 @@ function ResultText({
   return (
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-medium">{title}</p>
-      <p className={`flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground ${mono ? "font-mono uppercase tracking-[0.08em]" : ""}`}>
+      <p
+        className={`flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground ${mono ? "font-mono uppercase tracking-[0.08em]" : ""}`}
+      >
         {Icon ? <Icon className="size-3 shrink-0" aria-hidden="true" /> : null}
         <span className="truncate">{detail}</span>
       </p>
@@ -413,7 +484,7 @@ function ResultText({
 }
 
 function one<T>(value: T | T[] | null | undefined): T | undefined {
-  return Array.isArray(value) ? value[0] : value ?? undefined;
+  return Array.isArray(value) ? value[0] : (value ?? undefined);
 }
 
 export function useCommandPalette() {

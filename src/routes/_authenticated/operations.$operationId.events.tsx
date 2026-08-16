@@ -1423,7 +1423,11 @@ function EventsTab() {
   const operation = useQuery({
     queryKey: ["operation-status", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("operations").select("status").eq("id", operationId).maybeSingle();
+      const { data, error } = await supabase
+        .from("operations")
+        .select("status")
+        .eq("id", operationId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -1524,7 +1528,17 @@ function EventsTab() {
       </header>
 
       {list.length === 0 ? (
-        <EmptyState icon={Clapperboard} title={t("w07.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhum evento foi registrado nesta operação.", "No event was recorded for this operation.", t("w07.emptyBody"))} />
+        <EmptyState
+          icon={Clapperboard}
+          title={t("w07.empty")}
+          body={operationEmptyBody(
+            operationClosed,
+            locale,
+            "Nenhum evento foi registrado nesta operação.",
+            "No event was recorded for this operation.",
+            t("w07.emptyBody"),
+          )}
+        />
       ) : null}
 
       {list.length > 1 ? (
@@ -1598,21 +1612,21 @@ function EventsTab() {
       ) : null}
 
       {!operationClosed ? (
-      <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("w07.new")}</DialogTitle>
-          </DialogHeader>
-          <CreateEventForm
-            operationId={operationId}
-            venues={venues.data ?? []}
-            onDone={() => {
-              setCreating(false);
-              void queryClient.invalidateQueries({ queryKey: ["events", operationId] });
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+        <Dialog open={creating} onOpenChange={setCreating}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("w07.new")}</DialogTitle>
+            </DialogHeader>
+            <CreateEventForm
+              operationId={operationId}
+              venues={venues.data ?? []}
+              onDone={() => {
+                setCreating(false);
+                void queryClient.invalidateQueries({ queryKey: ["events", operationId] });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       ) : null}
     </div>
   );

@@ -89,22 +89,24 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
       const current = stepRows.find((step) => step.id === runtime?.current_step_id) ?? null;
       const next = stepRows.find((step) => step.id === runtime?.next_step_id) ?? null;
       const relevantRoster = (roster.data ?? []).filter((row) =>
-        current?.presence_population === "participants" ? row.participation_kind === "participant" : true,
+        current?.presence_population === "participants"
+          ? row.participation_kind === "participant"
+          : true,
       );
       const unconfirmedCount = current
         ? relevantRoster.filter((row) => row.status !== "confirmed").length
         : 0;
       const boardingStarted = Boolean(
         current &&
-          (facts.data ?? []).some(
-            (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
-          ),
+        (facts.data ?? []).some(
+          (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
+        ),
       );
       const arrived = Boolean(
         current &&
-          (facts.data ?? []).some(
-            (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
-          ),
+        (facts.data ?? []).some(
+          (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
+        ),
       );
 
       return {
@@ -118,15 +120,11 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
     },
   });
 
-  if (
-    !isGuidanceSurface ||
-    guidanceQuery.isLoading ||
-    guidanceQuery.isError ||
-    !guidanceQuery.data
-  )
+  if (!isGuidanceSurface || guidanceQuery.isLoading || guidanceQuery.isError || !guidanceQuery.data)
     return null;
 
-  const { current, next, readiness, unconfirmedCount, boardingStarted, arrived } = guidanceQuery.data;
+  const { current, next, readiness, unconfirmedCount, boardingStarted, arrived } =
+    guidanceQuery.data;
   const guidance = deriveGuidance({
     locale,
     current,
@@ -181,7 +179,9 @@ function HealthStrip({ health }: { health: Health }) {
 
   return (
     <section className={`rounded-2xl border px-4 py-3 ${toneClass}`} aria-live="polite">
-      <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-70">Saúde operacional</p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-70">
+        Saúde operacional
+      </p>
       <div className="mt-1.5 flex items-start gap-2.5">
         <Icon className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
         <div className="min-w-0">
@@ -207,7 +207,11 @@ function deriveHealth({
   if (!current) {
     return {
       title: copy(locale, "Operação sem etapa ativa", "No active step"),
-      detail: copy(locale, "Aguardando início da próxima etapa ou encerramento da jornada.", "Waiting for the next step or journey completion."),
+      detail: copy(
+        locale,
+        "Aguardando início da próxima etapa ou encerramento da jornada.",
+        "Waiting for the next step or journey completion.",
+      ),
       icon: Clock3,
       tone: "muted",
     };
@@ -220,7 +224,11 @@ function deriveHealth({
   if (lateMs > 0) {
     return {
       title: copy(locale, `Atraso +${formatMinutes(lateMs)}`, `Delay +${formatMinutes(lateMs)}`),
-      detail: copy(locale, "A etapa atual ultrapassou o horário previsto de encerramento.", "The current step has passed its planned end time."),
+      detail: copy(
+        locale,
+        "A etapa atual ultrapassou o horário previsto de encerramento.",
+        "The current step has passed its planned end time.",
+      ),
       icon: Clock3,
       tone: "critical",
     };
@@ -237,7 +245,11 @@ function deriveHealth({
         `${Math.max(1, pendingCount)} pendência(s) exigem atenção`,
         `${Math.max(1, pendingCount)} issue(s) need attention`,
       ),
-      detail: copy(locale, "Resolva os bloqueios indicados abaixo antes de avançar.", "Resolve the blockers below before advancing."),
+      detail: copy(
+        locale,
+        "Resolva os bloqueios indicados abaixo antes de avançar.",
+        "Resolve the blockers below before advancing.",
+      ),
       icon: AlertTriangle,
       tone: "warning",
     };
@@ -245,7 +257,11 @@ function deriveHealth({
 
   return {
     title: copy(locale, "Operação no ritmo", "Operation on track"),
-    detail: copy(locale, "Nenhum bloqueio conhecido na etapa atual.", "No known blocker on the current step."),
+    detail: copy(
+      locale,
+      "Nenhum bloqueio conhecido na etapa atual.",
+      "No known blocker on the current step.",
+    ),
     icon: CheckCircle2,
     tone: "success",
   };

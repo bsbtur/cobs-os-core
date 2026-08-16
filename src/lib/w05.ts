@@ -15,8 +15,7 @@ export type DriverRow = Database["public"]["Tables"]["drivers"]["Row"];
 export type TransportLegRow = Database["public"]["Tables"]["transport_legs"]["Row"];
 export type TransportStopRow = Database["public"]["Tables"]["transport_leg_stops"]["Row"];
 export type TransportEventRow = Database["public"]["Tables"]["transport_events"]["Row"];
-export type SeatAssignmentRow =
-  Database["public"]["Tables"]["transport_seat_assignments"]["Row"];
+export type SeatAssignmentRow = Database["public"]["Tables"]["transport_seat_assignments"]["Row"];
 
 export type VehicleKind = Database["public"]["Enums"]["transport_vehicle_kind"];
 export type LegKind = Database["public"]["Enums"]["transport_leg_kind"];

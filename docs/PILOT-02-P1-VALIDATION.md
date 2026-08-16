@@ -9,17 +9,17 @@
 
 ## 1. Live census (read-only, verified)
 
-| Object | Count | Detail |
-| --- | --- | --- |
-| tenants | 1 | BSBTUR |
-| experiences | 0 | none exist |
-| offerings | 0 | none exist |
-| operations | 1 | `CITYTO-20260815` — Golden Pilot, status `completed` |
-| people | 3 | Rafael Lima (Owner), Pedro Paulo de Lima Santos Cardoso, Regina Aparecida Tiago de Moura |
-| memberships | 1 | Owner only |
-| vehicles | 1 | `JHR8B21`, kind `car`, capacity 3 |
-| drivers | 1 | Regina Aparecida Tiago de Moura |
-| transport_legs | 2 | Golden Pilot outbound + return |
+| Object         | Count | Detail                                                                                   |
+| -------------- | ----- | ---------------------------------------------------------------------------------------- |
+| tenants        | 1     | BSBTUR                                                                                   |
+| experiences    | 0     | none exist                                                                               |
+| offerings      | 0     | none exist                                                                               |
+| operations     | 1     | `CITYTO-20260815` — Golden Pilot, status `completed`                                     |
+| people         | 3     | Rafael Lima (Owner), Pedro Paulo de Lima Santos Cardoso, Regina Aparecida Tiago de Moura |
+| memberships    | 1     | Owner only                                                                               |
+| vehicles       | 1     | `JHR8B21`, kind `car`, capacity 3                                                        |
+| drivers        | 1     | Regina Aparecida Tiago de Moura                                                          |
+| transport_legs | 2     | Golden Pilot outbound + return                                                           |
 
 ---
 
@@ -27,13 +27,13 @@
 
 ### Travelers (5, independent identities)
 
-| # | Full name | Controlled e-mail | Exists in COBS | Operational consent |
-| --- | --- | --- | --- | --- |
-| 1 | Mariana Alves Ferreira | designfrondf@gmail.com | NO | **YES** |
-| 2 | Lucas Henrique Martins | bsbturltda@gmail.com | NO | **YES** |
-| 3 | Camila Rodrigues Souza | imoveisdfvenda@gmail.com | NO | **YES** |
-| 4 | Pedro Augusto Ribeiro | rafasaudedf@gmail.com | NO | **YES** |
-| 5 | Juliana Costa Nascimento | zemiguelpoesias@gmail.com | NO | **YES** |
+| #   | Full name                | Controlled e-mail         | Exists in COBS | Operational consent |
+| --- | ------------------------ | ------------------------- | -------------- | ------------------- |
+| 1   | Mariana Alves Ferreira   | designfrondf@gmail.com    | NO             | **YES**             |
+| 2   | Lucas Henrique Martins   | bsbturltda@gmail.com      | NO             | **YES**             |
+| 3   | Camila Rodrigues Souza   | imoveisdfvenda@gmail.com  | NO             | **YES**             |
+| 4   | Pedro Augusto Ribeiro    | rafasaudedf@gmail.com     | NO             | **YES**             |
+| 5   | Juliana Costa Nascimento | zemiguelpoesias@gmail.com | NO             | **YES**             |
 
 - `@example.com` placeholders are **discarded** and must never be provisioned.
 - One identity per traveler. No shared account. No credential reuse.
@@ -42,54 +42,54 @@
 
 ### Driver
 
-| Field | Value |
-| --- | --- |
-| Name given | Carlos Eduardo Mendes |
-| Exists in COBS | NO |
-| Real-driver confirmation | **YES** |
-| Regina reuse | NOT authorized — Golden Pilot resource |
+| Field                    | Value                                  |
+| ------------------------ | -------------------------------------- |
+| Name given               | Carlos Eduardo Mendes                  |
+| Exists in COBS           | NO                                     |
+| Real-driver confirmation | **YES**                                |
+| Regina reuse             | NOT authorized — Golden Pilot resource |
 
 `DRIVER_CONFIRMED: YES` — input lock complete.
 
 ### Second operator
 
-| Field | Value |
-| --- | --- |
-| SECOND_OPERATOR_REAL | YES |
-| SECOND_OPERATOR_NAME | Fernanda Lima Rocha |
-| SECOND_OPERATOR_EMAIL | contato@bsbtur.com.br |
-| SECOND_OPERATOR_ROLE | operations_agent (never admin, never owner) |
-| COBS_ACCOUNT_EXISTS | NO |
-| ACCOUNT_CONFIRMED | NO |
-| LOGIN_CONFIRMED | NO |
-| PRE_T0_ACCOUNT_PROVISIONING_REQUIRED | YES |
-| PRE_T0_LOGIN_VALIDATION_REQUIRED | YES |
+| Field                                | Value                                       |
+| ------------------------------------ | ------------------------------------------- |
+| SECOND_OPERATOR_REAL                 | YES                                         |
+| SECOND_OPERATOR_NAME                 | Fernanda Lima Rocha                         |
+| SECOND_OPERATOR_EMAIL                | contato@bsbtur.com.br                       |
+| SECOND_OPERATOR_ROLE                 | operations_agent (never admin, never owner) |
+| COBS_ACCOUNT_EXISTS                  | NO                                          |
+| ACCOUNT_CONFIRMED                    | NO                                          |
+| LOGIN_CONFIRMED                      | NO                                          |
+| PRE_T0_ACCOUNT_PROVISIONING_REQUIRED | YES                                         |
+| PRE_T0_LOGIN_VALIDATION_REQUIRED     | YES                                         |
 
 `fernanda.rocha@example.com` is discarded.
 
 ### Vehicle
 
-| Field | Value |
-| --- | --- |
-| VEHICLE_IDENTIFIER | EDZ2E87 |
-| VEHICLE_TYPE | van |
-| PHYSICAL_CAPACITY | 20 |
-| COBS_OPERATIONAL_CAPACITY | 18 (intentional reduction — never auto-raise to 20) |
-| PLANNED_OCCUPANCY | 7 (5 travelers + 1 driver + 1 operations_agent) |
-| CAPACITY_HEADROOM | 11 |
-| PHYSICAL_CAPACITY_EXCEEDED | NO |
-| JHR8B21 reuse | FORBIDDEN (Golden Pilot resource, capacity 3) |
-| PIL0T02 placeholder | DISCARDED — must not be created |
+| Field                      | Value                                               |
+| -------------------------- | --------------------------------------------------- |
+| VEHICLE_IDENTIFIER         | EDZ2E87                                             |
+| VEHICLE_TYPE               | van                                                 |
+| PHYSICAL_CAPACITY          | 20                                                  |
+| COBS_OPERATIONAL_CAPACITY  | 18 (intentional reduction — never auto-raise to 20) |
+| PLANNED_OCCUPANCY          | 7 (5 travelers + 1 driver + 1 operations_agent)     |
+| CAPACITY_HEADROOM          | 11                                                  |
+| PHYSICAL_CAPACITY_EXCEEDED | NO                                                  |
+| JHR8B21 reuse              | FORBIDDEN (Golden Pilot resource, capacity 3)       |
+| PIL0T02 placeholder        | DISCARDED — must not be created                     |
 
 Capacity enforcement is live per DEF-PILOT-015: active seat assignments per leg ≤ effective capacity, serialized by a per-leg transaction lock.
 
 ### Date / operational window
 
-| Field | Value |
-| --- | --- |
-| Original proposal | 11/08/2026 11:00–13:00 (America/Sao_Paulo) |
-| Status | **INVALID** — the window is today and already started/passed; it also collides with the Golden Pilot's consumed expected window |
-| New window | **PENDING — to be set at P2 provisioning** |
+| Field             | Value                                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Original proposal | 11/08/2026 11:00–13:00 (America/Sao_Paulo)                                                                                      |
+| Status            | **INVALID** — the window is today and already started/passed; it also collides with the Golden Pilot's consumed expected window |
+| New window        | **PENDING — to be set at P2 provisioning**                                                                                      |
 
 `OPERATIONAL_WINDOW: PENDING` — not a P1 input-lock blocker; final scheduling occurs during authorized P2 provisioning.
 
@@ -118,15 +118,15 @@ Executed only after explicit textual authorization, in this order, exclusively t
 
 ### 3.2 Create — identities (7 Person records)
 
-| Person | Role in Pilot-02 | Login required |
-| --- | --- | --- |
-| Mariana Alves Ferreira | participant | Portal Claim (W10) |
-| Lucas Henrique Martins | participant | Portal Claim (W10) |
-| Camila Rodrigues Souza | participant | Portal Claim (W10) |
-| Pedro Augusto Ribeiro | participant | Portal Claim (W10) |
-| Juliana Costa Nascimento | participant | Portal Claim (W10) |
-| Carlos Eduardo Mendes | crew (driver resource) | none — operational assignment never grants login |
-| Fernanda Lima Rocha | crew + tenant membership | full COBS login, `operations_agent` |
+| Person                   | Role in Pilot-02         | Login required                                   |
+| ------------------------ | ------------------------ | ------------------------------------------------ |
+| Mariana Alves Ferreira   | participant              | Portal Claim (W10)                               |
+| Lucas Henrique Martins   | participant              | Portal Claim (W10)                               |
+| Camila Rodrigues Souza   | participant              | Portal Claim (W10)                               |
+| Pedro Augusto Ribeiro    | participant              | Portal Claim (W10)                               |
+| Juliana Costa Nascimento | participant              | Portal Claim (W10)                               |
+| Carlos Eduardo Mendes    | crew (driver resource)   | none — operational assignment never grants login |
+| Fernanda Lima Rocha      | crew + tenant membership | full COBS login, `operations_agent`              |
 
 ### 3.3 Create — access
 
@@ -162,13 +162,13 @@ Hospitality OFF · Event production OFF · Commerce OFF · External integrations
 
 ## 4. Blocking gaps before P2
 
-| # | Gap | Status | Owner |
-| --- | --- | --- | --- |
-| B1 | New operational date/window (day + start + end, America/Sao_Paulo) | PENDING — to be set at P2 provisioning | Rafael |
-| B2 | Explicit operational-registration consent for all 5 travelers (SIM/NÃO each) | RESOLVED — 5/5 YES | Rafael |
-| B3 | Confirmation that Carlos Eduardo Mendes is the real driver of this operation | RESOLVED — YES | Rafael |
-| B4 | Offering path decision: A (standalone) or B (create catalog first) | RESOLVED — Path A | Rafael |
-| B5 | Real vehicle kind for EDZ2E87 (minibus / bus / van) | RESOLVED — van | Rafael |
+| #   | Gap                                                                          | Status                                 | Owner  |
+| --- | ---------------------------------------------------------------------------- | -------------------------------------- | ------ |
+| B1  | New operational date/window (day + start + end, America/Sao_Paulo)           | PENDING — to be set at P2 provisioning | Rafael |
+| B2  | Explicit operational-registration consent for all 5 travelers (SIM/NÃO each) | RESOLVED — 5/5 YES                     | Rafael |
+| B3  | Confirmation that Carlos Eduardo Mendes is the real driver of this operation | RESOLVED — YES                         | Rafael |
+| B4  | Offering path decision: A (standalone) or B (create catalog first)           | RESOLVED — Path A                      | Rafael |
+| B5  | Real vehicle kind for EDZ2E87 (minibus / bus / van)                          | RESOLVED — van                         | Rafael |
 
 `HUMAN_INPUT_BLOCKERS: 0`
 

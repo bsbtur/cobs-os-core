@@ -12,14 +12,14 @@ All verification data is prefixed `W08VER` and **has been left in place**.
 
 ## 1. Static contract
 
-| Item | Expected | Found |
-|---|---|---|
-| Tables | 5 | `messages`, `message_audience_selectors`, `message_recipients`, `message_deliveries`, `communication_events` |
-| Enums | 7 | `message_kind`, `message_priority`, `message_status`, `audience_selector_kind`, `communication_channel`, `delivery_status`, `communication_event_type` |
-| Public commands | 12 | verified |
-| Public reads | 4 | `get_my_message_inbox`, `get_message_recipient_state`, `get_operation_communication_feed`, `preview_audience_count` |
-| Private helpers | 14 | all in `app_private` |
-| Realtime | events only | `communication_events` only; messages/recipients/deliveries/selectors excluded |
+| Item            | Expected    | Found                                                                                                                                                  |
+| --------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tables          | 5           | `messages`, `message_audience_selectors`, `message_recipients`, `message_deliveries`, `communication_events`                                           |
+| Enums           | 7           | `message_kind`, `message_priority`, `message_status`, `audience_selector_kind`, `communication_channel`, `delivery_status`, `communication_event_type` |
+| Public commands | 12          | verified                                                                                                                                               |
+| Public reads    | 4           | `get_my_message_inbox`, `get_message_recipient_state`, `get_operation_communication_feed`, `preview_audience_count`                                    |
+| Private helpers | 14          | all in `app_private`                                                                                                                                   |
+| Realtime        | events only | `communication_events` only; messages/recipients/deliveries/selectors excluded                                                                         |
 
 ## 2. ACL & private-helper reachability — 159 checks, 0 failures
 
@@ -82,13 +82,13 @@ memberships, participations, journey steps, legs, stays, events or sessions.
 
 ## Defects found and fixed
 
-| ID | Severity | Finding | Fix |
-|---|---|---|---|
+| ID          | Severity     | Finding                                                                                                                                                                                         | Fix                                                                                                                                      |
+| ----------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | DEF-W08-001 | **Critical** | RLS policy helpers `w08_is_comms_operator` / `w08_current_person_id` had no `EXECUTE` for `authenticated`, so **every** read of all 5 W08 tables failed with `42501` for every signed-in actor. | Granted `EXECUTE` to `authenticated`/`service_role`, matching `app_private.has_tenant_role`. Helpers remain unreachable through the API. |
-| DEF-W08-002 | Medium | `schedule_message` accepted a timestamp in the past. | Rejects non-future times and times at/after the expiry. |
-| DEF-W08-003 | Medium | `create_message` / `update_draft_message` accepted an expiry already in the past. | Expiry must be in the future. |
-| DEF-W08-004 | Medium | Expired messages still appeared in the recipient inbox. | Inbox filters expired messages; all history and facts preserved. |
-| DEF-W08-005 | Low | An already-expired draft could be published. | Publication rejected for expired messages. |
+| DEF-W08-002 | Medium       | `schedule_message` accepted a timestamp in the past.                                                                                                                                            | Rejects non-future times and times at/after the expiry.                                                                                  |
+| DEF-W08-003 | Medium       | `create_message` / `update_draft_message` accepted an expiry already in the past.                                                                                                               | Expiry must be in the future.                                                                                                            |
+| DEF-W08-004 | Medium       | Expired messages still appeared in the recipient inbox.                                                                                                                                         | Inbox filters expired messages; all history and facts preserved.                                                                         |
+| DEF-W08-005 | Low          | An already-expired draft could be published.                                                                                                                                                    | Publication rejected for expired messages.                                                                                               |
 
 All fixes retested; full regression re-run: ACL 159/159, contract 38/38, lifecycle 49/49,
 integration 20/20. Remaining reported mismatches in the read-state stage are harness

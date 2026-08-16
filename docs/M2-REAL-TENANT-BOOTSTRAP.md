@@ -5,30 +5,30 @@ No data was created, modified or removed during this verification.
 
 ## 1. Tenant
 
-| Field | Value |
-| --- | --- |
-| Tenants in database | 1 |
-| Name | BSBTUR |
-| Slug | `bsbtur` |
-| country_code | BR |
-| default_locale | pt-BR |
-| timezone | America/Sao_Paulo |
-| currency_code | BRL |
-| created_at | 2026-08-10 23:52:44 UTC |
+| Field               | Value                   |
+| ------------------- | ----------------------- |
+| Tenants in database | 1                       |
+| Name                | BSBTUR                  |
+| Slug                | `bsbtur`                |
+| country_code        | BR                      |
+| default_locale      | pt-BR                   |
+| timezone            | America/Sao_Paulo       |
+| currency_code       | BRL                     |
+| created_at          | 2026-08-10 23:52:44 UTC |
 
 Uniqueness: `tenants_slug_key UNIQUE (lower(slug))` — a second `bsbtur` organization is structurally impossible.
 
 ## 2. Owner identity
 
-| Check | Result |
-| --- | --- |
-| Auth users total | 1 |
-| Email confirmed | YES (real inbox confirmation, 23:45 UTC) |
-| Signup display name | RAFAEL LIMA |
-| Profiles | 1, bound 1:1 to the auth user |
-| People in BSBTUR | 1, bound to that Profile |
-| Memberships | 1 · role `owner` · status `active` |
-| Duplicates (tenant / profile / person / membership) | NONE |
+| Check                                               | Result                                   |
+| --------------------------------------------------- | ---------------------------------------- |
+| Auth users total                                    | 1                                        |
+| Email confirmed                                     | YES (real inbox confirmation, 23:45 UTC) |
+| Signup display name                                 | RAFAEL LIMA                              |
+| Profiles                                            | 1, bound 1:1 to the auth user            |
+| People in BSBTUR                                    | 1, bound to that Profile                 |
+| Memberships                                         | 1 · role `owner` · status `active`       |
+| Duplicates (tenant / profile / person / membership) | NONE                                     |
 
 No password, token, session or confirmation material is recorded in this document or in any database row inspected.
 
@@ -46,13 +46,13 @@ Experiences 0 · Offerings 0 · Operations 0 · all W04–W10 tables 0.
 
 ## 5. Security baseline (unchanged vs M1 fingerprint)
 
-| Metric | M1 | M2 |
-| --- | --- | --- |
-| Public tables | 50 | 50 |
-| RLS policies | 72 | 72 |
-| Public functions | 226 | 226 |
-| `app_private` helpers | 98 | 98 |
-| Public enums | 48 | 48 |
+| Metric                | M1  | M2  |
+| --------------------- | --- | --- |
+| Public tables         | 50  | 50  |
+| RLS policies          | 72  | 72  |
+| Public functions      | 226 | 226 |
+| `app_private` helpers | 98  | 98  |
+| Public enums          | 48  | 48  |
 
 - `anon`: zero privileges on every public table (0 SELECT, 0 write).
 - `authenticated`: SELECT on all 50 tables.
@@ -86,12 +86,12 @@ Experiences 0 · Offerings 0 · Operations 0 · all W04–W10 tables 0.
 
 ### Frozen command surface inspection
 
-| Candidate | Can correct the owner's Person name? |
-| --- | --- |
-| `ensure_profile(_display_name)` | Partially — sets `profiles.display_name` only when it is currently NULL. Never touches `people.full_name`. |
-| `link_person_to_profile(...)` | No — binds an existing Person to a Profile. |
-| `bootstrap_tenant(...)` | No — creation-only, idempotent; a replay returns the stored result. |
-| Any `update_*` / `set_*` command | No — none targets `public.people`. |
+| Candidate                        | Can correct the owner's Person name?                                                                       |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `ensure_profile(_display_name)`  | Partially — sets `profiles.display_name` only when it is currently NULL. Never touches `people.full_name`. |
+| `link_person_to_profile(...)`    | No — binds an existing Person to a Profile.                                                                |
+| `bootstrap_tenant(...)`          | No — creation-only, idempotent; a replay returns the stored result.                                        |
+| Any `update_*` / `set_*` command | No — none targets `public.people`.                                                                         |
 
 Result: **the frozen W01–W10 public surface contains no command that updates `public.people.full_name`.** Direct DML is additionally rejected by the `guard_w03_mutation` BEFORE trigger, and `authenticated` holds SELECT-only on `people`. Per the task constraints (prefer the approved command path; do not modify architecture to perform the correction), execution stopped here.
 
@@ -154,12 +154,12 @@ BSBTUR · `bsbtur` · BR · BRL · pt-BR · America/Sao_Paulo · id `9a09c18f…
 
 ### 2. Owner identity
 
-| Check | Result |
-| --- | --- |
-| Auth users | 1 |
-| Profiles | 1 · `38c4f5d6…` · `display_name = RAFAEL LIMA` |
+| Check            | Result                                                                 |
+| ---------------- | ---------------------------------------------------------------------- |
+| Auth users       | 1                                                                      |
+| Profiles         | 1 · `38c4f5d6…` · `display_name = RAFAEL LIMA`                         |
 | People in BSBTUR | 1 · `cf022cd0…` · `full_name = RAFAEL LIMA` · `profile_id = 38c4f5d6…` |
-| Memberships | 1 · `9807e9b7…` · role `owner` · status `active` |
+| Memberships      | 1 · `9807e9b7…` · role `owner` · status `active`                       |
 
 ### 3. Identity preservation
 
@@ -186,16 +186,16 @@ Experiences 0 · Offerings 0 · Operations 0 · all W04–W10 domain tables 0 ro
 
 ### 8. Structural baseline
 
-| Metric | M2 | M2.2 final | Delta |
-| --- | --- | --- | --- |
-| Public tables | 50 | 50 | — |
-| RLS policies | 72 | 72 | — |
-| Public functions | 226 | **227** | +1 (intentional) |
-| `app_private` helpers | 98 | 98 | — |
-| Public enums | 48 | 48 | — |
-| User triggers | 103 | 103 | — |
-| Tables with RLS off | 0 | 0 | — |
-| `anon` table grants | 0 | 0 | — |
+| Metric                | M2  | M2.2 final | Delta            |
+| --------------------- | --- | ---------- | ---------------- |
+| Public tables         | 50  | 50         | —                |
+| RLS policies          | 72  | 72         | —                |
+| Public functions      | 226 | **227**    | +1 (intentional) |
+| `app_private` helpers | 98  | 98         | —                |
+| Public enums          | 48  | 48         | —                |
+| User triggers         | 103 | 103        | —                |
+| Tables with RLS off   | 0   | 0          | —                |
+| `anon` table grants   | 0   | 0          | —                |
 
 No other structural drift detected.
 

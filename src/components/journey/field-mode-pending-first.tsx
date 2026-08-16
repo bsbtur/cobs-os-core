@@ -21,14 +21,17 @@ export function FieldModePendingFirst({ operationId }: { operationId: string }) 
     let timer: number | null = null;
 
     const presenceList = () =>
-      document.querySelector<HTMLElement>(".field-runtime section.surface-panel:has(input) > ul.mt-3");
+      document.querySelector<HTMLElement>(
+        ".field-runtime section.surface-panel:has(input) > ul.mt-3",
+      );
 
     const firstPending = () => {
       const list = presenceList();
       if (!list) return null;
-      return Array.from(list.children).find(
-        (child) => !child.querySelector("span.text-success"),
-      ) as HTMLElement | undefined ?? null;
+      return (
+        (Array.from(list.children).find((child) => !child.querySelector("span.text-success")) as
+          HTMLElement | undefined) ?? null
+      );
     };
 
     const sync = () => {
@@ -56,7 +59,12 @@ export function FieldModePendingFirst({ operationId }: { operationId: string }) 
     };
 
     const observer = new MutationObserver(schedule);
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     sync();
 
     return () => {

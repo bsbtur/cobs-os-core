@@ -203,16 +203,13 @@ function StepDialog({
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  const disabled =
-    !title.trim() || (adHoc && !reason.trim()) || windowInvalid || save.isPending;
+  const disabled = !title.trim() || (adHoc && !reason.trim()) || windowInvalid || save.isPending;
 
   return (
     <Dialog open={open} onOpenChange={(next) => (save.isPending ? null : onOpenChange(next))}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {adHoc ? t("w04.journey.addAdHoc") : t("w04.journey.addStep")}
-          </DialogTitle>
+          <DialogTitle>{adHoc ? t("w04.journey.addAdHoc") : t("w04.journey.addStep")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -304,7 +301,9 @@ function StepDialog({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-muted-foreground">{t(`w04.requirement.${requirement}Hint`)}</p>
+            <p className="text-xs text-muted-foreground">
+              {t(`w04.requirement.${requirement}Hint`)}
+            </p>
             {allowed.length === 1 ? (
               <p className="text-xs text-muted-foreground">{t("w04.contract.fixedByKind")}</p>
             ) : null}
@@ -574,56 +573,56 @@ function PlaybookEditor({
       {!operationClosed ? (
         <>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <Input
-          aria-label={t("w04.playbook.add")}
-          value={title}
-          onChange={(event) => {
-            setTitle(event.target.value);
-            rotateKey();
-          }}
-          placeholder={t("w04.playbook.add")}
-          className="min-h-11 flex-1"
-        />
-        <select
-          aria-label={t("w04.field.presenceRequirement")}
-          className={`${SELECT_CLASS} sm:w-44`}
-          value={requirement}
-          onChange={(event) => {
-            setRequirement(event.target.value as PlaybookRequirement);
-            rotateKey();
-          }}
-        >
-          {PLAYBOOK_REQUIREMENTS.map((value) => (
-            <option key={value} value={value}>
-              {t(`w04.requirementLabel.${value}`)}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={t("w04.playbook.owner")}
-          className={`${SELECT_CLASS} sm:w-48`}
-          value={ownerRole}
-          onChange={(event) => {
-            setOwnerRole(event.target.value);
-            rotateKey();
-          }}
-        >
-          <option value="">{t("w04.playbook.owner")}</option>
-          {roleTypes.map((role) => (
-            <option key={role.id} value={role.id}>
-              {roleLabel(role, t)}
-            </option>
-          ))}
-        </select>
-        <Button
-          className="min-h-11"
-          disabled={!title.trim() || add.isPending}
-          onClick={() => add.mutate()}
-        >
-          <Plus className="mr-1.5 size-4" aria-hidden="true" />
-          {t("w04.playbook.add")}
-        </Button>
-      </div>
+            <Input
+              aria-label={t("w04.playbook.add")}
+              value={title}
+              onChange={(event) => {
+                setTitle(event.target.value);
+                rotateKey();
+              }}
+              placeholder={t("w04.playbook.add")}
+              className="min-h-11 flex-1"
+            />
+            <select
+              aria-label={t("w04.field.presenceRequirement")}
+              className={`${SELECT_CLASS} sm:w-44`}
+              value={requirement}
+              onChange={(event) => {
+                setRequirement(event.target.value as PlaybookRequirement);
+                rotateKey();
+              }}
+            >
+              {PLAYBOOK_REQUIREMENTS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`w04.requirementLabel.${value}`)}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label={t("w04.playbook.owner")}
+              className={`${SELECT_CLASS} sm:w-48`}
+              value={ownerRole}
+              onChange={(event) => {
+                setOwnerRole(event.target.value);
+                rotateKey();
+              }}
+            >
+              <option value="">{t("w04.playbook.owner")}</option>
+              {roleTypes.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {roleLabel(role, t)}
+                </option>
+              ))}
+            </select>
+            <Button
+              className="min-h-11"
+              disabled={!title.trim() || add.isPending}
+              onClick={() => add.mutate()}
+            >
+              <Plus className="mr-1.5 size-4" aria-hidden="true" />
+              {t("w04.playbook.add")}
+            </Button>
+          </div>
           <p className="mt-2 text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>
         </>
       ) : null}
@@ -673,9 +672,7 @@ function ApplyBlueprintDialog({
       return rows
         .map((blueprint) => ({
           blueprint,
-          version: latestPublishedVersion(
-            published.filter((v) => v.blueprint_id === blueprint.id),
-          ),
+          version: latestPublishedVersion(published.filter((v) => v.blueprint_id === blueprint.id)),
         }))
         .filter((entry) => entry.version !== null);
     },
@@ -750,9 +747,7 @@ function ApplyBlueprintDialog({
   });
 
   const dt = (iso: string | null) =>
-    iso
-      ? formatDateTime(iso, timezone ? { locale, timeZone: timezone } : { locale })
-      : "—";
+    iso ? formatDateTime(iso, timezone ? { locale, timeZone: timezone } : { locale }) : "—";
 
   return (
     <Dialog open={open} onOpenChange={(next) => (apply.isPending ? null : onOpenChange(next))}>
@@ -991,11 +986,7 @@ function JourneyPlanPage() {
           .eq("operation_id", operationId)
           .eq("is_active", true)
           .order("sequence"),
-        supabase
-          .from("operation_role_types")
-          .select("*")
-          .eq("is_active", true)
-          .order("sort_order"),
+        supabase.from("operation_role_types").select("*").eq("is_active", true).order("sort_order"),
       ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
@@ -1076,7 +1067,11 @@ function JourneyPlanPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!operationClosed && canEditBlueprints(role) && baselineOpen && steps.length === 0 && !provisioning.data ? (
+          {!operationClosed &&
+          canEditBlueprints(role) &&
+          baselineOpen &&
+          steps.length === 0 &&
+          !provisioning.data ? (
             <Button variant="outline" className="min-h-11" onClick={() => setApplyOpen(true)}>
               <RouteIcon className="mr-1.5 size-4" aria-hidden="true" />
               {t("bp.apply.action")}
@@ -1234,14 +1229,14 @@ function JourneyPlanPage() {
                     </>
                   ) : null}
                   {!operationClosed ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-h-9"
-                    onClick={() => setForecastStep(step)}
-                  >
-                    {t("w04.expected.change")}
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-9"
+                      onClick={() => setForecastStep(step)}
+                    >
+                      {t("w04.expected.change")}
+                    </Button>
                   ) : null}
                 </div>
               </div>
@@ -1274,7 +1269,9 @@ function JourneyPlanPage() {
       />
       <ForecastDialog
         step={operationClosed ? null : forecastStep}
-        onOpenChange={(open) => setForecastStep(operationClosed ? null : open ? forecastStep : null)}
+        onOpenChange={(open) =>
+          setForecastStep(operationClosed ? null : open ? forecastStep : null)
+        }
         operationId={operationId}
       />
     </section>

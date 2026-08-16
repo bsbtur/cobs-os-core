@@ -3,27 +3,27 @@
 Workflow: **W09 — Commerce & Payments Core**
 State: **FROZEN** (2026-08-10)
 
-| Gate | Result |
-| --- | --- |
-| W09 ARCHITECTURE GATE | PASS |
-| W09 FINAL BUILD CONTRACT | PASS |
-| W09 BUILD | PASS |
+| Gate                         | Result                               |
+| ---------------------------- | ------------------------------------ |
+| W09 ARCHITECTURE GATE        | PASS                                 |
+| W09 FINAL BUILD CONTRACT     | PASS                                 |
+| W09 BUILD                    | PASS                                 |
 | W09 ADVERSARIAL VERIFICATION | PASS (101/101 assertions, 0 defects) |
-| W09 SECURITY GATE | PASS |
-| W09 ARCHITECTURE FROZEN | YES |
+| W09 SECURITY GATE            | PASS                                 |
+| W09 ARCHITECTURE FROZEN      | YES                                  |
 
 ## Frozen structural surface
 
-| Metric | Value |
-| --- | --- |
-| W09_TABLE_COUNT | 6 (`sellables`, `prices`, `orders`, `order_items`, `commercial_reservations`, `financial_facts`) |
-| W09_ENUM_COUNT | 8 |
-| W09_FINANCIAL_FACT_TYPE_COUNT | 3 |
-| W09_MUTATING_COMMAND_COUNT | 19 |
-| W09_READ_FUNCTION_COUNT | 6 |
-| W09_PUBLIC_FUNCTION_COUNT | 25 |
-| W09_PRIVATE_HELPER_COUNT | 18 |
-| W09_REALTIME_TABLE_COUNT | 1 (`financial_facts`) |
+| Metric                        | Value                                                                                            |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| W09_TABLE_COUNT               | 6 (`sellables`, `prices`, `orders`, `order_items`, `commercial_reservations`, `financial_facts`) |
+| W09_ENUM_COUNT                | 8                                                                                                |
+| W09_FINANCIAL_FACT_TYPE_COUNT | 3                                                                                                |
+| W09_MUTATING_COMMAND_COUNT    | 19                                                                                               |
+| W09_READ_FUNCTION_COUNT       | 6                                                                                                |
+| W09_PUBLIC_FUNCTION_COUNT     | 25                                                                                               |
+| W09_PRIVATE_HELPER_COUNT      | 18                                                                                               |
+| W09_REALTIME_TABLE_COUNT      | 1 (`financial_facts`)                                                                            |
 
 `financial_fact_type` = `PAYMENT_RECORDED`, `PAYMENT_REVERSED`, `REFUND_RECORDED`.
 `payment_method` = `cash`, `bank_transfer`, `other`. No `pix`, `boleto`, `card_manual`.
@@ -80,6 +80,7 @@ overpaid_minor          = MAX(net_paid - grand_total_minor, 0)
 ## Accepted observations (architectural rulings)
 
 ### OBS-W09-001 — Overpayment
+
 `OVERPAYMENT_ALLOWED_AND_EXPLICITLY_DERIVED = YES`.
 A legitimate manually verified payment is never rejected because it pushes
 `net_paid` above `grand_total_minor`, and money is never clamped or discarded.
@@ -88,6 +89,7 @@ store credit, or transfer to another order. It is resolved explicitly by a later
 `REFUND_RECORDED`, or by `PAYMENT_REVERSED` when the payment record itself was erroneous.
 
 ### OBS-W09-002 — Cancellation with existing payment
+
 `ORDER_CANCELLATION_AUTO_REFUNDS = NO`
 `CANCELLED_ORDER_CAN_RETAIN_NET_PAID = YES`.
 Cancelling an order withdraws the commercial commitment and releases active capacity.

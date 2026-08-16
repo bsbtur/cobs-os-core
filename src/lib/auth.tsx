@@ -192,7 +192,6 @@ export function humanizeError(error: unknown, locale: string): string {
     ],
   ];
 
-
   for (const [re, ptMsg, enMsg] of map) {
     if (re.test(raw)) return pt ? ptMsg : enMsg;
   }

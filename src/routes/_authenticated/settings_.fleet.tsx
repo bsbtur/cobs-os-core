@@ -24,9 +24,9 @@ import { feedback } from "@/components/feedback/feedback";
 
 /** Drops undefined keys so optional RPC arguments stay absent rather than explicit undefined. */
 function rpcArgs<T extends Record<string, unknown>>(input: T) {
-  return Object.fromEntries(
-    Object.entries(input).filter(([, value]) => value !== undefined),
-  ) as { [K in keyof T]: Exclude<T[K], undefined> };
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as {
+    [K in keyof T]: Exclude<T[K], undefined>;
+  };
 }
 
 export const Route = createFileRoute("/_authenticated/settings_/fleet")({
@@ -133,7 +133,11 @@ function VehicleForm({ tenantId, onDone }: { tenantId: string; onDone: () => voi
       </div>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="vehicle-operator">{t("w05.fleet.operator")}</Label>
-        <Input id="vehicle-operator" value={operator} onChange={(e) => setOperator(e.target.value)} />
+        <Input
+          id="vehicle-operator"
+          value={operator}
+          onChange={(e) => setOperator(e.target.value)}
+        />
       </div>
       <Button
         className="min-h-11 sm:col-span-2"
@@ -212,7 +216,11 @@ function DriverForm({
       </div>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="driver-operator">{t("w05.fleet.operator")}</Label>
-        <Input id="driver-operator" value={operator} onChange={(e) => setOperator(e.target.value)} />
+        <Input
+          id="driver-operator"
+          value={operator}
+          onChange={(e) => setOperator(e.target.value)}
+        />
       </div>
       <Button
         className="min-h-11 sm:col-span-2"
@@ -236,10 +244,7 @@ function Body() {
     queryFn: async () => {
       const [vehicles, drivers, people] = await Promise.all([
         supabase.from("vehicles").select("*").eq("tenant_id", tenant!.id).order("label"),
-        supabase
-          .from("drivers")
-          .select("*, people(full_name)")
-          .eq("tenant_id", tenant!.id),
+        supabase.from("drivers").select("*, people(full_name)").eq("tenant_id", tenant!.id),
         supabase
           .from("people")
           .select("id, full_name")

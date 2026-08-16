@@ -65,11 +65,16 @@ function OverviewDisclosure({
     <details className="group surface-panel overflow-hidden">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:content-none hover:bg-elevated/40 focus-ring">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">{eyebrow}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">
+            {eyebrow}
+          </p>
           <p className="mt-1 text-sm font-semibold">{title}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
         </div>
-        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+        <ChevronDown
+          className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+          aria-hidden="true"
+        />
       </summary>
       <div className="border-t border-border bg-background/30 p-3 sm:p-4">{children}</div>
     </details>
@@ -88,7 +93,9 @@ function OperationWorkspace() {
 
   return (
     <AppShell activeId="operations" title={t("op.title")}>
-      <div className={`mx-auto w-full max-w-5xl space-y-5 ${isFieldFocused ? "field-runtime" : ""}`}>
+      <div
+        className={`mx-auto w-full max-w-5xl space-y-5 ${isFieldFocused ? "field-runtime" : ""}`}
+      >
         <RequireTenant>
           <OperationRuntimeQuerySync operationId={operationId} />
           {!isCockpitV2 ? <FieldModePendingFirst operationId={operationId} /> : null}
@@ -100,20 +107,92 @@ function OperationWorkspace() {
             </Link>
           </Button>
 
-          <nav aria-label={t("op.title")} className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1">
-            <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.overview")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/cockpit-v2" className={`${TAB_CLASS} gap-1.5`} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+          <nav
+            aria-label={t("op.title")}
+            className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1"
+          >
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId"
+              activeOptions={{ exact: true }}
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("roster.tab.overview")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/cockpit-v2"
+              className={`${TAB_CLASS} gap-1.5`}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
               <Sparkles className="size-4" aria-hidden="true" />
               {copy(locale, "Cockpit V2", "Cockpit V2")}
             </Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("roster.tab.people")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/schedule" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{copy(locale, "Escala", "Schedule")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/journey" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w04.tab.journey")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/live" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w04.tab.live")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/mobility" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w05.tab.mobility")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/hospitality" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w06.tab.hospitality")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/events" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w07.tab.events")}</Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/communication" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>{t("w08.tab.communication")}</Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/people"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("roster.tab.people")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/schedule"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {copy(locale, "Escala", "Schedule")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/journey"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w04.tab.journey")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/live"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w04.tab.live")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/mobility"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w05.tab.mobility")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/hospitality"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w06.tab.hospitality")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/events"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w07.tab.events")}
+            </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/communication"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              {t("w08.tab.communication")}
+            </Link>
           </nav>
 
           {isOverview ? (
@@ -123,7 +202,11 @@ function OperationWorkspace() {
               <OverviewDisclosure
                 eyebrow="COBS Intelligence"
                 title={copy(locale, "Indicadores detalhados", "Detailed intelligence")}
-                description={copy(locale, "Jornada, presença, mobilidade, hospedagem, comunicação e financeiro.", "Journey, presence, mobility, hospitality, communication and finance.")}
+                description={copy(
+                  locale,
+                  "Jornada, presença, mobilidade, hospedagem, comunicação e financeiro.",
+                  "Journey, presence, mobility, hospitality, communication and finance.",
+                )}
               >
                 <OperationIntelligenceCockpit operationId={operationId} />
               </OverviewDisclosure>
@@ -133,7 +216,11 @@ function OperationWorkspace() {
               <OverviewDisclosure
                 eyebrow="Audit trail"
                 title={copy(locale, "Histórico da operação", "Operation history")}
-                description={copy(locale, "Linha do tempo factual para auditoria e investigação.", "Factual timeline for audit and investigation.")}
+                description={copy(
+                  locale,
+                  "Linha do tempo factual para auditoria e investigação.",
+                  "Factual timeline for audit and investigation.",
+                )}
               >
                 <OperationHistoryTimeline operationId={operationId} />
               </OverviewDisclosure>
@@ -155,7 +242,11 @@ function OperationWorkspace() {
             <OverviewDisclosure
               eyebrow={copy(locale, "Administração", "Administration")}
               title={copy(locale, "Planejamento e ciclo de vida", "Planning & lifecycle")}
-              description={copy(locale, "Janelas planned/expected, status, arquivamento e controles administrativos.", "Planned/expected windows, status, archiving and administrative controls.")}
+              description={copy(
+                locale,
+                "Janelas planned/expected, status, arquivamento e controles administrativos.",
+                "Planned/expected windows, status, archiving and administrative controls.",
+              )}
             >
               <Outlet />
             </OverviewDisclosure>

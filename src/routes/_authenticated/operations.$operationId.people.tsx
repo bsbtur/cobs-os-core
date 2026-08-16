@@ -429,10 +429,7 @@ function AddPersonDialog({
                   <option value="">{t("common.none")}</option>
                   {roles.map((id) => (
                     <option key={id} value={id}>
-                      {roleLabel(
-                        roleTypes.find((r) => r.id === id) ?? null,
-                        t,
-                      )}
+                      {roleLabel(roleTypes.find((r) => r.id === id) ?? null, t)}
                     </option>
                   ))}
                 </select>
@@ -585,7 +582,6 @@ function PortalAccessAction({
 /* ------------------------------------------------------------------ */
 
 function RosterCard({
-
   row,
   roleTypes,
   operationId,
@@ -778,27 +774,26 @@ function RosterCard({
             disabled={row.status === "cancelled" || operationClosed}
           />
 
-
           {!operationClosed ? (
-          <div className="flex flex-wrap gap-2">
-            {transitions
-              .filter((s) => s !== "cancelled")
-              .map((s) => (
-                <Button
-                  key={s}
-                  variant="outline"
-                  className="min-h-11"
-                  disabled={setStatus.isPending}
-                  onClick={() => setStatus.mutate({ status: s })}
-                >
-                  {s === "confirmed"
-                    ? t("roster.confirm")
-                    : row.status === "cancelled"
-                      ? t("roster.reactivate")
-                      : t("roster.backToExpected")}
-                </Button>
-              ))}
-          </div>
+            <div className="flex flex-wrap gap-2">
+              {transitions
+                .filter((s) => s !== "cancelled")
+                .map((s) => (
+                  <Button
+                    key={s}
+                    variant="outline"
+                    className="min-h-11"
+                    disabled={setStatus.isPending}
+                    onClick={() => setStatus.mutate({ status: s })}
+                  >
+                    {s === "confirmed"
+                      ? t("roster.confirm")
+                      : row.status === "cancelled"
+                        ? t("roster.reactivate")
+                        : t("roster.backToExpected")}
+                  </Button>
+                ))}
+            </div>
           ) : null}
 
           {!operationClosed && transitions.includes("cancelled") ? (
@@ -900,7 +895,11 @@ function Roster() {
     queryKey: ["operation-status", operationId],
     enabled: Boolean(tenant?.id) && canOperate,
     queryFn: async () => {
-      const { data, error } = await supabase.from("operations").select("id, status").eq("id", operationId).single();
+      const { data, error } = await supabase
+        .from("operations")
+        .select("id, status")
+        .eq("id", operationId)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -928,7 +927,8 @@ function Roster() {
     );
   }
 
-  if (roster.isLoading || roleTypes.isLoading || operation.isLoading) return <PanelSkeleton rows={4} />;
+  if (roster.isLoading || roleTypes.isLoading || operation.isLoading)
+    return <PanelSkeleton rows={4} />;
 
   const operationClosed = isOperationClosed(operation.data?.status);
 
@@ -960,10 +960,10 @@ function Roster() {
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("roster.subtitle")}</p>
         </div>
         {!operationClosed ? (
-        <Button className="min-h-11" onClick={() => setAddOpen(true)}>
-          <Plus className="mr-2 size-4" aria-hidden="true" />
-          {t("roster.add")}
-        </Button>
+          <Button className="min-h-11" onClick={() => setAddOpen(true)}>
+            <Plus className="mr-2 size-4" aria-hidden="true" />
+            {t("roster.add")}
+          </Button>
         ) : null}
       </section>
 

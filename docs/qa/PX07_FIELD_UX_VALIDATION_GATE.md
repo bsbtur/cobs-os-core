@@ -147,15 +147,15 @@ FAIL: any cross-tenant or cross-operation leakage.
 
 Target for Alpha Field UX:
 
-| Metric | Target |
-|---|---:|
-| Understand first action | <= 5 s |
-| Individual presence | 1 primary tap / traveler |
+| Metric                           |                               Target |
+| -------------------------------- | -----------------------------------: |
+| Understand first action          |                               <= 5 s |
+| Individual presence              |             1 primary tap / traveler |
 | Search for next pending traveler | 0 manual searches after each success |
-| Accidental duplicate actions | 0 |
-| Horizontal nav confusion | 0 blocking cases |
-| Manual page refresh | 0 |
-| Critical backend guard bypass | 0 |
+| Accidental duplicate actions     |                                    0 |
+| Horizontal nav confusion         |                     0 blocking cases |
+| Manual page refresh              |                                    0 |
+| Critical backend guard bypass    |                                    0 |
 
 ## Simplification backlog rules
 

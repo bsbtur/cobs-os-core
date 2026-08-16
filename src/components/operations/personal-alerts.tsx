@@ -1,6 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, BellRing, Check, CheckCircle2, Clock3, ExternalLink, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  BellRing,
+  Check,
+  CheckCircle2,
+  Clock3,
+  ExternalLink,
+  RefreshCw,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -53,7 +61,10 @@ function priorityMeta(priority: string, locale: string) {
 
 function AlertSurface({ children, locale }: { children: React.ReactNode; locale: string }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-primary/30 bg-primary-soft/20" aria-label={copy(locale, "Alertas para mim", "Alerts for me")}>
+    <section
+      className="overflow-hidden rounded-xl border border-primary/30 bg-primary-soft/20"
+      aria-label={copy(locale, "Alertas para mim", "Alerts for me")}
+    >
       {children}
     </section>
   );
@@ -77,19 +88,24 @@ export function PersonalAlerts() {
       const reminders = (payload.messages ?? [])
         .filter((message) => message.kind === "reminder" && !message.first_read_at)
         .sort((a, b) => {
-          const priorityDelta = (priorityWeight[a.priority] ?? 9) - (priorityWeight[b.priority] ?? 9);
+          const priorityDelta =
+            (priorityWeight[a.priority] ?? 9) - (priorityWeight[b.priority] ?? 9);
           if (priorityDelta !== 0) return priorityDelta;
           return new Date(b.published_at ?? 0).getTime() - new Date(a.published_at ?? 0).getTime();
         })
         .slice(0, 5);
 
-      const operationIds = [...new Set(reminders.map((message) => message.operation_id).filter(Boolean))] as string[];
+      const operationIds = [
+        ...new Set(reminders.map((message) => message.operation_id).filter(Boolean)),
+      ] as string[];
       const operations = operationIds.length
         ? await supabase.from("operations").select("id,name,code").in("id", operationIds)
         : { data: [], error: null };
       if (operations.error) throw operations.error;
 
-      const operationById = new Map((operations.data ?? []).map((operation) => [operation.id, operation]));
+      const operationById = new Map(
+        (operations.data ?? []).map((operation) => [operation.id, operation]),
+      );
       return { reminders, operationById };
     },
   });
@@ -109,8 +125,16 @@ export function PersonalAlerts() {
     return (
       <AlertSurface locale={locale}>
         <div className="flex items-center gap-3 px-5 py-4">
-          <span className="grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground"><BellRing className="size-4" aria-hidden="true" /></span>
-          <LoadingPulse label={copy(locale, "Carregando seus alertas operacionais...", "Loading your operational alerts...")} />
+          <span className="grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <BellRing className="size-4" aria-hidden="true" />
+          </span>
+          <LoadingPulse
+            label={copy(
+              locale,
+              "Carregando seus alertas operacionais...",
+              "Loading your operational alerts...",
+            )}
+          />
         </div>
       </AlertSurface>
     );
@@ -121,14 +145,36 @@ export function PersonalAlerts() {
       <AlertSurface locale={locale}>
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div className="flex items-start gap-3">
-            <span className="grid size-10 place-items-center rounded-lg bg-destructive/10 text-destructive"><AlertTriangle className="size-4" aria-hidden="true" /></span>
+            <span className="grid size-10 place-items-center rounded-lg bg-destructive/10 text-destructive">
+              <AlertTriangle className="size-4" aria-hidden="true" />
+            </span>
             <div>
-              <p className="font-semibold">{copy(locale, "Não foi possível carregar seus alertas", "Could not load your alerts")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{copy(locale, "Verifique a conexão e tente novamente. Nenhum alerta foi marcado como lido.", "Check your connection and try again. No alert was marked as read.")}</p>
+              <p className="font-semibold">
+                {copy(
+                  locale,
+                  "Não foi possível carregar seus alertas",
+                  "Could not load your alerts",
+                )}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {copy(
+                  locale,
+                  "Verifique a conexão e tente novamente. Nenhum alerta foi marcado como lido.",
+                  "Check your connection and try again. No alert was marked as read.",
+                )}
+              </p>
             </div>
           </div>
-          <Button size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
-            <RefreshCw className={`mr-1 size-3.5 ${query.isFetching ? "animate-spin" : ""}`} aria-hidden="true" />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => query.refetch()}
+            disabled={query.isFetching}
+          >
+            <RefreshCw
+              className={`mr-1 size-3.5 ${query.isFetching ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />
             {copy(locale, "Tentar novamente", "Try again")}
           </Button>
         </div>
@@ -141,14 +187,28 @@ export function PersonalAlerts() {
       <AlertSurface locale={locale}>
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-lg bg-success-soft text-success"><CheckCircle2 className="size-4" aria-hidden="true" /></span>
+            <span className="grid size-10 place-items-center rounded-lg bg-success-soft text-success">
+              <CheckCircle2 className="size-4" aria-hidden="true" />
+            </span>
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">COBS · {copy(locale, "Alertas para mim", "Alerts for me")}</p>
-              <p className="mt-1 font-semibold">{copy(locale, "Nenhum alerta pendente", "No pending alerts")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{copy(locale, "Sua fila está limpa neste momento.", "Your queue is clear right now.")}</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">
+                COBS · {copy(locale, "Alertas para mim", "Alerts for me")}
+              </p>
+              <p className="mt-1 font-semibold">
+                {copy(locale, "Nenhum alerta pendente", "No pending alerts")}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {copy(
+                  locale,
+                  "Sua fila está limpa neste momento.",
+                  "Your queue is clear right now.",
+                )}
+              </p>
             </div>
           </div>
-          <Button asChild variant="outline" size="sm"><Link to="/inbox">{copy(locale, "Abrir inbox", "Open inbox")}</Link></Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/inbox">{copy(locale, "Abrir inbox", "Open inbox")}</Link>
+          </Button>
         </div>
       </AlertSurface>
     );
@@ -164,8 +224,13 @@ export function PersonalAlerts() {
             <BellRing className="size-4" aria-hidden="true" />
           </span>
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">PX12.5 · {copy(locale, "Alertas para mim", "Alerts for me")}</p>
-            <h3 className="mt-1 text-base font-semibold">{reminders.length} {copy(locale, "lembrete(s) operacional(is)", "operational reminder(s)")}</h3>
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">
+              PX12.5 · {copy(locale, "Alertas para mim", "Alerts for me")}
+            </p>
+            <h3 className="mt-1 text-base font-semibold">
+              {reminders.length}{" "}
+              {copy(locale, "lembrete(s) operacional(is)", "operational reminder(s)")}
+            </h3>
           </div>
         </div>
         <Button asChild variant="outline" size="sm">
@@ -175,7 +240,9 @@ export function PersonalAlerts() {
 
       <div className="divide-y divide-primary/15">
         {reminders.map((message) => {
-          const operation = message.operation_id ? operationById.get(message.operation_id) : undefined;
+          const operation = message.operation_id
+            ? operationById.get(message.operation_id)
+            : undefined;
           const priority = priorityMeta(message.priority, locale);
           return (
             <article key={message.id} className="p-4 sm:p-5">
@@ -183,7 +250,9 @@ export function PersonalAlerts() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{message.title}</p>
-                    <span className={`rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${priority.className}`}>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${priority.className}`}
+                    >
                       {priority.label}
                     </span>
                     <span className="rounded-full border border-primary/25 bg-background px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-primary">
@@ -192,8 +261,17 @@ export function PersonalAlerts() {
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{message.body}</p>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    {message.published_at ? <span className="inline-flex items-center gap-1"><Clock3 className="size-3" aria-hidden="true" />{new Date(message.published_at).toLocaleString(locale)}</span> : null}
-                    {operation ? <span>{operation.name} · {operation.code}</span> : null}
+                    {message.published_at ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock3 className="size-3" aria-hidden="true" />
+                        {new Date(message.published_at).toLocaleString(locale)}
+                      </span>
+                    ) : null}
+                    {operation ? (
+                      <span>
+                        {operation.name} · {operation.code}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -201,7 +279,10 @@ export function PersonalAlerts() {
               <div className="mt-3 flex flex-wrap gap-2">
                 {message.operation_id ? (
                   <Button asChild size="sm">
-                    <Link to="/operations/$operationId" params={{ operationId: message.operation_id }}>
+                    <Link
+                      to="/operations/$operationId"
+                      params={{ operationId: message.operation_id }}
+                    >
                       <ExternalLink className="mr-1 size-3.5" aria-hidden="true" />
                       {copy(locale, "Abrir operação", "Open operation")}
                     </Link>

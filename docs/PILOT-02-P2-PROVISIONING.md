@@ -13,14 +13,14 @@ Mode: provisioning via legitimate public contracts only. No schema, RLS or ACL c
 
 ## Operation
 
-| Field | Value |
-| --- | --- |
-| Name | City Tour Brasilia Essencial — Pilot-02 |
-| Code | CITYES-20260811 |
-| ID | 2d581923-534a-4fd6-8442-55ac425152ec |
-| Origin | STANDALONE (no experience, no offering) |
-| Status | draft (intentionally NOT ready / NOT active) |
-| Planned window | 2026-08-11 12:00–15:00 America/Sao_Paulo |
+| Field          | Value                                        |
+| -------------- | -------------------------------------------- |
+| Name           | City Tour Brasilia Essencial — Pilot-02      |
+| Code           | CITYES-20260811                              |
+| ID             | 2d581923-534a-4fd6-8442-55ac425152ec         |
+| Origin         | STANDALONE (no experience, no offering)      |
+| Status         | draft (intentionally NOT ready / NOT active) |
+| Planned window | 2026-08-11 12:00–15:00 America/Sao_Paulo     |
 
 ## Roster
 

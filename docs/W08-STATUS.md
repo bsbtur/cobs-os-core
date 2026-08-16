@@ -2,29 +2,29 @@
 
 **State: FROZEN** (2026-08-10)
 
-| Gate | Result |
-| --- | --- |
-| W08 ARCHITECTURE GATE | PASS |
-| W08 FINAL BUILD CONTRACT | PASS |
-| W08 BUILD | PASS |
-| W08 SECURITY GATE | PASS |
+| Gate                         | Result              |
+| ---------------------------- | ------------------- |
+| W08 ARCHITECTURE GATE        | PASS                |
+| W08 FINAL BUILD CONTRACT     | PASS                |
+| W08 BUILD                    | PASS                |
+| W08 SECURITY GATE            | PASS                |
 | W08 ADVERSARIAL VERIFICATION | PASS AFTER HOTFIXES |
-| W08 ARCHITECTURE FROZEN | YES |
+| W08 ARCHITECTURE FROZEN      | YES                 |
 
 ---
 
 ## 1. Structural contract (verified live after cleanup)
 
-| Metric | Value |
-| --- | --- |
-| W08_TABLE_COUNT | 5 |
-| W08_ENUM_COUNT | 7 |
-| W08_FACT_TYPE_COUNT | 3 |
-| W08_MUTATING_COMMAND_COUNT | 12 |
-| W08_READ_FUNCTION_COUNT | 4 |
-| W08_PUBLIC_FUNCTION_COUNT | 16 |
-| W08_PRIVATE_HELPER_COUNT | 14 |
-| W08_REALTIME_TABLE_COUNT | 1 (`communication_events`) |
+| Metric                     | Value                      |
+| -------------------------- | -------------------------- |
+| W08_TABLE_COUNT            | 5                          |
+| W08_ENUM_COUNT             | 7                          |
+| W08_FACT_TYPE_COUNT        | 3                          |
+| W08_MUTATING_COMMAND_COUNT | 12                         |
+| W08_READ_FUNCTION_COUNT    | 4                          |
+| W08_PUBLIC_FUNCTION_COUNT  | 16                         |
+| W08_PRIVATE_HELPER_COUNT   | 14                         |
+| W08_REALTIME_TABLE_COUNT   | 1 (`communication_events`) |
 
 Tables: `messages`, `message_audience_selectors`, `message_recipients`,
 `message_deliveries`, `communication_events`.
@@ -116,13 +116,13 @@ RPC): `w08_resolve_audience`, `w08_in_app_eligible_recipients`,
 
 ## 6. Defects found and fixed
 
-| ID | Defect | Fix |
-| --- | --- | --- |
+| ID          | Defect                                                                                 | Fix                                                  |
+| ----------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | DEF-W08-001 | RLS policy helpers lacked EXECUTE for `authenticated`, breaking every W08 read (42501) | Granted minimal EXECUTE on the two policy predicates |
-| DEF-W08-002 | `schedule_message` accepted past timestamps | Future `scheduled_for` required |
-| DEF-W08-003 | Past `expires_at` accepted | Future expiry required |
-| DEF-W08-004 | Expired messages remained in active inbox/read model | Filtered out of active reads |
-| DEF-W08-005 | Expired drafts could be published | Publication rejected |
+| DEF-W08-002 | `schedule_message` accepted past timestamps                                            | Future `scheduled_for` required                      |
+| DEF-W08-003 | Past `expires_at` accepted                                                             | Future expiry required                               |
+| DEF-W08-004 | Expired messages remained in active inbox/read model                                   | Filtered out of active reads                         |
+| DEF-W08-005 | Expired drafts could be published                                                      | Publication rejected                                 |
 
 Note: a message body may legitimately contain operational PII. It is **never**
 copied into audit metadata; the content guard is defense in depth only.

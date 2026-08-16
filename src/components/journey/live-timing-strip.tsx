@@ -136,7 +136,9 @@ function NextStepPreview({ next, untilNext }: { next: JourneyStepRow; untilNext:
         <div className="shrink-0 text-right">
           {start ? <p className="font-mono text-sm font-semibold tabular-nums">{start}</p> : null}
           {untilNext !== null ? (
-            <p className={`mt-0.5 text-xs ${untilNext < 0 ? "text-warning" : "text-muted-foreground"}`}>
+            <p
+              className={`mt-0.5 text-xs ${untilNext < 0 ? "text-warning" : "text-muted-foreground"}`}
+            >
               {untilNext >= 0
                 ? `${t("w04.timing.nextIn")} ${formatDuration(untilNext)}`
                 : `${t("w04.timing.nextLate")} ${formatDuration(untilNext)}`}

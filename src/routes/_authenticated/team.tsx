@@ -116,11 +116,13 @@ function Members() {
 
   const confirmRemove = (member: MemberRow) => {
     const label = member.profiles?.display_name || member.profiles?.email || member.profile_id;
-    const confirmed = window.confirm(copyText(
-      locale,
-      `Remover ${label} da equipe? Essa pessoa perderá o acesso a esta organização.`,
-      `Remove ${label} from the team? This person will lose access to this organization.`,
-    ));
+    const confirmed = window.confirm(
+      copyText(
+        locale,
+        `Remover ${label} da equipe? Essa pessoa perderá o acesso a esta organização.`,
+        `Remove ${label} from the team? This person will lose access to this organization.`,
+      ),
+    );
     if (!confirmed) return;
     removeMember.mutate(member.id);
   };
@@ -132,10 +134,26 @@ function Members() {
         <div className="flex items-start gap-3 text-destructive">
           <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">{copyText(locale, "Não foi possível carregar a equipe.", "Could not load the team.")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{copyText(locale, "A lista não foi confirmada. Tente novamente antes de assumir que não há membros cadastrados.", "The list could not be confirmed. Retry before assuming there are no members.")}</p>
-            <Button className="mt-3" size="sm" variant="outline" onClick={() => members.refetch()} disabled={members.isFetching}>
-              {members.isFetching ? copyText(locale, "Atualizando…", "Refreshing…") : copyText(locale, "Tentar novamente", "Try again")}
+            <p className="font-semibold">
+              {copyText(locale, "Não foi possível carregar a equipe.", "Could not load the team.")}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {copyText(
+                locale,
+                "A lista não foi confirmada. Tente novamente antes de assumir que não há membros cadastrados.",
+                "The list could not be confirmed. Retry before assuming there are no members.",
+              )}
+            </p>
+            <Button
+              className="mt-3"
+              size="sm"
+              variant="outline"
+              onClick={() => members.refetch()}
+              disabled={members.isFetching}
+            >
+              {members.isFetching
+                ? copyText(locale, "Atualizando…", "Refreshing…")
+                : copyText(locale, "Tentar novamente", "Try again")}
             </Button>
           </div>
         </div>
@@ -144,7 +162,12 @@ function Members() {
   }
 
   if ((members.data ?? []).length === 0) {
-    return <EmptyState icon={ShieldAlert} title={copyText(locale, "Nenhum membro encontrado", "No members found")} />;
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title={copyText(locale, "Nenhum membro encontrado", "No members found")}
+      />
+    );
   }
 
   const actionsPending = changeRole.isPending || removeMember.isPending;
@@ -279,11 +302,13 @@ function Invitations() {
   });
 
   const confirmRevoke = (id: string, email: string) => {
-    const confirmed = window.confirm(copyText(
-      locale,
-      `Revogar o convite de ${email}? O link deixará de poder ser usado.`,
-      `Revoke the invitation for ${email}? The link will no longer be usable.`,
-    ));
+    const confirmed = window.confirm(
+      copyText(
+        locale,
+        `Revogar o convite de ${email}? O link deixará de poder ser usado.`,
+        `Revoke the invitation for ${email}? The link will no longer be usable.`,
+      ),
+    );
     if (!confirmed) return;
     revoke.mutate(id);
   };
@@ -310,11 +335,21 @@ function Invitations() {
         <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
           <div className="space-y-2">
             <Label htmlFor="inv-email">{t("team.inviteEmail")}</Label>
-            <Input id="inv-email" name="email" type="email" required disabled={invite.isPending || revoke.isPending} />
+            <Input
+              id="inv-email"
+              name="email"
+              type="email"
+              required
+              disabled={invite.isPending || revoke.isPending}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-role">{t("team.inviteRole")}</Label>
-            <Select value={role} disabled={invite.isPending || revoke.isPending} onValueChange={(v) => setRole(v as AppRole)}>
+            <Select
+              value={role}
+              disabled={invite.isPending || revoke.isPending}
+              onValueChange={(v) => setRole(v as AppRole)}
+            >
               <SelectTrigger id="inv-role" className="min-h-11">
                 <SelectValue />
               </SelectTrigger>
@@ -356,10 +391,30 @@ function Invitations() {
           <div className="flex items-start gap-3 text-destructive">
             <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <div>
-              <p className="font-semibold">{copyText(locale, "Não foi possível carregar os convites.", "Could not load invitations.")}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{copyText(locale, "A lista de convites não foi confirmada. Tente novamente antes de criar ou revogar outro convite.", "The invitation list could not be confirmed. Retry before creating or revoking another invitation.")}</p>
-              <Button className="mt-3" size="sm" variant="outline" onClick={() => invitations.refetch()} disabled={invitations.isFetching}>
-                {invitations.isFetching ? copyText(locale, "Atualizando…", "Refreshing…") : copyText(locale, "Tentar novamente", "Try again")}
+              <p className="font-semibold">
+                {copyText(
+                  locale,
+                  "Não foi possível carregar os convites.",
+                  "Could not load invitations.",
+                )}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {copyText(
+                  locale,
+                  "A lista de convites não foi confirmada. Tente novamente antes de criar ou revogar outro convite.",
+                  "The invitation list could not be confirmed. Retry before creating or revoking another invitation.",
+                )}
+              </p>
+              <Button
+                className="mt-3"
+                size="sm"
+                variant="outline"
+                onClick={() => invitations.refetch()}
+                disabled={invitations.isFetching}
+              >
+                {invitations.isFetching
+                  ? copyText(locale, "Atualizando…", "Refreshing…")
+                  : copyText(locale, "Tentar novamente", "Try again")}
               </Button>
             </div>
           </div>
@@ -380,7 +435,9 @@ function Invitations() {
                   <p className="truncate text-sm font-medium">{inv.email}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {t(`role.${inv.role}`)} · {t("team.expires")}{" "}
-                    {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(inv.expires_at))}
+                    {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+                      new Date(inv.expires_at),
+                    )}
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
@@ -410,7 +467,9 @@ function Invitations() {
                       disabled={revoke.isPending || invite.isPending}
                       onClick={() => confirmRevoke(inv.id, inv.email)}
                     >
-                      {revoke.isPending ? copyText(locale, "Revogando…", "Revoking…") : t("team.revoke")}
+                      {revoke.isPending
+                        ? copyText(locale, "Revogando…", "Revoking…")
+                        : t("team.revoke")}
                     </Button>
                   </div>
                 ) : null}

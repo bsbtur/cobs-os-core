@@ -6,16 +6,16 @@
 
 ## Gate results
 
-| Item | Result |
-| --- | --- |
-| W03 SECURITY GATE | PASS |
-| W03 ARCHITECTURE FROZEN | YES |
-| TENANT RLS REAL TESTED | YES |
-| CROSS TENANT ATTACKS | BLOCKED |
-| PERSON WITHOUT LOGIN | VERIFIED |
-| ROLE ASSIGNMENT DOES NOT GRANT ACCESS | VERIFIED |
-| MEMBER ROSTER ACCESS | NONE |
-| PHYSICAL PRESENCE DOMAIN | NOT YET CREATED |
+| Item                                  | Result          |
+| ------------------------------------- | --------------- |
+| W03 SECURITY GATE                     | PASS            |
+| W03 ARCHITECTURE FROZEN               | YES             |
+| TENANT RLS REAL TESTED                | YES             |
+| CROSS TENANT ATTACKS                  | BLOCKED         |
+| PERSON WITHOUT LOGIN                  | VERIFIED        |
+| ROLE ASSIGNMENT DOES NOT GRANT ACCESS | VERIFIED        |
+| MEMBER ROSTER ACCESS                  | NONE            |
+| PHYSICAL PRESENCE DOMAIN              | NOT YET CREATED |
 
 ## Frozen conceptual separation
 

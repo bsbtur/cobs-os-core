@@ -12,10 +12,10 @@ new database objects, no changes to the presence contract.
 
 ## Surfaces
 
-| Route | Purpose |
-| --- | --- |
-| `/blueprints` | Tenant blueprint list + create dialog (**no search in the MVP**) |
-| `/blueprints/$blueprintId` | Draft editor, validation, publication, version history, archive |
+| Route                              | Purpose                                                                                               |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `/blueprints`                      | Tenant blueprint list + create dialog (**no search in the MVP**)                                      |
+| `/blueprints/$blueprintId`         | Draft editor, validation, publication, version history, archive                                       |
 | `/operations/$operationId/journey` | "Apply blueprint" action with step preview, effective anchor, origin banner and per-step origin chips |
 
 Navigation entry: **Roteiros** (`src/lib/navigation.ts`, Map icon).
@@ -57,34 +57,34 @@ Reads go through RLS-protected SELECTs on the four blueprint tables.
    provisioning; after success the page shows the provisioning origin banner.
 6. **Idempotency keys** are generated per dialog opening and kept stable across
    retries of the same submission.
-8. **Step preview before application.** Selecting a published version loads its
+7. **Step preview before application.** Selecting a published version loads its
    steps (RLS-scoped, ordered by `sequence`) and renders sequence, title, kind,
    relative offset, duration, computed start/end instants, effective presence
    requirement/population and the traveler-facing flag. Instants are rendered in
    the operation time zone. Preview states: loading, error, empty, ready.
-9. **Effective anchor.** `effectiveAnchor = manual value || operation.planned_start`.
+8. **Effective anchor.** `effectiveAnchor = manual value || operation.planned_start`.
    The dialog always states "Times will be calculated from: <instant>" and whether
    it comes from the planned start or from a manual override (which replaces the
    planned reference for this provisioning only). With neither, a specific error
    shows, confirmation is blocked and the RPC is never called. Invalid dates never
    produce a payload.
-10. **Confirmation gating.** `canSubmitApplication` is the single decision point:
-    disabled while the preview is loading, on preview error, with no selected
-    version, with a version that has no steps, or without a valid effective anchor.
-11. **Payload.** Exactly `_operation_id`, `_version_id`, `_idempotency_key`, plus
+9. **Confirmation gating.** `canSubmitApplication` is the single decision point:
+   disabled while the preview is loading, on preview error, with no selected
+   version, with a version that has no steps, or without a valid effective anchor.
+10. **Payload.** Exactly `_operation_id`, `_version_id`, `_idempotency_key`, plus
     `_anchor_start` only on a manual override. `_allow_existing_journey` does not
     exist anywhere in the surface; there is no merge, replacement or
     re-provisioning, and no direct DML.
-12. **Journey origin.** The banner shows blueprint name, version number, short
+11. **Journey origin.** The banner shows blueprint name, version number, short
     checksum, step count and application timestamp, resolved from a single joined
     query. No UUID is displayed. The applier is omitted because it cannot be
     resolved from an authorized source without a broad profile lookup.
-13. **Per-step origin chip.** Steps carrying both `source_blueprint_version_id`
+12. **Per-step origin chip.** Steps carrying both `source_blueprint_version_id`
     and `source_blueprint_step_id` matching the provisioned version show
     "Origem: roteiro <name> v<N>", using data already loaded for the banner (no
     per-step query). Null source ids are normal and render nothing.
-7. **Errors** are always humanized (`humanizeBlueprintError`); no raw SQL text
-   reaches the operator.
+13. **Errors** are always humanized (`humanizeBlueprintError`); no raw SQL text
+    reaches the operator.
 
 ## Localization
 

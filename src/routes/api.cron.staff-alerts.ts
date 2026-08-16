@@ -121,7 +121,10 @@ async function runStaffAlertScheduler(request: Request) {
         .in("id", importantIds);
 
       if (promoted.error) {
-        console.error(`[PX12.5-E] Priority promotion failed for tenant ${tenant.id}`, promoted.error);
+        console.error(
+          `[PX12.5-E] Priority promotion failed for tenant ${tenant.id}`,
+          promoted.error,
+        );
         results.push({ tenantId: tenant.id, error: promoted.error.message });
         continue;
       }
@@ -151,15 +154,18 @@ async function runStaffAlertScheduler(request: Request) {
     },
   );
 
-  return json({
-    ok: totals.failedTenants === 0,
-    executedAt: new Date().toISOString(),
-    windowStart: windowStart.toISOString(),
-    windowEnd: windowEnd.toISOString(),
-    tenantCount: results.length,
-    totals,
-    results,
-  }, totals.failedTenants === 0 ? 200 : 207);
+  return json(
+    {
+      ok: totals.failedTenants === 0,
+      executedAt: new Date().toISOString(),
+      windowStart: windowStart.toISOString(),
+      windowEnd: windowEnd.toISOString(),
+      tenantCount: results.length,
+      totals,
+      results,
+    },
+    totals.failedTenants === 0 ? 200 : 207,
+  );
 }
 
 export const Route = createFileRoute("/api/cron/staff-alerts")({

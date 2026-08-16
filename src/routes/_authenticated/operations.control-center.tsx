@@ -164,7 +164,9 @@ function OperationHealthCard({ item, index }: { item: ControlItem; index: number
               {operation.primary_city ? ` · ${operation.primary_city}` : ""}
             </p>
           </div>
-          <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${meta.className}`}>
+          <span
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${meta.className}`}
+          >
             <HealthIcon className="size-3.5" aria-hidden="true" />
             {meta.label}
           </span>
@@ -188,29 +190,45 @@ function OperationHealthCard({ item, index }: { item: ControlItem; index: number
           <div className="rounded-xl border border-border/70 bg-background/45 px-3 py-2.5">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <RouteIcon className="size-3.5" aria-hidden="true" />
-              <span className="text-[10px] font-medium uppercase tracking-wide">{copy(locale, "Progresso", "Progress")}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide">
+                {copy(locale, "Progresso", "Progress")}
+              </span>
             </div>
             <p className="mt-1 text-sm font-semibold tabular-nums">{Math.round(progress)}%</p>
           </div>
-          <div className={`rounded-xl border px-3 py-2.5 ${delay > 0 ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-border/70 bg-background/45"}`}>
+          <div
+            className={`rounded-xl border px-3 py-2.5 ${delay > 0 ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-border/70 bg-background/45"}`}
+          >
             <div className="flex items-center gap-1.5 opacity-75">
               <Clock3 className="size-3.5" aria-hidden="true" />
-              <span className="text-[10px] font-medium uppercase tracking-wide">{copy(locale, "Desvio", "Delay")}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide">
+                {copy(locale, "Desvio", "Delay")}
+              </span>
             </div>
-            <p className="mt-1 text-sm font-semibold tabular-nums">{delay > 0 ? `+${delay}m` : "0m"}</p>
+            <p className="mt-1 text-sm font-semibold tabular-nums">
+              {delay > 0 ? `+${delay}m` : "0m"}
+            </p>
           </div>
-          <div className={`rounded-xl border px-3 py-2.5 ${pendingCount > 0 ? "border-warning/30 bg-warning-soft text-warning" : "border-border/70 bg-background/45"}`}>
+          <div
+            className={`rounded-xl border px-3 py-2.5 ${pendingCount > 0 ? "border-warning/30 bg-warning-soft text-warning" : "border-border/70 bg-background/45"}`}
+          >
             <div className="flex items-center gap-1.5 opacity-75">
               <Users className="size-3.5" aria-hidden="true" />
-              <span className="text-[10px] font-medium uppercase tracking-wide">{copy(locale, "Pendências", "Pending")}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide">
+                {copy(locale, "Pendências", "Pending")}
+              </span>
             </div>
             <p className="mt-1 text-sm font-semibold tabular-nums">{pendingCount}</p>
           </div>
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>{confirmed} {copy(locale, "viajantes confirmados", "travelers confirmed")}</span>
-          <span>{intelligence.incidents?.total ?? 0} {copy(locale, "ocorrências", "incidents")}</span>
+          <span>
+            {confirmed} {copy(locale, "viajantes confirmados", "travelers confirmed")}
+          </span>
+          <span>
+            {intelligence.incidents?.total ?? 0} {copy(locale, "ocorrências", "incidents")}
+          </span>
         </div>
       </div>
 
@@ -247,7 +265,9 @@ function OperationsControlCenter() {
     queryFn: async () => {
       const operations = await supabase
         .from("operations")
-        .select("id,name,code,status,timezone,planned_start,planned_end,expected_start,expected_end,primary_city,primary_region,archived_at")
+        .select(
+          "id,name,code,status,timezone,planned_start,planned_end,expected_start,expected_end,primary_city,primary_region,archived_at",
+        )
         .eq("tenant_id", tenant!.id)
         .eq("status", "active")
         .is("archived_at", null)
@@ -267,8 +287,7 @@ function OperationsControlCenter() {
           const data = (intelligence.data ?? {}) as Intelligence;
           const health = data.health?.level ?? "green";
           const pendingCount =
-            (data.passengers?.current_step?.unresolved ?? 0) +
-            (data.incidents?.total ?? 0);
+            (data.passengers?.current_step?.unresolved ?? 0) + (data.incidents?.total ?? 0);
 
           return {
             operation,
@@ -300,13 +319,33 @@ function OperationsControlCenter() {
             <AlertTriangle className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-destructive">COBS Operations Control Center</p>
-            <h2 className="mt-1 text-lg font-semibold">{copy(locale, "Não foi possível confirmar o estado das operações", "We couldn't confirm operation status")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {copy(locale, "A saúde operacional não foi confirmada. Não interprete esta falha como ausência de operações críticas.", "Operational health was not confirmed. Do not interpret this failure as absence of critical operations.")}
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-destructive">
+              COBS Operations Control Center
             </p>
-            <Button className="mt-3" size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
-              {query.isFetching ? copy(locale, "Atualizando…", "Refreshing…") : copy(locale, "Atualizar", "Refresh")}
+            <h2 className="mt-1 text-lg font-semibold">
+              {copy(
+                locale,
+                "Não foi possível confirmar o estado das operações",
+                "We couldn't confirm operation status",
+              )}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {copy(
+                locale,
+                "A saúde operacional não foi confirmada. Não interprete esta falha como ausência de operações críticas.",
+                "Operational health was not confirmed. Do not interpret this failure as absence of critical operations.",
+              )}
+            </p>
+            <Button
+              className="mt-3"
+              size="sm"
+              variant="outline"
+              onClick={() => query.refetch()}
+              disabled={query.isFetching}
+            >
+              {query.isFetching
+                ? copy(locale, "Atualizando…", "Refreshing…")
+                : copy(locale, "Atualizar", "Refresh")}
             </Button>
           </div>
         </div>
@@ -341,7 +380,9 @@ function OperationsControlCenter() {
             <div>
               <div className="flex items-center gap-2 text-primary">
                 <Radio className="size-4" aria-hidden="true" />
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em]">COBS Operations Control Center</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em]">
+                  COBS Operations Control Center
+                </p>
               </div>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
                 {copy(locale, "Central de Operações", "Operations Control Center")}
@@ -361,9 +402,17 @@ function OperationsControlCenter() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4 sm:p-5">
-          <SummaryCard label={copy(locale, "Ativas", "Active")} value={items.length} tone="neutral" />
+          <SummaryCard
+            label={copy(locale, "Ativas", "Active")}
+            value={items.length}
+            tone="neutral"
+          />
           <SummaryCard label={copy(locale, "Saudáveis", "Healthy")} value={healthy} tone="green" />
-          <SummaryCard label={copy(locale, "Atenção", "Attention")} value={attention} tone="yellow" />
+          <SummaryCard
+            label={copy(locale, "Atenção", "Attention")}
+            value={attention}
+            tone="yellow"
+          />
           <SummaryCard label={copy(locale, "Críticas", "Critical")} value={critical} tone="red" />
         </div>
       </section>
@@ -374,10 +423,20 @@ function OperationsControlCenter() {
             <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <div>
               <p className="text-sm font-semibold">
-                {critical} {copy(locale, critical === 1 ? "operação requer" : "operações requerem", critical === 1 ? "operation requires" : "operations require")} {copy(locale, "intervenção imediata", "immediate intervention")}
+                {critical}{" "}
+                {copy(
+                  locale,
+                  critical === 1 ? "operação requer" : "operações requerem",
+                  critical === 1 ? "operation requires" : "operations require",
+                )}{" "}
+                {copy(locale, "intervenção imediata", "immediate intervention")}
               </p>
               <p className="mt-0.5 text-xs opacity-80">
-                {copy(locale, "As operações críticas aparecem primeiro na fila.", "Critical operations are placed first in the queue.")}
+                {copy(
+                  locale,
+                  "As operações críticas aparecem primeiro na fila.",
+                  "Critical operations are placed first in the queue.",
+                )}
               </p>
             </div>
           </div>
@@ -396,7 +455,10 @@ function OperationsControlCenter() {
 function OperationsControlCenterPage() {
   const { locale } = useI18n();
   return (
-    <AppShell activeId="operations" title={copy(locale, "Central de Operações", "Operations Control Center")}>
+    <AppShell
+      activeId="operations"
+      title={copy(locale, "Central de Operações", "Operations Control Center")}
+    >
       <div className="mx-auto w-full max-w-6xl">
         <RequireTenant>
           <OperationsControlCenter />

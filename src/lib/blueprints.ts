@@ -20,8 +20,7 @@ import {
  */
 
 export type BlueprintRow = Database["public"]["Tables"]["journey_blueprints"]["Row"];
-export type BlueprintVersionRow =
-  Database["public"]["Tables"]["journey_blueprint_versions"]["Row"];
+export type BlueprintVersionRow = Database["public"]["Tables"]["journey_blueprint_versions"]["Row"];
 export type BlueprintStepRow = Database["public"]["Tables"]["journey_blueprint_steps"]["Row"];
 export type ProvisioningRow =
   Database["public"]["Tables"]["operation_journey_provisionings"]["Row"];
@@ -170,8 +169,7 @@ export function stepRowToDraft(step: BlueprintStepRow): StepDraft {
     location_label: step.location_label ?? "",
     traveler_label: step.traveler_label ?? "",
     traveler_facing: step.traveler_facing,
-    presence_requirement:
-      step.presence_requirement ?? defaultPresenceRequirement(step.step_kind),
+    presence_requirement: step.presence_requirement ?? defaultPresenceRequirement(step.step_kind),
     presence_population: step.presence_population,
   };
 }
@@ -494,10 +492,7 @@ export function canSubmitApplication(input: {
   pending: boolean;
 }): boolean {
   return (
-    !input.pending &&
-    input.versionId !== "" &&
-    input.anchor.ok &&
-    input.previewState === "ready"
+    !input.pending && input.versionId !== "" && input.anchor.ok && input.previewState === "ready"
   );
 }
 

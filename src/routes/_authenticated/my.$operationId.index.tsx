@@ -164,9 +164,9 @@ function PortalHome() {
               label={t("w10.home.transport")}
               value={
                 legs.length > 0
-                  ? (legs[0]?.mySeat?.seatLabel
-                      ? `${t("w10.mobility.seat")} ${legs[0].mySeat.seatLabel}`
-                      : (legs[0]?.title ?? ""))
+                  ? legs[0]?.mySeat?.seatLabel
+                    ? `${t("w10.mobility.seat")} ${legs[0].mySeat.seatLabel}`
+                    : (legs[0]?.title ?? "")
                   : t("w10.mobility.empty")
               }
             />

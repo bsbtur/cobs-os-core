@@ -1,7 +1,15 @@
 import * as React from "react";
 import { useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CheckCircle2, Clock3, ListChecks, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  ListChecks,
+  MapPin,
+  Navigation,
+  Route as RouteIcon,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatTime } from "@/lib/format";
@@ -24,7 +32,11 @@ function stepTime(step: JourneyStepRow, locale: string, timeZone: string | null)
   return `Até ${formatTime(end!, ctx)}`;
 }
 
-function responsibilities(items: PlaybookItemRow[], roles: RoleTypeRow[], t: (key: string) => string) {
+function responsibilities(
+  items: PlaybookItemRow[],
+  roles: RoleTypeRow[],
+  t: (key: string) => string,
+) {
   const labels = Array.from(
     new Set(
       items
@@ -53,18 +65,18 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
     queryFn: async () => {
       const [operation, steps, items, roles, runtime] = await Promise.all([
         supabase.from("operations").select("status, timezone").eq("id", operationId).single(),
-        supabase.from("journey_steps").select("*").eq("operation_id", operationId).order("sequence"),
+        supabase
+          .from("journey_steps")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
         supabase
           .from("playbook_items")
           .select("*")
           .eq("operation_id", operationId)
           .eq("is_active", true)
           .order("sequence"),
-        supabase
-          .from("operation_role_types")
-          .select("*")
-          .eq("is_active", true)
-          .order("sort_order"),
+        supabase.from("operation_role_types").select("*").eq("is_active", true).order("sort_order"),
         supabase.rpc("w04_operation_runtime_state", { _operation_id: operationId }),
       ]);
       if (operation.error) throw operation.error;
@@ -103,17 +115,24 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
   const isMovement = focusStep.step_kind === "movement" || focusStep.step_kind === "return";
   const origin = previousStep ? stepPlace(previousStep) : stepPlace(focusStep);
   const destination = isMovement
-    ? stepPlace(focusStep) ?? stepPlace(followingStep)
-    : stepPlace(followingStep) ?? stepPlace(focusStep);
+    ? (stepPlace(focusStep) ?? stepPlace(followingStep))
+    : (stepPlace(followingStep) ?? stepPlace(focusStep));
 
-  const stageLabel = currentIndex >= 0 ? "AGORA" : operation.status === "draft" || operation.status === "planning" ? "PRÓXIMA ETAPA PLANEJADA" : "PRÓXIMO";
+  const stageLabel =
+    currentIndex >= 0
+      ? "AGORA"
+      : operation.status === "draft" || operation.status === "planning"
+        ? "PRÓXIMA ETAPA PLANEJADA"
+        : "PRÓXIMO";
 
   return (
     <section className="surface-panel overflow-hidden" aria-label="Cockpit operacional da jornada">
       <div className="border-b border-border/70 bg-primary-soft/40 px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">Cockpit operacional</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
+              Cockpit operacional
+            </p>
             <h2 className="mt-1 text-lg font-semibold">Onde estou · O que faço · Para onde vou</h2>
           </div>
           <span className="rounded-full border border-primary/30 bg-primary-soft px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-primary">
@@ -135,7 +154,8 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
 
           <h3 className="mt-3 text-xl font-semibold">{focusStep.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {focusStep.description?.trim() || "Executar esta etapa conforme o planejamento operacional."}
+            {focusStep.description?.trim() ||
+              "Executar esta etapa conforme o planejamento operacional."}
           </p>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -155,7 +175,9 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
               <p className="flex items-center gap-2 text-xs uppercase tracking-[0.1em] text-muted-foreground">
                 <Clock3 className="size-3.5" aria-hidden="true" /> Horário
               </p>
-              <p className="mt-1 text-sm font-medium">{stepTime(focusStep, locale, operation.timezone)}</p>
+              <p className="mt-1 text-sm font-medium">
+                {stepTime(focusStep, locale, operation.timezone)}
+              </p>
             </div>
             <div className="rounded-xl border border-border/70 p-3">
               <p className="flex items-center gap-2 text-xs uppercase tracking-[0.1em] text-muted-foreground">
@@ -185,7 +207,10 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
               <ul className="mt-3 space-y-1.5">
                 {focusItems.slice(0, 3).map((item) => (
                   <li key={item.id} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                    <CheckCircle2
+                      className="mt-0.5 size-4 shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     <span>{item.title}</span>
                   </li>
                 ))}
@@ -199,16 +224,22 @@ export function JourneyOperationalCockpit({ operationId }: { operationId: string
             </p>
             {followingStep ? (
               <>
-                <p className="mt-2 text-sm font-semibold">{followingStep.sequence}. {followingStep.title}</p>
+                <p className="mt-2 text-sm font-semibold">
+                  {followingStep.sequence}. {followingStep.title}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {stepTime(followingStep, locale, operation.timezone)}
                 </p>
                 {followingStep.location_label ? (
-                  <p className="mt-1 text-sm text-muted-foreground">{followingStep.location_label}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {followingStep.location_label}
+                  </p>
                 ) : null}
               </>
             ) : (
-              <p className="mt-2 text-sm text-muted-foreground">Esta é a última etapa da jornada.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Esta é a última etapa da jornada.
+              </p>
             )}
           </div>
         </div>

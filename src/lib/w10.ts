@@ -38,7 +38,9 @@ export class PortalError extends Error {
 export function toPortalError(error: unknown): PortalError {
   // PostgREST returns a plain object (not an Error), so read `message` defensively.
   const message =
-    error && typeof error === "object" && typeof (error as { message?: unknown }).message === "string"
+    error &&
+    typeof error === "object" &&
+    typeof (error as { message?: unknown }).message === "string"
       ? (error as { message: string }).message
       : String(error ?? "");
   return new PortalError(/access denied/i.test(message) ? "denied" : "unavailable");
@@ -163,7 +165,11 @@ export type PortalStay = {
   myRoom: PortalRoom[];
 };
 
-export type PortalSpace = { name: string | null; spaceLabel: string | null; floorLabel: string | null };
+export type PortalSpace = {
+  name: string | null;
+  spaceLabel: string | null;
+  floorLabel: string | null;
+};
 
 export type PortalSession = {
   sessionId: string;
@@ -402,7 +408,16 @@ function mapMessage(raw: Raw): PortalMessage {
 /* Projection calls (W10 public read surface only)                     */
 /* ------------------------------------------------------------------ */
 
-async function callScoped(fn: "get_my_journey" | "get_my_mobility" | "get_my_stay" | "get_my_event_program" | "get_my_messages" | "get_my_operation_overview", operationId: string) {
+async function callScoped(
+  fn:
+    | "get_my_journey"
+    | "get_my_mobility"
+    | "get_my_stay"
+    | "get_my_event_program"
+    | "get_my_messages"
+    | "get_my_operation_overview",
+  operationId: string,
+) {
   const { data, error } = await supabase.rpc(fn, { _operation_id: operationId });
   if (error) throw toPortalError(error);
   return obj(data);
@@ -416,7 +431,12 @@ export const portalKeys = {
     ["w10-portal", "operation", operationId, surface] as const,
 };
 
-const BASE = { retry: false, staleTime: 30_000, gcTime: 60_000, refetchOnWindowFocus: true } as const;
+const BASE = {
+  retry: false,
+  staleTime: 30_000,
+  gcTime: 60_000,
+  refetchOnWindowFocus: true,
+} as const;
 
 export function useMyOperations(): UseQueryResult<PortalOperationCard[], PortalError> {
   return useQuery({
@@ -464,7 +484,8 @@ export function useMyJourney(
     queryKey: portalKeys.scoped(operationId, "journey"),
     enabled,
     ...BASE,
-    queryFn: async () => arr((await callScoped("get_my_journey", operationId))["steps"]).map(mapStep),
+    queryFn: async () =>
+      arr((await callScoped("get_my_journey", operationId))["steps"]).map(mapStep),
   });
 }
 
@@ -476,7 +497,8 @@ export function useMyMobility(
     queryKey: portalKeys.scoped(operationId, "mobility"),
     enabled,
     ...BASE,
-    queryFn: async () => arr((await callScoped("get_my_mobility", operationId))["legs"]).map(mapLeg),
+    queryFn: async () =>
+      arr((await callScoped("get_my_mobility", operationId))["legs"]).map(mapLeg),
   });
 }
 
@@ -556,7 +578,8 @@ export function buildAgenda(
       id: `leg:${l.legId}`,
       source: "mobility",
       title: l.title ?? l.destinationLabel ?? "",
-      detail: l.originLabel && l.destinationLabel ? `${l.originLabel} → ${l.destinationLabel}` : null,
+      detail:
+        l.originLabel && l.destinationLabel ? `${l.originLabel} → ${l.destinationLabel}` : null,
       start: effective(l.plannedDeparture, l.expectedDeparture),
       end: effective(l.plannedArrival, l.expectedArrival),
     });

@@ -484,7 +484,6 @@ function MessageDetail({
         .order("full_name");
       if (peopleError) throw peopleError;
       return (people ?? []) as PersonOption[];
-
     },
   });
 
@@ -591,7 +590,8 @@ function MessageDetail({
         ) : null}
         {message.cancelled_at ? (
           <p className="text-xs text-destructive">
-            {t("w08.status.cancelled")} · {formatDateTime(message.cancelled_at, { locale, timeZone })}
+            {t("w08.status.cancelled")} ·{" "}
+            {formatDateTime(message.cancelled_at, { locale, timeZone })}
             {message.cancel_reason ? ` — ${message.cancel_reason}` : ""}
           </p>
         ) : null}
@@ -692,105 +692,50 @@ function MessageDetail({
       )}
 
       {!operationClosed ? (
-      <section className="surface-panel space-y-3 p-4">
-        <h3 className="text-sm font-medium">{t("w08.publish")}</h3>
+        <section className="surface-panel space-y-3 p-4">
+          <h3 className="text-sm font-medium">{t("w08.publish")}</h3>
 
-        {canAct(message.status, "schedule") ? (
-          <div className="space-y-1.5">
-            <Label htmlFor="w08-schedule">{t("w08.scheduleFor")}</Label>
-            <div className="flex gap-2">
-              <Input
-                id="w08-schedule"
-                type="datetime-local"
-                value={scheduleFor}
-                onChange={(e) => setScheduleFor(e.target.value)}
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                className="min-h-11 shrink-0"
-                disabled={!scheduleFor || runCommand.isPending}
-                onClick={() =>
-                  runCommand.mutate(
-                    {
-                      fn: "schedule_message",
-                      args: {
-                        _message_id: message.id,
-                        _scheduled_for: fromLocalInput(scheduleFor),
+          {canAct(message.status, "schedule") ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="w08-schedule">{t("w08.scheduleFor")}</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="w08-schedule"
+                  type="datetime-local"
+                  value={scheduleFor}
+                  onChange={(e) => setScheduleFor(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="min-h-11 shrink-0"
+                  disabled={!scheduleFor || runCommand.isPending}
+                  onClick={() =>
+                    runCommand.mutate(
+                      {
+                        fn: "schedule_message",
+                        args: {
+                          _message_id: message.id,
+                          _scheduled_for: fromLocalInput(scheduleFor),
+                        },
                       },
-                    },
-                    {
-                      onSuccess: () => {
-                        feedback.success(t("w08.scheduled"));
-                        refresh();
+                      {
+                        onSuccess: () => {
+                          feedback.success(t("w08.scheduled"));
+                          refresh();
+                        },
                       },
-                    },
-                  )
-                }
-              >
-                {t("w08.schedule")}
-              </Button>
+                    )
+                  }
+                >
+                  {t("w08.schedule")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("w08.scheduleHint")}</p>
             </div>
-            <p className="text-xs text-muted-foreground">{t("w08.scheduleHint")}</p>
-          </div>
-        ) : null}
+          ) : null}
 
-        {canAct(message.status, "unschedule") ? (
-          <Button
-            type="button"
-            variant="secondary"
-            className="min-h-11"
-            disabled={runCommand.isPending}
-            onClick={() =>
-              runCommand.mutate(
-                { fn: "unschedule_message", args: { _message_id: message.id } },
-                {
-                  onSuccess: () => {
-                    feedback.success(t("w08.unscheduled"));
-                    refresh();
-                  },
-                },
-              )
-            }
-          >
-            {t("w08.unschedule")}
-          </Button>
-        ) : null}
-
-        {canAct(message.status, "publish") ? (
-          <div className="space-y-2">
-            {blockers.length > 0 ? (
-              <ul className="space-y-1 text-xs text-warning">
-                {blockers.map((b) => (
-                  <li key={b}>{t(b)}</li>
-                ))}
-              </ul>
-            ) : null}
-            <Button
-              type="button"
-              className="min-h-11"
-              disabled={blockers.length > 0 || runCommand.isPending}
-              onClick={() => {
-                if (!window.confirm(t("w08.publishConfirm"))) return;
-                runCommand.mutate(
-                  { fn: "publish_message", args: { _message_id: message.id } },
-                  {
-                    onSuccess: () => {
-                      feedback.success(t("w08.published"));
-                      refresh();
-                    },
-                  },
-                );
-              }}
-            >
-              {t("w08.publish")}
-            </Button>
-          </div>
-        ) : null}
-
-        {canAct(message.status, "correct") ? (
-          <div className="space-y-1.5 border-t border-border pt-3">
-            <p className="text-xs text-muted-foreground">{t("w08.correctHint")}</p>
+          {canAct(message.status, "unschedule") ? (
             <Button
               type="button"
               variant="secondary"
@@ -798,86 +743,141 @@ function MessageDetail({
               disabled={runCommand.isPending}
               onClick={() =>
                 runCommand.mutate(
-                  { fn: "create_correction_message", args: { _message_id: message.id } },
-                  {
-                    onSuccess: (data) => {
-                      feedback.success(t("w08.corrected"));
-                      refresh();
-                      const next = (data ?? {}) as { message_id?: string; id?: string };
-                      const id = next.message_id ?? next.id;
-                      if (id) onSelect(id);
-                    },
-                  },
-                )
-              }
-            >
-              {t("w08.correct")}
-            </Button>
-          </div>
-        ) : null}
-
-        {canAct(message.status, "cancel") ? (
-          <div className="space-y-1.5 border-t border-border pt-3">
-            <Label htmlFor="w08-cancel">{t("w08.cancelReason")}</Label>
-            <Textarea
-              id="w08-cancel"
-              rows={2}
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">{t("w08.cancelHint")}</p>
-            <Button
-              type="button"
-              variant="destructive"
-              className="min-h-11"
-              disabled={runCommand.isPending}
-              onClick={() =>
-                runCommand.mutate(
-                  {
-                    fn: "cancel_message",
-                    args: {
-                      _message_id: message.id,
-                      _reason: cancelReason.trim() || undefined,
-                    },
-                  },
+                  { fn: "unschedule_message", args: { _message_id: message.id } },
                   {
                     onSuccess: () => {
-                      feedback.success(t("w08.cancelled"));
+                      feedback.success(t("w08.unscheduled"));
                       refresh();
                     },
                   },
                 )
               }
             >
-              {t("w08.cancel")}
+              {t("w08.unschedule")}
             </Button>
-          </div>
-        ) : null}
+          ) : null}
 
-        {canAct(message.status, "delete") ? (
-          <Button
-            type="button"
-            variant="ghost"
-            className="min-h-11 text-destructive"
-            disabled={runCommand.isPending}
-            onClick={() => {
-              if (!window.confirm(t("w08.deleteConfirm"))) return;
-              runCommand.mutate(
-                { fn: "delete_draft_message", args: { _message_id: message.id } },
-                {
-                  onSuccess: () => {
-                    feedback.success(t("w08.deleted"));
-                    onSelect("");
-                    onChanged();
+          {canAct(message.status, "publish") ? (
+            <div className="space-y-2">
+              {blockers.length > 0 ? (
+                <ul className="space-y-1 text-xs text-warning">
+                  {blockers.map((b) => (
+                    <li key={b}>{t(b)}</li>
+                  ))}
+                </ul>
+              ) : null}
+              <Button
+                type="button"
+                className="min-h-11"
+                disabled={blockers.length > 0 || runCommand.isPending}
+                onClick={() => {
+                  if (!window.confirm(t("w08.publishConfirm"))) return;
+                  runCommand.mutate(
+                    { fn: "publish_message", args: { _message_id: message.id } },
+                    {
+                      onSuccess: () => {
+                        feedback.success(t("w08.published"));
+                        refresh();
+                      },
+                    },
+                  );
+                }}
+              >
+                {t("w08.publish")}
+              </Button>
+            </div>
+          ) : null}
+
+          {canAct(message.status, "correct") ? (
+            <div className="space-y-1.5 border-t border-border pt-3">
+              <p className="text-xs text-muted-foreground">{t("w08.correctHint")}</p>
+              <Button
+                type="button"
+                variant="secondary"
+                className="min-h-11"
+                disabled={runCommand.isPending}
+                onClick={() =>
+                  runCommand.mutate(
+                    { fn: "create_correction_message", args: { _message_id: message.id } },
+                    {
+                      onSuccess: (data) => {
+                        feedback.success(t("w08.corrected"));
+                        refresh();
+                        const next = (data ?? {}) as { message_id?: string; id?: string };
+                        const id = next.message_id ?? next.id;
+                        if (id) onSelect(id);
+                      },
+                    },
+                  )
+                }
+              >
+                {t("w08.correct")}
+              </Button>
+            </div>
+          ) : null}
+
+          {canAct(message.status, "cancel") ? (
+            <div className="space-y-1.5 border-t border-border pt-3">
+              <Label htmlFor="w08-cancel">{t("w08.cancelReason")}</Label>
+              <Textarea
+                id="w08-cancel"
+                rows={2}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">{t("w08.cancelHint")}</p>
+              <Button
+                type="button"
+                variant="destructive"
+                className="min-h-11"
+                disabled={runCommand.isPending}
+                onClick={() =>
+                  runCommand.mutate(
+                    {
+                      fn: "cancel_message",
+                      args: {
+                        _message_id: message.id,
+                        _reason: cancelReason.trim() || undefined,
+                      },
+                    },
+                    {
+                      onSuccess: () => {
+                        feedback.success(t("w08.cancelled"));
+                        refresh();
+                      },
+                    },
+                  )
+                }
+              >
+                {t("w08.cancel")}
+              </Button>
+            </div>
+          ) : null}
+
+          {canAct(message.status, "delete") ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11 text-destructive"
+              disabled={runCommand.isPending}
+              onClick={() => {
+                if (!window.confirm(t("w08.deleteConfirm"))) return;
+                runCommand.mutate(
+                  { fn: "delete_draft_message", args: { _message_id: message.id } },
+                  {
+                    onSuccess: () => {
+                      feedback.success(t("w08.deleted"));
+                      onSelect("");
+                      onChanged();
+                    },
                   },
-                },
-              );
-            }}
-          >
-            {t("w08.delete")}
-          </Button>
-        ) : null}
-      </section>
+                );
+              }}
+            >
+              {t("w08.delete")}
+            </Button>
+          ) : null}
+        </section>
       ) : null}
 
       {recipients.data ? (
@@ -932,7 +932,9 @@ function MessageDetail({
 }
 
 function CommunicationTab() {
-  const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/communication" });
+  const { operationId } = useParams({
+    from: "/_authenticated/operations/$operationId/communication",
+  });
   const { t, locale, timeZone } = useI18n();
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
@@ -942,7 +944,11 @@ function CommunicationTab() {
   const operation = useQuery({
     queryKey: ["operation-status", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("operations").select("status").eq("id", operationId).maybeSingle();
+      const { data, error } = await supabase
+        .from("operations")
+        .select("status")
+        .eq("id", operationId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -1010,10 +1016,10 @@ function CommunicationTab() {
           <p className="mt-1 text-xs text-muted-foreground">{t("w08.boundary")}</p>
         </div>
         {!operationClosed ? (
-        <Button type="button" className="min-h-11" onClick={() => setCreateOpen(true)}>
-          <Plus className="mr-2 size-4" aria-hidden="true" />
-          {t("w08.new")}
-        </Button>
+          <Button type="button" className="min-h-11" onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 size-4" aria-hidden="true" />
+            {t("w08.new")}
+          </Button>
         ) : null}
       </header>
 
@@ -1031,7 +1037,17 @@ function CommunicationTab() {
       ) : null}
 
       {messages.length === 0 ? (
-        <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhuma mensagem foi registrada nesta operação.", "No message was recorded for this operation.", t("w08.emptyBody"))} />
+        <EmptyState
+          icon={MessagesSquare}
+          title={t("w08.empty")}
+          body={operationEmptyBody(
+            operationClosed,
+            locale,
+            "Nenhuma mensagem foi registrada nesta operação.",
+            "No message was recorded for this operation.",
+            t("w08.emptyBody"),
+          )}
+        />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           <ul className="space-y-2">
@@ -1073,7 +1089,17 @@ function CommunicationTab() {
               operationClosed={operationClosed}
             />
           ) : (
-            <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhuma mensagem foi registrada nesta operação.", "No message was recorded for this operation.", t("w08.emptyBody"))} />
+            <EmptyState
+              icon={MessagesSquare}
+              title={t("w08.empty")}
+              body={operationEmptyBody(
+                operationClosed,
+                locale,
+                "Nenhuma mensagem foi registrada nesta operação.",
+                "No message was recorded for this operation.",
+                t("w08.emptyBody"),
+              )}
+            />
           )}
         </div>
       )}

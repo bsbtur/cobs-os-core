@@ -182,7 +182,6 @@ function Body() {
 
       <DisplayNameCard />
 
-
       <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <History className="size-4 text-primary" aria-hidden="true" />

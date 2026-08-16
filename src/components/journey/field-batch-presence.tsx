@@ -37,7 +37,11 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
     refetchInterval: 20_000,
     queryFn: async () => {
       const [steps, roster, presence, gates, state] = await Promise.all([
-        supabase.from("journey_steps").select("*").eq("operation_id", operationId).order("sequence"),
+        supabase
+          .from("journey_steps")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
         supabase
           .from("operation_participations")
           .select("id, participation_kind, status, people(full_name)")
@@ -66,7 +70,8 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
     },
   });
 
-  const current = batch.data?.steps.find((step) => step.id === batch.data?.state?.current_step_id) ?? null;
+  const current =
+    batch.data?.steps.find((step) => step.id === batch.data?.state?.current_step_id) ?? null;
   const requirement = current?.presence_requirement ?? "none";
   const primaryFact: PresenceFact | null = !current
     ? null
@@ -80,7 +85,8 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
 
   const retracted = React.useMemo(() => {
     const ids = new Set<string>();
-    for (const event of batch.data?.presence ?? []) if (event.retracts_presence_event_id) ids.add(event.retracts_presence_event_id);
+    for (const event of batch.data?.presence ?? [])
+      if (event.retracts_presence_event_id) ids.add(event.retracts_presence_event_id);
     return ids;
   }, [batch.data?.presence]);
 
@@ -106,23 +112,36 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
     const satisfying = SATISFYING_FACTS[requirement];
     return (batch.data?.roster ?? []).filter((row) => {
       if (row.status !== "confirmed") return false;
-      if (current.presence_population === "participants" && row.participation_kind !== "participant") return false;
+      if (
+        current.presence_population === "participants" &&
+        row.participation_kind !== "participant"
+      )
+        return false;
       const fact = effectiveFact(row.id);
       return !fact || !satisfying.includes(fact);
     });
   }, [batch.data?.roster, current, effectiveFact, primaryFact, requirement]);
 
   React.useEffect(() => {
-    setSelected((previous) => new Set([...previous].filter((id) => candidates.some((row) => row.id === id))));
+    setSelected(
+      (previous) => new Set([...previous].filter((id) => candidates.some((row) => row.id === id))),
+    );
   }, [candidates]);
 
   const boardingStarted = Boolean(
-    current && batch.data?.gates.some((row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED"),
+    current &&
+    batch.data?.gates.some(
+      (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
+    ),
   );
   const arrived = Boolean(
-    current && batch.data?.gates.some((row) => row.journey_step_id === current.id && row.event_type === "ARRIVED"),
+    current &&
+    batch.data?.gates.some(
+      (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
+    ),
   );
-  const blocked = primaryFact === "BOARDED" ? !boardingStarted : primaryFact === "DISEMBARKED" ? !arrived : false;
+  const blocked =
+    primaryFact === "BOARDED" ? !boardingStarted : primaryFact === "DISEMBARKED" ? !arrived : false;
 
   const apply = useMutation({
     mutationFn: async () => {
@@ -152,7 +171,15 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  if (!isLive || batch.isLoading || batch.isError || !current || !primaryFact || candidates.length < 2) return null;
+  if (
+    !isLive ||
+    batch.isLoading ||
+    batch.isError ||
+    !current ||
+    !primaryFact ||
+    candidates.length < 2
+  )
+    return null;
 
   const allSelected = candidates.length > 0 && candidates.every((row) => selected.has(row.id));
 
@@ -161,10 +188,16 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
       <div className="flex items-center gap-2">
         <UsersRound className="size-4 text-primary" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">Modo em lote</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">Selecione viajantes pendentes e registre o mesmo fato individualmente.</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
+            Modo em lote
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Selecione viajantes pendentes e registre o mesmo fato individualmente.
+          </p>
         </div>
-        <span className="rounded-full bg-muted px-2 py-1 font-mono text-[10px] tabular-nums">{selected.size}/{candidates.length}</span>
+        <span className="rounded-full bg-muted px-2 py-1 font-mono text-[10px] tabular-nums">
+          {selected.size}/{candidates.length}
+        </span>
       </div>
 
       <div className="mt-3 flex gap-2">
@@ -173,7 +206,9 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
           variant="outline"
           size="sm"
           className="min-h-11 flex-1"
-          onClick={() => setSelected(allSelected ? new Set() : new Set(candidates.map((row) => row.id)))}
+          onClick={() =>
+            setSelected(allSelected ? new Set() : new Set(candidates.map((row) => row.id)))
+          }
         >
           {allSelected ? "Limpar seleção" : "Selecionar pendentes"}
         </Button>
@@ -183,7 +218,10 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
         {candidates.map((row) => {
           const checked = selected.has(row.id);
           return (
-            <label key={row.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted/60">
+            <label
+              key={row.id}
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted/60"
+            >
               <input
                 type="checkbox"
                 className="size-5 accent-current"
@@ -197,7 +235,9 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
                   });
                 }}
               />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{row.people?.full_name ?? "Viajante"}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                {row.people?.full_name ?? "Viajante"}
+              </span>
             </label>
           );
         })}
@@ -213,7 +253,9 @@ export function FieldBatchPresence({ operationId }: { operationId: string }) {
         <CheckSquare2 className="mr-2 size-5" aria-hidden="true" />
         {apply.isPending ? "Registrando…" : `${presenceLabel(primaryFact, t)} · ${selected.size}`}
       </Button>
-      <p className="mt-2 text-[11px] text-muted-foreground">Cada pessoa continua gerando um fato separado no audit trail.</p>
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Cada pessoa continua gerando um fato separado no audit trail.
+      </p>
     </section>
   );
 }
