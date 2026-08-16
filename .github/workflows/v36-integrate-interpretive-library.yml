@@ -1,0 +1,70 @@
+name: V3.6 integrate interpretive library
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+    paths:
+      - .github/workflows/v36-integrate-interpretive-library.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Integrate interpretive library CTA
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/routes/_authenticated/blueprints.$blueprintId.tsx')
+          text = path.read_text()
+
+          old_import = 'import { ArrowLeft, ChevronDown, ChevronUp, ListChecks, Lock, Plus } from "lucide-react";'
+          new_import = 'import { ArrowLeft, ChevronDown, ChevronUp, Lightbulb, ListChecks, Lock, Plus } from "lucide-react";'
+          if old_import not in text:
+              raise SystemExit('lucide import anchor not found')
+          text = text.replace(old_import, new_import, 1)
+
+          anchor = '''        <div className="flex flex-wrap gap-2">
+          {mayCreateVersion ? ('''
+          replacement = '''        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="min-h-11">
+            <a href={`/blueprints/${blueprintId}/visit-points`}>
+              <Lightbulb className="mr-1.5 size-4" aria-hidden="true" />
+              Biblioteca interpretativa
+            </a>
+          </Button>
+          {mayCreateVersion ? ('''
+          if anchor not in text:
+              raise SystemExit('header action anchor not found')
+          text = text.replace(anchor, replacement, 1)
+          path.write_text(text)
+          PY
+      - name: Format target
+        run: bunx prettier --write 'src/routes/_authenticated/blueprints.$blueprintId.tsx'
+      - name: Tests
+        run: bun test
+      - name: Typecheck
+        run: bunx tsc --noEmit
+      - name: Lint
+        run: bun run lint
+      - name: Build
+        run: bun run build
+      - name: Commit integration
+        run: |
+          if git diff --quiet; then
+            echo "No integration changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 'src/routes/_authenticated/blueprints.$blueprintId.tsx'
+          git commit -m 'feat(blueprints): surface interpretive library in blueprint editor'
+          git push
