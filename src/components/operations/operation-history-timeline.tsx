@@ -6,6 +6,8 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
+  Flag,
+  MapPin,
   MessageSquare,
   Route,
   Users,
@@ -15,7 +17,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 type Domain =
-  "journey" | "presence" | "checklist" | "mobility" | "hospitality" | "events" | "communication";
+  | "operation"
+  | "journey"
+  | "visit_points"
+  | "presence"
+  | "checklist"
+  | "mobility"
+  | "hospitality"
+  | "events"
+  | "communication";
 
 type TimelineItem = {
   id: string;
@@ -88,6 +98,24 @@ function journeyPhrase(type: string, locale: string, step?: string | null) {
   return map[type] ?? `${fallback(type, locale)}${step ? ` · ${step}` : ""}`;
 }
 
+function visitPointPhrase(type: string, locale: string, point?: string | null) {
+  const target = quote(point) ?? copy(locale, "ponto da visita", "visit point");
+  const pt: Record<string, string> = {
+    VISITED: `Ponto ${target} apresentado`,
+    UNAVAILABLE: `Ponto ${target} marcado como indisponível`,
+    IGNORED: `Ponto ${target} ignorado`,
+    RESTORED: `Ponto ${target} restaurado como disponível`,
+  };
+  const en: Record<string, string> = {
+    VISITED: `Visit point ${target} presented`,
+    UNAVAILABLE: `Visit point ${target} marked unavailable`,
+    IGNORED: `Visit point ${target} skipped`,
+    RESTORED: `Visit point ${target} restored as available`,
+  };
+  const map = locale.toLowerCase().startsWith("pt") ? pt : en;
+  return map[type] ?? `${fallback(type, locale)} · ${point ?? "Visit point"}`;
+}
+
 function presencePhrase(
   type: string,
   locale: string,
@@ -96,7 +124,6 @@ function presencePhrase(
 ) {
   const who = person ?? copy(locale, "Viajante", "Traveler");
   const where = step ? ` · ${step}` : "";
-
   const pt: Record<string, string> = {
     PRESENT_AT_MEETING_POINT: `${who} chegou ao ponto de encontro${where}`,
     ABSENCE_NOTED: `Ausência registrada para ${who}${where}`,
@@ -105,7 +132,6 @@ function presencePhrase(
     DISEMBARKED: `${who} desembarcou${where}`,
     PRESENCE_RETRACTED: `Registro de presença de ${who} foi corrigido/retraído${where}`,
   };
-
   const en: Record<string, string> = {
     PRESENT_AT_MEETING_POINT: `${who} arrived at the meeting point${where}`,
     ABSENCE_NOTED: `Absence recorded for ${who}${where}`,
@@ -114,7 +140,6 @@ function presencePhrase(
     DISEMBARKED: `${who} disembarked${where}`,
     PRESENCE_RETRACTED: `${who}'s presence record was corrected/retracted${where}`,
   };
-
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
   return map[type] ?? `${fallback(type, locale)} · ${who}${where}`;
 }
@@ -127,7 +152,6 @@ function checklistPhrase(
 ) {
   const target = quote(item) ?? copy(locale, "item do checklist", "checklist item");
   const where = step ? ` · ${step}` : "";
-
   const pt: Record<string, string> = {
     COMPLETED: `Checklist ${target} concluído${where}`,
     CHECKED: `Checklist ${target} concluído${where}`,
@@ -135,7 +159,6 @@ function checklistPhrase(
     REOPENED: `Checklist ${target} reaberto${where}`,
     SKIPPED: `Checklist ${target} ignorado${where}`,
   };
-
   const en: Record<string, string> = {
     COMPLETED: `Checklist ${target} completed${where}`,
     CHECKED: `Checklist ${target} completed${where}`,
@@ -143,14 +166,12 @@ function checklistPhrase(
     REOPENED: `Checklist ${target} reopened${where}`,
     SKIPPED: `Checklist ${target} skipped${where}`,
   };
-
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
   return map[action] ?? `${fallback(action, locale)} · ${item ?? "Checklist"}${where}`;
 }
 
 function mobilityPhrase(type: string, locale: string, leg?: string | null) {
   const target = quote(leg) ?? copy(locale, "deslocamento", "transport leg");
-
   const pt: Record<string, string> = {
     DISPATCHED: `${target} saiu para o deslocamento`,
     DEPARTED: `${target} iniciou o deslocamento`,
@@ -160,7 +181,6 @@ function mobilityPhrase(type: string, locale: string, leg?: string | null) {
     BOARDING_STARTED: `Embarque iniciado para ${target}`,
     INCIDENT_RECORDED: `Incidente registrado em ${target}`,
   };
-
   const en: Record<string, string> = {
     DISPATCHED: `${target} dispatched`,
     DEPARTED: `${target} departed`,
@@ -170,16 +190,12 @@ function mobilityPhrase(type: string, locale: string, leg?: string | null) {
     BOARDING_STARTED: `Boarding started for ${target}`,
     INCIDENT_RECORDED: `Incident recorded on ${target}`,
   };
-
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return (
-    map[type] ?? `${fallback(type, locale)} · ${leg ?? copy(locale, "Mobilidade", "Mobility")}`
-  );
+  return map[type] ?? `${fallback(type, locale)} · ${leg ?? copy(locale, "Mobilidade", "Mobility")}`;
 }
 
 function hospitalityPhrase(type: string, locale: string, stay?: string | null) {
   const target = quote(stay) ?? copy(locale, "hospedagem", "stay");
-
   const pt: Record<string, string> = {
     CHECKIN_OPENED: `Check-in aberto em ${target}`,
     GUEST_CHECKED_IN: `Hóspede realizou check-in em ${target}`,
@@ -189,7 +205,6 @@ function hospitalityPhrase(type: string, locale: string, stay?: string | null) {
     ISSUE_RECORDED: `Pendência registrada em ${target}`,
     ROOM_RELEASED: `Quarto liberado em ${target}`,
   };
-
   const en: Record<string, string> = {
     CHECKIN_OPENED: `Check-in opened at ${target}`,
     GUEST_CHECKED_IN: `Guest checked in at ${target}`,
@@ -199,16 +214,12 @@ function hospitalityPhrase(type: string, locale: string, stay?: string | null) {
     ISSUE_RECORDED: `Issue recorded at ${target}`,
     ROOM_RELEASED: `Room released at ${target}`,
   };
-
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return (
-    map[type] ?? `${fallback(type, locale)} · ${stay ?? copy(locale, "Hospedagem", "Hospitality")}`
-  );
+  return map[type] ?? `${fallback(type, locale)} · ${stay ?? copy(locale, "Hospedagem", "Hospitality")}`;
 }
 
 function eventPhrase(type: string, locale: string, event?: string | null, session?: string | null) {
   const target = quote(session ?? event) ?? copy(locale, "evento", "event");
-
   const pt: Record<string, string> = {
     EVENT_STARTED: `${target} iniciado`,
     EVENT_COMPLETED: `${target} concluído`,
@@ -217,7 +228,6 @@ function eventPhrase(type: string, locale: string, event?: string | null, sessio
     STARTED: `${target} iniciado`,
     COMPLETED: `${target} concluído`,
   };
-
   const en: Record<string, string> = {
     EVENT_STARTED: `${target} started`,
     EVENT_COMPLETED: `${target} completed`,
@@ -226,12 +236,8 @@ function eventPhrase(type: string, locale: string, event?: string | null, sessio
     STARTED: `${target} started`,
     COMPLETED: `${target} completed`,
   };
-
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return (
-    map[type] ??
-    `${fallback(type, locale)} · ${session ?? event ?? copy(locale, "Eventos", "Events")}`
-  );
+  return map[type] ?? `${fallback(type, locale)} · ${session ?? event ?? copy(locale, "Eventos", "Events")}`;
 }
 
 function communicationPhrase(
@@ -242,7 +248,6 @@ function communicationPhrase(
 ) {
   const target = quote(message) ?? copy(locale, "mensagem", "message");
   const recipient = person ? copy(locale, ` por ${person}`, ` by ${person}`) : "";
-
   const pt: Record<string, string> = {
     PUBLISHED: `${target} publicada`,
     RECIPIENT_MATERIALIZED: `Destinatário definido para ${target}`,
@@ -250,7 +255,6 @@ function communicationPhrase(
     READ: `${target} lida${recipient}`,
     CANCELLED: `${target} cancelada`,
   };
-
   const en: Record<string, string> = {
     PUBLISHED: `${target} published`,
     RECIPIENT_MATERIALIZED: `Recipient resolved for ${target}`,
@@ -258,12 +262,8 @@ function communicationPhrase(
     READ: `${target} read${recipient}`,
     CANCELLED: `${target} cancelled`,
   };
-
   const map = locale.toLowerCase().startsWith("pt") ? pt : en;
-  return (
-    map[type] ??
-    `${fallback(type, locale)} · ${message ?? copy(locale, "Comunicação", "Communication")}`
-  );
+  return map[type] ?? `${fallback(type, locale)} · ${message ?? copy(locale, "Comunicação", "Communication")}`;
 }
 
 export function OperationHistoryTimeline({ operationId }: { operationId: string }) {
@@ -280,8 +280,12 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
         (await supabase.from("events").select("id").eq("operation_id", operationId)).data?.map(
           (row) => row.id,
         ) ?? [];
+
       const [
+        operationAudit,
         journey,
+        visitPointEvents,
+        visitPoints,
         presence,
         checklist,
         mobility,
@@ -298,8 +302,22 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
         messages,
       ] = await Promise.all([
         supabase
+          .from("audit_events")
+          .select("id,action,subject_id,occurred_at,metadata")
+          .eq("subject_type", "operation")
+          .eq("subject_id", operationId)
+          .eq("action", "operation.completed"),
+        supabase
           .from("journey_events")
           .select("id,journey_step_id,event_type,occurred_at,note")
+          .eq("operation_id", operationId),
+        supabase
+          .from("journey_visit_point_events")
+          .select("id,journey_step_id,visit_point_id,event_type,occurred_at,note")
+          .eq("operation_id", operationId),
+        supabase
+          .from("journey_visit_points")
+          .select("id,title,journey_step_id")
           .eq("operation_id", operationId),
         supabase
           .from("participant_presence_events")
@@ -346,7 +364,10 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
       ]);
 
       const results = [
+        operationAudit,
         journey,
+        visitPointEvents,
+        visitPoints,
         presence,
         checklist,
         mobility,
@@ -365,6 +386,7 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
       for (const result of results) if (result.error) throw result.error;
 
       const stepName = new Map((steps.data ?? []).map((row) => [row.id, row.title]));
+      const pointName = new Map((visitPoints.data ?? []).map((row) => [row.id, row.title]));
       const personName = new Map(
         ((roster.data ?? []) as unknown as ParticipationContext[]).map((row) => [
           row.id,
@@ -396,6 +418,14 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
       );
 
       const timeline: TimelineItem[] = [
+        ...(operationAudit.data ?? []).map((row) => ({
+          id: row.id,
+          domain: "operation" as const,
+          label: copy(locale, "Operação concluída", "Operation completed"),
+          occurredAt: row.occurred_at,
+          note: null,
+          context: null,
+        })),
         ...(journey.data ?? []).map((row) => ({
           id: row.id,
           domain: "journey" as const,
@@ -403,6 +433,15 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
           occurredAt: row.occurred_at,
           note: row.note,
           context: stepName.get(row.journey_step_id ?? "") ?? null,
+        })),
+        ...(visitPointEvents.data ?? []).map((row) => ({
+          id: row.id,
+          domain: "visit_points" as const,
+          label: visitPointPhrase(row.event_type, locale, pointName.get(row.visit_point_id ?? "")),
+          occurredAt: row.occurred_at,
+          note: row.note,
+          context:
+            pointName.get(row.visit_point_id ?? "") ?? stepName.get(row.journey_step_id ?? "") ?? null,
         })),
         ...(presence.data ?? []).map((row) => ({
           id: row.id,
@@ -487,7 +526,9 @@ export function OperationHistoryTimeline({ operationId }: { operationId: string 
   if (timeline.length === 0) return null;
 
   const domainMeta = {
+    operation: { label: copy(locale, "Operação", "Operation"), icon: Flag },
     journey: { label: copy(locale, "Jornada", "Journey"), icon: Route },
+    visit_points: { label: copy(locale, "Pontos da visita", "Visit points"), icon: MapPin },
     presence: { label: copy(locale, "Pessoas", "People"), icon: Users },
     checklist: { label: "Checklist", icon: ClipboardCheck },
     mobility: { label: copy(locale, "Mobilidade", "Mobility"), icon: Bus },
