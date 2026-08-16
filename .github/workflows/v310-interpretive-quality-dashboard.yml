@@ -1,0 +1,45 @@
+name: V3.10 interpretive quality dashboard
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+    paths:
+      - .github/workflows/v310-interpretive-quality-dashboard.yml
+      - scripts/v310-add-interpretive-quality-dashboard.py
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Apply V3.10 dashboard
+        run: python scripts/v310-add-interpretive-quality-dashboard.py
+      - name: Format
+        run: bunx prettier --write 'src/routes/_authenticated/blueprints.$blueprintId.tsx'
+      - name: Tests
+        run: bun test
+      - name: Typecheck
+        run: bunx tsc --noEmit
+      - name: Lint
+        run: bun run lint
+      - name: Build
+        run: bun run build
+      - name: Commit V3.10
+        run: |
+          if git diff --quiet; then
+            echo "No V3.10 changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- 'src/routes/_authenticated/blueprints.$blueprintId.tsx'
+          git commit -m 'feat(blueprints): add interpretive quality dashboard'
+          git push
