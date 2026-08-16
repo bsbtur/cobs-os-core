@@ -40,7 +40,10 @@ export const Route = createFileRoute("/_authenticated/blueprints/$blueprintId/vi
   head: () => ({
     meta: [
       { title: "Biblioteca interpretativa — COBS OS" },
-      { name: "description", content: "Pontos interpretativos versionados dos blueprints COBS OS." },
+      {
+        name: "description",
+        content: "Pontos interpretativos versionados dos blueprints COBS OS.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -118,7 +121,9 @@ function PointEditor({
       if (error) throw error;
     },
     onSuccess: () => {
-      feedback.success(point ? "Ponto interpretativo atualizado." : "Ponto interpretativo adicionado.");
+      feedback.success(
+        point ? "Ponto interpretativo atualizado." : "Ponto interpretativo adicionado.",
+      );
       onOpenChange(false);
       onSaved();
     },
@@ -130,7 +135,9 @@ function PointEditor({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>{point ? "Editar ponto interpretativo" : "Novo ponto interpretativo"}</DialogTitle>
+          <DialogTitle>
+            {point ? "Editar ponto interpretativo" : "Novo ponto interpretativo"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -138,7 +145,9 @@ function PointEditor({
             <Input
               id="point-title"
               value={form.title}
-              onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, title: event.target.value }))
+              }
               placeholder="Ex.: Vitrais de Marianne Peretti"
               autoFocus
             />
@@ -161,7 +170,9 @@ function PointEditor({
               id="point-guide-tip"
               rows={3}
               value={form.guideTip}
-              onChange={(event) => setForm((current) => ({ ...current, guideTip: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, guideTip: event.target.value }))
+              }
               placeholder="Sugestão prática de condução ou observação."
             />
           </div>
@@ -179,7 +190,15 @@ function PointEditor({
   );
 }
 
-function StepPoints({ versionId, step, editable }: { versionId: string; step: BlueprintStepRow; editable: boolean }) {
+function StepPoints({
+  versionId,
+  step,
+  editable,
+}: {
+  versionId: string;
+  step: BlueprintStepRow;
+  editable: boolean;
+}) {
   const queryClient = useQueryClient();
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<VisitPoint | null>(null);
@@ -218,7 +237,9 @@ function StepPoints({ versionId, step, editable }: { versionId: string; step: Bl
       invalidate();
     },
     onError: (error) =>
-      feedback.error(error instanceof Error ? error.message : "Não foi possível reordenar os pontos."),
+      feedback.error(
+        error instanceof Error ? error.message : "Não foi possível reordenar os pontos.",
+      ),
   });
 
   const remove = useMutation({
@@ -254,7 +275,9 @@ function StepPoints({ versionId, step, editable }: { versionId: string; step: Bl
     <div className="mt-4 border-t border-border pt-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Pontos interpretativos</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Pontos interpretativos
+          </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {points.length} {points.length === 1 ? "ponto" : "pontos"} nesta etapa
           </p>
@@ -293,27 +316,61 @@ function StepPoints({ versionId, step, editable }: { versionId: string; step: Bl
                     <p className="font-medium">{point.title}</p>
                   </div>
                   {point.interpretation ? (
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{point.interpretation}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                      {point.interpretation}
+                    </p>
                   ) : null}
                   {point.guide_tip ? (
                     <div className="mt-2 flex items-start gap-2 rounded-lg bg-primary-soft/50 px-3 py-2 text-xs">
-                      <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                      <Lightbulb
+                        className="mt-0.5 size-3.5 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
                       <span>{point.guide_tip}</span>
                     </div>
                   ) : null}
                 </div>
                 {editable ? (
                   <div className="flex shrink-0 items-center gap-1">
-                    <Button variant="ghost" size="icon" className="size-9" aria-label="Mover para cima" disabled={index === 0 || reorder.isPending} onClick={() => move(index, -1)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9"
+                      aria-label="Mover para cima"
+                      disabled={index === 0 || reorder.isPending}
+                      onClick={() => move(index, -1)}
+                    >
                       <ChevronUp className="size-4" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="size-9" aria-label="Mover para baixo" disabled={index === points.length - 1 || reorder.isPending} onClick={() => move(index, 1)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9"
+                      aria-label="Mover para baixo"
+                      disabled={index === points.length - 1 || reorder.isPending}
+                      onClick={() => move(index, 1)}
+                    >
                       <ChevronDown className="size-4" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="size-9" aria-label="Editar ponto" onClick={() => { setEditing(point); setEditorOpen(true); }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9"
+                      aria-label="Editar ponto"
+                      onClick={() => {
+                        setEditing(point);
+                        setEditorOpen(true);
+                      }}
+                    >
                       <Edit3 className="size-4" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="size-9 text-destructive" aria-label="Remover ponto" onClick={() => setRemoving(point)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 text-destructive"
+                      aria-label="Remover ponto"
+                      onClick={() => setRemoving(point)}
+                    >
                       <Trash2 className="size-4" aria-hidden="true" />
                     </Button>
                   </div>
@@ -324,17 +381,35 @@ function StepPoints({ versionId, step, editable }: { versionId: string; step: Bl
         </ol>
       )}
 
-      <PointEditor open={editorOpen} onOpenChange={setEditorOpen} stepId={step.id} point={editing} onSaved={invalidate} />
+      <PointEditor
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        stepId={step.id}
+        point={editing}
+        onSaved={invalidate}
+      />
 
       <Dialog open={Boolean(removing)} onOpenChange={(open) => !open && setRemoving(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Remover ponto interpretativo?</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Remover ponto interpretativo?</DialogTitle>
+          </DialogHeader>
           <p className="text-sm text-muted-foreground">
             {removing ? `“${removing.title}” será removido somente desta versão draft.` : ""}
           </p>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setRemoving(null)} disabled={remove.isPending}>Cancelar</Button>
-            <Button variant="destructive" disabled={!removing || remove.isPending} onClick={() => removing && remove.mutate(removing.id)}>
+            <Button
+              variant="ghost"
+              onClick={() => setRemoving(null)}
+              disabled={remove.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!removing || remove.isPending}
+              onClick={() => removing && remove.mutate(removing.id)}
+            >
               {remove.isPending ? "Removendo…" : "Remover"}
             </Button>
           </div>
@@ -353,78 +428,149 @@ function LibraryWorkspace({ blueprintId }: { blueprintId: string }) {
     queryFn: async () => {
       const [blueprintResult, versionsResult] = await Promise.all([
         supabase.from("journey_blueprints").select("*").eq("id", blueprintId).maybeSingle(),
-        supabase.from("journey_blueprint_versions").select("*").eq("blueprint_id", blueprintId).order("version_number", { ascending: false }),
+        supabase
+          .from("journey_blueprint_versions")
+          .select("*")
+          .eq("blueprint_id", blueprintId)
+          .order("version_number", { ascending: false }),
       ]);
       if (blueprintResult.error) throw blueprintResult.error;
       if (versionsResult.error) throw versionsResult.error;
       const versions = (versionsResult.data ?? []) as BlueprintVersionRow[];
       const stepsResult = versions.length
-        ? await supabase.from("journey_blueprint_steps").select("*").in("version_id", versions.map((version) => version.id)).order("sequence")
+        ? await supabase
+            .from("journey_blueprint_steps")
+            .select("*")
+            .in(
+              "version_id",
+              versions.map((version) => version.id),
+            )
+            .order("sequence")
         : { data: [], error: null };
       if (stepsResult.error) throw stepsResult.error;
-      return { blueprint: blueprintResult.data, versions, steps: (stepsResult.data ?? []) as BlueprintStepRow[] };
+      return {
+        blueprint: blueprintResult.data,
+        versions,
+        steps: (stepsResult.data ?? []) as BlueprintStepRow[],
+      };
     },
   });
 
   const versions = query.data?.versions ?? [];
   const draft = draftVersion(versions);
   const published = latestPublishedVersion(versions);
-  const selectedId = versionId && versions.some((version) => version.id === versionId)
-    ? versionId
-    : (draft?.id ?? published?.id ?? versions[0]?.id ?? null);
+  const selectedId =
+    versionId && versions.some((version) => version.id === versionId)
+      ? versionId
+      : (draft?.id ?? published?.id ?? versions[0]?.id ?? null);
   const selectedVersion = versions.find((version) => version.id === selectedId) ?? null;
   const steps = selectedVersion
     ? (query.data?.steps ?? []).filter((step) => step.version_id === selectedVersion.id)
     : [];
-  const editable = Boolean(selectedVersion?.status === "draft" && query.data?.blueprint?.status === "active" && canEditBlueprints(role));
+  const editable = Boolean(
+    selectedVersion?.status === "draft" &&
+      query.data?.blueprint?.status === "active" &&
+      canEditBlueprints(role),
+  );
 
   if (!canViewBlueprints(role)) {
-    return <EmptyState icon={Lock} title="Acesso restrito" body="Seu perfil não possui permissão para visualizar blueprints." />;
+    return (
+      <EmptyState
+        icon={Lock}
+        title="Acesso restrito"
+        body="Seu perfil não possui permissão para visualizar blueprints."
+      />
+    );
   }
   if (query.isLoading) return <PanelSkeleton rows={5} />;
   const blueprint = query.data?.blueprint;
-  if (!blueprint) return <EmptyState icon={Lock} title="Blueprint não encontrado" body="Verifique o endereço e tente novamente." />;
+  if (!blueprint) {
+    return (
+      <EmptyState
+        icon={Lock}
+        title="Blueprint não encontrado"
+        body="Verifique o endereço e tente novamente."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Link to="/blueprints/$blueprintId" params={{ blueprintId }} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/blueprints/$blueprintId"
+        params={{ blueprintId }}
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="size-4" aria-hidden="true" /> Voltar ao blueprint
       </Link>
 
       <header className="space-y-2">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary-soft text-primary"><ListTree className="size-5" aria-hidden="true" /></span>
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary-soft text-primary">
+            <ListTree className="size-5" aria-hidden="true" />
+          </span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Biblioteca interpretativa</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Biblioteca interpretativa
+            </p>
             <h2 className="text-2xl font-semibold lg:text-3xl">{blueprint.name}</h2>
           </div>
         </div>
         <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-          Cadastre os pontos uma vez. Eles passam a fazer parte da versão do blueprint e são levados automaticamente para novas operações.
+          Cadastre os pontos uma vez. Eles passam a fazer parte da versão do blueprint e são levados
+          automaticamente para novas operações.
         </p>
       </header>
 
       <section className="surface-panel flex flex-wrap items-end justify-between gap-3 p-4">
         <div>
           <Label htmlFor="library-version">Versão do blueprint</Label>
-          <p className="mt-1 text-xs text-muted-foreground">Rascunhos podem ser editados; versões publicadas são somente leitura.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Rascunhos podem ser editados; versões publicadas são somente leitura.
+          </p>
         </div>
-        <select id="library-version" className="min-h-11 rounded-lg border border-border bg-background px-3 text-sm" value={selectedId ?? ""} onChange={(event) => setVersionId(event.target.value)}>
-          {versions.map((version) => <option key={version.id} value={version.id}>Versão {version.version_number} · {version.status === "draft" ? "Rascunho" : "Publicada"}</option>)}
+        <select
+          id="library-version"
+          className="min-h-11 rounded-lg border border-border bg-background px-3 text-sm"
+          value={selectedId ?? ""}
+          onChange={(event) => setVersionId(event.target.value)}
+        >
+          {versions.map((version) => (
+            <option key={version.id} value={version.id}>
+              Versão {version.version_number} ·{" "}
+              {version.status === "draft" ? "Rascunho" : "Publicada"}
+            </option>
+          ))}
         </select>
       </section>
 
       {steps.length === 0 ? (
-        <EmptyState icon={ListTree} title="Nenhuma etapa nesta versão" body="Adicione etapas no editor principal antes de cadastrar pontos interpretativos." />
+        <EmptyState
+          icon={ListTree}
+          title="Nenhuma etapa nesta versão"
+          body="Adicione etapas no editor principal antes de cadastrar pontos interpretativos."
+        />
       ) : (
         <ol className="space-y-4">
           {steps.map((step) => (
             <li key={step.id} className="surface-panel p-4 sm:p-5">
               <div className="flex items-start gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border font-mono text-xs font-semibold">{step.sequence}</span>
-                <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{step.step_kind}</p><h3 className="mt-0.5 text-lg font-semibold">{step.title}</h3>{step.location_label ? <p className="mt-1 text-sm text-muted-foreground">{step.location_label}</p> : null}</div>
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border font-mono text-xs font-semibold">
+                  {step.sequence}
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {step.step_kind}
+                  </p>
+                  <h3 className="mt-0.5 text-lg font-semibold">{step.title}</h3>
+                  {step.location_label ? (
+                    <p className="mt-1 text-sm text-muted-foreground">{step.location_label}</p>
+                  ) : null}
+                </div>
               </div>
-              {selectedVersion ? <StepPoints versionId={selectedVersion.id} step={step} editable={editable} /> : null}
+              {selectedVersion ? (
+                <StepPoints versionId={selectedVersion.id} step={step} editable={editable} />
+              ) : null}
             </li>
           ))}
         </ol>
@@ -435,11 +581,15 @@ function LibraryWorkspace({ blueprintId }: { blueprintId: string }) {
 
 function BlueprintVisitPointLibraryPage() {
   // @ts-expect-error TanStack regenerates routeTree.gen.ts after discovering this new route.
-  const { blueprintId } = useParams({ from: "/_authenticated/blueprints/$blueprintId/visit-points" });
+  const { blueprintId } = useParams({
+    from: "/_authenticated/blueprints/$blueprintId/visit-points",
+  });
   return (
     <AppShell activeId="blueprints" title="Biblioteca interpretativa">
       <div className="mx-auto w-full max-w-5xl">
-        <RequireTenant><LibraryWorkspace blueprintId={blueprintId} /></RequireTenant>
+        <RequireTenant>
+          <LibraryWorkspace blueprintId={blueprintId} />
+        </RequireTenant>
       </div>
     </AppShell>
   );
