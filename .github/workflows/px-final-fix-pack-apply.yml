@@ -1,0 +1,171 @@
+name: PX final fix pack apply
+
+on:
+  push:
+    paths:
+      - .github/workflows/px-final-fix-pack-apply.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+          fetch-depth: 0
+      - name: Apply scoped fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def patch(path, old, new, count=None):
+              p = Path(path)
+              text = p.read_text()
+              found = text.count(old)
+              if found == 0:
+                  raise SystemExit(f"pattern not found in {path}: {old[:100]!r}")
+              if count is not None and found != count:
+                  raise SystemExit(f"unexpected match count in {path}: {found} != {count}")
+              p.write_text(text.replace(old, new))
+
+          patch("src/components/journey/field-mode-pending-first.tsx",
+                'next.dataset.fieldFocus = "true";\n        window.setTimeout(() => delete next.dataset.fieldFocus, 900);',
+                'next.dataset["fieldFocus"] = "true";\n        window.setTimeout(() => delete next.dataset["fieldFocus"], 900);', 1)
+
+          patch("src/components/journey/journey-management-panel.tsx",
+                '_planned_start: startIso,\n        _planned_end: endIso,',
+                '_planned_start: startIso ?? undefined,\n        _planned_end: endIso ?? undefined,', 1)
+
+          patch("src/components/journey/journey-operational-cockpit.tsx",
+                'const focusStep = steps[plannedIndex] ?? steps[0];',
+                'const focusStep = steps[plannedIndex] ?? steps[0]!;', 1)
+
+          patch("src/app/shell/command-palette.tsx",
+                '.select("id,name,operation_id,status,hospitality_properties(name,city,region),operations(name,code)")',
+                '.select("id,name,operation_id,status,hospitality_properties!hospitality_stays_property_id_fkey(name,city,region),operations!hospitality_stays_operation_id_fkey(name,code)")', 1)
+          patch("src/app/shell/command-palette.tsx",
+                '                        icon={step.location_label ? MapPin : undefined}\n',
+                '                        {...(step.location_label ? { icon: MapPin } : {})}\n', 1)
+
+          patch("src/components/operations/operation-control-center.tsx",
+                'to={`${base}/${focus.primaryRoute}`}',
+                'to={`${base}/${focus.primaryRoute}` as never}', 1)
+          patch("src/components/operations/operation-control-center.tsx",
+                '<Link to={`${base}/live`} className="text-xs font-semibold text-primary hover:underline">',
+                '<Link to="/operations/$operationId/live" params={{ operationId }} className="text-xs font-semibold text-primary hover:underline">', 1)
+
+          history = Path("src/components/operations/operation-history-timeline.tsx")
+          text = history.read_text()
+          for field in ["journey_step_id", "participation_id", "playbook_item_id", "transport_leg_id", "stay_id", "event_id", "session_id", "message_id", "person_id"]:
+              text = text.replace(f'.get(row.{field})', f'.get(row.{field} ?? "")')
+          history.write_text(text)
+
+          patch("src/components/operations/personal-alerts.tsx",
+                '<Link to={`/operations/${message.operation_id}`}>',
+                '<Link to="/operations/$operationId" params={{ operationId: message.operation_id }}>', 1)
+
+          queue = Path("src/components/operations/personal-operation-queue.tsx")
+          text = queue.read_text()
+          old = 'to={`/operations/${item.operationId}`}'
+          if text.count(old) != 2:
+              raise SystemExit(f"unexpected queue route count: {text.count(old)}")
+          text = text.replace(old, 'to="/operations/$operationId" params={{ operationId: item.operationId }}')
+          queue.write_text(text)
+
+          patch("src/routes/_authenticated/operations.$operationId.events.tsx",
+                'canOperate={liveCanOperate}',
+                'canOperate={canOperate}', 1)
+
+          route = Path("src/routes/api.cron.staff-alerts.ts")
+          text = route.read_text()
+          marker = '  const results: Array<{ tenantId: string; result?: GeneratorResult; error?: string }> = [];\n\n'
+          if marker not in text:
+              raise SystemExit("staff alert marker missing")
+          insert = marker + '  const generateDueAlerts = supabase.rpc as unknown as (\n    fn: "generate_due_staff_journey_alerts",\n    args: { _tenant_id: string; _window_start: string; _window_end: string },\n  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;\n\n'
+          text = text.replace(marker, insert, 1)
+          text = text.replace('const response = await supabase.rpc("generate_due_staff_journey_alerts", {', 'const response = await generateDueAlerts("generate_due_staff_journey_alerts", {', 1)
+          route.write_text(text)
+
+          migration = Path("supabase/migrations/20260816143000_px_final_journey_historical_immutability.sql")
+          migration.write_text(r'''-- PX FINAL — close the last historical mutation surface for Journey.
+-- Closed operations are evidence: journey definition and journey facts are read-only.
+
+create or replace function public.update_journey_step(
+  _journey_step_id uuid,
+  _title text default null,
+  _description text default null,
+  _location_label text default null,
+  _traveler_label text default null,
+  _traveler_facing boolean default null,
+  _planned_start timestamptz default null,
+  _planned_end timestamptz default null,
+  _presence_requirement public.step_presence_requirement default null,
+  _presence_population public.step_presence_population default null,
+  _apply_planned boolean default false
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare
+  _step public.journey_steps;
+  _op public.operations;
+  _req public.step_presence_requirement;
+  _pop public.step_presence_population;
+begin
+  _step := app_private.w04_step(_journey_step_id, array['owner','admin','operations_agent']);
+  select * into _op from public.operations o where o.id = _step.operation_id;
+  perform app_private.assert_operation_not_closed(_step.operation_id);
+  perform app_private.assert_generic_note(nullif(btrim(coalesce(_description,'')),''));
+
+  _req := coalesce(_presence_requirement, _step.presence_requirement);
+  _pop := coalesce(_presence_population, _step.presence_population);
+  if _presence_requirement is not null or _presence_population is not null then
+    perform app_private.w04_assert_presence_contract(_step.step_kind, _req, _pop);
+  end if;
+
+  perform set_config('app.w04_control','on', true);
+  update public.journey_steps set
+    title = coalesce(nullif(btrim(coalesce(_title,'')),''), title),
+    description = case when _description is null then description else nullif(btrim(_description),'') end,
+    location_label = case when _location_label is null then location_label else nullif(btrim(_location_label),'') end,
+    traveler_label = case when _traveler_label is null then traveler_label else nullif(btrim(_traveler_label),'') end,
+    traveler_facing = coalesce(_traveler_facing, traveler_facing),
+    presence_requirement = _req,
+    presence_population = _pop,
+    planned_start = case when _apply_planned and plan_origin = 'planned' then _planned_start else planned_start end,
+    planned_end = case when _apply_planned and plan_origin = 'planned' then _planned_end else planned_end end
+  where id = _step.id;
+  perform set_config('app.w04_control','off', true);
+
+  perform app_private.record_audit_event(_step.tenant_id, auth.uid(), 'journey.step_updated',
+    'journey_step', _step.id, null,
+    jsonb_build_object('operation_id', _step.operation_id, 'operation_status', _op.status,
+                       'planned_changed', coalesce(_apply_planned,false)));
+  return jsonb_build_object('journey_step_id', _step.id);
+end;
+$$;
+
+drop trigger if exists trg_closed_op_journey_steps on public.journey_steps;
+create trigger trg_closed_op_journey_steps
+before insert or update or delete on public.journey_steps
+for each row execute function app_private.guard_closed_operation_child();
+
+drop trigger if exists trg_closed_op_journey_events on public.journey_events;
+create trigger trg_closed_op_journey_events
+before insert or update or delete on public.journey_events
+for each row execute function app_private.guard_closed_operation_child();
+''')
+      - name: Commit scoped fix
+        run: |
+          git config user.name "bsbtur"
+          git config user.email "contato.bsbtur@gmail.com"
+          git add src supabase/migrations/20260816143000_px_final_journey_historical_immutability.sql
+          git diff --cached --check
+          git commit -m "fix(alpha): close final journey and type safety gaps"
+          git push origin HEAD:preview/alpha-productization-px01
