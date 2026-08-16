@@ -16,6 +16,7 @@ import { CockpitOperationalStatus } from "@/components/journey/cockpit-operation
 import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
 import { JourneyStepActions } from "@/components/journey/journey-step-actions";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
+import { VisitPointsPanel } from "@/components/journey/visit-points-panel";
 import { supabase } from "@/integrations/supabase/client";
 import type {
   JourneyStepRow,
@@ -241,6 +242,14 @@ function Cockpit() {
           )}
         </div>
       </article>
+
+      {current ? (
+        <VisitPointsPanel
+          operationId={operationId}
+          journeyStepId={current.id}
+          canOperate={operation.status === "active"}
+        />
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3">
         <Link
