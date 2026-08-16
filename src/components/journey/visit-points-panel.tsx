@@ -56,7 +56,9 @@ function statusLabel(status: VisitPointStatus) {
 }
 
 function pointStatusClass(status: VisitPointStatus, selected: boolean) {
-  if (selected) return "border-primary bg-primary text-primary-foreground shadow-sm";
+  if (selected) {
+    return "border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/15 ring-offset-2 ring-offset-background";
+  }
   if (status === "visited") return "border-success/30 bg-success-soft text-success";
   if (status === "unavailable") {
     return "border-border bg-muted text-muted-foreground opacity-65";
@@ -68,10 +70,10 @@ function pointStatusClass(status: VisitPointStatus, selected: boolean) {
 }
 
 function PointStatusIcon({ status }: { status: VisitPointStatus }) {
-  if (status === "visited") return <Check className="size-3.5" aria-hidden="true" />;
-  if (status === "unavailable") return <EyeOff className="size-3" aria-hidden="true" />;
-  if (status === "ignored") return <CircleDot className="size-3" aria-hidden="true" />;
-  return <Circle className="size-3" aria-hidden="true" />;
+  if (status === "visited") return <Check className="size-4" aria-hidden="true" />;
+  if (status === "unavailable") return <EyeOff className="size-3.5" aria-hidden="true" />;
+  if (status === "ignored") return <CircleDot className="size-3.5" aria-hidden="true" />;
+  return <Circle className="size-3.5" aria-hidden="true" />;
 }
 
 export function VisitPointsPanel({
@@ -178,7 +180,10 @@ export function VisitPointsPanel({
   const completion = points.length ? Math.round((visitedCount / points.length) * 100) : 0;
 
   return (
-    <article className="overflow-hidden rounded-[28px] border border-primary/20 bg-elevated shadow-sm">
+    <article
+      className="overflow-hidden rounded-[28px] border border-primary/20 bg-elevated shadow-sm"
+      aria-busy={statusMutation.isPending}
+    >
       <div className="border-b border-border/70 bg-background/30 px-4 pb-4 pt-4 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
@@ -192,7 +197,7 @@ export function VisitPointsPanel({
               <p className="truncate text-sm font-semibold">Pontos da visita</p>
             </div>
           </div>
-          <div className="shrink-0 text-right">
+          <div className="shrink-0 text-right" aria-live="polite" aria-atomic="true">
             <p className="font-mono text-sm font-bold tabular-nums">
               {visitedCount}/{points.length}
             </p>
@@ -201,7 +206,7 @@ export function VisitPointsPanel({
         </div>
 
         <div
-          className="mt-4 flex gap-2 overflow-x-auto pb-1"
+          className="mt-4 flex snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain scroll-smooth pb-2"
           aria-label="Progresso dos pontos da visita"
         >
           {points.map((point, index) => {
@@ -211,7 +216,7 @@ export function VisitPointsPanel({
                 key={point.id}
                 type="button"
                 onClick={() => setSelectedId(point.id)}
-                className={`flex size-9 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${pointStatusClass(point.status, isSelected)}`}
+                className={`flex size-11 shrink-0 snap-center items-center justify-center rounded-full border text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${pointStatusClass(point.status, isSelected)}`}
                 aria-label={`${index + 1}. ${point.title} — ${statusLabel(point.status)}`}
                 aria-current={isSelected ? "step" : undefined}
               >
@@ -341,7 +346,7 @@ export function VisitPointsPanel({
               <button
                 type="button"
                 onClick={() => setSelectedId(nextAvailable.id)}
-                className="mt-6 flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-background/50 p-4 text-left transition hover:bg-muted/50"
+                className="mt-6 flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-border bg-background/50 p-4 text-left transition hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <div className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
