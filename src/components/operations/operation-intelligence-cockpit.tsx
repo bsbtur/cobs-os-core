@@ -5,7 +5,7 @@ import { Activity, AlertTriangle, BedDouble, Bus, CalendarDays, MessageSquare, R
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
-import { isOperationClosed } from "@/lib/operation-lock";
+import { canUseLiveOperationalHealth, isOperationClosed } from "@/lib/operation-lock";
 
 type Intelligence = {
   operation?: { status?: string };
@@ -78,11 +78,12 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
     },
   });
   const operationClosed = isOperationClosed(operation.data?.status);
+  const liveHealthEnabled = canUseLiveOperationalHealth(operation.data?.status);
 
   const query = useQuery({
     queryKey: ["operation-intelligence", operationId],
-    enabled: isOverview && operation.isSuccess && !operationClosed,
-    refetchInterval: isOverview && !operationClosed ? 30_000 : false,
+    enabled: isOverview && operation.isSuccess && liveHealthEnabled,
+    refetchInterval: isOverview && liveHealthEnabled ? 30_000 : false,
     queryFn: async () => {
       const rpc = supabase.rpc as unknown as Rpc;
       const { data, error } = await rpc("get_operation_intelligence", { _operation_id: operationId });
