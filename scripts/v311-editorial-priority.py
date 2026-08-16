@@ -9,7 +9,8 @@ old_counts = '''  const completeStepCount = order.filter((step) => (visitPointCo
     return count > 0 && count < 4;
   }).length;
   const emptyStepCount = order.length - completeStepCount - partialStepCount;
-  const nextInterpretiveGap = order.find((step) => (visitPointCounts.get(step.id) ?? 0) < 4) ?? null;
+  const nextInterpretiveGap =
+    order.find((step) => (visitPointCounts.get(step.id) ?? 0) < 4) ?? null;
 '''
 new_counts = '''  const completeStepCount = order.filter((step) => (visitPointCounts.get(step.id) ?? 0) >= 4).length;
   const partialStepCount = order.filter((step) => {
@@ -27,9 +28,11 @@ new_counts = '''  const completeStepCount = order.filter((step) => (visitPointCo
     (step) => (visitPointCounts.get(step.id) ?? 0) >= 4,
   ).length;
   const editorialGapCount = interpretiveSteps.length - completeInterpretiveStepCount;
-  const nextInterpretiveGap = [...interpretiveSteps]
-    .filter((step) => (visitPointCounts.get(step.id) ?? 0) < 4)
-    .sort((a, b) => editorialPriority(b) - editorialPriority(a) || a.sequence - b.sequence)[0] ?? null;
+  const nextInterpretiveGap =
+    [...interpretiveSteps]
+      .filter((step) => (visitPointCounts.get(step.id) ?? 0) < 4)
+      .sort((a, b) => editorialPriority(b) - editorialPriority(a) || a.sequence - b.sequence)[0] ??
+    null;
   const nextInterpretivePriorityLabel = nextInterpretiveGap
     ? editorialPriority(nextInterpretiveGap) === 3
       ? "Prioridade alta"
