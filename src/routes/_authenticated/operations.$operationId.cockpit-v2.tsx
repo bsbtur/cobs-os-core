@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowRight,
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
+import { JourneyStepActions } from "@/components/journey/journey-step-actions";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
 import { supabase } from "@/integrations/supabase/client";
 import type {
@@ -55,11 +56,13 @@ function CockpitV2Preview() {
     from: "/_authenticated/operations/$operationId/cockpit-v2",
   });
 
+  const queryClient = useQueryClient();
+
   const live = useQuery({
     queryKey: ["cockpit-v2", operationId],
     refetchInterval: 20_000,
     queryFn: async () => {
-      const [operation, steps, state, items, executions, roster] = await Promise.all([
+      const [operation, steps, state, items, executions, roster, arrivalFacts] = await Promise.all([
         supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
         supabase
           .from("journey_steps")
@@ -79,6 +82,11 @@ function CockpitV2Preview() {
           .select("id, participation_kind, status")
           .eq("operation_id", operationId)
           .neq("status", "cancelled"),
+        supabase
+          .from("journey_events")
+          .select("journey_step_id, event_type")
+          .eq("operation_id", operationId)
+          .eq("event_type", "ARRIVED"),
       ]);
 
       if (operation.error) throw operation.error;
@@ -87,6 +95,7 @@ function CockpitV2Preview() {
       if (items.error) throw items.error;
       if (executions.error) throw executions.error;
       if (roster.error) throw roster.error;
+      if (arrivalFacts.error) throw arrivalFacts.error;
 
       return {
         operation: operation.data,
@@ -95,6 +104,11 @@ function CockpitV2Preview() {
         items: (items.data ?? []) as PlaybookItemRow[],
         executions: (executions.data ?? []) as PlaybookExecutionRow[],
         roster: (roster.data ?? []) as RosterRow[],
+        arrivedStepIds: new Set(
+          (arrivalFacts.data ?? [])
+            .map((row) => row.journey_step_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
       };
     },
   });
@@ -141,6 +155,12 @@ function CockpitV2Preview() {
   const missingPeople = readiness?.missing_participations.length ?? 0;
   const checklistNeedsAttention = missingRequiredItems > 0;
   const travelersNeedAttention = unconfirmed > 0 || missingPeople > 0;
+
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ["cockpit-v2", operationId] });
+    void queryClient.invalidateQueries({ queryKey: ["px04-next-best-action", operationId] });
+    void queryClient.invalidateQueries({ queryKey: ["px05-operation-attention", operationId] });
+  };
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-4 pb-28 sm:pb-24">
@@ -197,12 +217,21 @@ function CockpitV2Preview() {
 
         <div className="space-y-3 border-t border-border/70 bg-background/45 p-4 sm:px-6">
           <LiveNextBestAction operationId={operationId} />
-          <Button asChild className="min-h-14 w-full justify-between rounded-2xl px-4 text-base">
-            <Link to="/operations/$operationId/live" params={{ operationId }}>
-              <span>Executar próxima ação</span>
-              <ArrowRight className="size-5" aria-hidden="true" />
-            </Link>
-          </Button>
+          {current && operation.status === "active" ? (
+            <JourneyStepActions
+              step={current}
+              ready={readiness?.ready ?? false}
+              arrived={live.data?.arrivedStepIds.has(current.id) ?? false}
+              onRefresh={refresh}
+            />
+          ) : (
+            <Button asChild className="min-h-14 w-full justify-between rounded-2xl px-4 text-base">
+              <Link to="/operations/$operationId/live" params={{ operationId }}>
+                <span>Executar próxima ação</span>
+                <ArrowRight className="size-5" aria-hidden="true" />
+              </Link>
+            </Button>
+          )}
         </div>
       </article>
 
