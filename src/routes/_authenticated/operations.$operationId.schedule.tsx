@@ -54,7 +54,7 @@ function TeamSchedulePage() {
     enabled: Boolean(tenant?.id),
     queryFn: async () => {
       const [operation, assignments, participations, conflicts, me] = await Promise.all([
-        db.from("operations").select("id,name,code,timezone,planned_start,planned_end").eq("id", operationId).single(),
+        db.from("operations").select("id,name,code,timezone,planned_start,planned_end,status").eq("id", operationId).single(),
         db.from("operation_staff_assignments")
           .select("id,participation_id,role_type_id,report_at,starts_at,ends_at,status,notes,operation_participations(people(id,full_name)),operation_role_types(label,key)")
           .eq("operation_id", operationId)
@@ -146,6 +146,7 @@ function TeamSchedulePage() {
   });
 
   const cancelAssignment = (id: string) => {
+    if (query.data?.operation?.status === "completed" || query.data?.operation?.status === "cancelled") return;
     const confirmed = window.confirm(copy(
       locale,
       "Cancelar esta escala? O profissional deixará de aparecer como ativo nesta operação.",
@@ -174,6 +175,7 @@ function TeamSchedulePage() {
   }
 
   const { operation, assignments, candidates, conflicts, myParticipationId } = query.data;
+  const operationClosed = operation.status === "completed" || operation.status === "cancelled";
   const noCandidates = candidates.length === 0;
   const conflictIds = new Set(conflicts.flatMap((item: any) => [item.assignment_id, item.conflicting_assignment_id]));
   const actionsPending = save.isPending || statusMutation.isPending;
@@ -194,6 +196,13 @@ function TeamSchedulePage() {
         </div>
       </section>
 
+      {operationClosed ? (
+        <section className="surface-panel px-4 py-3 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{copy(locale, "Operação encerrada.", "Operation closed.")}</span>{" "}
+          {copy(locale, "A escala está disponível somente para consulta histórica.", "The schedule is available for historical review only.")}
+        </section>
+      ) : null}
+
       {conflicts.length ? (
         <section className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive">
           <div className="flex items-center gap-2 font-semibold"><AlertTriangle className="size-4" />{copy(locale, "Conflito de escala detectado", "Schedule conflict detected")}</div>
@@ -203,7 +212,7 @@ function TeamSchedulePage() {
 
       {error ? <section className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">{error}</section> : null}
 
-      {canManage ? (
+      {canManage && !operationClosed ? (
         <section className="surface-panel p-5">
           <h3 className="font-semibold">{copy(locale, "Adicionar à escala", "Add to schedule")}</h3>
           <p className="mt-1 text-xs text-muted-foreground">{copy(locale, "Somente pessoas e funções já vinculadas à operação aparecem aqui.", "Only people and roles already linked to the operation appear here.")}</p>
