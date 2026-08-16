@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 import { useTenant } from "@/lib/tenant";
 import { fromLocalInput, toLocalInput } from "@/lib/w02";
 import {
@@ -809,7 +810,7 @@ function ProgramPanel({
                   session={session}
                   event={event}
                   spaces={spaces}
-                  canOperate={canOperate}
+                  canOperate={liveCanOperate}
                   onChanged={onChanged}
                 />
               </div>
@@ -1419,6 +1420,15 @@ function EventsTab() {
   const [creating, setCreating] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
+  const operation = useQuery({
+    queryKey: ["operation-status", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("operations").select("status").eq("id", operationId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const events = useQuery({
     queryKey: ["events", operationId],
     queryFn: async () => {
@@ -1490,14 +1500,19 @@ function EventsTab() {
     };
   }, [selected, refresh]);
 
-  if (events.isLoading) return <PanelSkeleton rows={4} />;
+  if (events.isLoading || operation.isLoading) return <PanelSkeleton rows={4} />;
+
+  const operationClosed = isOperationClosed(operation.data?.status);
+  const liveCanOperate = canOperate && !operationClosed;
 
   return (
     <div className="space-y-5">
+      {operationClosed ? <ReadOnlyNotice /> : null}
+
       <header className="surface-panel animate-rise space-y-2 p-5">
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-xl font-semibold">{t("w07.title")}</h2>
-          {canOperate ? (
+          {liveCanOperate ? (
             <Button className="ml-auto min-h-11" onClick={() => setCreating(true)}>
               <Plus className="mr-2 size-4" aria-hidden="true" />
               {t("w07.new")}
@@ -1562,15 +1577,15 @@ function EventsTab() {
           <RunPanel
             event={selected}
             snapshot={runtime.data}
-            canOperate={canOperate}
+            canOperate={liveCanOperate}
             onChanged={refresh}
           />
-          <LifecyclePanel event={selected} onChanged={refresh} />
+          {!operationClosed ? <LifecyclePanel event={selected} onChanged={refresh} /> : null}
           <ProgramPanel
             event={selected}
             program={program.data}
             spaces={spaces.data ?? []}
-            canOperate={canOperate}
+            canOperate={liveCanOperate}
             onChanged={refresh}
           />
           <CrewPanel
@@ -1582,6 +1597,7 @@ function EventsTab() {
         </>
       ) : null}
 
+      {!operationClosed ? (
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent>
           <DialogHeader>
@@ -1597,6 +1613,7 @@ function EventsTab() {
           />
         </DialogContent>
       </Dialog>
+      ) : null}
     </div>
   );
 }

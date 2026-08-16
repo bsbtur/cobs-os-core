@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 import { useTenant } from "@/lib/tenant";
 import { fromLocalInput, toLocalInput } from "@/lib/w02";
 import { roleLabel, type RoleTypeRow } from "@/lib/w03";
@@ -207,15 +208,17 @@ function AudiencePanel({
   roleTypes,
   people,
   onChanged,
+  operationClosed,
 }: {
   message: FeedMessage;
   selectors: MessageSelectorRow[];
   roleTypes: RoleTypeRow[];
   people: PersonOption[];
   onChanged: () => void;
+  operationClosed: boolean;
 }) {
   const { t, locale } = useI18n();
-  const editable = canAct(message.status, "audience");
+  const editable = !operationClosed && canAct(message.status, "audience");
 
   const names = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -425,11 +428,13 @@ function MessageDetail({
   operationId,
   onChanged,
   onSelect,
+  operationClosed,
 }: {
   message: FeedMessage;
   operationId: string;
   onChanged: () => void;
   onSelect: (id: string) => void;
+  operationClosed: boolean;
 }) {
   const { t, locale, timeZone } = useI18n();
   const { tenant } = useTenant();
@@ -612,7 +617,7 @@ function MessageDetail({
         </p>
       </section>
 
-      {canAct(message.status, "edit") ? (
+      {!operationClosed && canAct(message.status, "edit") ? (
         <section className="surface-panel space-y-3 p-4">
           <h3 className="text-sm font-medium">{t("w08.save")}</h3>
           <div className="space-y-1.5">
@@ -682,9 +687,11 @@ function MessageDetail({
           roleTypes={roleTypes.data ?? []}
           people={rosterPeople.data ?? []}
           onChanged={refresh}
+          operationClosed={operationClosed}
         />
       )}
 
+      {!operationClosed ? (
       <section className="surface-panel space-y-3 p-4">
         <h3 className="text-sm font-medium">{t("w08.publish")}</h3>
 
@@ -871,6 +878,7 @@ function MessageDetail({
           </Button>
         ) : null}
       </section>
+      ) : null}
 
       {recipients.data ? (
         <section className="surface-panel space-y-2 p-4">
@@ -931,6 +939,15 @@ function CommunicationTab() {
   const [selectedId, setSelectedId] = React.useState<string>("");
   const [createOpen, setCreateOpen] = React.useState(false);
 
+  const operation = useQuery({
+    queryKey: ["operation-status", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("operations").select("status").eq("id", operationId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const feed = useQuery({
     queryKey: ["w08-feed", operationId],
     queryFn: async () => {
@@ -968,7 +985,9 @@ function CommunicationTab() {
     void feed.refetch();
   }, [feed]);
 
-  if (feed.isLoading) return <PanelSkeleton rows={5} />;
+  if (feed.isLoading || operation.isLoading) return <PanelSkeleton rows={5} />;
+
+  const operationClosed = isOperationClosed(operation.data?.status);
 
   if (feed.isError) {
     return (
@@ -982,19 +1001,23 @@ function CommunicationTab() {
 
   return (
     <div className="space-y-4">
+      {operationClosed ? <ReadOnlyNotice /> : null}
+
       <header className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <h1 className="text-lg font-medium">{t("w08.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("w08.subtitle")}</p>
           <p className="mt-1 text-xs text-muted-foreground">{t("w08.boundary")}</p>
         </div>
+        {!operationClosed ? (
         <Button type="button" className="min-h-11" onClick={() => setCreateOpen(true)}>
           <Plus className="mr-2 size-4" aria-hidden="true" />
           {t("w08.new")}
         </Button>
+        ) : null}
       </header>
 
-      {tenant ? (
+      {tenant && !operationClosed ? (
         <CreateMessageDialog
           operationId={operationId}
           tenantId={tenant.id}
@@ -1047,6 +1070,7 @@ function CommunicationTab() {
               operationId={operationId}
               onChanged={refresh}
               onSelect={setSelectedId}
+              operationClosed={operationClosed}
             />
           ) : (
             <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={t("w08.emptyBody")} />
