@@ -89,6 +89,19 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function readinessCountLabel(
+  step: JourneyStepRow,
+  requirement: string | null | undefined,
+  t: (key: string) => string,
+  locale: string,
+) {
+  if (step.step_kind === "disembarkation") {
+    return locale.toLowerCase().startsWith("pt") ? "desembarcados" : "disembarked";
+  }
+  if (requirement === "boarded") return t("w04.count.boarded");
+  return t("w04.count.present");
+}
+
 /* ------------------------------------------------------------------ */
 /* Presence roster                                                     */
 /* ------------------------------------------------------------------ */
@@ -243,6 +256,7 @@ function PresencePanel({
     return fact ? satisfying.includes(fact) : false;
   }).length;
   const evaluatedCount = relevant.filter((row) => row.status === "confirmed").length;
+  const countLabel = readinessCountLabel(step, step.presence_requirement, t, locale);
 
   return (
     <section className="surface-panel p-4">
@@ -250,7 +264,7 @@ function PresencePanel({
         <Users className="size-4 text-muted-foreground" aria-hidden="true" />
         <SectionLabel>{t("w04.live.people")}</SectionLabel>
         <span className="ml-auto rounded-full bg-muted px-2.5 py-1 font-mono text-[11px] tabular-nums text-muted-foreground">
-          {satisfiedCount}/{evaluatedCount} {t("w04.count.present")}
+          {satisfiedCount}/{evaluatedCount} {countLabel}
         </span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{t("w04.presence.rosterNote")}</p>
@@ -831,6 +845,8 @@ if (state.error) throw state.error;
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["live", operationId] });
+    void queryClient.invalidateQueries({ queryKey: ["px04-next-best-action", operationId] });
+    void queryClient.invalidateQueries({ queryKey: ["px05-operation-attention", operationId] });
   };
 
   if (live.isLoading) return <PanelSkeleton />;
@@ -931,9 +947,7 @@ if (state.error) throw state.error;
 
             <LiveTimingStrip current={current} next={next} />
 
-
-
-            {readiness ? (
+            {readiness && readiness.requirement !== "none" ? (
               <div
                 className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm ${
                   readiness.ready ? "bg-success-soft text-success" : "bg-warning-soft text-warning"
@@ -948,7 +962,8 @@ if (state.error) throw state.error;
                   {readiness.ready ? t("w04.live.ready") : t("w04.live.notReady")}
                 </span>
                 <span className="tabular-nums">
-                  {readiness.satisfied}/{readiness.evaluated} {t("w04.count.present")}
+                  {readiness.satisfied}/{readiness.evaluated}{" "}
+                  {readinessCountLabel(current, readiness.requirement, t, locale)}
                 </span>
               </div>
             ) : null}
@@ -1001,17 +1016,17 @@ if (state.error) throw state.error;
               <div className="mt-2 space-y-3">
                 <h3 className="text-lg font-semibold">{t("w04.live.journeyCompleted")}</h3>
                 <p className="text-sm text-muted-foreground">
-  {operation.status === "completed"
-    ? "Esta operação foi encerrada. Os fatos registrados permanecem disponíveis para consulta."
-    : t("w04.live.journeyCompletedBody")}
-</p>
+                  {operation.status === "completed"
+                    ? "Esta operação foi encerrada. Os fatos registrados permanecem disponíveis para consulta."
+                    : t("w04.live.journeyCompletedBody")}
+                </p>
                 {operation.status === "active" ? (
-  <Button asChild className="min-h-11" variant="default">
-    <Link to="/operations/$operationId" params={{ operationId }}>
-      {t("w04.live.goToOverview")}
-    </Link>
-  </Button>
-) : null}
+                  <Button asChild className="min-h-11" variant="default">
+                    <Link to="/operations/$operationId" params={{ operationId }}>
+                      {t("w04.live.goToOverview")}
+                    </Link>
+                  </Button>
+                ) : null}
               </div>
             ) : (
               <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.noCurrentBody")}</p>
