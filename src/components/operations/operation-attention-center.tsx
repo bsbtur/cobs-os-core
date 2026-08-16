@@ -4,6 +4,7 @@ import { AlertCircle, AlertTriangle, BellRing, CheckCircle2, Info, RefreshCw } f
 
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { isOperationClosed } from "@/lib/operation-lock";
 import { Button } from "@/components/ui/button";
 import { LoadingPulse } from "@/components/feedback/loading";
 
@@ -26,10 +27,16 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
   const { locale } = useI18n();
   const isLive = location.pathname.endsWith(`/operations/${operationId}/live`);
 
+  const operation = useQuery({
+    queryKey: ["operation-status", operationId], enabled: isLive, staleTime: 10_000,
+    queryFn: async () => { const { data, error } = await supabase.from("operations").select("status").eq("id", operationId).maybeSingle(); if (error) throw error; return data; },
+  });
+  const operationClosed = isOperationClosed(operation.data?.status);
+
   const query = useQuery({
     queryKey: ["px05-operation-attention", operationId],
-    enabled: isLive,
-    refetchInterval: 20_000,
+    enabled: isLive && operation.isSuccess && !operationClosed,
+    refetchInterval: operationClosed ? false : 20_000,
     refetchOnWindowFocus: true,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1_000 * 2 ** attemptIndex, 4_000),
@@ -41,7 +48,8 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
     },
   });
 
-  if (!isLive) return null;
+  if (!isLive || operationClosed) return null;
+  if (operation.isLoading) return null;
 
   if (query.isLoading) {
     return (

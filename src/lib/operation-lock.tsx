@@ -5,6 +5,13 @@ export function isOperationClosed(status: string | null | undefined): boolean {
   return status === "completed" || status === "cancelled";
 }
 
+export function operationEmptyBody(
+  operationClosed: boolean, locale: string, historicalPt: string, historicalEn: string, editableBody: string,
+): string {
+  if (!operationClosed) return editableBody;
+  return locale.toLowerCase().startsWith("pt") ? historicalPt : historicalEn;
+}
+
 export function ReadOnlyNotice({ className = "" }: { className?: string }) {
   const { t } = useI18n();
   return (

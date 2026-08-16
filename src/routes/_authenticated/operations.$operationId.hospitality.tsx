@@ -8,7 +8,7 @@ import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { formatDateTime } from "@/lib/format";
-import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
+import { isOperationClosed, operationEmptyBody, ReadOnlyNotice } from "@/lib/operation-lock";
 import {
   GUEST_STATE_TONE,
   GUEST_TRANSITIONS,
@@ -1476,7 +1476,7 @@ function HospitalityPage() {
       ) : null}
 
       {stays.length === 0 ? (
-        <EmptyState icon={BedDouble} title={t("w06.empty")} body={t("w06.emptyBody")} />
+        <EmptyState icon={BedDouble} title={t("w06.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhuma hospedagem foi registrada nesta operação.", "No accommodation was recorded for this operation.", t("w06.emptyBody"))} />
       ) : (
         <>
           <nav

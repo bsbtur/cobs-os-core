@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
-import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
+import { isOperationClosed, operationEmptyBody, ReadOnlyNotice } from "@/lib/operation-lock";
 import { useTenant } from "@/lib/tenant";
 import { fromLocalInput, toLocalInput } from "@/lib/w02";
 import { roleLabel, type RoleTypeRow } from "@/lib/w03";
@@ -1031,7 +1031,7 @@ function CommunicationTab() {
       ) : null}
 
       {messages.length === 0 ? (
-        <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={t("w08.emptyBody")} />
+        <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhuma mensagem foi registrada nesta operação.", "No message was recorded for this operation.", t("w08.emptyBody"))} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           <ul className="space-y-2">
@@ -1073,7 +1073,7 @@ function CommunicationTab() {
               operationClosed={operationClosed}
             />
           ) : (
-            <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={t("w08.emptyBody")} />
+            <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhuma mensagem foi registrada nesta operação.", "No message was recorded for this operation.", t("w08.emptyBody"))} />
           )}
         </div>
       )}

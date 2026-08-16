@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
-import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
+import { isOperationClosed, operationEmptyBody, ReadOnlyNotice } from "@/lib/operation-lock";
 import { useTenant } from "@/lib/tenant";
 import { fromLocalInput, toLocalInput } from "@/lib/w02";
 import {
@@ -1524,7 +1524,7 @@ function EventsTab() {
       </header>
 
       {list.length === 0 ? (
-        <EmptyState icon={Clapperboard} title={t("w07.empty")} body={t("w07.emptyBody")} />
+        <EmptyState icon={Clapperboard} title={t("w07.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhum evento foi registrado nesta operação.", "No event was recorded for this operation.", t("w07.emptyBody"))} />
       ) : null}
 
       {list.length > 1 ? (

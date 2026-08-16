@@ -270,8 +270,8 @@ function TeamSchedulePage() {
                   </div>
                   {assignment.notes ? <p className="mt-2 text-xs text-muted-foreground">{assignment.notes}</p> : null}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {own && assignment.status === "assigned" ? <><Button size="sm" disabled={actionsPending} onClick={() => statusMutation.mutate({ id: assignment.id, status: "confirmed" })}><Check className="mr-1 size-3.5" />{copy(locale, "Confirmar", "Confirm")}</Button><Button size="sm" variant="outline" disabled={actionsPending} onClick={() => statusMutation.mutate({ id: assignment.id, status: "declined" })}><X className="mr-1 size-3.5" />{copy(locale, "Recusar", "Decline")}</Button></> : null}
-                    {canManage && ["assigned", "confirmed"].includes(assignment.status) ? <Button size="sm" variant="outline" disabled={actionsPending} onClick={() => cancelAssignment(assignment.id)}>{statusMutation.isPending ? copy(locale, "Atualizando…", "Updating…") : copy(locale, "Cancelar escala", "Cancel assignment")}</Button> : null}
+                    {!operationClosed && own && assignment.status === "assigned" ? <><Button size="sm" disabled={actionsPending} onClick={() => statusMutation.mutate({ id: assignment.id, status: "confirmed" })}><Check className="mr-1 size-3.5" />{copy(locale, "Confirmar", "Confirm")}</Button><Button size="sm" variant="outline" disabled={actionsPending} onClick={() => statusMutation.mutate({ id: assignment.id, status: "declined" })}><X className="mr-1 size-3.5" />{copy(locale, "Recusar", "Decline")}</Button></> : null}
+                    {!operationClosed && canManage && ["assigned", "confirmed"].includes(assignment.status) ? <Button size="sm" variant="outline" disabled={actionsPending} onClick={() => cancelAssignment(assignment.id)}>{statusMutation.isPending ? copy(locale, "Atualizando…", "Updating…") : copy(locale, "Cancelar escala", "Cancel assignment")}</Button> : null}
                   </div>
                 </article>
               );

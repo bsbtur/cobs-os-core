@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
-import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
+import { isOperationClosed, operationEmptyBody, ReadOnlyNotice } from "@/lib/operation-lock";
 import {
   DISPATCH_TONE,
   LEG_KINDS,
@@ -1142,7 +1142,7 @@ function MobilityPage() {
       ) : null}
 
       {legs.length === 0 ? (
-        <EmptyState icon={Bus} title={t("w05.empty")} body={t("w05.emptyBody")} />
+        <EmptyState icon={Bus} title={t("w05.empty")} body={operationEmptyBody(operationClosed, locale, "Nenhum trecho de transporte foi registrado nesta operação.", "No transport leg was recorded for this operation.", t("w05.emptyBody"))} />
       ) : (
         <>
           <nav
