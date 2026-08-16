@@ -35,3 +35,5 @@ jobs:
           git add -A
           git commit -m "fix(alpha): omit absent planned window RPC args"
           git push origin HEAD:preview/alpha-productization-px01
+
+# one-shot trigger
