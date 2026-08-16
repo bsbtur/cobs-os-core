@@ -42,7 +42,7 @@ jobs:
           rep(old,new,'add-step')
           rep('      </header>\n\n      {journeyOrigin ? (','      </header>\n\n      {operationClosed ? <ReadOnlyNotice /> : null}\n\n      {journeyOrigin ? (','notice')
           rep('                  {baselineOpen ? (','                  {baselineOpen && !operationClosed ? (','reorder')
-          forecast='''                  <Button\n                    variant="outline"\n                    size="sm"\n                    className="min-h-10"\n                    onClick={() => setForecastStep(step)}\n                  >\n                    {t("w04.expected.change")}\n                  </Button>'''
+          forecast='''                  <Button\n                    variant="outline"\n                    size="sm"\n                    className="min-h-9"\n                    onClick={() => setForecastStep(step)}\n                  >\n                    {t("w04.expected.change")}\n                  </Button>'''
           rep(forecast,'                  {!operationClosed ? (\n'+forecast+'\n                  ) : null}','forecast')
           rep('                operationId={operationId}\n              />','                operationId={operationId}\n                operationClosed={operationClosed}\n              />','playbook-prop')
           rep('        open={applyOpen}\n        onOpenChange={setApplyOpen}','        open={applyOpen && !operationClosed}\n        onOpenChange={(open) => setApplyOpen(operationClosed ? false : open)}','apply-dialog')
