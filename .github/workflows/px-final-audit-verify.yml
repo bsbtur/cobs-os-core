@@ -51,4 +51,4 @@ jobs:
       - name: Build
         run: bun run build
 
-# Strict gate: no soft failures. Lint diagnostics are compact but remain fatal.
+# Strict gate: no soft failures. Post-format diagnostic run.
