@@ -1,4 +1,4 @@
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -10,15 +10,19 @@ import {
   Users,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import type { JourneyStepRow, Readiness, RuntimeState } from "@/lib/w04";
+
+type GuidanceTarget = "people" | "checklist" | null;
 
 type Guidance = {
   title: string;
   detail: string;
   icon: typeof ArrowRight;
   tone: "primary" | "warning" | "success" | "muted";
+  target: GuidanceTarget;
 };
 
 type Health = {
@@ -44,9 +48,9 @@ function formatMinutes(ms: number) {
 /**
  * PX04 — display-only operational guidance.
  * It reads canonical runtime facts and never writes, calls an action RPC, or
- * creates an alternative lifecycle. StepActions remains the execution layer.
- * Cockpit V2 reuses this exact guidance so there is only one recommendation
- * engine for both the validated Live runtime and the preview experience.
+ * creates an alternative lifecycle. JourneyStepActions remains the execution
+ * layer. Cockpit V2 reuses this exact guidance so there is only one
+ * recommendation engine for both the validated Live runtime and Cockpit.
  */
 export function LiveNextBestAction({ operationId }: { operationId: string }) {
   const location = useLocation();
@@ -98,15 +102,15 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
         : 0;
       const boardingStarted = Boolean(
         current &&
-        (facts.data ?? []).some(
-          (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
-        ),
+          (facts.data ?? []).some(
+            (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
+          ),
       );
       const arrived = Boolean(
         current &&
-        (facts.data ?? []).some(
-          (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
-        ),
+          (facts.data ?? []).some(
+            (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
+          ),
       );
 
       return {
@@ -158,11 +162,29 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
         </p>
         <div className="mt-1.5 flex items-start gap-2.5">
           <Icon className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">{guidance.title}</p>
             <p className="mt-0.5 text-xs opacity-80">{guidance.detail}</p>
           </div>
         </div>
+
+        {isCockpitV2 && guidance.target ? (
+          <Button asChild size="sm" variant="outline" className="mt-3 min-h-10 w-full bg-background/60">
+            <Link
+              to={
+                guidance.target === "people"
+                  ? "/operations/$operationId/people"
+                  : "/operations/$operationId/live"
+              }
+              params={{ operationId }}
+            >
+              {guidance.target === "people"
+                ? copy(locale, "Resolver viajantes", "Resolve travelers")
+                : copy(locale, "Abrir checklist", "Open checklist")}
+              <ArrowRight className="ml-2 size-4" aria-hidden="true" />
+            </Link>
+          </Button>
+        ) : null}
       </section>
     </div>
   );
@@ -290,6 +312,7 @@ function deriveGuidance({
       detail: copy(locale, `Próxima: ${next.title}.`, `Next: ${next.title}.`),
       icon: ArrowRight,
       tone: "primary",
+      target: null,
     };
   }
   if (!current) return null;
@@ -304,6 +327,7 @@ function deriveGuidance({
       ),
       icon: Users,
       tone: "warning",
+      target: "people",
     };
   }
 
@@ -318,6 +342,7 @@ function deriveGuidance({
       ),
       icon: Users,
       tone: "warning",
+      target: "people",
     };
   }
 
@@ -332,6 +357,7 @@ function deriveGuidance({
       ),
       icon: ClipboardCheck,
       tone: "warning",
+      target: "checklist",
     };
   }
 
@@ -345,6 +371,7 @@ function deriveGuidance({
       ),
       icon: ArrowRight,
       tone: "primary",
+      target: null,
     };
   }
 
@@ -362,6 +389,7 @@ function deriveGuidance({
       ),
       icon: MapPin,
       tone: "primary",
+      target: null,
     };
   }
 
@@ -375,6 +403,7 @@ function deriveGuidance({
       ),
       icon: CheckCircle2,
       tone: "success",
+      target: null,
     };
   }
 
@@ -387,5 +416,6 @@ function deriveGuidance({
     ),
     icon: ClipboardCheck,
     tone: "muted",
+    target: null,
   };
 }
