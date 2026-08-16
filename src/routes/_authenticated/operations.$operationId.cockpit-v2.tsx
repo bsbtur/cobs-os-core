@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
+import { CockpitOperationalStatus } from "@/components/journey/cockpit-operational-status";
 import { LiveNextBestAction } from "@/components/journey/live-next-best-action";
 import { JourneyStepActions } from "@/components/journey/journey-step-actions";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
@@ -26,15 +27,15 @@ import type {
 export const Route = createFileRoute("/_authenticated/operations/$operationId/cockpit-v2")({
   head: () => ({
     meta: [
-      { title: "Cockpit UX V2 — COBS OS" },
+      { title: "Cockpit — COBS OS" },
       {
         name: "description",
-        content: "Preview mobile-first do cockpit operacional COBS OS.",
+        content: "Cockpit operacional mobile-first do COBS OS.",
       },
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: CockpitV2Preview,
+  component: Cockpit,
 });
 
 type RosterRow = {
@@ -51,7 +52,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CockpitV2Preview() {
+function Cockpit() {
   const { operationId } = useParams({
     from: "/_authenticated/operations/$operationId/cockpit-v2",
   });
@@ -121,7 +122,7 @@ function CockpitV2Preview() {
       <EmptyState
         icon={Radio}
         title="Operação indisponível"
-        body="Não foi possível carregar esta operação para o preview do Cockpit V2."
+        body="Não foi possível carregar esta operação no Cockpit."
       />
     );
   }
@@ -167,7 +168,7 @@ function CockpitV2Preview() {
       <header className="space-y-1 px-1">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <Eyebrow>COBS Cockpit UX V2</Eyebrow>
+            <Eyebrow>COBS Cockpit</Eyebrow>
             <h1 className="mt-1 truncate text-xl font-semibold tracking-tight">{operation.name}</h1>
           </div>
           <span
@@ -181,6 +182,12 @@ function CockpitV2Preview() {
           </span>
         </div>
       </header>
+
+      <CockpitOperationalStatus
+        current={current}
+        readiness={readiness}
+        unconfirmedCount={unconfirmed}
+      />
 
       <article className="overflow-hidden rounded-3xl border border-primary/30 bg-elevated shadow-sm">
         <div className="p-4 sm:p-6">
@@ -198,7 +205,7 @@ function CockpitV2Preview() {
                 {current.location_label ?? "Etapa operacional em execução"}
               </p>
 
-              <LiveTimingStrip current={current} next={next} />
+              <LiveTimingStrip current={current} />
             </>
           ) : next ? (
             <>
