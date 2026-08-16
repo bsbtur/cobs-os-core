@@ -199,13 +199,10 @@ function CockpitV2Preview() {
           <LiveNextBestAction operationId={operationId} />
           <Button asChild className="min-h-14 w-full justify-between rounded-2xl px-4 text-base">
             <Link to="/operations/$operationId/live" params={{ operationId }}>
-              <span>Abrir ação operacional</span>
+              <span>Executar próxima ação</span>
               <ArrowRight className="size-5" aria-hidden="true" />
             </Link>
           </Button>
-          <p className="text-xs text-muted-foreground">
-            A recomendação é inteligente; a execução permanece no runtime Live validado.
-          </p>
         </div>
       </article>
 
@@ -308,11 +305,6 @@ function CockpitV2Preview() {
           </Link>
         </Button>
       </div>
-
-      <p className="px-1 text-xs text-muted-foreground">
-        Preview V2: leitura operacional resumida. As ações continuam sendo executadas no runtime
-        Live validado.
-      </p>
 
       <nav
         aria-label="Navegação rápida do Cockpit"
