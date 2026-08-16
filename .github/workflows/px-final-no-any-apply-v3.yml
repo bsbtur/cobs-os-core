@@ -1,0 +1,93 @@
+name: PX final no-any apply v3
+on:
+  push:
+    branches: [preview/alpha-productization-px01]
+    paths: [.github/workflows/px-final-no-any-apply-v3.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Sync scoped types and remove explicit any
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          def one(path, old, new, label):
+              p=Path(path); s=p.read_text(); n=s.count(old); print(label,n)
+              if n != 1: raise SystemExit(f'{label}: expected 1 got {n}')
+              p.write_text(s.replace(old,new,1))
+          types=Path('src/integrations/supabase/types.ts'); s=types.read_text()
+          if '      operation_staff_assignments: {' not in s:
+              table='''      operation_staff_assignments: {\n        Row: { cancelled_at: string | null; completed_at: string | null; confirmed_at: string | null; created_at: string; created_by: string | null; declined_at: string | null; ends_at: string; id: string; notes: string | null; operation_id: string; participation_id: string; report_at: string | null; role_type_id: string; starts_at: string; status: Database["public"]["Enums"]["staff_assignment_status"]; tenant_id: string; updated_at: string; updated_by: string | null };\n        Insert: { cancelled_at?: string | null; completed_at?: string | null; confirmed_at?: string | null; created_at?: string; created_by?: string | null; declined_at?: string | null; ends_at: string; id?: string; notes?: string | null; operation_id: string; participation_id: string; report_at?: string | null; role_type_id: string; starts_at: string; status?: Database["public"]["Enums"]["staff_assignment_status"]; tenant_id: string; updated_at?: string; updated_by?: string | null };\n        Update: { cancelled_at?: string | null; completed_at?: string | null; confirmed_at?: string | null; created_at?: string; created_by?: string | null; declined_at?: string | null; ends_at?: string; id?: string; notes?: string | null; operation_id?: string; participation_id?: string; report_at?: string | null; role_type_id?: string; starts_at?: string; status?: Database["public"]["Enums"]["staff_assignment_status"]; tenant_id?: string; updated_at?: string; updated_by?: string | null };\n        Relationships: [\n          { foreignKeyName: "operation_staff_assignments_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },\n          { foreignKeyName: "operation_staff_assignments_operation_fk"; columns: ["operation_id", "tenant_id"]; isOneToOne: false; referencedRelation: "operations"; referencedColumns: ["id", "tenant_id"] },\n          { foreignKeyName: "operation_staff_assignments_participation_fk"; columns: ["participation_id", "tenant_id"]; isOneToOne: false; referencedRelation: "operation_participations"; referencedColumns: ["id", "tenant_id"] },\n          { foreignKeyName: "operation_staff_assignments_role_type_fk"; columns: ["role_type_id", "tenant_id"]; isOneToOne: false; referencedRelation: "operation_role_types"; referencedColumns: ["id", "tenant_id"] },\n          { foreignKeyName: "operation_staff_assignments_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "tenants"; referencedColumns: ["id"] },\n          { foreignKeyName: "operation_staff_assignments_updated_by_fkey"; columns: ["updated_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },\n        ];\n      };\n'''
+              anchor='      operations: {'
+              if s.count(anchor)!=1: raise SystemExit('operations anchor')
+              s=s.replace(anchor,table+anchor,1)
+          snippets=[
+            ('      generate_due_staff_journey_alerts: {','      generate_due_staff_journey_alerts: { Args: { _tenant_id: string; _window_end?: string; _window_start?: string }; Returns: Json };\n'),
+            ('      get_my_message_inbox: {','      get_my_message_inbox: { Args: { _limit?: number; _tenant_id: string }; Returns: Json };\n'),
+            ('      get_operation_staff_assignment_conflicts: {','      get_operation_staff_assignment_conflicts: { Args: { _from: string; _tenant_id: string; _to: string }; Returns: { assignment_id: string; conflicting_assignment_id: string; overlap_end: string; overlap_start: string; participation_id: string }[] };\n'),
+            ('      mark_message_read: {','      mark_message_read: { Args: { _message_id: string }; Returns: Json };\n'),
+            ('      save_operation_staff_assignment: {','      save_operation_staff_assignment: { Args: { _assignment_id?: string; _ends_at: string; _notes?: string; _operation_id: string; _participation_id: string; _report_at?: string; _role_type_id: string; _starts_at: string; _tenant_id: string }; Returns: string };\n'),
+            ('      set_operation_staff_assignment_status: {','      set_operation_staff_assignment_status: { Args: { _assignment_id: string; _note?: string; _status: Database["public"]["Enums"]["staff_assignment_status"] }; Returns: undefined };\n')]
+          fa='      get_commerce_catalog: {'
+          for key,snip in snippets:
+              if key not in s:
+                  if s.count(fa)!=1: raise SystemExit('function anchor')
+                  s=s.replace(fa,snip+fa,1)
+          ea='      step_plan_origin: "planned" | "ad_hoc";'
+          if '      staff_assignment_status:' not in s:
+              if s.count(ea)!=1: raise SystemExit('enum anchor')
+              s=s.replace(ea,'      staff_assignment_status: "assigned" | "confirmed" | "declined" | "cancelled" | "completed";\n'+ea,1)
+          types.write_text(s)
+          one('src/components/operations/personal-alerts.tsx','  const db = supabase as any;\n','','alerts any')
+          p=Path('src/components/operations/personal-alerts.tsx'); p.write_text(p.read_text().replace('await db.rpc(','await supabase.rpc('))
+          one('src/components/operations/personal-operation-queue.tsx','  const db = supabase as any;\n','','queue any')
+          p=Path('src/components/operations/personal-operation-queue.tsx'); q=p.read_text()
+          q=q.replace('        db\n          .from("operation_staff_assignments")','        supabase\n          .from("operation_staff_assignments")').replace('await db.rpc(','await supabase.rpc(')
+          old='      const staffByParticipation = new Map<string, any[]>();\n      for (const row of staffAssignments.data ?? []) {'
+          new='      type StaffAssignmentRow = NonNullable<typeof staffAssignments.data>[number];\n      const staffByParticipation = new Map<string, StaffAssignmentRow[]>();\n      for (const row of staffAssignments.data ?? []) {'
+          if q.count(old)!=1: raise SystemExit('queue map')
+          q=q.replace(old,new,1).replace('typeof useMutation<any, Error, { assignmentId: string; status: "confirmed" | "declined" }>','typeof useMutation<void, Error, { assignmentId: string; status: "confirmed" | "declined" }>',1).replace('        _status: status,\n        _note: null,','        _status: status,',1)
+          p.write_text(q)
+          one('src/routes/_authenticated/operations.$operationId.schedule.tsx','  const db = supabase as any;\n','','schedule any')
+          p=Path('src/routes/_authenticated/operations.$operationId.schedule.tsx'); q=p.read_text()
+          q=q.replace('        db\n          .from(','        supabase\n          .from(').replace('        db.rpc(','        supabase.rpc(').replace('? db.from(','? supabase.from(').replace('await db.rpc(','await supabase.rpc(')
+          q=q.replace('(p: any) => one(p.people)?.id === me.data.id','(p) => one(p.people)?.id === meId').replace('      let myParticipationId: string | null = null;\n      if (me.data?.id) {','      let myParticipationId: string | null = null;\n      const meId = me.data?.id;\n      if (meId) {',1)
+          ra='      return {\n        operation: operation.data,'
+          if q.count(ra)!=1: raise SystemExit('operation return anchor')
+          q=q.replace(ra,'      if (!operation.data) throw new Error(copy(locale, "Operação não encontrada.", "Operation not found."));\n\n      return {\n        operation: operation.data,',1)
+          old='        _starts_at: start.toISOString(),\n        _ends_at: end.toISOString(),\n        _report_at: form.reportAt ? new Date(form.reportAt).toISOString() : null,\n        _notes: form.notes || null,\n        _assignment_id: null,'
+          new='        _starts_at: start.toISOString(),\n        _ends_at: end.toISOString(),\n        ...(form.reportAt ? { _report_at: new Date(form.reportAt).toISOString() } : {}),\n        ...(form.notes ? { _notes: form.notes } : {}),'
+          if q.count(old)!=1: raise SystemExit('save optional args')
+          q=q.replace(old,new,1).replace('        _status: status,\n        _note: null,','        _status: status,',1).replace('onError: (err: any) =>','onError: (err: unknown) =>')
+          q=q.replace('err?.message ??\n          copy(locale, "Não foi possível salvar a escala.", "Could not save schedule.")','err instanceof Error\n          ? err.message\n          : copy(locale, "Não foi possível salvar a escala.", "Could not save schedule.")').replace('err?.message ??\n          copy(locale, "Não foi possível alterar a escala.", "Could not update schedule.")','err instanceof Error\n          ? err.message\n          : copy(locale, "Não foi possível alterar a escala.", "Could not update schedule.")').replace('conflicts.flatMap((item: any) => [item.assignment_id, item.conflicting_assignment_id])','conflicts.flatMap((item) => [item.assignment_id, item.conflicting_assignment_id])')
+          p.write_text(q)
+          p=Path('src/routes/api.cron.staff-alerts.ts'); q=p.read_text(); start=q.find('  const generateDueAlerts = supabase.rpc as unknown as (')
+          if start>=0:
+              end=q.find('\n\n',start)
+              if end<0: raise SystemExit('cast end')
+              q=q[:start]+q[end+2:]
+          p.write_text(q.replace('await generateDueAlerts("generate_due_staff_journey_alerts", {','await supabase.rpc("generate_due_staff_journey_alerts", {'))
+          PY
+          bunx prettier --write src/integrations/supabase/types.ts src/components/operations/personal-alerts.tsx src/components/operations/personal-operation-queue.tsx 'src/routes/_authenticated/operations.$operationId.schedule.tsx' src/routes/api.cron.staff-alerts.ts
+          bunx tsc --noEmit
+          bunx eslint .
+          git diff --check
+      - name: Commit scoped typing fix
+        run: |
+          rm -f .github/workflows/px-final-no-any-apply.yml .github/workflows/px-final-no-any-apply-v2.yml .github/workflows/px-final-no-any-apply-v3.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(alpha): sync staff schedule Supabase types"
+          git push origin HEAD:preview/alpha-productization-px01
+# one-shot trigger
