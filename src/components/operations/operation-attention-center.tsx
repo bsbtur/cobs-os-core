@@ -30,6 +30,9 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
     queryKey: ["px05-operation-attention", operationId],
     enabled: isLive,
     refetchInterval: 20_000,
+    refetchOnWindowFocus: true,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1_000 * 2 ** attemptIndex, 4_000),
     queryFn: async () => {
       const rpc = supabase.rpc as unknown as Rpc;
       const { data, error } = await rpc("get_operation_intelligence", { _operation_id: operationId });
@@ -57,7 +60,7 @@ export function OperationAttentionCenter({ operationId }: { operationId: string 
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-warning">{copy(locale, "Central de atenção", "Attention center")}</p>
               <p className="mt-1 text-sm font-semibold">{copy(locale, "Não foi possível atualizar os sinais operacionais", "Could not refresh operational signals")}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{copy(locale, "Não interprete a ausência de alertas como operação saudável até a atualização concluir.", "Do not treat missing alerts as a healthy operation until refresh completes.")}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{copy(locale, "As tentativas automáticas falharam. Não interprete a ausência de alertas como operação saudável até uma atualização bem-sucedida.", "Automatic retries failed. Do not treat missing alerts as a healthy operation until a refresh succeeds.")}</p>
             </div>
           </div>
           <Button size="sm" variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
