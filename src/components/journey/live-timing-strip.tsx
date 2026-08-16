@@ -41,10 +41,7 @@ export type TimingSnapshot = {
   lateMs: number;
 };
 
-export function deriveTimingSnapshot(
-  step: JourneyStepRow | null,
-  now: number,
-): TimingSnapshot {
+export function deriveTimingSnapshot(step: JourneyStepRow | null, now: number): TimingSnapshot {
   const startAt = startOf(step);
   const endAt = endOf(step);
   const remainingMs = endAt === null ? null : endAt - now;
