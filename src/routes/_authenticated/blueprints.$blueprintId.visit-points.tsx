@@ -580,10 +580,9 @@ function LibraryWorkspace({ blueprintId }: { blueprintId: string }) {
 }
 
 function BlueprintVisitPointLibraryPage() {
-  // @ts-expect-error TanStack regenerates routeTree.gen.ts after discovering this new route.
-  const { blueprintId } = useParams({
-    from: "/_authenticated/blueprints/$blueprintId/visit-points",
-  });
+  const params = useParams({ strict: false }) as { blueprintId?: string };
+  const blueprintId = params.blueprintId ?? "";
+
   return (
     <AppShell activeId="blueprints" title="Biblioteca interpretativa">
       <div className="mx-auto w-full max-w-5xl">
