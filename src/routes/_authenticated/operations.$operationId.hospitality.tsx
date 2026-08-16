@@ -8,6 +8,7 @@ import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { formatDateTime } from "@/lib/format";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 import {
   GUEST_STATE_TONE,
   GUEST_TRANSITIONS,
@@ -1394,7 +1395,8 @@ function HospitalityPage() {
   const overview = detail.data?.overview ?? null;
   const rooms = detail.data?.rooming?.rooms ?? [];
   const guests = detail.data?.guests?.guests ?? [];
-  const terminal = isTerminalStay(overview?.status);
+  const operationClosed = isOperationClosed(operation.status);
+  const terminal = operationClosed || isTerminalStay(overview?.status);
   const checkinOpen = Boolean(overview?.checkin_opened_at);
   const action = nextAction(overview, rooms);
 
@@ -1461,13 +1463,17 @@ function HospitalityPage() {
         <p className="mt-1 text-xs text-muted-foreground">{t("w06.boundary")}</p>
       </header>
 
-      <div className="flex flex-wrap gap-2">
+      {operationClosed ? <ReadOnlyNotice /> : null}
+
+      {!operationClosed ? (
+        <div className="flex flex-wrap gap-2">
         <CreateStayDialog
           operationId={operationId}
           properties={base.data?.properties ?? []}
           onDone={refresh}
         />
-      </div>
+        </div>
+      ) : null}
 
       {stays.length === 0 ? (
         <EmptyState icon={BedDouble} title={t("w06.empty")} body={t("w06.emptyBody")} />

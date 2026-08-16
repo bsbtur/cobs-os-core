@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
+import { isOperationClosed, ReadOnlyNotice } from "@/lib/operation-lock";
 import {
   DISPATCH_TONE,
   LEG_KINDS,
@@ -1104,6 +1105,7 @@ function MobilityPage() {
 
   const timeZone = operation.timezone;
   const planning = operation.status === "draft" || operation.status === "planning";
+  const operationClosed = isOperationClosed(operation.status);
   /* DEF-UI-1: the timeline is scoped to the selected leg only. */
   const legEvents = selected
     ? (detail.data?.legEvents ?? []).filter((event) => event.transport_leg_id === selected.id)
@@ -1118,7 +1120,10 @@ function MobilityPage() {
         <p className="mt-1 text-xs text-muted-foreground">{t("w05.boundary")}</p>
       </header>
 
-      <div className="flex flex-wrap gap-2">
+      {operationClosed ? <ReadOnlyNotice /> : null}
+
+      {!operationClosed ? (
+        <div className="flex flex-wrap gap-2">
         {planning ? (
           <CreateLegDialog
             operationId={operationId}
@@ -1133,7 +1138,8 @@ function MobilityPage() {
           steps={data.data?.steps ?? []}
           onDone={refresh}
         />
-      </div>
+        </div>
+      ) : null}
 
       {legs.length === 0 ? (
         <EmptyState icon={Bus} title={t("w05.empty")} body={t("w05.emptyBody")} />
@@ -1214,6 +1220,8 @@ function MobilityPage() {
                   </p>
                 ) : null}
 
+                {!operationClosed ? (
+                  <>
                 <div className="mt-4 space-y-3">
                   <SectionLabel>{t("w05.action.assignVehicle")}</SectionLabel>
                   <AssignmentPanel
@@ -1235,6 +1243,8 @@ function MobilityPage() {
                 <div className="mt-5">
                   <LegControls leg={selected} state={state} onRefresh={refresh} />
                 </div>
+                  </>
+                ) : null}
               </article>
 
               <StopsPanel
