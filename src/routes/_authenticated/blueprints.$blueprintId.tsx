@@ -730,12 +730,21 @@ function DraftEditor({
                     <Chip className="border border-border text-muted-foreground">
                       {t(`w04.kind.${step.step_kind}`)}
                     </Chip>
-                    <Chip className={interpretiveCoverageClass(visitPointCounts.get(step.id) ?? 0)}>
-                      <Lightbulb className="mr-1 size-3.5" aria-hidden="true" />
-                      {visitPointCounts.get(step.id) ?? 0} pontos ·{" "}
-                      {interpretiveCoverageLabel(visitPointCounts.get(step.id) ?? 0)}
-                    </Chip>
-                    {(visitPointCounts.get(step.id) ?? 0) < 4 ? (
+                    {editorialPriority(step) === 0 && (visitPointCounts.get(step.id) ?? 0) === 0 ? (
+                      <Chip className="border border-border text-muted-foreground">
+                        <Lightbulb className="mr-1 size-3.5" aria-hidden="true" />
+                        Conteúdo opcional
+                      </Chip>
+                    ) : (
+                      <Chip
+                        className={interpretiveCoverageClass(visitPointCounts.get(step.id) ?? 0)}
+                      >
+                        <Lightbulb className="mr-1 size-3.5" aria-hidden="true" />
+                        {visitPointCounts.get(step.id) ?? 0} pontos ·{" "}
+                        {interpretiveCoverageLabel(visitPointCounts.get(step.id) ?? 0)}
+                      </Chip>
+                    )}
+                    {editorialPriority(step) > 0 && (visitPointCounts.get(step.id) ?? 0) < 4 ? (
                       <Button asChild variant="ghost" size="sm" className="min-h-9 px-2 text-xs">
                         <a
                           href={`/blueprints/${version.blueprint_id}/visit-points#step-${step.id}`}
