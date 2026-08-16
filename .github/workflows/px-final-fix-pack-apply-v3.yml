@@ -37,7 +37,7 @@ jobs:
           p=Path('src/components/operations/personal-operation-queue.tsx'); s=p.read_text(); old='to={`/operations/${item.operationId}`}'
           if s.count(old)!=2: raise SystemExit('queue route mismatch')
           p.write_text(s.replace(old,'to="/operations/$operationId" params={{ operationId: item.operationId }}'))
-          r('src/routes/_authenticated/operations.$operationId.events.tsx','canOperate={liveCanOperate}','canOperate={canOperate}')
+          r('src/routes/_authenticated/operations.$operationId.events.tsx','                  spaces={spaces}\n                  canOperate={liveCanOperate}\n                  onChanged={onChanged}','                  spaces={spaces}\n                  canOperate={canOperate}\n                  onChanged={onChanged}')
           p=Path('src/routes/api.cron.staff-alerts.ts'); s=p.read_text(); marker='  const results: Array<{ tenantId: string; result?: GeneratorResult; error?: string }> = [];\n\n'
           if marker not in s: raise SystemExit('staff marker missing')
           cast='  const generateDueAlerts = supabase.rpc as unknown as (\n    fn: "generate_due_staff_journey_alerts",\n    args: { _tenant_id: string; _window_start: string; _window_end: string },\n  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;\n\n'
