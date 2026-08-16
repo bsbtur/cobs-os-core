@@ -1,4 +1,4 @@
-name: PX visit points type sync once
+name: PX visit points integrate once
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  sync:
+  integrate:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -20,17 +20,19 @@ jobs:
           ref: preview/alpha-productization-px01
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: python3 .github/scripts/patch_visit_points_types.py
-      - run: bunx prettier --write src/integrations/supabase/types.ts src/components/journey/visit-points-panel.tsx
+      - run: python3 .github/scripts/integrate_visit_points_cockpit.py
+      - run: bunx prettier --write src/routes/_authenticated/operations.$operationId.cockpit-v2.tsx
+      - run: bun test
       - run: bunx tsc --noEmit
       - run: bun run lint
-      - name: Commit synchronized types
+      - run: bun run build
+      - name: Commit cockpit integration
         run: |
           git config user.name "bsbtur"
           git config user.email "contato.bsbtur@gmail.com"
-          git add -- src/integrations/supabase/types.ts src/components/journey/visit-points-panel.tsx
+          git add -- 'src/routes/_authenticated/operations.$operationId.cockpit-v2.tsx'
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "feat(visit-points): sync schema types"
+          git commit -m "feat(visit-points): surface runtime in cockpit"
           git push origin HEAD:preview/alpha-productization-px01
