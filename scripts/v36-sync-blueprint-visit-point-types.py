@@ -153,24 +153,17 @@ if 'import type { Database } from "@/integrations/supabase/types";' not in route
         1,
     )
 
-start = route.index("type VisitPoint = {")
-end = route.index("\n\ntype PointForm", start)
-route = (
-    route[:start]
-    + 'type VisitPoint = Database["public"]["Tables"]["journey_blueprint_visit_points"]["Row"];'
-    + route[end:]
-)
-
-route = route.replace(
-    "// @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.\n",
-    "",
-)
-route = route.replace(
-    "// @ts-expect-error V3.5 QA table will enter generated types in the housekeeping commit.\n",
-    "",
-)
+if "type VisitPoint = {" in route:
+    start = route.index("type VisitPoint = {")
+    end = route.index("\n\ntype PointForm", start)
+    route = (
+        route[:start]
+        + 'type VisitPoint = Database["public"]["Tables"]["journey_blueprint_visit_points"]["Row"];'
+        + route[end:]
+    )
 
 old_query = '''      const result = await supabase
+        // @ts-expect-error V3.5 QA table will enter generated types in the housekeeping commit.
         .from("journey_blueprint_visit_points")
         .select("*");
       if (result.error) throw result.error;
@@ -185,7 +178,17 @@ new_query = '''      const result = await supabase
         .order("sequence");
       if (result.error) throw result.error;
       return result.data ?? [];'''
-if old_query not in route:
-    raise SystemExit("typed query replacement anchor not found")
-route = route.replace(old_query, new_query, 1)
+if old_query in route:
+    route = route.replace(old_query, new_query, 1)
+elif '.from("journey_blueprint_visit_points")' not in route:
+    raise SystemExit("visit point query not found")
+
+route = route.replace(
+    "      // @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.\n",
+    "",
+)
+route = route.replace(
+    "        // @ts-expect-error V3.5 QA RPC will enter generated types in the housekeeping commit.\n",
+    "",
+)
 route_path.write_text(route)
