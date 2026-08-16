@@ -21,7 +21,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: python3 .github/scripts/integrate_visit_points_cockpit.py
-      - run: bunx prettier --write src/routes/_authenticated/operations.$operationId.cockpit-v2.tsx
+      - run: bunx prettier --write 'src/routes/_authenticated/operations.$operationId.cockpit-v2.tsx'
       - run: bun test
       - run: bunx tsc --noEmit
       - run: bun run lint
