@@ -1,11 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle,
   ArrowRight,
   CheckCircle2,
   ClipboardCheck,
-  Clock3,
   MapPin,
   Users,
 } from "lucide-react";
@@ -25,32 +23,16 @@ type Guidance = {
   target: GuidanceTarget;
 };
 
-type Health = {
-  title: string;
-  detail: string;
-  icon: typeof CheckCircle2;
-  tone: "success" | "warning" | "critical" | "muted";
-};
-
 function copy(locale: string, pt: string, en: string) {
   return locale.toLowerCase().startsWith("pt") ? pt : en;
 }
 
-function formatMinutes(ms: number) {
-  const totalMinutes = Math.max(1, Math.floor(Math.abs(ms) / 60_000));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours === 0) return `${minutes} min`;
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes}min`;
-}
-
 /**
- * PX04 — display-only operational guidance.
+ * Display-only operational guidance.
  * It reads canonical runtime facts and never writes, calls an action RPC, or
  * creates an alternative lifecycle. JourneyStepActions remains the execution
- * layer. Cockpit V2 reuses this exact guidance so there is only one
- * recommendation engine for both the validated Live runtime and Cockpit.
+ * layer. Live and Cockpit reuse this exact guidance so there is only one
+ * recommendation engine across operational surfaces.
  */
 export function LiveNextBestAction({ operationId }: { operationId: string }) {
   const location = useLocation();
@@ -102,15 +84,15 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
         : 0;
       const boardingStarted = Boolean(
         current &&
-        (facts.data ?? []).some(
-          (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
-        ),
+          (facts.data ?? []).some(
+            (row) => row.journey_step_id === current.id && row.event_type === "BOARDING_STARTED",
+          ),
       );
       const arrived = Boolean(
         current &&
-        (facts.data ?? []).some(
-          (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
-        ),
+          (facts.data ?? []).some(
+            (row) => row.journey_step_id === current.id && row.event_type === "ARRIVED",
+          ),
       );
 
       return {
@@ -140,10 +122,6 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
   });
   if (!guidance) return null;
 
-  const health = isCockpitV2
-    ? deriveHealth({ locale, current, readiness, unconfirmedCount })
-    : null;
-
   const Icon = guidance.icon;
   const toneClass = {
     primary: "border-primary/30 bg-primary-soft/45",
@@ -153,145 +131,42 @@ export function LiveNextBestAction({ operationId }: { operationId: string }) {
   }[guidance.tone];
 
   return (
-    <div className="space-y-3">
-      {health ? <HealthStrip health={health} /> : null}
-
-      <section className={`rounded-xl border px-4 py-3 ${toneClass}`} aria-live="polite">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-70">
-          {copy(locale, "Próxima ação recomendada", "Recommended next action")}
-        </p>
-        <div className="mt-1.5 flex items-start gap-2.5">
-          <Icon className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">{guidance.title}</p>
-            <p className="mt-0.5 text-xs opacity-80">{guidance.detail}</p>
-          </div>
-        </div>
-
-        {isCockpitV2 && guidance.target ? (
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="mt-3 min-h-10 w-full bg-background/60"
-          >
-            <Link
-              to={
-                guidance.target === "people"
-                  ? "/operations/$operationId/people"
-                  : "/operations/$operationId/live"
-              }
-              params={{ operationId }}
-            >
-              {guidance.target === "people"
-                ? copy(locale, "Resolver viajantes", "Resolve travelers")
-                : copy(locale, "Abrir checklist", "Open checklist")}
-              <ArrowRight className="ml-2 size-4" aria-hidden="true" />
-            </Link>
-          </Button>
-        ) : null}
-      </section>
-    </div>
-  );
-}
-
-function HealthStrip({ health }: { health: Health }) {
-  const Icon = health.icon;
-  const toneClass = {
-    success: "border-success/30 bg-success-soft text-success",
-    warning: "border-warning/30 bg-warning-soft text-warning",
-    critical: "border-destructive/30 bg-destructive/10 text-destructive",
-    muted: "border-border bg-muted/60 text-muted-foreground",
-  }[health.tone];
-
-  return (
-    <section className={`rounded-2xl border px-4 py-3 ${toneClass}`} aria-live="polite">
+    <section className={`rounded-xl border px-4 py-3 ${toneClass}`} aria-live="polite">
       <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-70">
-        Saúde operacional
+        {copy(locale, "Próxima ação recomendada", "Recommended next action")}
       </p>
       <div className="mt-1.5 flex items-start gap-2.5">
         <Icon className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">{health.title}</p>
-          <p className="mt-0.5 text-xs opacity-80">{health.detail}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">{guidance.title}</p>
+          <p className="mt-0.5 text-xs opacity-80">{guidance.detail}</p>
         </div>
       </div>
+
+      {isCockpitV2 && guidance.target ? (
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="mt-3 min-h-10 w-full bg-background/60"
+        >
+          <Link
+            to={
+              guidance.target === "people"
+                ? "/operations/$operationId/people"
+                : "/operations/$operationId/live"
+            }
+            params={{ operationId }}
+          >
+            {guidance.target === "people"
+              ? copy(locale, "Resolver viajantes", "Resolve travelers")
+              : copy(locale, "Abrir checklist", "Open checklist")}
+            <ArrowRight className="ml-2 size-4" aria-hidden="true" />
+          </Link>
+        </Button>
+      ) : null}
     </section>
   );
-}
-
-function deriveHealth({
-  locale,
-  current,
-  readiness,
-  unconfirmedCount,
-}: {
-  locale: string;
-  current: JourneyStepRow | null;
-  readiness: Readiness | null;
-  unconfirmedCount: number;
-}): Health {
-  if (!current) {
-    return {
-      title: copy(locale, "Operação sem etapa ativa", "No active step"),
-      detail: copy(
-        locale,
-        "Aguardando início da próxima etapa ou encerramento da jornada.",
-        "Waiting for the next step or journey completion.",
-      ),
-      icon: Clock3,
-      tone: "muted",
-    };
-  }
-
-  const endRaw = current.expected_end ?? current.planned_end ?? null;
-  const endAt = endRaw ? new Date(endRaw).getTime() : null;
-  const lateMs = endAt !== null && Number.isFinite(endAt) ? Date.now() - endAt : 0;
-
-  if (lateMs > 0) {
-    return {
-      title: copy(locale, `Atraso +${formatMinutes(lateMs)}`, `Delay +${formatMinutes(lateMs)}`),
-      detail: copy(
-        locale,
-        "A etapa atual ultrapassou o horário previsto de encerramento.",
-        "The current step has passed its planned end time.",
-      ),
-      icon: Clock3,
-      tone: "critical",
-    };
-  }
-
-  const missingPeople = readiness?.missing_participations.length ?? 0;
-  const missingItems = readiness?.missing_required_items.length ?? 0;
-  const pendingCount = unconfirmedCount + missingPeople + missingItems;
-
-  if (pendingCount > 0 || readiness?.ready === false) {
-    return {
-      title: copy(
-        locale,
-        `${Math.max(1, pendingCount)} pendência(s) exigem atenção`,
-        `${Math.max(1, pendingCount)} issue(s) need attention`,
-      ),
-      detail: copy(
-        locale,
-        "Resolva os bloqueios indicados abaixo antes de avançar.",
-        "Resolve the blockers below before advancing.",
-      ),
-      icon: AlertTriangle,
-      tone: "warning",
-    };
-  }
-
-  return {
-    title: copy(locale, "Operação no ritmo", "Operation on track"),
-    detail: copy(
-      locale,
-      "Nenhum bloqueio conhecido na etapa atual.",
-      "No known blocker on the current step.",
-    ),
-    icon: CheckCircle2,
-    tone: "success",
-  };
 }
 
 function deriveGuidance({
