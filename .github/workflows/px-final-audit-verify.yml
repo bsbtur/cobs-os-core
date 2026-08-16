@@ -1,0 +1,29 @@
+name: PX final audit verify
+
+on:
+  push:
+    branches:
+      - preview/alpha-productization-px01
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/alpha-productization-px01
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Tests
+        run: bun test
+      - name: Typecheck
+        run: bunx tsc --noEmit
+      - name: Lint
+        run: bun run lint
+      - name: Build
+        run: bun run build
