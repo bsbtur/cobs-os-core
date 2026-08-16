@@ -1,0 +1,40 @@
+name: Alpha Final Audit
+
+on:
+  push:
+    branches: [audit/alpha-final-20260816]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Full tests
+        id: tests
+        continue-on-error: true
+        run: bun test
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: bunx tsc --noEmit
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: bun run build
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: bun run lint
+      - name: Summary
+        run: |
+          echo "tests=${{ steps.tests.outcome }}"
+          echo "typecheck=${{ steps.typecheck.outcome }}"
+          echo "build=${{ steps.build.outcome }}"
+          echo "lint=${{ steps.lint.outcome }}"
+          test "${{ steps.tests.outcome }}" = success
+          test "${{ steps.typecheck.outcome }}" = success
+          test "${{ steps.build.outcome }}" = success
+          test "${{ steps.lint.outcome }}" = success
