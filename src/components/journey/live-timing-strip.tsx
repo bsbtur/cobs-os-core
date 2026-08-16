@@ -126,7 +126,12 @@ function SecondaryTiming({
   );
 }
 
-export function LiveTimingStrip({ current }: { current: JourneyStepRow | null }) {
+export function LiveTimingStrip({
+  current,
+}: {
+  current: JourneyStepRow | null;
+  next?: JourneyStepRow | null;
+}) {
   const { t } = useI18n();
   const now = useNow();
 
