@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Receipt, ShoppingBag } from "lucide-react";
+import { Plus, QrCode, Receipt, ShoppingBag } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -247,6 +247,12 @@ function CommerceWorkspace() {
         </Button>
         <Button asChild variant="outline" className="min-h-11">
           <Link to="/settings/catalog">{t("w09.catalog.title")}</Link>
+        </Button>
+        <Button asChild variant="outline" className="min-h-11">
+          <Link to="/commerce/payments">
+            <QrCode className="mr-2 size-4" aria-hidden />
+            COBS Payments · Pix
+          </Link>
         </Button>
       </div>
 
