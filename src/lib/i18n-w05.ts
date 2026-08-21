@@ -79,6 +79,8 @@ export const W05_PT: Record<string, string> = {
   "w05.action.setForecast": "Ajustar previsão",
   "w05.action.assignVehicle": "Designar veículo",
   "w05.action.assignDriver": "Designar motorista",
+  "w05.driver.noCandidates":
+    "Nenhuma pessoa desta operação tem a responsabilidade Motorista. Adicione em Pessoas.",
   "w05.action.clearAssignment": "Limpar designação",
   "w05.action.recorded": "Registrado.",
 
@@ -245,6 +247,8 @@ export const W05_EN: Record<string, string> = {
   "w05.action.setForecast": "Adjust forecast",
   "w05.action.assignVehicle": "Assign vehicle",
   "w05.action.assignDriver": "Assign driver",
+  "w05.driver.noCandidates":
+    "No one in this operation holds the Driver responsibility. Add it in People.",
   "w05.action.clearAssignment": "Clear assignment",
   "w05.action.recorded": "Recorded.",
 

@@ -4679,6 +4679,14 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_operation_driver_to_leg: {
+        Args: {
+          _person_id: string
+          _reason?: string
+          _transport_leg_id: string
+        }
+        Returns: Json
+      }
       assign_operation_role: {
         Args: {
           _is_primary?: boolean
@@ -6159,6 +6167,10 @@ export type Database = {
       w05_leg_manifest: { Args: { _transport_leg_id: string }; Returns: Json }
       w05_leg_seat_candidates: {
         Args: { _transport_leg_id: string }
+        Returns: Json
+      }
+      w05_operation_driver_candidates: {
+        Args: { _operation_id: string }
         Returns: Json
       }
       w05_operation_mobility: { Args: { _operation_id: string }; Returns: Json }
