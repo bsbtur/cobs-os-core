@@ -1055,6 +1055,7 @@ function MobilityPage() {
           .order("sequence"),
         supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
         supabase.from("drivers").select("*, people(full_name)"),
+        supabase.rpc("w05_operation_driver_candidates", { _operation_id: operationId }),
         supabase
           .from("journey_steps")
           .select("id, title")
