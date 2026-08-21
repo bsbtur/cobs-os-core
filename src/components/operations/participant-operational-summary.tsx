@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import * as React from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, Users } from "lucide-react";
 
+import { supabase } from "@/integrations/supabase/client";
 import {
   fetchOperationParticipantSummary,
   operationParticipantSummaryKey,
@@ -56,14 +58,67 @@ function Health({ health }: { health: OperationParticipantSummary["health"] }) {
  *
  * This component intentionally does not infer operational facts in the browser.
  * All values come from public.get_operation_participant_summary so every surface
- * can share the same semantics after the Lovable code is synchronized again.
+ * shares the same semantics.
+ *
+ * Freshness contract:
+ * - roster/status changes invalidate immediately via operation_participations;
+ * - presence/boarding/no-show changes invalidate immediately via participant_presence_events;
+ * - terminal operation status changes invalidate immediately via operations;
+ * - 20s polling remains as a resilience fallback if Realtime is unavailable.
  */
 export function ParticipantOperationalSummary({ operationId }: { operationId: string }) {
+  const queryClient = useQueryClient();
+  const key = operationParticipantSummaryKey(operationId);
+
   const summary = useQuery({
-    queryKey: operationParticipantSummaryKey(operationId),
+    queryKey: key,
     queryFn: () => fetchOperationParticipantSummary(operationId),
     refetchInterval: 20_000,
   });
+
+  React.useEffect(() => {
+    const invalidate = () => {
+      void queryClient.invalidateQueries({ queryKey: key });
+    };
+
+    const channel = supabase
+      .channel(`operation-participant-summary:${operationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "operation_participations",
+          filter: `operation_id=eq.${operationId}`,
+        },
+        invalidate,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "participant_presence_events",
+          filter: `operation_id=eq.${operationId}`,
+        },
+        invalidate,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "operations",
+          filter: `id=eq.${operationId}`,
+        },
+        invalidate,
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [operationId, queryClient]);
 
   if (summary.isLoading) {
     return (
