@@ -83,6 +83,21 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 type DriverWithPerson = DriverRow & { people: { full_name: string } | null };
 
 /**
+ * ELIGIBILITY IS CONTEXTUAL: a driver is a Person who holds the canonical `driver`
+ * responsibility in THIS operation. The global `drivers` table is only a resource,
+ * materialized idempotently by the server at assignment time.
+ */
+type DriverCandidate = {
+  person_id: string;
+  participation_id: string;
+  full_name: string;
+  participation_kind: string;
+  participation_status: string;
+  driver_id: string | null;
+  driver_active: boolean;
+};
+
+/**
  * A leg is TERMINAL once it arrived or was cancelled: no mutation control may stay
  * enabled. Further facts belong to a new ad-hoc leg, never to a closed one.
  */
