@@ -390,7 +390,9 @@ function AssignmentPanel({
           <select
             id="assign-driver"
             className={SELECT_CLASS}
-            value={assignedCandidate?.person_id ?? (legacyDriver ? `legacy:${legacyDriver.id}` : "")}
+            value={
+              assignedCandidate?.person_id ?? (legacyDriver ? `legacy:${legacyDriver.id}` : "")
+            }
             onChange={(e) => {
               if (!e.target.value || e.target.value.startsWith("legacy:")) return;
               call.mutate({ fn: "driver", id: e.target.value });
@@ -1047,28 +1049,28 @@ function MobilityPage() {
     queryFn: async () => {
       const [operation, legs, vehicles, drivers, driverCandidates, steps, events, overview] =
         await Promise.all([
-        supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
-        supabase
-          .from("transport_legs")
-          .select("*")
-          .eq("operation_id", operationId)
-          .order("sequence"),
-        supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
-        supabase.from("drivers").select("*, people(full_name)"),
-        supabase.rpc("w05_operation_driver_candidates", { _operation_id: operationId }),
-        supabase
-          .from("journey_steps")
-          .select("id, title")
-          .eq("operation_id", operationId)
-          .order("sequence"),
-        supabase
-          .from("transport_events")
-          .select("*")
-          .eq("operation_id", operationId)
-          .order("occurred_at", { ascending: false })
-          .limit(40),
-        supabase.rpc("w05_operation_mobility", { _operation_id: operationId }),
-      ]);
+          supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
+          supabase
+            .from("transport_legs")
+            .select("*")
+            .eq("operation_id", operationId)
+            .order("sequence"),
+          supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
+          supabase.from("drivers").select("*, people(full_name)"),
+          supabase.rpc("w05_operation_driver_candidates", { _operation_id: operationId }),
+          supabase
+            .from("journey_steps")
+            .select("id, title")
+            .eq("operation_id", operationId)
+            .order("sequence"),
+          supabase
+            .from("transport_events")
+            .select("*")
+            .eq("operation_id", operationId)
+            .order("occurred_at", { ascending: false })
+            .limit(40),
+          supabase.rpc("w05_operation_mobility", { _operation_id: operationId }),
+        ]);
       if (operation.error) throw operation.error;
       if (legs.error) throw legs.error;
       return {
@@ -1076,8 +1078,8 @@ function MobilityPage() {
         legs: (legs.data ?? []) as TransportLegRow[],
         vehicles: (vehicles.data ?? []) as VehicleRow[],
         drivers: (drivers.data ?? []) as unknown as DriverWithPerson[],
-        driverCandidates: (((driverCandidates.data as { candidates?: DriverCandidate[] } | null)
-          ?.candidates ?? []) as DriverCandidate[]),
+        driverCandidates: ((driverCandidates.data as { candidates?: DriverCandidate[] } | null)
+          ?.candidates ?? []) as DriverCandidate[],
         steps: (steps.data ?? []) as Array<{ id: string; title: string }>,
         events: (events.data ?? []) as TransportEventRow[],
         overview: (overview.data ?? null) as unknown as OperationMobility | null,
