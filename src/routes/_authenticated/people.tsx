@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link2, Trash2, UserPlus, Users } from "lucide-react";
+import { Link2, Pencil, Trash2, UserPlus, Users } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -51,6 +51,7 @@ function PeopleList() {
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   const [linking, setLinking] = React.useState<PersonRow | null>(null);
+  const [editing, setEditing] = React.useState<PersonRow | null>(null);
 
   const people = useQuery({
     queryKey: ["people", tenant?.id],
@@ -96,6 +97,32 @@ function PeopleList() {
     onSuccess: () => {
       feedback.success(t("people.created"));
       setOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["people", tenant?.id] });
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  const updatePerson = useMutation({
+    mutationFn: async (input: {
+      id: string;
+      full_name: string;
+      email: string;
+      phone: string;
+    }) => {
+      const { error } = await supabase
+        .from("people")
+        .update({
+          full_name: input.full_name,
+          email: input.email || null,
+          phone_e164: input.phone || null,
+        })
+        .eq("id", input.id)
+        .eq("tenant_id", tenant!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success("Pessoa atualizada");
+      setEditing(null);
       void queryClient.invalidateQueries({ queryKey: ["people", tenant?.id] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
@@ -217,6 +244,16 @@ function PeopleList() {
               </span>
               {canManage ? (
                 <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="min-h-11 min-w-11"
+                    aria-label="Editar pessoa"
+                    title="Editar pessoa"
+                    onClick={() => setEditing(person)}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
                   {!person.profile_id ? (
                     <Button
                       variant="ghost"
@@ -243,6 +280,71 @@ function PeopleList() {
           ))}
         </ul>
       )}
+
+      {editing ? (
+        <form
+          className="surface-panel animate-rise space-y-4 p-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = new FormData(e.currentTarget);
+            updatePerson.mutate({
+              id: editing.id,
+              full_name: String(form.get("full_name") ?? "").trim(),
+              email: String(form.get("email") ?? "").trim(),
+              phone: String(form.get("phone") ?? "").trim(),
+            });
+          }}
+        >
+          <div>
+            <p className="text-sm font-medium">Editar pessoa — {editing.full_name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              A identidade é preservada. Participações, responsabilidades e histórico não são recriados.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2 sm:col-span-3">
+              <Label htmlFor="edit-p-name">{t("people.fullName")}</Label>
+              <Input
+                id="edit-p-name"
+                name="full_name"
+                defaultValue={editing.full_name}
+                required
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="edit-p-email">{t("people.email")}</Label>
+              <Input
+                id="edit-p-email"
+                name="email"
+                type="email"
+                defaultValue={editing.email ?? ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-p-phone">{t("people.phone")}</Label>
+              <Input
+                id="edit-p-phone"
+                name="phone"
+                defaultValue={editing.phone_e164 ?? ""}
+                placeholder="+5511999999999"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" className="min-h-11" disabled={updatePerson.isPending}>
+              {updatePerson.isPending ? t("common.saving") : "Salvar alterações"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11"
+              onClick={() => setEditing(null)}
+            >
+              {t("common.cancel")}
+            </Button>
+          </div>
+        </form>
+      ) : null}
 
       {linking ? (
         <div className="surface-panel animate-rise space-y-3 p-5">
