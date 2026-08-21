@@ -296,18 +296,28 @@ function AssignmentPanel({
   state,
   vehicles,
   drivers,
+  driverCandidates,
   onRefresh,
 }: {
   leg: TransportLegRow;
   state: LegDispatchState | null;
   vehicles: VehicleRow[];
   drivers: DriverWithPerson[];
+  driverCandidates: DriverCandidate[];
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
   const [reason, setReason] = React.useState("");
   const terminal = isTerminalLeg(state);
   const departed = Boolean(state?.actual_departure) || terminal;
+
+  /** LEGACY COMPAT: an already assigned driver resource stays readable even if the
+   *  person no longer carries the driver responsibility in this operation. */
+  const assignedCandidate = driverCandidates.find((c) => c.driver_id === leg.driver_id) ?? null;
+  const legacyDriver =
+    leg.driver_id && !assignedCandidate
+      ? (drivers.find((d) => d.id === leg.driver_id) ?? null)
+      : null;
 
   const call = useMutation({
     mutationFn: async (payload: { fn: "vehicle" | "driver" | "clear"; id?: string }) => {
@@ -323,10 +333,10 @@ function AssignmentPanel({
         if (error) throw error;
       } else if (payload.fn === "driver") {
         const { error } = await supabase.rpc(
-          "assign_driver_to_leg",
+          "assign_operation_driver_to_leg",
           rpcArgs({
             _transport_leg_id: leg.id,
-            _driver_id: payload.id!,
+            _person_id: payload.id!,
             _reason: reason || undefined,
           }),
         );
