@@ -41,11 +41,6 @@ type Intelligence = {
   health?: { level?: "green" | "yellow" | "red"; reasons?: Array<{ code?: string }> };
 };
 
-type Rpc = (
-  fn: "get_operation_intelligence",
-  args: { _operation_id: string },
-) => PromiseLike<{ data: unknown; error: unknown }>;
-
 const n = (value: number | null | undefined) => value ?? 0;
 const copy = (locale: string, pt: string, en: string) =>
   locale.toLowerCase().startsWith("pt") ? pt : en;
@@ -120,8 +115,7 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
     enabled: isOverview && operation.isSuccess,
     refetchInterval: isOverview && operation.isSuccess && !operationClosed ? 30_000 : false,
     queryFn: async () => {
-      const rpc = supabase.rpc as unknown as Rpc;
-      const { data, error } = await rpc("get_operation_intelligence", {
+      const { data, error } = await supabase.rpc("get_operation_intelligence", {
         _operation_id: operationId,
       });
       if (error) throw error;
