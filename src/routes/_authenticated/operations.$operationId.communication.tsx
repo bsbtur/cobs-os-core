@@ -559,6 +559,46 @@ function MessageDetail({
     setCancelReason("");
   }, [message.id, message.title, message.body, message.expires_at, message.scheduled_for]);
 
+  const publishCurrentDraft = useMutation({
+    mutationFn: async () => {
+      const nextTitle = title.trim();
+      const nextBody = body.trim();
+      const persistedExpiry = toLocalInput(message.expires_at);
+      const hasVisibleDraftChanges =
+        nextTitle !== message.title || nextBody !== message.body || expires !== persistedExpiry;
+
+      if (hasVisibleDraftChanges) {
+        const { error: saveError } = await supabase.rpc(
+          "update_draft_message",
+          rpcArgs({
+            _message_id: message.id,
+            _title: nextTitle,
+            _body: nextBody,
+            _expires_at: expires ? fromLocalInput(expires) : undefined,
+            _clear_expiry: !expires && Boolean(message.expires_at),
+            _idempotency_key: newIdempotencyKey(),
+          }),
+        );
+        if (saveError) throw saveError;
+      }
+
+      const { data, error } = await supabase.rpc(
+        "publish_message",
+        rpcArgs({
+          _message_id: message.id,
+          _idempotency_key: newIdempotencyKey(),
+        }),
+      );
+      if (error) throw error;
+      return data as unknown;
+    },
+    onSuccess: () => {
+      feedback.success(t("w08.published"));
+      refresh();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
   const summary = preview.data ?? deliverySummary(message.summary);
   const hasAudience = (selectors.data ?? []).length > 0;
   const blockers = publishBlockers(message.status, summary, hasAudience);
@@ -651,7 +691,7 @@ function MessageDetail({
           <Button
             type="button"
             className="min-h-11"
-            disabled={runCommand.isPending}
+            disabled={runCommand.isPending || publishCurrentDraft.isPending}
             onClick={() =>
               runCommand.mutate(
                 {
@@ -709,7 +749,7 @@ function MessageDetail({
                   type="button"
                   variant="secondary"
                   className="min-h-11 shrink-0"
-                  disabled={!scheduleFor || runCommand.isPending}
+                  disabled={!scheduleFor || runCommand.isPending || publishCurrentDraft.isPending}
                   onClick={() =>
                     runCommand.mutate(
                       {
@@ -740,7 +780,7 @@ function MessageDetail({
               type="button"
               variant="secondary"
               className="min-h-11"
-              disabled={runCommand.isPending}
+              disabled={runCommand.isPending || publishCurrentDraft.isPending}
               onClick={() =>
                 runCommand.mutate(
                   { fn: "unschedule_message", args: { _message_id: message.id } },
@@ -769,18 +809,10 @@ function MessageDetail({
               <Button
                 type="button"
                 className="min-h-11"
-                disabled={blockers.length > 0 || runCommand.isPending}
+                disabled={blockers.length > 0 || runCommand.isPending || publishCurrentDraft.isPending}
                 onClick={() => {
                   if (!window.confirm(t("w08.publishConfirm"))) return;
-                  runCommand.mutate(
-                    { fn: "publish_message", args: { _message_id: message.id } },
-                    {
-                      onSuccess: () => {
-                        feedback.success(t("w08.published"));
-                        refresh();
-                      },
-                    },
-                  );
+                  publishCurrentDraft.mutate();
                 }}
               >
                 {t("w08.publish")}
@@ -795,7 +827,7 @@ function MessageDetail({
                 type="button"
                 variant="secondary"
                 className="min-h-11"
-                disabled={runCommand.isPending}
+                disabled={runCommand.isPending || publishCurrentDraft.isPending}
                 onClick={() =>
                   runCommand.mutate(
                     { fn: "create_correction_message", args: { _message_id: message.id } },
@@ -830,7 +862,7 @@ function MessageDetail({
                 type="button"
                 variant="destructive"
                 className="min-h-11"
-                disabled={runCommand.isPending}
+                disabled={runCommand.isPending || publishCurrentDraft.isPending}
                 onClick={() =>
                   runCommand.mutate(
                     {
@@ -859,7 +891,7 @@ function MessageDetail({
               type="button"
               variant="ghost"
               className="min-h-11 text-destructive"
-              disabled={runCommand.isPending}
+              disabled={runCommand.isPending || publishCurrentDraft.isPending}
               onClick={() => {
                 if (!window.confirm(t("w08.deleteConfirm"))) return;
                 runCommand.mutate(
