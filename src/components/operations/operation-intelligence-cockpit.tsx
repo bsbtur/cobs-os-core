@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
-import { canUseLiveOperationalHealth, isOperationClosed } from "@/lib/operation-lock";
+import { isOperationClosed } from "@/lib/operation-lock";
 
 type Intelligence = {
   operation?: { status?: string };
@@ -114,12 +114,11 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
   });
 
   const operationClosed = isOperationClosed(operation.data?.status);
-  const liveHealthEnabled = canUseLiveOperationalHealth(operation.data?.status);
 
   const query = useQuery({
     queryKey: ["operation-intelligence", operationId],
-    enabled: isOverview && operation.isSuccess && liveHealthEnabled,
-    refetchInterval: isOverview && liveHealthEnabled ? 30_000 : false,
+    enabled: isOverview && operation.isSuccess,
+    refetchInterval: isOverview && operation.isSuccess && !operationClosed ? 30_000 : false,
     queryFn: async () => {
       const rpc = supabase.rpc as unknown as Rpc;
       const { data, error } = await rpc("get_operation_intelligence", {
@@ -134,6 +133,24 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
 
   if (operation.isLoading) {
     return <div className="surface-panel h-48 animate-pulse" aria-label="Carregando resumo operacional" />;
+  }
+
+  if (operation.isError) {
+    return (
+      <section className="surface-panel p-4" role="alert">
+        <div className="flex items-start gap-2 text-destructive">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <div>
+            <p className="text-sm font-medium">
+              {copy(locale, "Não foi possível confirmar a operação.", "Could not confirm operation.")}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {copy(locale, "Atualize a página e tente novamente.", "Refresh the page and try again.")}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (operationClosed) {
@@ -161,7 +178,7 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
     );
   }
 
-  if (query.isLoading) {
+  if (query.isLoading || query.isPending) {
     return <div className="surface-panel h-48 animate-pulse" aria-label="Carregando resumo operacional" />;
   }
 
