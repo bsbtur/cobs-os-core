@@ -112,6 +112,38 @@ export function humanizeError(error: unknown, locale: string): string {
       "Muitas tentativas. Aguarde alguns instantes.",
       "Too many attempts. Please wait a moment.",
     ],
+    // Lifecycle / execution gates. These messages are intentionally specific so
+    // the operator knows what to do instead of receiving a generic retry toast.
+    [
+      /operation needs to be ready|operation must be ready|operation.*needs.*ready/i,
+      "A operação ainda não está pronta para execução. Vá em Visão geral e avance o ciclo até “Pronta”.",
+      "The operation is not ready for execution yet. Go to Overview and advance it to Ready.",
+    ],
+    [
+      /Transition from draft to active is not allowed|Transition from planning to active is not allowed/i,
+      "A operação precisa passar por Planejamento e Pronta antes de entrar em execução.",
+      "The operation must pass through Planning and Ready before execution can start.",
+    ],
+    [
+      /Transition from .* to .* is not allowed/i,
+      "Essa mudança de status não é válida no estado atual da operação. Atualize a tela e siga o próximo estado disponível.",
+      "That status transition is not valid for the operation's current state. Refresh and use the next available state.",
+    ],
+    [
+      /A (completed|cancelled) operation cannot change status/i,
+      "Esta operação já foi encerrada e não pode mudar de status por esse fluxo.",
+      "This operation is already closed and cannot change status through this flow.",
+    ],
+    [
+      /cannot be closed because nothing was executed yet/i,
+      "A operação ainda não pode ser concluída porque não há fatos reais de execução. Execute a jornada, presença ou mobilidade primeiro.",
+      "The operation cannot be completed yet because no real execution facts exist. Run journey, presence, or mobility first.",
+    ],
+    [
+      /A reason is required to cancel an operation/i,
+      "Informe o motivo do cancelamento antes de cancelar a operação.",
+      "Enter a cancellation reason before cancelling the operation.",
+    ],
     // DEF-PILOT-015: vehicle capacity invariant is enforced in the backend.
     [
       /Vehicle capacity has been reached for this leg/i,
@@ -191,7 +223,6 @@ export function humanizeError(error: unknown, locale: string): string {
       "This step has not started yet. Tap “Start step” before recording this action.",
     ],
   ];
-
 
   for (const [re, ptMsg, enMsg] of map) {
     if (re.test(raw)) return pt ? ptMsg : enMsg;
