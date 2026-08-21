@@ -390,16 +390,27 @@ function AssignmentPanel({
           <select
             id="assign-driver"
             className={SELECT_CLASS}
-            value={leg.driver_id ?? ""}
-            onChange={(e) => call.mutate({ fn: "driver", id: e.target.value })}
+            value={assignedCandidate?.person_id ?? (legacyDriver ? `legacy:${legacyDriver.id}` : "")}
+            onChange={(e) => {
+              if (!e.target.value || e.target.value.startsWith("legacy:")) return;
+              call.mutate({ fn: "driver", id: e.target.value });
+            }}
           >
             <option value="">—</option>
-            {drivers.map((driver) => (
-              <option key={driver.id} value={driver.id}>
-                {driver.people?.full_name ?? "—"}
+            {legacyDriver ? (
+              <option value={`legacy:${legacyDriver.id}`} disabled>
+                {legacyDriver.people?.full_name ?? "—"}
+              </option>
+            ) : null}
+            {driverCandidates.map((candidate) => (
+              <option key={candidate.person_id} value={candidate.person_id}>
+                {candidate.full_name}
               </option>
             ))}
           </select>
+          {driverCandidates.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("w05.driver.noCandidates")}</p>
+          ) : null}
         </div>
       </div>
       <div className="space-y-1.5">
