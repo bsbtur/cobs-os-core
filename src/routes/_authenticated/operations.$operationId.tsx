@@ -37,12 +37,10 @@ function OperationRuntimeQuerySync({ operationId }: { operationId: string }) {
       const queryKey = event?.query?.queryKey;
       if (!queryKey || queryKey[0] !== "live" || queryKey[1] !== operationId) return;
 
-      // PX-A01: Live mutations/refetches change the canonical facts used by
-      // recommendation and attention surfaces. Keep all three views in sync
-      // immediately instead of waiting for their independent 20s polling tick.
       void Promise.all([
         queryClient.invalidateQueries({ queryKey: ["px04-next-best-action", operationId] }),
         queryClient.invalidateQueries({ queryKey: ["px05-operation-attention", operationId] }),
+        queryClient.invalidateQueries({ queryKey: ["operation-intelligence", operationId] }),
       ]);
     });
   }, [operationId, queryClient]);
@@ -129,88 +127,36 @@ function OperationWorkspace() {
               <Sparkles className="size-4" aria-hidden="true" />
               {copy(locale, "Cockpit V2", "Cockpit V2")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/people"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("roster.tab.people")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/schedule"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/schedule" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {copy(locale, "Escala", "Schedule")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/journey"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/journey" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("w04.tab.journey")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/live"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/live" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("w04.tab.live")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/mobility"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/mobility" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("w05.tab.mobility")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/hospitality"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/hospitality" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("w06.tab.hospitality")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/events"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/events" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("w07.tab.events")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/communication"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/communication" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("w08.tab.communication")}
             </Link>
           </nav>
 
           {isOverview ? (
             <>
+              <OperationIntelligenceCockpit operationId={operationId} />
               <OperationControlCenter operationId={operationId} />
-
-              <OverviewDisclosure
-                eyebrow="COBS Intelligence"
-                title={copy(locale, "Indicadores detalhados", "Detailed intelligence")}
-                description={copy(
-                  locale,
-                  "Jornada, presença, mobilidade, hospedagem, comunicação e financeiro.",
-                  "Journey, presence, mobility, hospitality, communication and finance.",
-                )}
-              >
-                <OperationIntelligenceCockpit operationId={operationId} />
-              </OverviewDisclosure>
-
               <PostOperationDebrief operationId={operationId} />
 
               <OverviewDisclosure
@@ -232,7 +178,6 @@ function OperationWorkspace() {
               <LiveNextBestAction operationId={operationId} />
               <OperationAttentionCenter operationId={operationId} />
               <FieldBatchPresence operationId={operationId} />
-              {/* Keep QA journey controls mounted with the operation workspace so Preview builds always include them. */}
               <JourneyOperationalCockpit operationId={operationId} />
               <JourneyManagementPanel operationId={operationId} />
             </>
