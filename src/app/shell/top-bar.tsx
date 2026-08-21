@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell, Languages, Menu, Moon, Search, Sun, UserRound } from "lucide-react";
 
+import { useAuth } from "@/lib/auth";
 import { useI18n, LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { formatTimeZoneLabel } from "@/lib/format";
@@ -29,6 +30,7 @@ export function TopBar({
 }) {
   const { t, locale, setLocale, timeZone } = useI18n();
   const { theme, toggle } = useTheme();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [clock, setClock] = React.useState("");
 
   React.useEffect(() => {
@@ -156,16 +158,27 @@ export function TopBar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {t("account.signedOut")}
+              <DropdownMenuLabel className="truncate text-xs text-muted-foreground">
+                {authLoading ? t("state.loading") : user?.email ?? t("account.signedOut")}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>{t("account.profile")}</DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/auth" search={{ redirect: undefined }}>
-                  {t("account.signIn")}
-                </Link>
-              </DropdownMenuItem>
+              {user ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    void signOut();
+                  }}
+                >
+                  {t("account.signOut")}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem asChild>
+                  <Link to="/auth" search={{ redirect: undefined }}>
+                    {t("account.signIn")}
+                  </Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
