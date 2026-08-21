@@ -92,7 +92,6 @@ export function isCanonicalPresence(
   return PRESENCE_CONTRACT[kind].includes(requirement);
 }
 
-
 /**
  * BINDING READINESS RULE (server is authoritative; this mirrors it for display only).
  * ABSENCE_NOTED never satisfies readiness. DISEMBARKED counts as accounted.
@@ -120,11 +119,23 @@ export type Readiness = {
   ready: boolean;
 };
 
+export type RuntimeExecutionBlockCode =
+  | "STEP_ALREADY_ACTIVE"
+  | "NO_NEXT_STEP"
+  | "OPERATION_NOT_READY"
+  | "OPERATION_TERMINAL";
+
 export type RuntimeState = {
   operation_id: string;
   status: Database["public"]["Enums"]["operation_status"];
   current_step_id: string | null;
   next_step_id: string | null;
+  /** Canonical server-side gate for the “start next step” action. */
+  can_start_next: boolean;
+  /** Stable machine-readable reason when can_start_next=false. */
+  execution_block_code: RuntimeExecutionBlockCode | null;
+  /** Operator-facing explanation supplied by the backend. */
+  execution_block_label: string | null;
   readiness: Readiness | null;
 };
 
