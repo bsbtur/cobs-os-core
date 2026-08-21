@@ -23,6 +23,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 function Health({ health }: { health: OperationParticipantSummary["health"] }) {
   const isHealthy = health.status === "under_control";
   const Icon = isHealthy ? CheckCircle2 : AlertTriangle;
+  const reasons = health.reasons ?? [];
 
   return (
     <div
@@ -41,11 +42,17 @@ function Health({ health }: { health: OperationParticipantSummary["health"] }) {
           <p className="text-sm font-semibold">
             {isHealthy ? "Sob controle" : health.status === "critical" ? "Crítico" : "Atenção"}
           </p>
-          {health.reason_label ? (
+          {!isHealthy && reasons.length > 0 ? (
+            <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+              {reasons.map((reason) => (
+                <li key={`${reason.code}:${reason.count}`}>{reason.label}</li>
+              ))}
+            </ul>
+          ) : health.reason_label ? (
             <p className="mt-0.5 text-xs text-muted-foreground">{health.reason_label}</p>
           ) : null}
           {health.reason_code ? (
-            <p className="sr-only">Código do motivo: {health.reason_code}</p>
+            <p className="sr-only">Código principal do motivo: {health.reason_code}</p>
           ) : null}
         </div>
       </div>
