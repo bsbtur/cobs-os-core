@@ -1045,7 +1045,8 @@ function MobilityPage() {
   const data = useQuery({
     queryKey: ["mobility", operationId],
     queryFn: async () => {
-      const [operation, legs, vehicles, drivers, steps, events, overview] = await Promise.all([
+      const [operation, legs, vehicles, drivers, driverCandidates, steps, events, overview] =
+        await Promise.all([
         supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
         supabase
           .from("transport_legs")
@@ -1053,7 +1054,7 @@ function MobilityPage() {
           .eq("operation_id", operationId)
           .order("sequence"),
         supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
-        supabase.from("drivers").select("*, people(full_name)").eq("is_active", true),
+        supabase.from("drivers").select("*, people(full_name)"),
         supabase
           .from("journey_steps")
           .select("id, title")
@@ -1074,6 +1075,8 @@ function MobilityPage() {
         legs: (legs.data ?? []) as TransportLegRow[],
         vehicles: (vehicles.data ?? []) as VehicleRow[],
         drivers: (drivers.data ?? []) as unknown as DriverWithPerson[],
+        driverCandidates: (((driverCandidates.data as { candidates?: DriverCandidate[] } | null)
+          ?.candidates ?? []) as DriverCandidate[]),
         steps: (steps.data ?? []) as Array<{ id: string; title: string }>,
         events: (events.data ?? []) as TransportEventRow[],
         overview: (overview.data ?? null) as unknown as OperationMobility | null,
@@ -1267,6 +1270,7 @@ function MobilityPage() {
                     state={state}
                     vehicles={data.data?.vehicles ?? []}
                     drivers={data.data?.drivers ?? []}
+                    driverCandidates={data.data?.driverCandidates ?? []}
                     onRefresh={refresh}
                   />
                 </div>
