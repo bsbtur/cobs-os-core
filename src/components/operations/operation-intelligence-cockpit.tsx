@@ -41,6 +41,11 @@ type Intelligence = {
   health?: { level?: "green" | "yellow" | "red"; reasons?: Array<{ code?: string }> };
 };
 
+type ParticipantSummary = {
+  expected: number;
+  confirmed: number;
+};
+
 const n = (value: number | null | undefined) => value ?? 0;
 const copy = (locale: string, pt: string, en: string) =>
   locale.toLowerCase().startsWith("pt") ? pt : en;
@@ -120,6 +125,30 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
       });
       if (error) throw error;
       return data as Intelligence;
+    },
+  });
+
+  const participantSummary = useQuery({
+    queryKey: ["operation-participant-summary", operationId],
+    enabled: isOverview && operation.isSuccess,
+    refetchInterval: isOverview && operation.isSuccess && !operationClosed ? 30_000 : false,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("operation_participations")
+        .select("status")
+        .eq("operation_id", operationId)
+        .eq("participation_kind", "participant")
+        .neq("status", "cancelled");
+      if (error) throw error;
+
+      return (data ?? []).reduce<ParticipantSummary>(
+        (summary, row) => {
+          if (row.status === "expected") summary.expected += 1;
+          if (row.status === "confirmed") summary.confirmed += 1;
+          return summary;
+        },
+        { expected: 0, confirmed: 0 },
+      );
     },
   });
 
@@ -210,6 +239,9 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
   const data = query.data;
   const journey = data.journey;
   const passengers = data.passengers;
+  const roster = participantSummary.data;
+  const confirmedPassengers = n(passengers?.confirmed);
+  const expectedPassengers = n(roster?.expected);
   const legs = data.mobility?.legs ?? [];
   const arrived = legs.filter((leg) => leg.state?.dispatch_state === "arrived").length;
   const incidents = n(data.incidents?.total);
@@ -227,6 +259,14 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
       : health === "yellow"
         ? "border-warning/40 bg-warning-soft text-warning"
         : "border-success/40 bg-success-soft text-success";
+
+  const travelerDetail = participantSummary.isError
+    ? copy(locale, "confirmados na operação", "confirmed in operation")
+    : copy(
+        locale,
+        `${confirmedPassengers} confirmados · ${expectedPassengers} previstos`,
+        `${confirmedPassengers} confirmed · ${expectedPassengers} expected`,
+      );
 
   return (
     <section className="surface-panel overflow-hidden" aria-label={copy(locale, "Resumo da operação", "Operation summary")}>
@@ -256,8 +296,8 @@ export function OperationIntelligenceCockpit({ operationId }: { operationId: str
           <Metric
             icon={Users}
             label={copy(locale, "Viajantes", "Travelers")}
-            value={String(n(passengers?.confirmed))}
-            detail={copy(locale, "confirmados na operação", "confirmed in operation")}
+            value={String(confirmedPassengers)}
+            detail={travelerDetail}
           />
           <Metric
             icon={Route}
