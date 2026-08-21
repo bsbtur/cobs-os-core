@@ -5,6 +5,12 @@ export const operationParticipantSummaryKey = (operationId: string) => [
   operationId,
 ] as const;
 
+export type ParticipantHealthReason = {
+  code: string;
+  count: number;
+  label: string;
+};
+
 export type OperationParticipantSummary = {
   operation_id: string;
   operation_status: string;
@@ -20,6 +26,7 @@ export type OperationParticipantSummary = {
     status: "under_control" | "attention" | "critical";
     reason_code: string | null;
     reason_label: string | null;
+    reasons: ParticipantHealthReason[];
   };
 };
 
