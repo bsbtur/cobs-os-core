@@ -42,6 +42,8 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
+import { OperationCockpit } from "@/components/journey/operation-cockpit";
+import { summarizeStepPresence, type CockpitAction } from "@/lib/live-cockpit";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -867,6 +869,24 @@ function LiveRuntimePage() {
     void queryClient.invalidateQueries({ queryKey: ["live", operationId] });
   };
 
+  /**
+   * V1.1 Cockpit CTA — calls the SAME W04 commands used by StepActions/StartNext.
+   * No new backend rule: the server keeps every guard and may still refuse.
+   */
+  const cockpitCall = useMutation({
+    mutationFn: async (input: { fn: string; stepId: string }) => {
+      const { error } = await supabase.rpc(input.fn as "start_journey_step", {
+        _journey_step_id: input.stepId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.live.recorded"));
+      refresh();
+    },
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
+  });
+
   if (live.isLoading) return <PanelSkeleton />;
 
   const operation = live.data?.operation;
@@ -934,6 +954,36 @@ function LiveRuntimePage() {
           {t("w04.live.notStarted")} {t("w04.live.notStartedBody")}
         </p>
       ) : null}
+
+      <OperationCockpit
+        operationStatus={operation.status}
+        current={current}
+        next={next}
+        readiness={readiness}
+        arrived={current ? arrivedStepIds.has(current.id) : false}
+        boardingStarted={current ? boardingStartedStepIds.has(current.id) : false}
+        journeyResolved={journeyResolved}
+        summary={
+          current && current.presence_requirement !== "none"
+            ? summarizeStepPresence({
+                step: current,
+                roster: live.data?.roster ?? [],
+                presence: live.data?.presence ?? [],
+              })
+            : null
+        }
+        pending={cockpitCall.isPending}
+        onAction={(action: CockpitAction) => {
+          if (action.anchor) {
+            document
+              .getElementById(action.anchor)
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+          const stepId = current?.id ?? next?.id ?? null;
+          if (action.rpc && stepId) cockpitCall.mutate({ fn: action.rpc, stepId });
+        }}
+      />
 
       {/* NOW */}
       <article className="surface-panel border-primary/40 p-4 sm:p-5">
@@ -1064,6 +1114,7 @@ function LiveRuntimePage() {
       ) : null}
 
       {current && current.presence_requirement !== "none" ? (
+        <div id="cockpit-people">
         <PresencePanel
           step={current}
           roster={live.data?.roster ?? []}
@@ -1072,14 +1123,17 @@ function LiveRuntimePage() {
           arrived={arrivedStepIds.has(current.id)}
           onRefresh={refresh}
         />
+        </div>
       ) : null}
 
       {current ? (
+        <div id="cockpit-checklist">
         <ChecklistPanel
           items={(live.data?.items ?? []).filter((item) => item.journey_step_id === current.id)}
           executions={live.data?.executions ?? []}
           onRefresh={refresh}
         />
+        </div>
       ) : null}
 
       <MobilityLiveCard operationId={operation.id} />
