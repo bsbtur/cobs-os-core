@@ -47,6 +47,7 @@ type TenantContextValue = {
   isOwner: boolean;
   canManage: boolean;
   loading: boolean;
+  hasError: boolean;
   setActiveTenantId: (id: string) => void;
   refetch: () => void;
 };
@@ -54,7 +55,7 @@ type TenantContextValue = {
 const TenantContext = React.createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
-  const { data, isLoading, refetch } = useMemberships();
+  const { data, isLoading, isError, refetch } = useMemberships();
   const memberships = React.useMemo(() => data ?? [], [data]);
   const [activeId, setActiveId] = React.useState<string | null>(null);
 
@@ -81,10 +82,11 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       isOwner: role === "owner",
       canManage: role === "owner" || role === "admin",
       loading: isLoading,
+      hasError: isError,
       setActiveTenantId,
       refetch: () => void refetch(),
     };
-  }, [memberships, activeMembership, isLoading, setActiveTenantId, refetch]);
+  }, [memberships, activeMembership, isLoading, isError, setActiveTenantId, refetch]);
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
 }
