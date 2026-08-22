@@ -68,7 +68,8 @@ export const W02_PT: Record<string, string> = {
   "op.subtitle": "Cada operação é uma execução real, com identidade histórica própria.",
   "op.empty": "Nenhuma operação criada.",
   "op.emptyUpcoming": "Nenhuma operação futura.",
-  "op.emptyUpcomingBody": "Existem operações registradas, mas nenhuma delas está em execução ou por vir. Veja todas para consultar o histórico.",
+  "op.emptyUpcomingBody":
+    "Existem operações registradas, mas nenhuma delas está em execução ou por vir. Veja todas para consultar o histórico.",
   "op.loadError": "Não foi possível carregar as operações.",
   "op.loadErrorBody": "A consulta falhou. Isso não significa que não existam operações.",
   "op.retry": "Tentar novamente",
@@ -211,7 +212,8 @@ export const W02_EN: Record<string, string> = {
   "op.subtitle": "Each operation is a real execution with its own historical identity.",
   "op.empty": "No operations yet.",
   "op.emptyUpcoming": "No upcoming operations.",
-  "op.emptyUpcomingBody": "Operations exist, but none is running or ahead. Switch to all to review history.",
+  "op.emptyUpcomingBody":
+    "Operations exist, but none is running or ahead. Switch to all to review history.",
   "op.loadError": "Operations could not be loaded.",
   "op.loadErrorBody": "The query failed. This does not mean there are no operations.",
   "op.retry": "Try again",
