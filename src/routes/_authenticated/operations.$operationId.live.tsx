@@ -540,7 +540,7 @@ function ChecklistPanel({
       feedback.success(t("w04.live.recorded"));
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
   });
 
   if (items.length === 0) return null;
@@ -670,7 +670,7 @@ function StepActions({
         message: error instanceof Error ? error.message : String(error),
         at: new Date().toISOString(),
       });
-      feedback.error(humanizeError(error, locale));
+      feedback.error(journeyActionError(error, t, locale));
     },
   });
 
@@ -1114,7 +1114,7 @@ function StartNext({ step, onRefresh }: { step: JourneyStepRow; onRefresh: () =>
       feedback.success(t("w04.live.recorded"));
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
   });
 
   return (
