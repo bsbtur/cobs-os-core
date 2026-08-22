@@ -78,7 +78,11 @@ describe("summarizeStepPresence", () => {
       step: step(),
       roster: roster(["p-1", "p-2", "p-3"]),
       presence: [
-        presenceEvent({ id: "a", participation_id: "p-1", presence_fact: "PRESENT_AT_MEETING_POINT" }),
+        presenceEvent({
+          id: "a",
+          participation_id: "p-1",
+          presence_fact: "PRESENT_AT_MEETING_POINT",
+        }),
         presenceEvent({ id: "b", participation_id: "p-2", presence_fact: "BOARDED" }),
       ],
     });

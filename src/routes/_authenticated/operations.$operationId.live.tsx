@@ -1115,24 +1115,24 @@ function LiveRuntimePage() {
 
       {current && current.presence_requirement !== "none" ? (
         <div id="cockpit-people">
-        <PresencePanel
-          step={current}
-          roster={live.data?.roster ?? []}
-          presence={live.data?.presence ?? []}
-          boardingStarted={boardingStartedStepIds.has(current.id)}
-          arrived={arrivedStepIds.has(current.id)}
-          onRefresh={refresh}
-        />
+          <PresencePanel
+            step={current}
+            roster={live.data?.roster ?? []}
+            presence={live.data?.presence ?? []}
+            boardingStarted={boardingStartedStepIds.has(current.id)}
+            arrived={arrivedStepIds.has(current.id)}
+            onRefresh={refresh}
+          />
         </div>
       ) : null}
 
       {current ? (
         <div id="cockpit-checklist">
-        <ChecklistPanel
-          items={(live.data?.items ?? []).filter((item) => item.journey_step_id === current.id)}
-          executions={live.data?.executions ?? []}
-          onRefresh={refresh}
-        />
+          <ChecklistPanel
+            items={(live.data?.items ?? []).filter((item) => item.journey_step_id === current.id)}
+            executions={live.data?.executions ?? []}
+            onRefresh={refresh}
+          />
         </div>
       ) : null}
 

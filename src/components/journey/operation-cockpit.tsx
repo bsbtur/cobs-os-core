@@ -63,7 +63,9 @@ function Metric({
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
-      <p className={`text-lg font-semibold tabular-nums ${tone === "warning" ? "text-warning" : ""}`}>
+      <p
+        className={`text-lg font-semibold tabular-nums ${tone === "warning" ? "text-warning" : ""}`}
+      >
         {value}
       </p>
     </div>
@@ -137,7 +139,10 @@ export function OperationCockpit({
           {tone === "blocked" ? (
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
           ) : (
-            <ArrowRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <ArrowRight
+              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
           )}
           <span>{t(`w04.cockpit.action.${action.key}`)}</span>
         </p>

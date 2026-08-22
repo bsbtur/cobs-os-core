@@ -596,7 +596,8 @@ export const W04_COCKPIT_ES: Record<string, string> = {
   "w04.cockpit.action.recordArrival": "Registra la llegada.",
   "w04.cockpit.action.completeDisembarkation": "Completa el desembarque.",
   "w04.cockpit.action.completeStep": "Completa esta etapa.",
-  "w04.cockpit.action.completeOperation": "Trayecto concluido. Cierra la operación en la vista general.",
+  "w04.cockpit.action.completeOperation":
+    "Trayecto concluido. Cierra la operación en la vista general.",
   "w04.cockpit.action.waiting": "Nada que hacer ahora.",
   "w04.cockpit.cta.operationNotActive": "Abrir vista general",
   "w04.cockpit.cta.startStep": "Iniciar etapa",
