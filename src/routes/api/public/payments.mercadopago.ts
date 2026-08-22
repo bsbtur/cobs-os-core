@@ -55,6 +55,16 @@ export const Route = createFileRoute("/api/public/payments/mercadopago")({
           return Response.json({ error: "data_id_mismatch" }, { status: 400 });
         }
 
+        // Mercado Pago's Webhooks simulator can send a signed synthetic Order event
+        // whose Data ID is not a real ORD... resource. Acknowledge that transport/
+        // signature test without persisting financial state or calling the provider.
+        if (parsed.data.type === "order" && !/^ORD[A-Z0-9]+$/i.test(queryDataId)) {
+          return Response.json(
+            { accepted: true, simulated: true, recorded: false, reason: "synthetic_order_id" },
+            { status: 200 },
+          );
+        }
+
         const accessToken = process.env["MP_ACCESS_TOKEN"];
         if (!accessToken) {
           return Response.json({ error: "reconciliation_not_configured" }, { status: 503 });
