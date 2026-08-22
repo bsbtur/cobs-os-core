@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
+import type { PaymentEventType } from "@/lib/payments";
+
 /**
  * COBS OS · MP-01 — provider webhook receiver (structure only).
  *
@@ -10,7 +12,7 @@ import { z } from "zod";
  * and is idempotent on (provider, provider_event_id).
  */
 
-const EVENT_TYPE_BY_STATUS: Record<string, string> = {
+const EVENT_TYPE_BY_STATUS: Record<string, PaymentEventType> = {
   pending: "PAYMENT_PENDING",
   in_process: "PAYMENT_PENDING",
   authorized: "PAYMENT_PENDING",
