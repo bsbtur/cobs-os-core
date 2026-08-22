@@ -1,9 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import {
-  paymentAttemptRequestSchema,
-  sanitizePaymentAttemptResponse,
-} from "./payments-api";
+import { paymentAttemptRequestSchema, sanitizePaymentAttemptResponse } from "./payments-api";
 
 describe("MP-01 payment attempts API contract", () => {
   it("accepts only order, method and idempotency key", () => {
