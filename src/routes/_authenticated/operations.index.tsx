@@ -464,19 +464,51 @@ function OperationsWorkspace() {
 
       {operations.isLoading ? <PanelSkeleton rows={3} /> : null}
 
-      {!operations.isLoading && items.length === 0 && !creating ? (
+      {/* A FAILED READ IS NOT AN EMPTY LIST — never present an error as "no data". */}
+      {!operations.isLoading && operations.error ? (
         <EmptyState
           icon={Activity}
-          title={t("op.empty")}
-          body={t("op.emptyBody")}
+          title={t("op.loadError")}
+          body={t("op.loadErrorBody")}
           action={
-            canManage ? (
-              <Button className="min-h-11" onClick={() => setCreating(true)}>
-                {t("op.create")}
-              </Button>
-            ) : undefined
+            <Button
+              variant="outline"
+              className="min-h-11"
+              onClick={() => void operations.refetch()}
+            >
+              {t("op.retry")}
+            </Button>
           }
         />
+      ) : null}
+
+      {/* A FILTERED-OUT LIST IS NOT AN EMPTY TENANT — offer the way back to all operations. */}
+      {!operations.isLoading && !operations.error && items.length === 0 && !creating ? (
+        filter === "upcoming" && (operations.data ?? []).length > 0 ? (
+          <EmptyState
+            icon={Activity}
+            title={t("op.emptyUpcoming")}
+            body={t("op.emptyUpcomingBody")}
+            action={
+              <Button variant="outline" className="min-h-11" onClick={() => setFilter("all")}>
+                {t("op.filterAll")}
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={Activity}
+            title={t("op.empty")}
+            body={t("op.emptyBody")}
+            action={
+              canManage ? (
+                <Button className="min-h-11" onClick={() => setCreating(true)}>
+                  {t("op.create")}
+                </Button>
+              ) : undefined
+            }
+          />
+        )
       ) : null}
 
       {items.length > 0 ? (
