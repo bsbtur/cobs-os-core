@@ -193,7 +193,7 @@ export function normalizeMercadoPagoOrder(value: unknown): ProviderPayment | nul
     external_reference: parsed.data.external_reference ?? null,
     approved_at:
       (payment?.status ?? parsed.data.status) === "processed"
-        ? parsed.data.last_updated_date ?? null
+        ? (parsed.data.last_updated_date ?? null)
         : null,
   };
 }
