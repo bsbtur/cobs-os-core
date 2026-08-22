@@ -86,6 +86,20 @@ export function useAuth(): AuthState {
   return ctx;
 }
 
+/** Readable text of any thrown value — Error, PostgREST object or string. */
+export function errorText(error: unknown): string {
+  if (!error) return "";
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (typeof error === "object") {
+    const shape = error as { message?: unknown; details?: unknown; hint?: unknown };
+    return [shape.message, shape.details, shape.hint]
+      .filter((part): part is string => typeof part === "string" && part.length > 0)
+      .join(" · ");
+  }
+  return String(error);
+}
+
 /** Humanized, non-leaking mapping of auth/database errors. */
 export function humanizeError(error: unknown, locale: string): string {
   // PostgREST errors arrive as plain objects, not Error instances: reading only
