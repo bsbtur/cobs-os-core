@@ -1051,7 +1051,11 @@ function CommunicationTab() {
               onSelect={setSelectedId}
             />
           ) : (
-            <EmptyState icon={MessagesSquare} title={t("w08.empty")} body={t("w08.emptyBody")} />
+            <EmptyState
+              icon={MessagesSquare}
+              title={t("w08.selectPrompt")}
+              body={t("w08.selectPromptBody")}
+            />
           )}
         </div>
       )}
