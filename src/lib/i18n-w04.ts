@@ -222,8 +222,7 @@ export const W04_PT: Record<string, string> = {
   // Runtime action errors — humanized, never raw backend internals.
   "w04.error.permission": "Você não tem permissão para esta ação nesta operação.",
   "w04.error.auth": "Sua sessão expirou. Entre novamente para continuar.",
-  "w04.error.operationNotReady":
-    "A operação precisa estar “pronta” antes de iniciar a jornada.",
+  "w04.error.operationNotReady": "A operação precisa estar “pronta” antes de iniciar a jornada.",
   "w04.error.operationNotRunning":
     "Esta operação não está em execução. Coloque-a em andamento antes de registrar fatos.",
   "w04.error.anotherStepRunning":

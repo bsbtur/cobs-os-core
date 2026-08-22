@@ -389,7 +389,6 @@ function PresencePanel({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-
             </li>
           );
         })}
@@ -588,17 +587,19 @@ function ChecklistPanel({
  * SQL, identifiers, stack traces or raw internals — unknown failures fall back
  * to the shared `humanizeError`.
  */
-function journeyActionError(
-  error: unknown,
-  t: (key: string) => string,
-  locale: string,
-): string {
+function journeyActionError(error: unknown, t: (key: string) => string, locale: string): string {
   const raw = error instanceof Error ? error.message : String(error ?? "");
   const rules: Array<[RegExp, string]> = [
-    [/permission for this operation runtime|not have permission|owners and admins/i, "w04.error.permission"],
+    [
+      /permission for this operation runtime|not have permission|owners and admins/i,
+      "w04.error.permission",
+    ],
     [/Authentication required/i, "w04.error.auth"],
     [/operation must be ready before the journey/i, "w04.error.operationNotReady"],
-    [/only be authorized on a running operation|ready or running operation/i, "w04.error.operationNotRunning"],
+    [
+      /only be authorized on a running operation|ready or running operation/i,
+      "w04.error.operationNotRunning",
+    ],
     [/Another step is still running/i, "w04.error.anotherStepRunning"],
     [/was skipped and cannot be started/i, "w04.error.stepSkipped"],
     [/step has not started yet/i, "w04.error.stepNotStarted"],
@@ -622,7 +623,6 @@ function journeyActionError(
 /* ------------------------------------------------------------------ */
 /* Step actions                                                        */
 /* ------------------------------------------------------------------ */
-
 
 function StepActions({
   step,
@@ -948,8 +948,6 @@ function LiveRuntimePage() {
 
             <LiveTimingStrip current={current} next={next} />
 
-
-
             {readiness ? (
               <div
                 className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm ${
@@ -1015,7 +1013,6 @@ function LiveRuntimePage() {
                 </p>
               ) : null}
               <div className="mt-2">
-
                 <StepActions
                   step={current}
                   ready={readiness?.ready ?? true}
