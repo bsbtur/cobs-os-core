@@ -3693,6 +3693,327 @@ export type Database = {
           },
         ]
       }
+      payment_attempts: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          expires_at: string | null
+          external_reference: string
+          id: string
+          idempotency_key: string
+          payment_method: string
+          payment_order_id: string
+          pix_qr_code: string | null
+          pix_ticket_url: string | null
+          provider: string
+          provider_account_id: string
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          provider_status: string | null
+          provider_status_detail: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          expires_at?: string | null
+          external_reference: string
+          id?: string
+          idempotency_key: string
+          payment_method: string
+          payment_order_id: string
+          pix_qr_code?: string | null
+          pix_ticket_url?: string | null
+          provider: string
+          provider_account_id: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          provider_status?: string | null
+          provider_status_detail?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          expires_at?: string | null
+          external_reference?: string
+          id?: string
+          idempotency_key?: string
+          payment_method?: string
+          payment_order_id?: string
+          pix_qr_code?: string | null
+          pix_ticket_url?: string | null
+          provider?: string
+          provider_account_id?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          provider_status?: string | null
+          provider_status_detail?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_attempts_account_fk"
+            columns: ["provider_account_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "payment_provider_accounts"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_attempts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_attempts_order_fk"
+            columns: ["payment_order_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "payment_orders"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_attempts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_events: {
+        Row: {
+          actor_profile_id: string | null
+          amount: number | null
+          event_type: Database["public"]["Enums"]["payment_event_type"]
+          id: string
+          idempotency_key: string | null
+          occurred_at: string
+          payload: Json
+          payment_attempt_id: string | null
+          payment_order_id: string
+          provider: string | null
+          provider_event_id: string | null
+          reason: string | null
+          recorded_at: string
+          tenant_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          amount?: number | null
+          event_type: Database["public"]["Enums"]["payment_event_type"]
+          id?: string
+          idempotency_key?: string | null
+          occurred_at?: string
+          payload?: Json
+          payment_attempt_id?: string | null
+          payment_order_id: string
+          provider?: string | null
+          provider_event_id?: string | null
+          reason?: string | null
+          recorded_at?: string
+          tenant_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          amount?: number | null
+          event_type?: Database["public"]["Enums"]["payment_event_type"]
+          id?: string
+          idempotency_key?: string | null
+          occurred_at?: string
+          payload?: Json
+          payment_attempt_id?: string | null
+          payment_order_id?: string
+          provider?: string | null
+          provider_event_id?: string | null
+          reason?: string | null
+          recorded_at?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_events_attempt_fk"
+            columns: ["payment_attempt_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "payment_attempts"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_events_order_fk"
+            columns: ["payment_order_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "payment_orders"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_orders: {
+        Row: {
+          amount_total: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string
+          due_at: string | null
+          id: string
+          metadata: Json
+          operation_id: string | null
+          order_code: string
+          participation_id: string | null
+          person_id: string | null
+          status: Database["public"]["Enums"]["payment_order_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_total: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description: string
+          due_at?: string | null
+          id?: string
+          metadata?: Json
+          operation_id?: string | null
+          order_code: string
+          participation_id?: string | null
+          person_id?: string | null
+          status?: Database["public"]["Enums"]["payment_order_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_total?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          due_at?: string | null
+          id?: string
+          metadata?: Json
+          operation_id?: string | null
+          order_code?: string
+          participation_id?: string | null
+          person_id?: string | null
+          status?: Database["public"]["Enums"]["payment_order_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_orders_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_orders_participation_fk"
+            columns: ["participation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operation_participations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "payment_orders_person_fk"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_provider_accounts: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          environment: string
+          id: string
+          is_active: boolean
+          provider: string
+          public_key_reference: string | null
+          secret_reference: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          environment: string
+          id?: string
+          is_active?: boolean
+          provider: string
+          public_key_reference?: string | null
+          secret_reference?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          environment?: string
+          id?: string
+          is_active?: boolean
+          provider?: string
+          public_key_reference?: string | null
+          secret_reference?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_provider_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           country_code: string | null
@@ -4945,6 +5266,10 @@ export type Database = {
         Args: { _idempotency_key?: string; _order_id: string; _reason: string }
         Returns: Json
       }
+      cancel_payment_order: {
+        Args: { _payment_order_id: string; _reason: string }
+        Returns: Json
+      }
       cancel_session: {
         Args: {
           _idempotency_key: string
@@ -5311,6 +5636,29 @@ export type Database = {
         }
         Returns: string
       }
+      create_payment_attempt: {
+        Args: {
+          _idempotency_key: string
+          _payment_method: string
+          _payment_order_id: string
+        }
+        Returns: Json
+      }
+      create_payment_order: {
+        Args: {
+          _amount_total: number
+          _description: string
+          _due_at?: string
+          _idempotency_key: string
+          _metadata?: Json
+          _operation_id?: string
+          _order_code?: string
+          _participation_id?: string
+          _person_id?: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       create_playbook_item: {
         Args: {
           _description?: string
@@ -5479,6 +5827,10 @@ export type Database = {
       }
       get_order_detail: { Args: { _order_id: string }; Returns: Json }
       get_order_financial_state: { Args: { _order_id: string }; Returns: Json }
+      get_payment_order_summary: {
+        Args: { _payment_order_id: string }
+        Returns: Json
+      }
       get_venue_space_availability: {
         Args: { _from: string; _to: string; _venue_id: string }
         Returns: Json
@@ -5717,6 +6069,21 @@ export type Database = {
           _participation_id: string
           _presence_fact: Database["public"]["Enums"]["presence_fact"]
           _reason?: string
+        }
+        Returns: Json
+      }
+      record_provider_payment_event: {
+        Args: {
+          _amount?: number
+          _event_type: Database["public"]["Enums"]["payment_event_type"]
+          _external_reference?: string
+          _occurred_at?: string
+          _payload?: Json
+          _provider: string
+          _provider_event_id?: string
+          _provider_payment_id?: string
+          _provider_status?: string
+          _provider_status_detail?: string
         }
         Returns: Json
       }
@@ -6359,6 +6726,18 @@ export type Database = {
         }
         Returns: Json
       }
+      upsert_payment_provider_account: {
+        Args: {
+          _display_name?: string
+          _environment: string
+          _is_active?: boolean
+          _provider: string
+          _public_key_reference?: string
+          _secret_reference?: string
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       validate_blueprint_version: {
         Args: { _version_id: string }
         Returns: Json
@@ -6557,7 +6936,24 @@ export type Database = {
       participant_access_status: "active" | "revoked"
       participation_kind: "participant" | "crew" | "support" | "observer"
       participation_status: "expected" | "confirmed" | "cancelled"
+      payment_event_type:
+        | "PAYMENT_ORDER_CREATED"
+        | "PAYMENT_ATTEMPT_CREATED"
+        | "PAYMENT_PENDING"
+        | "PAYMENT_APPROVED"
+        | "PAYMENT_REJECTED"
+        | "PAYMENT_CANCELLED"
+        | "PAYMENT_EXPIRED"
+        | "PAYMENT_REFUND_REQUESTED"
+        | "PAYMENT_REFUNDED"
       payment_method: "cash" | "bank_transfer" | "other"
+      payment_order_status:
+        | "open"
+        | "partially_paid"
+        | "paid"
+        | "overdue"
+        | "cancelled"
+        | "refunded"
       playbook_execution_action: "completed" | "reopened"
       playbook_item_kind: "check" | "confirm" | "brief" | "verify" | "other"
       playbook_requirement: "required" | "recommended" | "informational"
@@ -6930,7 +7326,26 @@ export const Constants = {
       participant_access_status: ["active", "revoked"],
       participation_kind: ["participant", "crew", "support", "observer"],
       participation_status: ["expected", "confirmed", "cancelled"],
+      payment_event_type: [
+        "PAYMENT_ORDER_CREATED",
+        "PAYMENT_ATTEMPT_CREATED",
+        "PAYMENT_PENDING",
+        "PAYMENT_APPROVED",
+        "PAYMENT_REJECTED",
+        "PAYMENT_CANCELLED",
+        "PAYMENT_EXPIRED",
+        "PAYMENT_REFUND_REQUESTED",
+        "PAYMENT_REFUNDED",
+      ],
       payment_method: ["cash", "bank_transfer", "other"],
+      payment_order_status: [
+        "open",
+        "partially_paid",
+        "paid",
+        "overdue",
+        "cancelled",
+        "refunded",
+      ],
       playbook_execution_action: ["completed", "reopened"],
       playbook_item_kind: ["check", "confirm", "brief", "verify", "other"],
       playbook_requirement: ["required", "recommended", "informational"],

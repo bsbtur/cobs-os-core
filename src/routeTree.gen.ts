@@ -50,6 +50,7 @@ import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from '.
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
 import { Route as AuthenticatedOperationsOperationIdMobilityRouteImport } from './routes/_authenticated/operations.$operationId.mobility'
 import { Route as AuthenticatedOperationsOperationIdPeopleRouteImport } from './routes/_authenticated/operations.$operationId.people'
+import { Route as ApiPublicPaymentsMercadopagoRouteImport } from './routes/api/public/payments.mercadopago'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -284,6 +285,12 @@ const AuthenticatedOperationsOperationIdPeopleRoute =
     path: '/people',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const ApiPublicPaymentsMercadopagoRoute =
+  ApiPublicPaymentsMercadopagoRouteImport.update({
+    id: '/api/public/payments/mercadopago',
+    path: '/api/public/payments/mercadopago',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -324,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
+  '/api/public/payments/mercadopago': typeof ApiPublicPaymentsMercadopagoRoute
   '/my/$operationId/': typeof AuthenticatedMyOperationIdIndexRoute
   '/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
@@ -363,6 +371,7 @@ export interface FileRoutesByTo {
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
+  '/api/public/payments/mercadopago': typeof ApiPublicPaymentsMercadopagoRoute
   '/my/$operationId': typeof AuthenticatedMyOperationIdIndexRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
@@ -407,6 +416,7 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/_authenticated/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/_authenticated/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
+  '/api/public/payments/mercadopago': typeof ApiPublicPaymentsMercadopagoRoute
   '/_authenticated/my/$operationId/': typeof AuthenticatedMyOperationIdIndexRoute
   '/_authenticated/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
 }
@@ -451,6 +461,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
     | '/operations/$operationId/people'
+    | '/api/public/payments/mercadopago'
     | '/my/$operationId/'
     | '/operations/$operationId/'
   fileRoutesByTo: FileRoutesByTo
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
     | '/operations/$operationId/people'
+    | '/api/public/payments/mercadopago'
     | '/my/$operationId'
     | '/operations/$operationId'
   id:
@@ -533,6 +545,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId/live'
     | '/_authenticated/operations/$operationId/mobility'
     | '/_authenticated/operations/$operationId/people'
+    | '/api/public/payments/mercadopago'
     | '/_authenticated/my/$operationId/'
     | '/_authenticated/operations/$operationId/'
   fileRoutesById: FileRoutesById
@@ -542,6 +555,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicPaymentsMercadopagoRoute: typeof ApiPublicPaymentsMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -833,6 +847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdPeopleRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/api/public/payments/mercadopago': {
+      id: '/api/public/payments/mercadopago'
+      path: '/api/public/payments/mercadopago'
+      fullPath: '/api/public/payments/mercadopago'
+      preLoaderRoute: typeof ApiPublicPaymentsMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -973,6 +994,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicPaymentsMercadopagoRoute: ApiPublicPaymentsMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
