@@ -1,97 +1,107 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import type { PaymentEventType } from "@/lib/payments";
+import {
+  createMercadoPagoProvider,
+  toCanonicalProviderEvent,
+  verifyMercadoPagoSignature,
+} from "@/lib/payments-mp.server";
 
 /**
- * COBS OS · MP-01 — provider webhook receiver (structure only).
+ * Mercado Pago webhook receiver.
  *
- * No real Mercado Pago credentials are connected yet: this endpoint accepts a
- * signed provider notification, normalizes it, and delegates every financial
- * decision to public.record_provider_payment_event, which is the sole authority
- * and is idempotent on (provider, provider_event_id).
+ * The notification authenticates the trigger only. Financial status and amount
+ * are always reconciled from Mercado Pago before a canonical COBS event is stored.
  */
-
-const EVENT_TYPE_BY_STATUS: Record<string, PaymentEventType> = {
-  pending: "PAYMENT_PENDING",
-  in_process: "PAYMENT_PENDING",
-  authorized: "PAYMENT_PENDING",
-  approved: "PAYMENT_APPROVED",
-  rejected: "PAYMENT_REJECTED",
-  cancelled: "PAYMENT_CANCELLED",
-  expired: "PAYMENT_EXPIRED",
-  refunded: "PAYMENT_REFUNDED",
-  charged_back: "PAYMENT_REFUNDED",
-};
-
-const payloadSchema = z.object({
-  id: z.string().min(1).max(120).optional(),
+const notificationSchema = z.object({
+  id: z.union([z.string(), z.number()]).optional(),
   type: z.string().max(60).optional(),
-  action: z.string().max(60).optional(),
-  data: z
-    .object({
-      id: z.string().min(1).max(120).optional(),
-      status: z.string().min(1).max(60).optional(),
-      status_detail: z.string().max(200).optional(),
-      external_reference: z.string().max(120).optional(),
-      transaction_amount: z.number().positive().max(1_000_000).optional(),
-      date_approved: z.string().max(60).optional(),
-    })
-    .default({}),
+  action: z.string().max(80).optional(),
+  data: z.object({ id: z.union([z.string(), z.number()]).optional() }).default({}),
 });
-
-function timingSafeEqual(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
 
 export const Route = createFileRoute("/api/public/payments/mercadopago")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env["MP_WEBHOOK_SECRET"];
-        if (!secret) {
+        const webhookSecret = process.env["MP_WEBHOOK_SECRET"];
+        if (!webhookSecret) {
           return Response.json({ error: "receiver_not_configured" }, { status: 503 });
         }
-        const provided = request.headers.get("x-cobs-webhook-secret") ?? "";
-        if (!timingSafeEqual(provided, secret)) {
+
+        const url = new URL(request.url);
+        const queryDataId = url.searchParams.get("data.id") ?? url.searchParams.get("data_id");
+        if (!queryDataId) {
+          return Response.json({ error: "missing_data_id" }, { status: 400 });
+        }
+
+        const signatureOk = verifyMercadoPagoSignature({
+          signatureHeader: request.headers.get("x-signature"),
+          requestId: request.headers.get("x-request-id"),
+          dataId: queryDataId,
+          secret: webhookSecret,
+        });
+        if (!signatureOk) {
           return Response.json({ error: "unauthorized" }, { status: 401 });
         }
 
-        const parsed = payloadSchema.safeParse(await request.json().catch(() => null));
+        const parsed = notificationSchema.safeParse(await request.json().catch(() => null));
         if (!parsed.success) {
           return Response.json({ error: "invalid_payload" }, { status: 400 });
         }
 
-        const body = parsed.data;
-        const status = body.data.status ?? "";
-        const eventType = EVENT_TYPE_BY_STATUS[status];
-        if (!eventType) {
-          return Response.json({ recorded: false, reason: "unmapped_status" }, { status: 202 });
+        const bodyDataId = parsed.data.data.id ? String(parsed.data.data.id) : null;
+        if (bodyDataId && bodyDataId !== queryDataId) {
+          return Response.json({ error: "data_id_mismatch" }, { status: 400 });
         }
 
+        const accessToken = process.env["MP_ACCESS_TOKEN"];
+        if (!accessToken) {
+          return Response.json({ error: "reconciliation_not_configured" }, { status: 503 });
+        }
+
+        const provider = createMercadoPagoProvider({ accessToken });
+        const payment = await provider.getPayment(queryDataId);
+        if (!payment || payment.provider_payment_id !== queryDataId) {
+          return Response.json({ error: "reconciliation_failed" }, { status: 502 });
+        }
+
+        const canonical = toCanonicalProviderEvent(payment);
+        if (!canonical) {
+          return Response.json({ recorded: false, reason: "unmapped_status" }, { status: 202 });
+        }
+        if (payment.currency !== "BRL") {
+          return Response.json({ error: "unsupported_currency" }, { status: 422 });
+        }
+
+        const providerEventId = parsed.data.id
+          ? String(parsed.data.id)
+          : request.headers.get("x-request-id");
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        // Optional RPC arguments stay absent instead of explicit undefined.
         const { data, error } = await supabaseAdmin.rpc("record_provider_payment_event", {
           _provider: "mercadopago",
-          _event_type: eventType,
-          _provider_status: status,
-          _payload: { action: body.action ?? null, type: body.type ?? null },
-          ...(body.data.external_reference
-            ? { _external_reference: body.data.external_reference }
+          _event_type: canonical.eventType,
+          _provider_payment_id: canonical.providerPaymentId,
+          _provider_status: canonical.providerStatus,
+          _amount: canonical.amount,
+          _payload: {
+            action: parsed.data.action ?? null,
+            type: parsed.data.type ?? null,
+            reconciled: true,
+          },
+          ...(canonical.externalReference
+            ? { _external_reference: canonical.externalReference }
             : {}),
-          ...(body.data.id ? { _provider_payment_id: body.data.id } : {}),
-          ...(body.id ? { _provider_event_id: body.id } : {}),
-          ...(body.data.status_detail ? { _provider_status_detail: body.data.status_detail } : {}),
-          ...(body.data.transaction_amount !== undefined
-            ? { _amount: body.data.transaction_amount }
+          ...(canonical.providerStatusDetail
+            ? { _provider_status_detail: canonical.providerStatusDetail }
             : {}),
+          ...(providerEventId ? { _provider_event_id: providerEventId } : {}),
+          ...(canonical.occurredAt ? { _occurred_at: canonical.occurredAt } : {}),
         });
 
         if (error) {
-          console.error("[MP-01] provider event rejected", error.message);
+          console.error("[MP-01] reconciled provider event rejected", error.message);
           return Response.json({ error: "record_failed" }, { status: 500 });
         }
 
