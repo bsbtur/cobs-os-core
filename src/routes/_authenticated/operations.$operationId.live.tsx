@@ -41,7 +41,13 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
-import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
+import { OperationCockpit } from "@/components/journey/operation-cockpit";
+import {
+  deriveNextAction,
+  summarizeStepPresence,
+  type CockpitAction,
+  type CockpitFlags,
+} from "@/lib/live-cockpit";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -811,7 +817,16 @@ function LiveRuntimePage() {
           .from("journey_events")
           .select("journey_step_id, event_type")
           .eq("operation_id", operationId)
-          .in("event_type", ["BOARDING_STARTED", "ARRIVED"]),
+          // V1.1 cockpit: the same narrow projection also carries the runtime
+          // facts the next-action machine needs. Read-only, no contract change.
+          .in("event_type", [
+            "BOARDING_STARTED",
+            "BOARDING_COMPLETED",
+            "DEPARTURE_AUTHORIZED",
+            "DEPARTED",
+            "ARRIVED",
+            "DISEMBARKATION_COMPLETED",
+          ]),
         supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
         supabase
           .from("playbook_items")
@@ -854,6 +869,14 @@ function LiveRuntimePage() {
             .map((row) => row.journey_step_id)
             .filter((id): id is string => Boolean(id)),
         ),
+        // V1.1 cockpit: stepId -> set of runtime facts recorded on that step.
+        stepFacts: (boardingEvents.data ?? []).reduce((map, row) => {
+          if (!row.journey_step_id) return map;
+          const set = map.get(row.journey_step_id) ?? new Set<string>();
+          set.add(row.event_type);
+          map.set(row.journey_step_id, set);
+          return map;
+        }, new Map<string, Set<string>>()),
         presence: (presence.data ?? []) as PresenceEventRow[],
         items: (items.data ?? []) as PlaybookItemRow[],
         executions: (executions.data ?? []) as PlaybookExecutionRow[],
@@ -865,6 +888,32 @@ function LiveRuntimePage() {
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["live", operationId] });
+  };
+
+  const peopleRef = React.useRef<HTMLDivElement | null>(null);
+
+  /**
+   * V1.1 cockpit CTA. It calls the very same deployed W04 commands as the
+   * step action row below — no new RPC, no bypass: a server refusal is shown
+   * through the shared, humanized error mapper.
+   */
+  const cockpitCall = useMutation({
+    mutationFn: async (action: CockpitAction) => {
+      if (!action.fn || !action.targetStepId) return;
+      const { error } = await supabase.rpc(action.fn as "start_journey_step", {
+        _journey_step_id: action.targetStepId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.live.recorded"));
+      refresh();
+    },
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
+  });
+
+  const focusPeople = () => {
+    peopleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (live.isLoading) return <PanelSkeleton />;
@@ -922,31 +971,66 @@ function LiveRuntimePage() {
       )
     : [];
 
+  /** V1.1 cockpit — derived only from facts already loaded above. */
+  const currentFacts = current
+    ? (live.data?.stepFacts?.get(current.id) ?? new Set<string>())
+    : new Set<string>();
+  const cockpitFlags: CockpitFlags = {
+    boardingStarted: currentFacts.has("BOARDING_STARTED"),
+    boardingCompleted: currentFacts.has("BOARDING_COMPLETED"),
+    departureAuthorized: currentFacts.has("DEPARTURE_AUTHORIZED"),
+    departed: currentFacts.has("DEPARTED"),
+    arrived: currentFacts.has("ARRIVED"),
+    disembarked: currentFacts.has("DISEMBARKATION_COMPLETED"),
+  };
+  const cockpitAction = deriveNextAction({
+    current,
+    next,
+    readiness,
+    flags: cockpitFlags,
+    journeyResolved,
+  });
+  const cockpitSummary =
+    current && current.presence_requirement !== "none"
+      ? summarizeStepPresence(current, live.data?.roster ?? [], live.data?.presence ?? [])
+      : null;
+
   return (
     <section className="space-y-4">
-      <header>
-        <h2 className="text-xl font-semibold">{t("w04.live.title")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
-      </header>
-
       {operation.status !== "active" ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
           {t("w04.live.notStarted")} {t("w04.live.notStartedBody")}
         </p>
       ) : null}
 
-      {/* NOW */}
-      <article className="surface-panel border-primary/40 p-4 sm:p-5">
+      {/* V1.1 COCKPIT — first fold: step · next action · time · people */}
+      <OperationCockpit
+        operationId={operation.id}
+        current={current}
+        next={next}
+        readiness={readiness}
+        summary={cockpitSummary}
+        action={cockpitAction}
+        pending={cockpitCall.isPending}
+        onRun={(action) => cockpitCall.mutate(action)}
+        onFocusPeople={focusPeople}
+      />
+
+      <header>
+        <h2 className="text-xl font-semibold">{t("w04.live.title")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
+      </header>
+
+      {/* NOW — full runtime detail; the hero above only orients. */}
+      <article className="surface-panel p-4 sm:p-5">
         <SectionLabel>{t("w04.live.now")}</SectionLabel>
         {current ? (
           <>
-            <h3 className="mt-1 text-2xl font-semibold tracking-tight">{current.title}</h3>
+            <h3 className="mt-1 text-lg font-semibold tracking-tight">{current.title}</h3>
             <p className="text-sm text-muted-foreground">
               {t(`w04.kind.${current.step_kind}`)}
               {current.location_label ? ` · ${current.location_label}` : ""}
             </p>
-
-            <LiveTimingStrip current={current} next={next} />
 
             {readiness ? (
               <div
@@ -1063,16 +1147,18 @@ function LiveRuntimePage() {
         </article>
       ) : null}
 
-      {current && current.presence_requirement !== "none" ? (
-        <PresencePanel
-          step={current}
-          roster={live.data?.roster ?? []}
-          presence={live.data?.presence ?? []}
-          boardingStarted={boardingStartedStepIds.has(current.id)}
-          arrived={arrivedStepIds.has(current.id)}
-          onRefresh={refresh}
-        />
-      ) : null}
+      <div ref={peopleRef} id="live-people" className="scroll-mt-20">
+        {current && current.presence_requirement !== "none" ? (
+          <PresencePanel
+            step={current}
+            roster={live.data?.roster ?? []}
+            presence={live.data?.presence ?? []}
+            boardingStarted={boardingStartedStepIds.has(current.id)}
+            arrived={arrivedStepIds.has(current.id)}
+            onRefresh={refresh}
+          />
+        ) : null}
+      </div>
 
       {current ? (
         <ChecklistPanel
