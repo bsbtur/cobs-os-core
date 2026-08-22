@@ -219,12 +219,11 @@ function PresencePanel({
     (primaryFact === "BOARDED" && !boardingStarted) || (primaryFact === "DISEMBARKED" && !arrived);
 
   /**
-   * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
-   * The server evaluates readiness over CONFIRMED people only
-   * (public.w04_step_readiness: p.status = 'confirmed').
-   * The panel therefore shows the same population WITHOUT hiding people who are
-   * still `expected`: they stay visible, labelled, and flagged as not counted.
-   * Cancelled people never reach this panel (the roster query excludes them).
+   * ROSTER / READINESS CONTRACT (mirrors the deployed public.w04_step_readiness).
+   * Population = active roster members of the step's population
+   * (`participants` -> participation_kind = 'participant', otherwise everyone).
+   * Cancelled people are excluded and never reach this panel.
+   * Readiness itself is decided by the server only; the panel never overrides it.
    */
   const relevant = roster.filter((row) =>
     step.presence_population === "participants" ? row.participation_kind === "participant" : true,
@@ -910,8 +909,8 @@ function LiveRuntimePage() {
   const arrivedStepIds = live.data?.arrivedStepIds ?? new Set<string>();
   const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
   /**
-   * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
-   * They are invisible to public.w04_step_readiness, so the operator must see them.
+   * Roster people relevant to this step whose participation is still `expected`.
+   * Surfaced so the operator can act on them; cancelled people are excluded upstream.
    */
   const unconfirmedForCurrent = current
     ? (live.data?.roster ?? []).filter(
@@ -971,7 +970,7 @@ function LiveRuntimePage() {
               </div>
             ) : null}
 
-            {/* DEF-PILOT-011: readiness counts CONFIRMED people only — say so out loud. */}
+            {/* Expected (not yet confirmed) roster people relevant to this step. */}
             {readiness && readiness.requirement !== "none" && unconfirmedForCurrent.length > 0 ? (
               <p className="mt-2 text-sm text-warning">
                 {unconfirmedForCurrent.length} {t("w04.presence.unconfirmedWarning")}{" "}
