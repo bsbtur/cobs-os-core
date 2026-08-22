@@ -811,7 +811,16 @@ function LiveRuntimePage() {
           .from("journey_events")
           .select("journey_step_id, event_type")
           .eq("operation_id", operationId)
-          .in("event_type", ["BOARDING_STARTED", "ARRIVED"]),
+          // V1.1 cockpit: the same narrow projection also carries the runtime
+          // facts the next-action machine needs. Read-only, no contract change.
+          .in("event_type", [
+            "BOARDING_STARTED",
+            "BOARDING_COMPLETED",
+            "DEPARTURE_AUTHORIZED",
+            "DEPARTED",
+            "ARRIVED",
+            "DISEMBARKATION_COMPLETED",
+          ]),
         supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
         supabase
           .from("playbook_items")
