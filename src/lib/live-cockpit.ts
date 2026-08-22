@@ -284,7 +284,16 @@ export type CockpitSummary = {
 /**
  * Counts for the current step, derived exactly like the presence panel:
  * only non-retracted effective facts count, and only confirmed roster rows.
+ *
+ * Visual summary contract (post V1.1 review):
+ * - present = physical/resolved positive presence only:
+ *   PRESENT_AT_MEETING_POINT, BOARDED, DISEMBARKED.
+ * - boarded = only BOARDED.
+ * - absent = ABSENCE_NOTED or NO_SHOW_CONFIRMED.
+ * - pending = still not resolved for the step requirement (readiness logic),
+ *   but NO_SHOW_CONFIRMED is considered resolved, never counted as present.
  */
+
 export function summarizeStepPresence(
   step: JourneyStepRow,
   roster: SummaryRoster[],
