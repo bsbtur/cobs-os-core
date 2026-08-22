@@ -31,6 +31,21 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Generate lint autofix package
+        if: failure()
+        run: |
+          bunx eslint . --fix || true
+          git diff --binary > /tmp/lint-autofix.patch
+
+      - name: Upload lint autofix package
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-autofix-patch
+          path: /tmp/lint-autofix.patch
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Tests
         run: bun run test
 
