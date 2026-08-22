@@ -35,12 +35,23 @@ jobs:
           set -o pipefail
           bun run lint 2>&1 | tee lint-output.txt
 
+      - name: Prepare lint autofix bundle
+        if: failure() && steps.lint.outcome == 'failure'
+        shell: bash
+        run: |
+          bun run lint -- --fix || true
+          git diff --binary > lint-fixes.patch
+          git diff --name-only -z | tar --null -T - -czf lint-fixed-files.tar.gz
+
       - name: Upload lint diagnostics
         if: failure() && steps.lint.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: lint-output
-          path: lint-output.txt
+          path: |
+            lint-output.txt
+            lint-fixes.patch
+            lint-fixed-files.tar.gz
           if-no-files-found: error
           retention-days: 7
 
