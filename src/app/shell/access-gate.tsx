@@ -25,7 +25,7 @@ import { FullPageLoading } from "@/components/feedback/loading";
 
 async function fetchEffectivePortalAccess(): Promise<boolean> {
   const { data, error } = await supabase.rpc("get_my_participant_access");
-  if (error) return false;
+  if (error) throw error;
   const rows = Array.isArray(data) ? (data as Array<Record<string, unknown>>) : [];
   return rows.some((row) => row["effective"] === true);
 }
@@ -228,23 +228,45 @@ function NoAccountAccess() {
   );
 }
 
+function AccessPostureError({ retry }: { retry: () => void }) {
+  const { t } = useI18n();
+  return (
+    <main className="grid min-h-screen place-items-center bg-background px-5 py-10">
+      <div className="w-full max-w-md">
+        <BrandLockup />
+        <div className="surface-panel mt-6 p-6">
+          <p role="alert" className="text-sm leading-relaxed text-destructive">
+            {t("access.none.error")}
+          </p>
+          <Button className="mt-5 min-h-11" onClick={retry}>
+            <RefreshCw className="mr-2 size-4" aria-hidden="true" />
+            {t("access.none.recheck")}
+          </Button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 /** Renders children only for identities with an operational Membership. */
 export function RequireOperatorAccess({ children }: { children: React.ReactNode }) {
-  const { loading, memberships } = useTenant();
+  const { loading, hasError, memberships, refetch } = useTenant();
   const navigate = useNavigate();
   const hasMembership = memberships.length > 0;
-  const portal = useEffectivePortalAccess(!loading && !hasMembership);
+  const portal = useEffectivePortalAccess(!loading && !hasError && !hasMembership);
 
-  const shouldRedirectToPortal = !loading && !hasMembership && portal.data === true;
+  const shouldRedirectToPortal =
+    !loading && !hasError && !hasMembership && portal.data === true;
 
   React.useEffect(() => {
     if (shouldRedirectToPortal) void navigate({ to: "/my", replace: true });
   }, [shouldRedirectToPortal, navigate]);
 
   if (loading) return <FullPageLoading />;
+  if (hasError) return <AccessPostureError retry={refetch} />;
   if (hasMembership) return <>{children}</>;
   if (portal.isLoading || shouldRedirectToPortal) return <FullPageLoading />;
+  if (portal.isError) return <AccessPostureError retry={() => void portal.refetch()} />;
 
   return <NoAccountAccess />;
 }
-
