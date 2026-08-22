@@ -3,16 +3,11 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { createMercadoPagoProvider } from "@/lib/payments-mp.server";
-import {
-  paymentAttemptRequestSchema,
-  sanitizePaymentAttemptResponse,
-} from "@/lib/payments-api";
+import { paymentAttemptRequestSchema, sanitizePaymentAttemptResponse } from "@/lib/payments-api";
 
 function userSupabaseClient(token: string) {
   const url = process.env["SUPABASE_URL"] ?? import.meta.env["VITE_SUPABASE_URL"];
-  const key =
-    process.env["SUPABASE_PUBLISHABLE_KEY"] ??
-    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) return null;
 
   return createClient<Database>(url, key, {
