@@ -219,12 +219,11 @@ function PresencePanel({
     (primaryFact === "BOARDED" && !boardingStarted) || (primaryFact === "DISEMBARKED" && !arrived);
 
   /**
-   * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
-   * The server evaluates readiness over CONFIRMED people only
-   * (public.w04_step_readiness: p.status = 'confirmed').
-   * The panel therefore shows the same population WITHOUT hiding people who are
-   * still `expected`: they stay visible, labelled, and flagged as not counted.
-   * Cancelled people never reach this panel (the roster query excludes them).
+   * ROSTER / READINESS CONTRACT (mirrors the deployed public.w04_step_readiness).
+   * Population = active roster members of the step's population
+   * (`participants` -> participation_kind = 'participant', otherwise everyone).
+   * Cancelled people are excluded and never reach this panel.
+   * Readiness itself is decided by the server only; the panel never overrides it.
    */
   const relevant = roster.filter((row) =>
     step.presence_population === "participants" ? row.participation_kind === "participant" : true,
@@ -390,7 +389,6 @@ function PresencePanel({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-
             </li>
           );
         })}
@@ -540,7 +538,7 @@ function ChecklistPanel({
       feedback.success(t("w04.live.recorded"));
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
   });
 
   if (items.length === 0) return null;
@@ -577,6 +575,49 @@ function ChecklistPanel({
       </ul>
     </section>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Runtime action errors                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Maps the known W04 runtime validation messages to safe, actionable copy.
+ * Display only: it never changes what the server decided, and it never leaks
+ * SQL, identifiers, stack traces or raw internals — unknown failures fall back
+ * to the shared `humanizeError`.
+ */
+function journeyActionError(error: unknown, t: (key: string) => string, locale: string): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const rules: Array<[RegExp, string]> = [
+    [
+      /permission for this operation runtime|not have permission|owners and admins/i,
+      "w04.error.permission",
+    ],
+    [/Authentication required/i, "w04.error.auth"],
+    [/operation must be ready before the journey/i, "w04.error.operationNotReady"],
+    [
+      /only be authorized on a running operation|ready or running operation/i,
+      "w04.error.operationNotRunning",
+    ],
+    [/Another step is still running/i, "w04.error.anotherStepRunning"],
+    [/was skipped and cannot be started/i, "w04.error.stepSkipped"],
+    [/step has not started yet/i, "w04.error.stepNotStarted"],
+    [/step is already closed|already completed|cannot be changed/i, "w04.error.stepClosed"],
+    [/step is not ready yet/i, "w04.error.notReady"],
+    [/has not arrived for this step/i, "w04.error.arrivalRequired"],
+    [/Boarding has not started/i, "w04.error.boardingNotStarted"],
+    [/does not track boarding/i, "w04.error.noBoardingTracking"],
+    [/Departure has not been authorized/i, "w04.error.departureNotAuthorized"],
+    [/already been authorized|unchanged/i, "w04.error.departureAlreadyAuthorized"],
+    [/group has not departed yet/i, "w04.error.notDeparted"],
+    [/already started cannot be skipped/i, "w04.error.stepAlreadyStarted"],
+    [/reason is required to skip/i, "w04.error.reasonRequired"],
+    [/cannot be recorded in the future/i, "w04.error.future"],
+    [/cannot be backdated/i, "w04.error.backdated"],
+  ];
+  const hit = rules.find(([pattern]) => pattern.test(raw));
+  return hit ? t(hit[1]) : humanizeError(error, locale);
 }
 
 /* ------------------------------------------------------------------ */
@@ -628,7 +669,7 @@ function StepActions({
         message: error instanceof Error ? error.message : String(error),
         at: new Date().toISOString(),
       });
-      feedback.error(humanizeError(error, locale));
+      feedback.error(journeyActionError(error, t, locale));
     },
   });
 
@@ -868,8 +909,8 @@ function LiveRuntimePage() {
   const arrivedStepIds = live.data?.arrivedStepIds ?? new Set<string>();
   const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
   /**
-   * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
-   * They are invisible to public.w04_step_readiness, so the operator must see them.
+   * Roster people relevant to this step whose participation is still `expected`.
+   * Surfaced so the operator can act on them; cancelled people are excluded upstream.
    */
   const unconfirmedForCurrent = current
     ? (live.data?.roster ?? []).filter(
@@ -907,8 +948,6 @@ function LiveRuntimePage() {
 
             <LiveTimingStrip current={current} next={next} />
 
-
-
             {readiness ? (
               <div
                 className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm ${
@@ -929,7 +968,7 @@ function LiveRuntimePage() {
               </div>
             ) : null}
 
-            {/* DEF-PILOT-011: readiness counts CONFIRMED people only — say so out loud. */}
+            {/* Expected (not yet confirmed) roster people relevant to this step. */}
             {readiness && readiness.requirement !== "none" && unconfirmedForCurrent.length > 0 ? (
               <p className="mt-2 text-sm text-warning">
                 {unconfirmedForCurrent.length} {t("w04.presence.unconfirmedWarning")}{" "}
@@ -956,6 +995,23 @@ function LiveRuntimePage() {
 
             <div className="mt-4">
               <SectionLabel>{t("w04.live.action")}</SectionLabel>
+              {/* DISPLAY ONLY: the server gate is never overridden here — the operator
+                  just sees why a gated action would be refused, before trying it. */}
+              {readiness && !readiness.ready ? (
+                <p className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
+                  <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+                  <span>
+                    {t("w04.live.blockedSummary")}{" "}
+                    <span className="tabular-nums">
+                      {readiness.missing_participations.length} {t("w04.live.blockedPeopleCount")}
+                    </span>
+                    {" · "}
+                    <span className="tabular-nums">
+                      {readiness.missing_required_items.length} {t("w04.live.blockedItemsCount")}
+                    </span>
+                  </span>
+                </p>
+              ) : null}
               <div className="mt-2">
                 <StepActions
                   step={current}
@@ -1072,7 +1128,7 @@ function StartNext({ step, onRefresh }: { step: JourneyStepRow; onRefresh: () =>
       feedback.success(t("w04.live.recorded"));
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
   });
 
   return (
