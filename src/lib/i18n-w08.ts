@@ -150,6 +150,8 @@ export const W08_EN: Record<string, string> = {
     "Publishing freezes the audience. A published message is never edited — it is corrected by a new message.",
   "w08.empty": "No messages in this operation.",
   "w08.emptyBody": "Create a draft, define the audience, and publish when it is right.",
+  "w08.selectPrompt": "Select a message",
+  "w08.selectPromptBody": "Pick a message from the list to see audience, delivery and reads.",
   "w08.forbidden": "You do not have access to this operation's communication.",
   "w08.forbiddenBody": "Talk to an owner or admin of the organization.",
   "w08.loadError": "Communication could not be loaded.",
