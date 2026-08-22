@@ -88,7 +88,9 @@ export function useAuth(): AuthState {
 
 /** Humanized, non-leaking mapping of auth/database errors. */
 export function humanizeError(error: unknown, locale: string): string {
-  const raw = error instanceof Error ? error.message : String(error ?? "");
+  // PostgREST errors arrive as plain objects, not Error instances: reading only
+  // Error.message turned every backend guard into the generic fallback.
+  const raw = errorText(error);
   const pt = locale.startsWith("pt");
   const map: Array<[RegExp, string, string]> = [
     [/invalid login credentials/i, "E-mail ou senha incorretos.", "Incorrect email or password."],
