@@ -243,4 +243,25 @@ describe("summarizeStepPresence", () => {
     expect(summary.boarded).toBe(0);
     expect(summary.pending).toBe(2);
   });
+
+  it("counts NO_SHOW_CONFIRMED as absent and resolved, never present or pending", () => {
+    const summary = summarizeStepPresence(current, roster, [
+      {
+        id: "e1",
+        participation_id: "p1",
+        journey_step_id: "step-1",
+        presence_fact: "NO_SHOW_CONFIRMED",
+        retracts_presence_event_id: null,
+        occurred_at: "2026-08-22T17:00:00Z",
+      },
+    ]);
+    expect(summary).toEqual({
+      population: 2,
+      present: 0,
+      boarded: 0,
+      pending: 1,
+      absent: 1,
+    });
+  });
 });
+
