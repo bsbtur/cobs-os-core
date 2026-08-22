@@ -97,10 +97,7 @@ function OperationWorkspace() {
             >
               {t("w08.tab.communication")}
             </Link>
-
           </nav>
-
-
 
           <Outlet />
         </RequireTenant>

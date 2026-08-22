@@ -9,8 +9,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type RoleTypeRow = Database["public"]["Tables"]["operation_role_types"]["Row"];
 export type ParticipationRow = Database["public"]["Tables"]["operation_participations"]["Row"];
-export type RoleAssignmentRow =
-  Database["public"]["Tables"]["operation_role_assignments"]["Row"];
+export type RoleAssignmentRow = Database["public"]["Tables"]["operation_role_assignments"]["Row"];
 
 export type ParticipationKind = Database["public"]["Enums"]["participation_kind"];
 export type ParticipationStatus = Database["public"]["Enums"]["participation_status"];
@@ -22,11 +21,7 @@ export const PARTICIPATION_KINDS: ParticipationKind[] = [
   "observer",
 ];
 
-export const PARTICIPATION_STATUSES: ParticipationStatus[] = [
-  "expected",
-  "confirmed",
-  "cancelled",
-];
+export const PARTICIPATION_STATUSES: ParticipationStatus[] = ["expected", "confirmed", "cancelled"];
 
 /** Mirrors the database command surface — the UI never offers an impossible move. */
 export const PARTICIPATION_TRANSITIONS: Record<ParticipationStatus, ParticipationStatus[]> = {

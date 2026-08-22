@@ -342,9 +342,7 @@ function BlueprintsWorkspace() {
               <BlueprintCard
                 key={blueprint.id}
                 blueprint={blueprint}
-                versions={blueprints.data!.versions.filter(
-                  (v) => v.blueprint_id === blueprint.id,
-                )}
+                versions={blueprints.data!.versions.filter((v) => v.blueprint_id === blueprint.id)}
               />
             ))}
           </div>

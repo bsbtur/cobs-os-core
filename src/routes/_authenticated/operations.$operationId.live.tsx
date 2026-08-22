@@ -137,11 +137,7 @@ function PresencePanel({
   };
 
   const record = useMutation({
-    mutationFn: async (input: {
-      participationId: string;
-      fact: PresenceFact;
-      reason?: string;
-    }) => {
+    mutationFn: async (input: { participationId: string; fact: PresenceFact; reason?: string }) => {
       const { error } = await supabase.rpc("record_presence_fact", {
         _journey_step_id: step.id,
         _participation_id: input.participationId,
@@ -188,7 +184,6 @@ function PresencePanel({
     onError: (error) => feedback.error(correctionError(error)),
   });
 
-
   const satisfying = SATISFYING_FACTS[step.presence_requirement];
   // DEF-PILOT-025: on a disembarkation step the operational fact is DISEMBARKED,
   // which the server accepts only after ARRIVED exists on the same step.
@@ -200,8 +195,7 @@ function PresencePanel({
         : "PRESENT_AT_MEETING_POINT";
   // BOARDED is rejected by the server until boarding is open on this step.
   const primaryBlocked =
-    (primaryFact === "BOARDED" && !boardingStarted) ||
-    (primaryFact === "DISEMBARKED" && !arrived);
+    (primaryFact === "BOARDED" && !boardingStarted) || (primaryFact === "DISEMBARKED" && !arrived);
 
   /**
    * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
@@ -212,9 +206,7 @@ function PresencePanel({
    * Cancelled people never reach this panel (the roster query excludes them).
    */
   const relevant = roster.filter((row) =>
-    step.presence_population === "participants"
-      ? row.participation_kind === "participant"
-      : true,
+    step.presence_population === "participants" ? row.participation_kind === "participant" : true,
   );
   const visible = relevant;
   const unconfirmed = relevant.filter((row) => row.status !== "confirmed");
@@ -242,7 +234,6 @@ function PresencePanel({
           </Button>
         </div>
       ) : null}
-
 
       <ul className="mt-3 divide-y divide-border/60">
         {visible.map((row) => {
@@ -273,9 +264,7 @@ function PresencePanel({
                   className="min-h-10"
                   disabled={record.isPending || primaryBlocked}
                   title={primaryBlocked ? t("w04.presence.boardingNotOpen") : undefined}
-                  onClick={() =>
-                    record.mutate({ participationId: row.id, fact: primaryFact })
-                  }
+                  onClick={() => record.mutate({ participationId: row.id, fact: primaryFact })}
                 >
                   {presenceLabel(primaryFact, t)}
                 </Button>
@@ -326,7 +315,6 @@ function PresencePanel({
         })}
       </ul>
 
-
       <Dialog
         open={Boolean(reasonPrompt)}
         onOpenChange={(open) => {
@@ -338,9 +326,7 @@ function PresencePanel({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {reasonPrompt ? presenceLabel(reasonPrompt.fact, t) : ""}
-            </DialogTitle>
+            <DialogTitle>{reasonPrompt ? presenceLabel(reasonPrompt.fact, t) : ""}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm font-medium">{reasonPrompt?.row.people?.full_name}</p>
@@ -398,18 +384,14 @@ function PresencePanel({
           <div className="space-y-3">
             <p className="text-sm font-medium">{correctPrompt?.row.people?.full_name}</p>
             <p className="text-sm">
-              <span className="text-muted-foreground">
-                {t("w04.presence.correctCurrent")}:{" "}
-              </span>
+              <span className="text-muted-foreground">{t("w04.presence.correctCurrent")}: </span>
               {correctPrompt
                 ? presenceLabel(correctPrompt.event.presence_fact as PresenceFact, t)
                 : ""}
             </p>
             <p className="text-sm text-muted-foreground">{t("w04.presence.correctExplain")}</p>
             <div className="space-y-1.5">
-              <Label htmlFor="presence-correct-reason">
-                {t("w04.presence.correctReason")}
-              </Label>
+              <Label htmlFor="presence-correct-reason">{t("w04.presence.correctReason")}</Label>
               <Textarea
                 id="presence-correct-reason"
                 rows={2}
@@ -435,7 +417,6 @@ function PresencePanel({
         </DialogContent>
       </Dialog>
     </section>
-
   );
 }
 
@@ -565,7 +546,6 @@ function StepActions({
     },
   });
 
-
   const actions: Array<{
     fn: string;
     label: string;
@@ -573,13 +553,18 @@ function StepActions({
     className?: string;
     requiresArrival?: boolean;
   }> = [];
-  if (step.step_kind === "meeting") actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
+  if (step.step_kind === "meeting")
+    actions.push({ fn: "start_gathering", label: t("w04.action.startGathering") });
   // DEF-PILOT-009: boarding action set is driven by the backend contract
   // (presence_requirement = 'boarded'), not only by step_kind = 'boarding'.
   if (step.presence_requirement === "boarded") {
     actions.push({ fn: "start_boarding", label: t("w04.action.startBoarding") });
     actions.push({ fn: "complete_boarding", label: t("w04.action.completeBoarding"), gated: true });
-    actions.push({ fn: "authorize_departure", label: t("w04.action.authorizeDeparture"), gated: true });
+    actions.push({
+      fn: "authorize_departure",
+      label: t("w04.action.authorizeDeparture"),
+      gated: true,
+    });
     actions.push({
       fn: "record_departed",
       label: t("w04.action.departed"),
@@ -640,7 +625,6 @@ function StepActions({
             });
             call.mutate(action.fn);
           }}
-
         >
           {action.label}
         </Button>
@@ -674,44 +658,48 @@ function LiveRuntimePage() {
         roster,
         state,
       ] = await Promise.all([
-          supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
-          supabase.from("journey_steps").select("*").eq("operation_id", operationId).order("sequence"),
-          supabase
-            .from("journey_events")
-            .select("*")
-            .eq("operation_id", operationId)
-            .order("occurred_at", { ascending: false })
-            .limit(40),
-          /**
-           * DEF-PILOT-014: operational state must NOT be derived from the limited
-           * visual feed above. These narrow, unbounded projections carry the facts
-           * needed for terminal-state and boarding derivation.
-           */
-          supabase
-            .from("journey_events")
-            .select("journey_step_id, event_type")
-            .eq("operation_id", operationId)
-            .in("event_type", ["STEP_COMPLETED", "STEP_SKIPPED"]),
-          supabase
-            .from("journey_events")
-            .select("journey_step_id, event_type")
-            .eq("operation_id", operationId)
-            .in("event_type", ["BOARDING_STARTED", "ARRIVED"]),
-          supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
-          supabase
-            .from("playbook_items")
-            .select("*")
-            .eq("operation_id", operationId)
-            .eq("is_active", true)
-            .order("sequence"),
-          supabase.from("playbook_executions").select("*").eq("operation_id", operationId),
-          supabase
-            .from("operation_participations")
-            .select("id, participation_kind, status, people(full_name)")
-            .eq("operation_id", operationId)
-            .neq("status", "cancelled"),
-          supabase.rpc("w04_operation_runtime_state", { _operation_id: operationId }),
-        ]);
+        supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
+        supabase
+          .from("journey_steps")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
+        supabase
+          .from("journey_events")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("occurred_at", { ascending: false })
+          .limit(40),
+        /**
+         * DEF-PILOT-014: operational state must NOT be derived from the limited
+         * visual feed above. These narrow, unbounded projections carry the facts
+         * needed for terminal-state and boarding derivation.
+         */
+        supabase
+          .from("journey_events")
+          .select("journey_step_id, event_type")
+          .eq("operation_id", operationId)
+          .in("event_type", ["STEP_COMPLETED", "STEP_SKIPPED"]),
+        supabase
+          .from("journey_events")
+          .select("journey_step_id, event_type")
+          .eq("operation_id", operationId)
+          .in("event_type", ["BOARDING_STARTED", "ARRIVED"]),
+        supabase.from("participant_presence_events").select("*").eq("operation_id", operationId),
+        supabase
+          .from("playbook_items")
+          .select("*")
+          .eq("operation_id", operationId)
+          .eq("is_active", true)
+          .order("sequence"),
+        supabase.from("playbook_executions").select("*").eq("operation_id", operationId),
+        supabase
+          .from("operation_participations")
+          .select("id, participation_kind, status, people(full_name)")
+          .eq("operation_id", operationId)
+          .neq("status", "cancelled"),
+        supabase.rpc("w04_operation_runtime_state", { _operation_id: operationId }),
+      ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
       if (resolutionEvents.error) throw resolutionEvents.error;
@@ -745,7 +733,6 @@ function LiveRuntimePage() {
         roster: (roster.data ?? []) as unknown as RosterRow[],
         state: (state.data ?? null) as RuntimeState | null,
       };
-
     },
   });
 
@@ -808,7 +795,6 @@ function LiveRuntimePage() {
       )
     : [];
 
-
   return (
     <section className="space-y-4">
       <header>
@@ -836,9 +822,7 @@ function LiveRuntimePage() {
             {readiness ? (
               <div
                 className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm ${
-                  readiness.ready
-                    ? "bg-success-soft text-success"
-                    : "bg-warning-soft text-warning"
+                  readiness.ready ? "bg-success-soft text-success" : "bg-warning-soft text-warning"
                 }`}
               >
                 {readiness.ready ? (
@@ -862,7 +846,6 @@ function LiveRuntimePage() {
                 {unconfirmedForCurrent.map((row) => row.people?.full_name).join(", ")}
               </p>
             ) : null}
-
 
             {readiness && !readiness.ready ? (
               <div className="mt-2 space-y-1 text-sm text-muted-foreground">
@@ -903,7 +886,9 @@ function LiveRuntimePage() {
             ) : journeyResolved ? (
               <div className="mt-2 space-y-3">
                 <h3 className="text-lg font-semibold">{t("w04.live.journeyCompleted")}</h3>
-                <p className="text-sm text-muted-foreground">{t("w04.live.journeyCompletedBody")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("w04.live.journeyCompletedBody")}
+                </p>
                 <Button asChild className="min-h-11" variant="default">
                   <Link to="/operations/$operationId" params={{ operationId }}>
                     {t("w04.live.goToOverview")}
@@ -921,7 +906,7 @@ function LiveRuntimePage() {
         <article className="surface-panel p-4">
           <SectionLabel>{t("w04.live.next")}</SectionLabel>
           <h3 className="mt-1 text-base font-semibold">{next.title}</h3>
-          {next.expected_start ?? next.planned_start ? (
+          {(next.expected_start ?? next.planned_start) ? (
             <p className="text-sm tabular-nums text-muted-foreground">
               {formatDateTime((next.expected_start ?? next.planned_start) as string, {
                 locale,
@@ -959,9 +944,7 @@ function LiveRuntimePage() {
 
       <CommunicationLiveCard operationId={operation.id} />
 
-
       <section className="surface-panel p-4">
-
         <div className="flex items-center gap-2">
           <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
           <SectionLabel>{t("w04.live.timeline")}</SectionLabel>

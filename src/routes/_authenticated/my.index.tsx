@@ -48,7 +48,6 @@ function ClaimOutcome({ claim }: { claim: "ok" | "invalid" }) {
       className={`mb-4 flex items-start gap-3 rounded-xl border bg-elevated/60 p-4 ${
         ok ? "border-success/50" : "border-destructive/50"
       }`}
-
     >
       <Icon
         className={`mt-0.5 size-5 shrink-0 ${ok ? "text-success" : "text-destructive"}`}
@@ -65,7 +64,6 @@ function ClaimOutcome({ claim }: { claim: "ok" | "invalid" }) {
     </div>
   );
 }
-
 
 function place(op: PortalOperationCard) {
   return [op.city, op.region, op.country].filter(Boolean).join(" · ");

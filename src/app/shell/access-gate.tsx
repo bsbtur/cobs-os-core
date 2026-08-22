@@ -255,8 +255,7 @@ export function RequireOperatorAccess({ children }: { children: React.ReactNode 
   const hasMembership = memberships.length > 0;
   const portal = useEffectivePortalAccess(!loading && !hasError && !hasMembership);
 
-  const shouldRedirectToPortal =
-    !loading && !hasError && !hasMembership && portal.data === true;
+  const shouldRedirectToPortal = !loading && !hasError && !hasMembership && portal.data === true;
 
   React.useEffect(() => {
     if (shouldRedirectToPortal) void navigate({ to: "/my", replace: true });

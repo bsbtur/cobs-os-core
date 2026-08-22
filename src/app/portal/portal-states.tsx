@@ -112,9 +112,7 @@ export function PortalTime({
     );
   }
   return (
-    <span className="text-xs text-foreground">
-      {formatDateTime((expected ?? planned)!, ctx)}
-    </span>
+    <span className="text-xs text-foreground">{formatDateTime((expected ?? planned)!, ctx)}</span>
   );
 }
 
