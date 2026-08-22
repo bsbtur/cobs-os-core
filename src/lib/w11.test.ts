@@ -3,6 +3,8 @@ import { describe, expect, it } from "bun:test";
 import {
   buildVisitPointUpdateArgs,
   canOperateVisitPoints,
+  canSubmitNewVisitPoint,
+  visitPointsPanelView,
   canPlanVisitPoints,
   canSkip,
   deriveStepVisitPoints,
@@ -322,5 +324,38 @@ describe("W11 — explicit content clearing", () => {
       _operational_note: "Entrada lateral",
       _estimated_minutes: 6,
     });
+  });
+});
+
+describe("W11 — panel read state (hotfix)", () => {
+  it("a read failure is an error state, never an empty state", () => {
+    expect(visitPointsPanelView({ isError: true, isLoading: false, total: 0 })).toBe("error");
+    expect(visitPointsPanelView({ isError: true, isLoading: false, total: 3 })).toBe("error");
+  });
+
+  it("loading is distinct from empty", () => {
+    expect(visitPointsPanelView({ isError: false, isLoading: true, total: 0 })).toBe("loading");
+    expect(visitPointsPanelView({ isError: false, isLoading: false, total: 0 })).toBe("empty");
+  });
+
+  it("shows the list once the refreshed read arrives", () => {
+    const created = deriveStepVisitPoints([point({ id: "a", sequence: 10 })], []);
+    expect(
+      visitPointsPanelView({ isError: false, isLoading: false, total: created.total }),
+    ).toBe("list");
+  });
+});
+
+describe("W11 — add button gating (hotfix)", () => {
+  it("blocks a second submission while the create + refresh cycle is pending", () => {
+    expect(canSubmitNewVisitPoint({ title: "QA Ponto 1", isPending: true })).toBe(false);
+    expect(
+      canSubmitNewVisitPoint({ title: "QA Ponto 1", isPending: false, isRefreshing: true }),
+    ).toBe(false);
+  });
+
+  it("allows submission only with a title and an idle cycle", () => {
+    expect(canSubmitNewVisitPoint({ title: "   ", isPending: false })).toBe(false);
+    expect(canSubmitNewVisitPoint({ title: "QA Ponto 1", isPending: false })).toBe(true);
   });
 });
