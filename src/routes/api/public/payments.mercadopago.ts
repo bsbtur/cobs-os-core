@@ -84,9 +84,7 @@ export const Route = createFileRoute("/api/public/payments/mercadopago")({
             : {}),
           ...(body.data.id ? { _provider_payment_id: body.data.id } : {}),
           ...(body.id ? { _provider_event_id: body.id } : {}),
-          ...(body.data.status_detail
-            ? { _provider_status_detail: body.data.status_detail }
-            : {}),
+          ...(body.data.status_detail ? { _provider_status_detail: body.data.status_detail } : {}),
           ...(body.data.transaction_amount !== undefined
             ? { _amount: body.data.transaction_amount }
             : {}),
