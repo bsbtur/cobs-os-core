@@ -71,17 +71,22 @@ export const Route = createFileRoute("/api/public/payments/mercadopago")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data, error } = await supabaseAdmin.rpc("record_provider_payment_event", {
-          _provider: "mercadopago",
-          _event_type: eventType as never,
-          _external_reference: body.data.external_reference ?? undefined,
-          _provider_payment_id: body.data.id ?? undefined,
-          _provider_event_id: body.id ?? undefined,
-          _provider_status: status,
-          _provider_status_detail: body.data.status_detail ?? undefined,
-          _amount: body.data.transaction_amount ?? undefined,
-          _payload: { action: body.action ?? null, type: body.type ?? null },
-        });
+        // Drop absent keys so optional RPC arguments stay absent, not explicit undefined.
+        const args = Object.fromEntries(
+          Object.entries({
+            _provider: "mercadopago",
+            _event_type: eventType,
+            _external_reference: body.data.external_reference,
+            _provider_payment_id: body.data.id,
+            _provider_event_id: body.id,
+            _provider_status: status,
+            _provider_status_detail: body.data.status_detail,
+            _amount: body.data.transaction_amount,
+            _payload: { action: body.action ?? null, type: body.type ?? null },
+          }).filter(([, value]) => value !== undefined),
+        ) as Parameters<typeof supabaseAdmin.rpc<"record_provider_payment_event">>[1];
+
+        const { data, error } = await supabaseAdmin.rpc("record_provider_payment_event", args);
 
         if (error) {
           console.error("[MP-01] provider event rejected", error.message);
