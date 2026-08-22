@@ -112,6 +112,52 @@ export function humanizeError(error: unknown, locale: string): string {
       "Muitas tentativas. Aguarde alguns instantes.",
       "Too many attempts. Please wait a moment.",
     ],
+    // Journey/runtime gates: operational guidance must win over the generic fallback.
+    [
+      /This step is not ready yet/i,
+      "Esta etapa ainda não está pronta. Resolva as pessoas pendentes e os itens obrigatórios do checklist antes de continuar.",
+      "This step is not ready yet. Resolve pending people and required checklist items before continuing.",
+    ],
+    [
+      /Departure can only be authorized on a running operation|ready or running operation/i,
+      "A operação não está em execução. Coloque-a em andamento antes de autorizar a saída.",
+      "The operation is not running. Put it in progress before authorizing departure.",
+    ],
+    [
+      /Departure has not been authorized/i,
+      "A saída ainda não foi autorizada nesta etapa. Autorize a saída antes de registrar a partida.",
+      "Departure has not been authorized on this step. Authorize it before recording departure.",
+    ],
+    [
+      /Another step is still running/i,
+      "Outra etapa ainda está em andamento. Conclua-a antes de iniciar uma nova.",
+      "Another step is still running. Finish it before starting a new one.",
+    ],
+    [
+      /operation must be ready before the journey/i,
+      "A operação precisa estar pronta antes de iniciar a jornada.",
+      "The operation must be ready before starting the journey.",
+    ],
+    [
+      /step is already closed|already completed|terminal;.*cannot|operation is terminal/i,
+      "Esta etapa ou operação já foi encerrada e não pode mais ser alterada.",
+      "This step or operation is already closed and can no longer be changed.",
+    ],
+    [
+      /was skipped and cannot be started/i,
+      "Esta etapa foi pulada e não pode ser iniciada.",
+      "This step was skipped and cannot be started.",
+    ],
+    [
+      /already started.*cannot be skipped/i,
+      "Uma etapa que já começou não pode ser pulada.",
+      "A step that has already started cannot be skipped.",
+    ],
+    [
+      /reason is required to skip/i,
+      "Informe o motivo para pular esta etapa.",
+      "Give a reason to skip this step.",
+    ],
     // DEF-PILOT-015: vehicle capacity invariant is enforced in the backend.
     [
       /Vehicle capacity has been reached for this leg/i,
@@ -157,6 +203,11 @@ export function humanizeError(error: unknown, locale: string): string {
       "Only owners and admins can do this.",
     ],
     [
+      /permission for this operation runtime|not have permission/i,
+      "Você não tem permissão para executar esta ação nesta operação.",
+      "You do not have permission to perform this action on this operation.",
+    ],
+    [
       /Authentication required/i,
       "Sessão expirada. Entre novamente.",
       "Session expired. Please sign in again.",
@@ -179,6 +230,11 @@ export function humanizeError(error: unknown, locale: string): string {
       "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
       "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
     ],
+    [
+      /does not track boarding/i,
+      "Esta etapa não controla embarque.",
+      "This step does not track boarding.",
+    ],
     // DEF-PILOT-025: arrival guard on disembarkation / movement steps.
     [
       /has not arrived/i,
@@ -191,7 +247,6 @@ export function humanizeError(error: unknown, locale: string): string {
       "This step has not started yet. Tap “Start step” before recording this action.",
     ],
   ];
-
 
   for (const [re, ptMsg, enMsg] of map) {
     if (re.test(raw)) return pt ? ptMsg : enMsg;
