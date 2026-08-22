@@ -340,9 +340,9 @@ describe("W11 — panel read state (hotfix)", () => {
 
   it("shows the list once the refreshed read arrives", () => {
     const created = deriveStepVisitPoints([point({ id: "a", sequence: 10 })], []);
-    expect(
-      visitPointsPanelView({ isError: false, isLoading: false, total: created.total }),
-    ).toBe("list");
+    expect(visitPointsPanelView({ isError: false, isLoading: false, total: created.total })).toBe(
+      "list",
+    );
   });
 });
 
