@@ -166,10 +166,7 @@ export type VisitPointAccess = {
 
 /** Planning stays elevated-only. Field crew never plans. */
 export function canPlanVisitPoints(access: VisitPointAccess): boolean {
-  return (
-    access.role !== null &&
-    (W11_PLANNING_ROLES as readonly string[]).includes(access.role)
-  );
+  return access.role !== null && (W11_PLANNING_ROLES as readonly string[]).includes(access.role);
 }
 
 /** Reading and recording runtime facts: elevated roles OR this operation's field crew. */
