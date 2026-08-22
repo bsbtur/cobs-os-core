@@ -1,10 +1,18 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Clock, Radio, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  MoreHorizontal,
+  Radio,
+  Search,
+  Users,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { humanizeError } from "@/lib/auth";
+import { errorText, humanizeError } from "@/lib/auth";
 import { MobilityLiveCard } from "@/components/mobility/mobility-live-card";
 import { HospitalityLiveCard } from "@/components/hospitality/hospitality-live-card";
 import { EventLiveCard } from "@/components/events/event-live-card";
@@ -15,6 +23,7 @@ import { formatDateTime } from "@/lib/format";
 import {
   SATISFYING_FACTS,
   eventLabel,
+  matchesPersonSearch,
   presenceLabel,
   type JourneyEventRow,
   type JourneyStepRow,
@@ -26,12 +35,22 @@ import {
   type RuntimeState,
 } from "@/lib/w04";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
+import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/operations/$operationId/live")({
   head: () => ({
@@ -112,6 +131,8 @@ function PresencePanel({
     idempotencyKey: string;
   } | null>(null);
   const [correctReason, setCorrectReason] = React.useState("");
+  const [query, setQuery] = React.useState("");
+  const [filter, setFilter] = React.useState<"all" | "pending" | "done">("all");
 
   /** Ids of facts that already carry a retraction — they are no longer effective. */
   const retractedIds = React.useMemo(() => {
@@ -157,7 +178,7 @@ function PresencePanel({
 
   /** Maps known backend messages to safe, humanized copy (no SQL, no ids, no stack). */
   const correctionError = (error: unknown): string => {
-    const raw = error instanceof Error ? error.message : String(error ?? "");
+    const raw = errorText(error);
     if (/already been retracted/i.test(raw)) return t("w04.presence.correctErrorAlready");
     if (/Presence record not found/i.test(raw)) return t("w04.presence.correctErrorNotFound");
     if (/reason is required/i.test(raw)) return t("w04.presence.correctErrorReason");
@@ -198,24 +219,38 @@ function PresencePanel({
     (primaryFact === "BOARDED" && !boardingStarted) || (primaryFact === "DISEMBARKED" && !arrived);
 
   /**
-   * DEF-PILOT-011 — ROSTER / READINESS CONTRACT.
-   * The server evaluates readiness over CONFIRMED people only
-   * (public.w04_step_readiness: p.status = 'confirmed').
-   * The panel therefore shows the same population WITHOUT hiding people who are
-   * still `expected`: they stay visible, labelled, and flagged as not counted.
-   * Cancelled people never reach this panel (the roster query excludes them).
+   * ROSTER / READINESS CONTRACT (mirrors the deployed public.w04_step_readiness).
+   * Population = active roster members of the step's population
+   * (`participants` -> participation_kind = 'participant', otherwise everyone).
+   * Cancelled people are excluded and never reach this panel.
+   * Readiness itself is decided by the server only; the panel never overrides it.
    */
   const relevant = roster.filter((row) =>
     step.presence_population === "participants" ? row.participation_kind === "participant" : true,
   );
-  const visible = relevant;
+  const visible = relevant.filter((row) => {
+    const fact = effectiveFor(row.id)?.presence_fact as PresenceFact | undefined;
+    const done = row.status === "confirmed" && Boolean(fact && satisfying.includes(fact));
+    const matchesFilter = filter === "all" || (filter === "done" ? done : !done);
+    const matchesQuery = matchesPersonSearch(row.people?.full_name, query);
+    return matchesFilter && matchesQuery;
+  });
   const unconfirmed = relevant.filter((row) => row.status !== "confirmed");
+  const satisfiedCount = relevant.filter((row) => {
+    if (row.status !== "confirmed") return false;
+    const fact = effectiveFor(row.id)?.presence_fact as PresenceFact | undefined;
+    return fact ? satisfying.includes(fact) : false;
+  }).length;
+  const evaluatedCount = relevant.filter((row) => row.status === "confirmed").length;
 
   return (
     <section className="surface-panel p-4">
       <div className="flex items-center gap-2">
         <Users className="size-4 text-muted-foreground" aria-hidden="true" />
         <SectionLabel>{t("w04.live.people")}</SectionLabel>
+        <span className="ml-auto rounded-full bg-muted px-2.5 py-1 font-mono text-[11px] tabular-nums text-muted-foreground">
+          {satisfiedCount}/{evaluatedCount} {t("w04.count.present")}
+        </span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{t("w04.presence.rosterNote")}</p>
       {primaryBlocked ? (
@@ -235,85 +270,134 @@ function PresencePanel({
         </div>
       ) : null}
 
-      <ul className="mt-3 divide-y divide-border/60">
+      <div className="mt-3 space-y-2">
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("w04.presence.search")}
+            aria-label={t("w04.presence.search")}
+            className="min-h-11 pl-9"
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1" role="group">
+          {(["all", "pending", "done"] as const).map((value) => (
+            <Button
+              key={value}
+              type="button"
+              size="sm"
+              variant={filter === value ? "secondary" : "ghost"}
+              className="min-h-9 px-2"
+              aria-pressed={filter === value}
+              onClick={() => setFilter(value)}
+            >
+              {t(`w04.presence.filter.${value}`)}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <ul className="mt-3 space-y-2 sm:divide-y sm:divide-border/60 sm:space-y-0">
         {visible.map((row) => {
           const effective = effectiveFor(row.id);
           const fact = (effective?.presence_fact as PresenceFact | undefined) ?? null;
           const ok = fact ? satisfying.includes(fact) : false;
           return (
-            <li key={row.id} className="flex flex-wrap items-center gap-2 py-2.5">
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                {row.people?.full_name}
-              </span>
-              {row.status !== "confirmed" ? (
-                <span className="rounded bg-warning-soft px-1.5 py-0.5 text-[11px] text-warning">
-                  {t(`w04.presence.status.${row.status}`)} · {t("w04.presence.notCounted")}
+            <li
+              key={row.id}
+              className="rounded-xl border border-border/70 bg-background/60 p-3 sm:flex sm:flex-wrap sm:items-center sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-2.5"
+            >
+              <div className="flex min-w-0 items-start justify-between gap-3 sm:flex-1 sm:items-center">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{row.people?.full_name}</p>
+                  {row.status !== "confirmed" ? (
+                    <span className="mt-1 inline-flex rounded bg-warning-soft px-1.5 py-0.5 text-[11px] text-warning">
+                      {t(`w04.presence.status.${row.status}`)} · {t("w04.presence.notCounted")}
+                    </span>
+                  ) : null}
+                </div>
+                <span
+                  className={`shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] ${
+                    ok ? "text-success" : "text-muted-foreground"
+                  }`}
+                >
+                  {fact ? presenceLabel(fact, t) : t("w04.presence.pending")}
                 </span>
-              ) : null}
-
-              <span
-                className={`font-mono text-[10px] uppercase tracking-[0.12em] ${
-                  ok ? "text-success" : "text-muted-foreground"
-                }`}
-              >
-                {fact ? presenceLabel(fact, t) : t("w04.presence.pending")}
-              </span>
-              <div className="flex flex-wrap gap-1.5">
+              </div>
+              <div className="mt-3 flex items-center gap-2 sm:mt-0 sm:w-auto">
                 <Button
                   size="sm"
-                  className="min-h-10"
+                  className="min-h-12 flex-1 text-sm sm:min-h-10 sm:flex-none"
                   disabled={record.isPending || primaryBlocked}
                   title={primaryBlocked ? t("w04.presence.boardingNotOpen") : undefined}
                   onClick={() => record.mutate({ participationId: row.id, fact: primaryFact })}
                 >
                   {presenceLabel(primaryFact, t)}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="min-h-10"
-                  disabled={record.isPending}
-                  onClick={() => {
-                    setReason("");
-                    setReasonPrompt({ row, fact: "ABSENCE_NOTED" });
-                  }}
-                >
-                  {presenceLabel("ABSENCE_NOTED", t)}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="min-h-10"
-                  onClick={() => {
-                    setReason("");
-                    setReasonPrompt({ row, fact: "NO_SHOW_CONFIRMED" });
-                  }}
-                >
-                  {presenceLabel("NO_SHOW_CONFIRMED", t)}
-                </Button>
-                {effective ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="min-h-10 text-muted-foreground"
-                    disabled={retract.isPending}
-                    onClick={() => {
-                      setCorrectReason("");
-                      setCorrectPrompt({
-                        row,
-                        event: effective,
-                        idempotencyKey: crypto.randomUUID(),
-                      });
-                    }}
-                  >
-                    {t("w04.presence.correct")}
-                  </Button>
-                ) : null}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="min-h-12 shrink-0 px-3 sm:min-h-10"
+                      aria-label={t("w04.presence.more")}
+                    >
+                      <MoreHorizontal className="size-4" aria-hidden="true" />
+                      <span className="ml-1 sm:sr-only">{t("w04.presence.more")}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-60">
+                    <DropdownMenuItem
+                      disabled={record.isPending}
+                      onSelect={() => {
+                        setReason("");
+                        setReasonPrompt({ row, fact: "ABSENCE_NOTED" });
+                      }}
+                    >
+                      {presenceLabel("ABSENCE_NOTED", t)}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setReason("");
+                        setReasonPrompt({ row, fact: "NO_SHOW_CONFIRMED" });
+                      }}
+                    >
+                      {presenceLabel("NO_SHOW_CONFIRMED", t)}
+                    </DropdownMenuItem>
+                    {effective ? (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          disabled={retract.isPending}
+                          onSelect={() => {
+                            setCorrectReason("");
+                            setCorrectPrompt({
+                              row,
+                              event: effective,
+                              idempotencyKey: crypto.randomUUID(),
+                            });
+                          }}
+                        >
+                          {t("w04.presence.correct")}
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </li>
           );
         })}
       </ul>
+      {visible.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          {t("w04.presence.noResults")}
+        </p>
+      ) : null}
 
       <Dialog
         open={Boolean(reasonPrompt)}
@@ -454,7 +538,7 @@ function ChecklistPanel({
       feedback.success(t("w04.live.recorded"));
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
   });
 
   if (items.length === 0) return null;
@@ -491,6 +575,49 @@ function ChecklistPanel({
       </ul>
     </section>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Runtime action errors                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Maps the known W04 runtime validation messages to safe, actionable copy.
+ * Display only: it never changes what the server decided, and it never leaks
+ * SQL, identifiers, stack traces or raw internals — unknown failures fall back
+ * to the shared `humanizeError`.
+ */
+function journeyActionError(error: unknown, t: (key: string) => string, locale: string): string {
+  const raw = errorText(error);
+  const rules: Array<[RegExp, string]> = [
+    [
+      /permission for this operation runtime|not have permission|owners and admins/i,
+      "w04.error.permission",
+    ],
+    [/Authentication required/i, "w04.error.auth"],
+    [/operation must be ready before the journey/i, "w04.error.operationNotReady"],
+    [
+      /only be authorized on a running operation|ready or running operation/i,
+      "w04.error.operationNotRunning",
+    ],
+    [/Another step is still running/i, "w04.error.anotherStepRunning"],
+    [/was skipped and cannot be started/i, "w04.error.stepSkipped"],
+    [/step has not started yet/i, "w04.error.stepNotStarted"],
+    [/step is already closed|already completed|cannot be changed/i, "w04.error.stepClosed"],
+    [/step is not ready yet/i, "w04.error.notReady"],
+    [/has not arrived for this step/i, "w04.error.arrivalRequired"],
+    [/Boarding has not started/i, "w04.error.boardingNotStarted"],
+    [/does not track boarding/i, "w04.error.noBoardingTracking"],
+    [/Departure has not been authorized/i, "w04.error.departureNotAuthorized"],
+    [/already been authorized|unchanged/i, "w04.error.departureAlreadyAuthorized"],
+    [/group has not departed yet/i, "w04.error.notDeparted"],
+    [/already started cannot be skipped/i, "w04.error.stepAlreadyStarted"],
+    [/reason is required to skip/i, "w04.error.reasonRequired"],
+    [/cannot be recorded in the future/i, "w04.error.future"],
+    [/cannot be backdated/i, "w04.error.backdated"],
+  ];
+  const hit = rules.find(([pattern]) => pattern.test(raw));
+  return hit ? t(hit[1]) : humanizeError(error, locale);
 }
 
 /* ------------------------------------------------------------------ */
@@ -542,7 +669,7 @@ function StepActions({
         message: error instanceof Error ? error.message : String(error),
         at: new Date().toISOString(),
       });
-      feedback.error(humanizeError(error, locale));
+      feedback.error(journeyActionError(error, t, locale));
     },
   });
 
@@ -782,8 +909,8 @@ function LiveRuntimePage() {
   const arrivedStepIds = live.data?.arrivedStepIds ?? new Set<string>();
   const journeyResolved = steps.length > 0 && steps.every((step) => resolvedStepIds.has(step.id));
   /**
-   * DEF-PILOT-011: people the step cares about who are NOT yet confirmed.
-   * They are invisible to public.w04_step_readiness, so the operator must see them.
+   * Roster people relevant to this step whose participation is still `expected`.
+   * Surfaced so the operator can act on them; cancelled people are excluded upstream.
    */
   const unconfirmedForCurrent = current
     ? (live.data?.roster ?? []).filter(
@@ -819,6 +946,8 @@ function LiveRuntimePage() {
               {current.location_label ? ` · ${current.location_label}` : ""}
             </p>
 
+            <LiveTimingStrip current={current} next={next} />
+
             {readiness ? (
               <div
                 className={`mt-3 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm ${
@@ -839,7 +968,7 @@ function LiveRuntimePage() {
               </div>
             ) : null}
 
-            {/* DEF-PILOT-011: readiness counts CONFIRMED people only — say so out loud. */}
+            {/* Expected (not yet confirmed) roster people relevant to this step. */}
             {readiness && readiness.requirement !== "none" && unconfirmedForCurrent.length > 0 ? (
               <p className="mt-2 text-sm text-warning">
                 {unconfirmedForCurrent.length} {t("w04.presence.unconfirmedWarning")}{" "}
@@ -866,6 +995,23 @@ function LiveRuntimePage() {
 
             <div className="mt-4">
               <SectionLabel>{t("w04.live.action")}</SectionLabel>
+              {/* DISPLAY ONLY: the server gate is never overridden here — the operator
+                  just sees why a gated action would be refused, before trying it. */}
+              {readiness && !readiness.ready ? (
+                <p className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
+                  <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+                  <span>
+                    {t("w04.live.blockedSummary")}{" "}
+                    <span className="tabular-nums">
+                      {readiness.missing_participations.length} {t("w04.live.blockedPeopleCount")}
+                    </span>
+                    {" · "}
+                    <span className="tabular-nums">
+                      {readiness.missing_required_items.length} {t("w04.live.blockedItemsCount")}
+                    </span>
+                  </span>
+                </p>
+              ) : null}
               <div className="mt-2">
                 <StepActions
                   step={current}
@@ -982,7 +1128,7 @@ function StartNext({ step, onRefresh }: { step: JourneyStepRow; onRefresh: () =>
       feedback.success(t("w04.live.recorded"));
       onRefresh();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
   });
 
   return (
