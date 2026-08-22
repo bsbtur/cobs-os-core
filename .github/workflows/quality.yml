@@ -36,13 +36,23 @@ jobs:
         run: |
           bunx eslint . --fix || true
           git diff --binary > /tmp/lint-autofix.patch
+          git diff --name-only -z | tar --null -T - -czf /tmp/lint-autofix-files.tgz
 
-      - name: Upload lint autofix package
+      - name: Upload lint autofix patch
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: lint-autofix-patch
           path: /tmp/lint-autofix.patch
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload lint autofix files
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-autofix-files
+          path: /tmp/lint-autofix-files.tgz
           if-no-files-found: error
           retention-days: 1
 
