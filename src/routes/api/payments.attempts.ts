@@ -25,7 +25,9 @@ function userSupabaseClient(token: string) {
   });
 }
 
-export const Route = createFileRoute("/api/payments/attempts")({
+// The TanStack generator adds this file route to routeTree.gen.ts during build.
+// `never` keeps pre-generation typecheck strict without weakening runtime validation.
+export const Route = createFileRoute("/api/payments/attempts" as never)({
   server: {
     handlers: {
       POST: async ({ request }) => {
@@ -75,10 +77,13 @@ export const Route = createFileRoute("/api/payments/attempts")({
 
         // MP-01 exercises the provider boundary without creating a real charge.
         const provider = createMercadoPagoProvider();
-        const amount = typeof safeAttempt.amount === "number" ? safeAttempt.amount : 0;
-        const currency = typeof safeAttempt.currency === "string" ? safeAttempt.currency : "BRL";
+        const amount = typeof safeAttempt["amount"] === "number" ? safeAttempt["amount"] : 0;
+        const currency =
+          typeof safeAttempt["currency"] === "string" ? safeAttempt["currency"] : "BRL";
         const externalReference =
-          typeof safeAttempt.external_reference === "string" ? safeAttempt.external_reference : "";
+          typeof safeAttempt["external_reference"] === "string"
+            ? safeAttempt["external_reference"]
+            : "";
         await provider.createPayment({
           externalReference,
           amount,
