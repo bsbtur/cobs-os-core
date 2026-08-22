@@ -192,7 +192,7 @@ export type VisitPointUpdateInput = {
 export function buildVisitPointUpdateArgs(
   visitPointId: string,
   input: VisitPointUpdateInput,
-): Record<string, unknown> {
+): { _visit_point_id: string } & Record<string, unknown> {
   const interpretive = input.interpretiveContent.trim();
   const operational = input.operationalNote.trim();
   const parsed = parseEstimatedMinutes(input.minutes);
