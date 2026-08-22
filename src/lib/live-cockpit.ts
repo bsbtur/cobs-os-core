@@ -345,4 +345,3 @@ export function summarizeStepPresence(
 
   return { population: relevant.length, present, boarded, pending, absent };
 }
-
