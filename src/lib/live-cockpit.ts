@@ -53,7 +53,7 @@ export type CockpitAction = {
   labelKey: string;
   /** True when readiness or a runtime precondition would make the server refuse. */
   blocked: boolean;
-  reasonKey?: string;
+  reasonKey?: string | undefined;
 };
 
 export type CockpitTone = "neutral" | "ready" | "blocked" | "attention" | "late";
