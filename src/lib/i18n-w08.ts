@@ -11,6 +11,8 @@ export const W08_PT: Record<string, string> = {
     "Publicar congela o público. Uma mensagem publicada nunca é editada — ela é corrigida por uma nova mensagem.",
   "w08.empty": "Nenhuma mensagem nesta operação.",
   "w08.emptyBody": "Crie um rascunho, defina o público e publique quando estiver correto.",
+  "w08.selectPrompt": "Selecione uma mensagem",
+  "w08.selectPromptBody": "Escolha uma mensagem na lista para ver público, entrega e leitura.",
   "w08.forbidden": "Você não tem acesso à comunicação desta operação.",
   "w08.forbiddenBody": "Fale com um proprietário ou administrador da organização.",
   "w08.loadError": "Não foi possível carregar a comunicação.",
