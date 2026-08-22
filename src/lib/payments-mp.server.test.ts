@@ -4,6 +4,7 @@ import {
   buildSignatureManifest,
   createMercadoPagoProvider,
   mapProviderStatus,
+  normalizeMercadoPagoOrder,
   normalizeMercadoPagoPayment,
   signManifest,
   toCanonicalProviderEvent,
@@ -42,8 +43,8 @@ describe("MP-01 Mercado Pago webhook signature", () => {
   });
 });
 
-describe("MP-01 provider reconciliation", () => {
-  it("normalizes only authoritative provider payment data", () => {
+describe("Mercado Pago provider reconciliation", () => {
+  it("keeps legacy Payments normalization covered", () => {
     const payment = normalizeMercadoPagoPayment({
       id: 42,
       status: "approved",
@@ -57,13 +58,44 @@ describe("MP-01 provider reconciliation", () => {
     expect(toCanonicalProviderEvent(payment!)?.eventType).toBe("PAYMENT_APPROVED");
   });
 
-  it("maps statuses centrally", () => {
-    expect(mapProviderStatus("approved")).toBe("PAYMENT_APPROVED");
-    expect(mapProviderStatus("pending")).toBe("PAYMENT_PENDING");
+  it("normalizes an Orders API Pix response", () => {
+    const order = normalizeMercadoPagoOrder({
+      id: "ORD01JP84C939T20S0P1DN382FQ6K",
+      type: "online",
+      processing_mode: "automatic",
+      external_reference: "cobs:0f6a1d3c-3f2c-4a1e-8a2b-1c2d3e4f5a6b",
+      total_amount: "50.00",
+      country_code: "BRA",
+      status: "action_required",
+      status_detail: "waiting_transfer",
+      last_updated_date: "2026-08-22T22:00:00Z",
+      transactions: {
+        payments: [
+          {
+            id: "PAY01JP84C939T20S0P1DN6FCMWQC",
+            amount: "50.00",
+            status: "action_required",
+            status_detail: "waiting_transfer",
+          },
+        ],
+      },
+    });
+
+    expect(order?.provider_payment_id).toBe("ORD01JP84C939T20S0P1DN382FQ6K");
+    expect(order?.amount).toBe(50);
+    expect(order?.currency).toBe("BRL");
+    expect(toCanonicalProviderEvent(order!)?.eventType).toBe("PAYMENT_PENDING");
+  });
+
+  it("maps final Orders statuses centrally", () => {
+    expect(mapProviderStatus("processed")).toBe("PAYMENT_APPROVED");
+    expect(mapProviderStatus("failed")).toBe("PAYMENT_REJECTED");
+    expect(mapProviderStatus("canceled")).toBe("PAYMENT_CANCELLED");
+    expect(mapProviderStatus("refunded")).toBe("PAYMENT_REFUNDED");
     expect(mapProviderStatus("unknown")).toBeNull();
   });
 
-  it("does not create a real charge in MP-01", async () => {
+  it("does not create a real charge before the payer contract is ready", async () => {
     const provider = createMercadoPagoProvider();
     expect(
       await provider.createPayment({
@@ -74,6 +106,6 @@ describe("MP-01 provider reconciliation", () => {
         description: "QA",
       }),
     ).toBeNull();
-    expect(await provider.getPayment("123")).toBeNull();
+    expect(await provider.getPayment("ORD01TEST")).toBeNull();
   });
 });
