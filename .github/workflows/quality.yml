@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   quality:
@@ -35,23 +35,31 @@ jobs:
           set -o pipefail
           bun run lint 2>&1 | tee lint-output.txt
 
-      - name: Prepare lint autofix bundle
-        if: failure() && steps.lint.outcome == 'failure'
+      - name: Commit lint autofixes on audit branch
+        if: >-
+          failure() &&
+          steps.lint.outcome == 'failure' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.head_ref == 'audit/release-gate-ci-20260822'
         shell: bash
         run: |
           bun run lint -- --fix || true
-          git diff --binary > lint-fixes.patch
-          git diff --name-only -z | tar --null -T - -czf lint-fixed-files.tar.gz
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src
+          git commit -m "style: apply eslint autofixes"
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Upload lint diagnostics
         if: failure() && steps.lint.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: lint-output
-          path: |
-            lint-output.txt
-            lint-fixes.patch
-            lint-fixed-files.tar.gz
+          path: lint-output.txt
           if-no-files-found: error
           retention-days: 7
 
