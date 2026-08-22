@@ -1,0 +1,12 @@
+REVOKE ALL ON TABLE public.journey_visit_points FROM anon, authenticated;
+REVOKE ALL ON TABLE public.journey_visit_point_events FROM anon, authenticated;
+GRANT SELECT ON TABLE public.journey_visit_points TO authenticated;
+GRANT SELECT ON TABLE public.journey_visit_point_events TO authenticated;
+GRANT ALL ON TABLE public.journey_visit_points TO service_role;
+GRANT ALL ON TABLE public.journey_visit_point_events TO service_role;
+REVOKE EXECUTE ON FUNCTION public.create_visit_point(uuid, text, text, text, text, integer, boolean) FROM anon, public;
+REVOKE EXECUTE ON FUNCTION public.update_visit_point(uuid, text, text, text, integer, boolean, boolean) FROM anon, public;
+REVOKE EXECUTE ON FUNCTION public.reorder_visit_points(uuid, uuid[]) FROM anon, public;
+REVOKE EXECUTE ON FUNCTION public.record_visit_point_event(uuid, public.visit_point_event_type, text, text, timestamptz) FROM anon, public;
+REVOKE EXECUTE ON FUNCTION public.list_step_visit_points(uuid) FROM anon, public;
+REVOKE EXECUTE ON FUNCTION public.visit_point_runtime_state(uuid) FROM anon, public;
