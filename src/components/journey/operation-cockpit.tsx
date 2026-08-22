@@ -49,7 +49,15 @@ function useNow(intervalMs = TICK_MS) {
   return now;
 }
 
-function Metric({ label, value, tone }: { label: string; value: number; tone?: "warning" }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: "warning" | undefined;
+}) {
   return (
     <div className="rounded-lg bg-muted/60 px-2.5 py-2">
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
