@@ -62,6 +62,7 @@ export const W08_PT: Record<string, string> = {
   "w08.audience.addPeople": "Adicionar pessoas",
   "w08.audience.none": "Nenhum público definido.",
   "w08.audience.remove": "Remover",
+  "w08.audience.save": "Salvar público",
   "w08.audience.saved": "Público atualizado.",
   "w08.audience.roleHint": "Papéis selecionam público. Eles nunca concedem acesso ao sistema.",
 
@@ -197,6 +198,7 @@ export const W08_EN: Record<string, string> = {
   "w08.audience.addPeople": "Add people",
   "w08.audience.none": "No audience defined.",
   "w08.audience.remove": "Remove",
+  "w08.audience.save": "Save audience",
   "w08.audience.saved": "Audience updated.",
   "w08.audience.roleHint": "Roles select audience. They never grant system access.",
 
@@ -333,6 +335,7 @@ export const W08_ES: Record<string, string> = {
   "w08.audience.addPeople": "Añadir personas",
   "w08.audience.none": "Sin audiencia definida.",
   "w08.audience.remove": "Quitar",
+  "w08.audience.save": "Guardar audiencia",
   "w08.audience.saved": "Audiencia actualizada.",
   "w08.audience.roleHint": "Los roles seleccionan audiencia. Nunca conceden acceso al sistema.",
 

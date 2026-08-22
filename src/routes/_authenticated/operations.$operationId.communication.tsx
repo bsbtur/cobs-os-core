@@ -384,7 +384,7 @@ function AudiencePanel({
             disabled={saveAudience.isPending}
             onClick={() => saveAudience.mutate()}
           >
-            {t("w08.save")}
+            {t("w08.audience.save")}
           </Button>
 
           <div className="space-y-1.5 border-t border-border pt-3">

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { humanizeError } from "@/lib/auth";
+import { errorText, humanizeError } from "@/lib/auth";
 import { MobilityLiveCard } from "@/components/mobility/mobility-live-card";
 import { HospitalityLiveCard } from "@/components/hospitality/hospitality-live-card";
 import { EventLiveCard } from "@/components/events/event-live-card";
@@ -178,7 +178,7 @@ function PresencePanel({
 
   /** Maps known backend messages to safe, humanized copy (no SQL, no ids, no stack). */
   const correctionError = (error: unknown): string => {
-    const raw = error instanceof Error ? error.message : String(error ?? "");
+    const raw = errorText(error);
     if (/already been retracted/i.test(raw)) return t("w04.presence.correctErrorAlready");
     if (/Presence record not found/i.test(raw)) return t("w04.presence.correctErrorNotFound");
     if (/reason is required/i.test(raw)) return t("w04.presence.correctErrorReason");
@@ -588,7 +588,7 @@ function ChecklistPanel({
  * to the shared `humanizeError`.
  */
 function journeyActionError(error: unknown, t: (key: string) => string, locale: string): string {
-  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const raw = errorText(error);
   const rules: Array<[RegExp, string]> = [
     [
       /permission for this operation runtime|not have permission|owners and admins/i,
