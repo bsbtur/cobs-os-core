@@ -863,6 +863,14 @@ function LiveRuntimePage() {
             .map((row) => row.journey_step_id)
             .filter((id): id is string => Boolean(id)),
         ),
+        // V1.1 cockpit: stepId -> set of runtime facts recorded on that step.
+        stepFacts: (boardingEvents.data ?? []).reduce((map, row) => {
+          if (!row.journey_step_id) return map;
+          const set = map.get(row.journey_step_id) ?? new Set<string>();
+          set.add(row.event_type);
+          map.set(row.journey_step_id, set);
+          return map;
+        }, new Map<string, Set<string>>()),
         presence: (presence.data ?? []) as PresenceEventRow[],
         items: (items.data ?? []) as PlaybookItemRow[],
         executions: (executions.data ?? []) as PlaybookExecutionRow[],
