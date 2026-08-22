@@ -85,6 +85,14 @@ export const W04_PT: Record<string, string> = {
   "w04.live.subtitle": "Somente fatos registrados. Nada aqui é estimado.",
   "w04.live.now": "AGORA",
   "w04.live.next": "PRÓXIMO",
+
+  "w04.timing.elapsed": "Decorrido",
+  "w04.timing.remaining": "Restam",
+  "w04.timing.late": "Atraso",
+  "w04.timing.nextIn": "Próxima em",
+  "w04.timing.nextLate": "Próxima atrasada",
+  "w04.timing.none": "Sem horários definidos para esta etapa.",
+
   "w04.live.attention": "ATENÇÃO",
   "w04.live.people": "PESSOAS",
   "w04.live.checklist": "CHECKLIST",
@@ -131,6 +139,7 @@ export const W04_PT: Record<string, string> = {
   "w04.action.departureOwnerOnly": "Somente proprietários e administradores autorizam a saída.",
 
   "w04.presence.mark": "Registrar",
+  "w04.presence.more": "Mais",
   "w04.presence.PRESENT_AT_MEETING_POINT": "Presente no ponto de encontro",
   "w04.presence.BOARDED": "Embarcou",
   "w04.presence.DISEMBARKED": "Desembarcou",
@@ -142,6 +151,11 @@ export const W04_PT: Record<string, string> = {
   "w04.presence.noShowOwnerOnly": "Somente proprietários e administradores confirmam uma ausência.",
   "w04.presence.pending": "Sem registro",
   "w04.presence.rosterNote": "Presença física não altera a situação da pessoa na lista.",
+  "w04.presence.search": "Buscar viajante pelo nome",
+  "w04.presence.filter.all": "Todos",
+  "w04.presence.filter.pending": "Pendentes",
+  "w04.presence.filter.done": "Concluídos",
+  "w04.presence.noResults": "Nenhum viajante encontrado.",
   // DEF-PILOT-011 — a prontidão considera apenas pessoas confirmadas.
   "w04.presence.status.expected": "Aguardando confirmação",
   "w04.presence.status.cancelled": "Cancelado",
@@ -204,6 +218,37 @@ export const W04_PT: Record<string, string> = {
   "w04.center.liveNow": "Operações em execução",
   "w04.center.recent": "Fatos operacionais recentes",
   "w04.center.noLive": "Nenhuma operação em execução agora.",
+
+  // Runtime action errors — humanized, never raw backend internals.
+  "w04.error.permission": "Você não tem permissão para esta ação nesta operação.",
+  "w04.error.auth": "Sua sessão expirou. Entre novamente para continuar.",
+  "w04.error.operationNotReady": "A operação precisa estar “pronta” antes de iniciar a jornada.",
+  "w04.error.operationNotRunning":
+    "Esta operação não está em execução. Coloque-a em andamento antes de registrar fatos.",
+  "w04.error.anotherStepRunning":
+    "Outra etapa ainda está em andamento. Conclua-a antes de iniciar uma nova.",
+  "w04.error.stepSkipped": "Esta etapa foi pulada e não pode ser iniciada.",
+  "w04.error.stepNotStarted": "Esta etapa ainda não começou. Inicie a etapa primeiro.",
+  "w04.error.stepClosed": "Esta etapa já foi encerrada e não pode ser alterada.",
+  "w04.error.stepAlreadyStarted": "Uma etapa que já começou não pode ser pulada.",
+  "w04.error.notReady":
+    "A etapa ainda não está pronta. Resolva as pessoas pendentes e os itens obrigatórios do checklist.",
+  "w04.error.arrivalRequired":
+    "A chegada ainda não foi registrada nesta etapa. Registre a chegada antes de continuar.",
+  "w04.error.boardingNotStarted":
+    "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” primeiro.",
+  "w04.error.noBoardingTracking": "Esta etapa não controla embarque.",
+  "w04.error.departureNotAuthorized":
+    "A saída ainda não foi autorizada nesta etapa. Autorize a saída antes de registrá-la.",
+  "w04.error.departureAlreadyAuthorized": "A saída já estava autorizada. Nada foi alterado.",
+  "w04.error.notDeparted": "O grupo ainda não iniciou o deslocamento.",
+  "w04.error.reasonRequired": "Informe o motivo para concluir esta ação.",
+  "w04.error.future": "Um fato não pode ser registrado no futuro.",
+  "w04.error.backdated": "Um fato não pode ser registrado antes da janela da operação.",
+
+  "w04.live.blockedSummary": "Ação bloqueada pela prontidão:",
+  "w04.live.blockedPeopleCount": "pessoa(s) pendente(s)",
+  "w04.live.blockedItemsCount": "item(ns) obrigatório(s) pendente(s)",
 };
 
 export const W04_EN: Record<string, string> = {
@@ -288,6 +333,14 @@ export const W04_EN: Record<string, string> = {
   "w04.live.subtitle": "Recorded facts only. Nothing here is estimated.",
   "w04.live.now": "NOW",
   "w04.live.next": "NEXT",
+
+  "w04.timing.elapsed": "Elapsed",
+  "w04.timing.remaining": "Remaining",
+  "w04.timing.late": "Late",
+  "w04.timing.nextIn": "Next in",
+  "w04.timing.nextLate": "Next overdue",
+  "w04.timing.none": "No times set for this step.",
+
   "w04.live.attention": "ATTENTION",
   "w04.live.people": "PEOPLE",
   "w04.live.checklist": "CHECKLIST",
@@ -334,6 +387,7 @@ export const W04_EN: Record<string, string> = {
   "w04.action.departureOwnerOnly": "Only owners and admins authorize departure.",
 
   "w04.presence.mark": "Record",
+  "w04.presence.more": "More",
   "w04.presence.PRESENT_AT_MEETING_POINT": "Present at meeting point",
   "w04.presence.BOARDED": "Boarded",
   "w04.presence.DISEMBARKED": "Disembarked",
@@ -345,6 +399,11 @@ export const W04_EN: Record<string, string> = {
   "w04.presence.noShowOwnerOnly": "Only owners and admins confirm a no-show.",
   "w04.presence.pending": "No record",
   "w04.presence.rosterNote": "Physical presence never changes roster status.",
+  "w04.presence.search": "Search traveler by name",
+  "w04.presence.filter.all": "All",
+  "w04.presence.filter.pending": "Pending",
+  "w04.presence.filter.done": "Completed",
+  "w04.presence.noResults": "No travelers found.",
   // DEF-PILOT-011 — readiness evaluates confirmed people only.
   "w04.presence.status.expected": "Awaiting confirmation",
   "w04.presence.status.cancelled": "Cancelled",
@@ -406,6 +465,37 @@ export const W04_EN: Record<string, string> = {
   "w04.center.liveNow": "Operations running now",
   "w04.center.recent": "Recent operational facts",
   "w04.center.noLive": "No operation is running right now.",
+
+  // Runtime action errors — humanized, never raw backend internals.
+  "w04.error.permission": "You do not have permission for this action on this operation.",
+  "w04.error.auth": "Your session expired. Sign in again to continue.",
+  "w04.error.operationNotReady": "The operation must be “ready” before the journey can start.",
+  "w04.error.operationNotRunning":
+    "This operation is not running. Put it in progress before recording facts.",
+  "w04.error.anotherStepRunning":
+    "Another step is still running. Finish it before starting a new one.",
+  "w04.error.stepSkipped": "This step was skipped and cannot be started.",
+  "w04.error.stepNotStarted": "This step has not started yet. Start the step first.",
+  "w04.error.stepClosed": "This step is already closed and cannot be changed.",
+  "w04.error.stepAlreadyStarted": "A step that already started cannot be skipped.",
+  "w04.error.notReady":
+    "The step is not ready yet. Resolve pending people and required checklist items.",
+  "w04.error.arrivalRequired":
+    "Arrival has not been recorded on this step. Record arrival before continuing.",
+  "w04.error.boardingNotStarted":
+    "Boarding is not open on this step yet. Tap “Start boarding” first.",
+  "w04.error.noBoardingTracking": "This step does not track boarding.",
+  "w04.error.departureNotAuthorized":
+    "Departure has not been authorized on this step. Authorize it before recording departure.",
+  "w04.error.departureAlreadyAuthorized": "Departure was already authorized. Nothing changed.",
+  "w04.error.notDeparted": "The group has not departed yet.",
+  "w04.error.reasonRequired": "Give the reason to complete this action.",
+  "w04.error.future": "A fact cannot be recorded in the future.",
+  "w04.error.backdated": "A fact cannot be recorded before the operation window.",
+
+  "w04.live.blockedSummary": "Action blocked by readiness:",
+  "w04.live.blockedPeopleCount": "person(s) pending",
+  "w04.live.blockedItemsCount": "required item(s) pending",
 };
 
 export const W04_DICTIONARIES: Record<Locale, Record<string, string>> = {

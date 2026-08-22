@@ -86,9 +86,25 @@ export function useAuth(): AuthState {
   return ctx;
 }
 
+/** Readable text of any thrown value — Error, PostgREST object or string. */
+export function errorText(error: unknown): string {
+  if (!error) return "";
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (typeof error === "object") {
+    const shape = error as { message?: unknown; details?: unknown; hint?: unknown };
+    return [shape.message, shape.details, shape.hint]
+      .filter((part): part is string => typeof part === "string" && part.length > 0)
+      .join(" · ");
+  }
+  return String(error);
+}
+
 /** Humanized, non-leaking mapping of auth/database errors. */
 export function humanizeError(error: unknown, locale: string): string {
-  const raw = error instanceof Error ? error.message : String(error ?? "");
+  // PostgREST errors arrive as plain objects, not Error instances: reading only
+  // Error.message turned every backend guard into the generic fallback.
+  const raw = errorText(error);
   const pt = locale.startsWith("pt");
   const map: Array<[RegExp, string, string]> = [
     [/invalid login credentials/i, "E-mail ou senha incorretos.", "Incorrect email or password."],
@@ -111,52 +127,6 @@ export function humanizeError(error: unknown, locale: string): string {
       /rate limit|too many/i,
       "Muitas tentativas. Aguarde alguns instantes.",
       "Too many attempts. Please wait a moment.",
-    ],
-    // Journey/runtime gates: operational guidance must win over the generic fallback.
-    [
-      /This step is not ready yet/i,
-      "Esta etapa ainda não está pronta. Resolva as pessoas pendentes e os itens obrigatórios do checklist antes de continuar.",
-      "This step is not ready yet. Resolve pending people and required checklist items before continuing.",
-    ],
-    [
-      /Departure can only be authorized on a running operation|ready or running operation/i,
-      "A operação não está em execução. Coloque-a em andamento antes de autorizar a saída.",
-      "The operation is not running. Put it in progress before authorizing departure.",
-    ],
-    [
-      /Departure has not been authorized/i,
-      "A saída ainda não foi autorizada nesta etapa. Autorize a saída antes de registrar a partida.",
-      "Departure has not been authorized on this step. Authorize it before recording departure.",
-    ],
-    [
-      /Another step is still running/i,
-      "Outra etapa ainda está em andamento. Conclua-a antes de iniciar uma nova.",
-      "Another step is still running. Finish it before starting a new one.",
-    ],
-    [
-      /operation must be ready before the journey/i,
-      "A operação precisa estar pronta antes de iniciar a jornada.",
-      "The operation must be ready before starting the journey.",
-    ],
-    [
-      /step is already closed|already completed|terminal;.*cannot|operation is terminal/i,
-      "Esta etapa ou operação já foi encerrada e não pode mais ser alterada.",
-      "This step or operation is already closed and can no longer be changed.",
-    ],
-    [
-      /was skipped and cannot be started/i,
-      "Esta etapa foi pulada e não pode ser iniciada.",
-      "This step was skipped and cannot be started.",
-    ],
-    [
-      /already started.*cannot be skipped/i,
-      "Uma etapa que já começou não pode ser pulada.",
-      "A step that has already started cannot be skipped.",
-    ],
-    [
-      /reason is required to skip/i,
-      "Informe o motivo para pular esta etapa.",
-      "Give a reason to skip this step.",
     ],
     // DEF-PILOT-015: vehicle capacity invariant is enforced in the backend.
     [
@@ -203,11 +173,6 @@ export function humanizeError(error: unknown, locale: string): string {
       "Only owners and admins can do this.",
     ],
     [
-      /permission for this operation runtime|not have permission/i,
-      "Você não tem permissão para executar esta ação nesta operação.",
-      "You do not have permission to perform this action on this operation.",
-    ],
-    [
       /Authentication required/i,
       "Sessão expirada. Entre novamente.",
       "Session expired. Please sign in again.",
@@ -230,11 +195,6 @@ export function humanizeError(error: unknown, locale: string): string {
       "O embarque ainda não foi aberto nesta etapa. Toque em “Iniciar embarque” antes de registrar embarcados.",
       "Boarding is not open on this step yet. Tap “Start boarding” before recording boarded travelers.",
     ],
-    [
-      /does not track boarding/i,
-      "Esta etapa não controla embarque.",
-      "This step does not track boarding.",
-    ],
     // DEF-PILOT-025: arrival guard on disembarkation / movement steps.
     [
       /has not arrived/i,
@@ -245,6 +205,53 @@ export function humanizeError(error: unknown, locale: string): string {
       /has not started yet/i,
       "Esta etapa ainda não foi iniciada. Toque em “Iniciar etapa” antes de registrar esta ação.",
       "This step has not started yet. Tap “Start step” before recording this action.",
+    ],
+    // QA-FINAL-20260822: W05 dispatch guards were reaching the operator as the
+    // generic fallback. Dispatch is a sequence — the message must say what to do.
+    [
+      /Departure has not been authorized on the linked journey step/i,
+      "A saída ainda não foi autorizada na etapa de jornada ligada a este trecho. Autorize a saída na Jornada antes de registrar a partida do veículo.",
+      "Departure has not been authorized on the journey step linked to this leg. Authorize it in the Journey before recording the vehicle departure.",
+    ],
+    [
+      /Record the vehicle at the pickup point before departure/i,
+      "Registre o veículo no ponto de embarque antes de registrar a partida.",
+      "Record the vehicle at the pickup point before recording departure.",
+    ],
+    [
+      /needs both a vehicle and a driver before it departs/i,
+      "Designe veículo e motorista antes de registrar a partida deste trecho.",
+      "Assign both a vehicle and a driver before this leg departs.",
+    ],
+    [
+      /The vehicle has not departed yet/i,
+      "O veículo ainda não partiu. Registre a partida antes da chegada ao destino.",
+      "The vehicle has not departed yet. Record departure before recording arrival.",
+    ],
+    [
+      /This transport leg was cancelled|A departed transport leg cannot be cancelled/i,
+      "Este trecho não aceita mais esta ação por causa da situação atual do despacho.",
+      "This leg no longer accepts this action because of its current dispatch state.",
+    ],
+    [
+      /Seats cannot be released after the leg departed/i,
+      "Não é possível liberar assentos depois que o trecho partiu. Crie um trecho avulso.",
+      "Seats cannot be released after the leg departed. Create an ad-hoc leg instead.",
+    ],
+    [
+      /That person is not assigned as a driver in this operation|That person is not on this operation roster/i,
+      "Esta pessoa não está na operação com a responsabilidade de motorista. Ajuste em Pessoas.",
+      "This person is not on the operation with the driver responsibility. Adjust it in People.",
+    ],
+    [
+      /Only participants, crew and support can be seated/i,
+      "Somente participantes, equipe e apoio podem ocupar assento.",
+      "Only participants, crew and support can be seated.",
+    ],
+    [
+      /A reason is required to/i,
+      "Informe o motivo para concluir esta ação.",
+      "A reason is required to complete this action.",
     ],
   ];
 

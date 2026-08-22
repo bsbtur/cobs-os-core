@@ -83,6 +83,21 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 type DriverWithPerson = DriverRow & { people: { full_name: string } | null };
 
 /**
+ * ELIGIBILITY IS CONTEXTUAL: a driver is a Person who holds the canonical `driver`
+ * responsibility in THIS operation. The global `drivers` table is only a resource,
+ * materialized idempotently by the server at assignment time.
+ */
+type DriverCandidate = {
+  person_id: string;
+  participation_id: string;
+  full_name: string;
+  participation_kind: string;
+  participation_status: string;
+  driver_id: string | null;
+  driver_active: boolean;
+};
+
+/**
  * A leg is TERMINAL once it arrived or was cancelled: no mutation control may stay
  * enabled. Further facts belong to a new ad-hoc leg, never to a closed one.
  */
@@ -281,18 +296,28 @@ function AssignmentPanel({
   state,
   vehicles,
   drivers,
+  driverCandidates,
   onRefresh,
 }: {
   leg: TransportLegRow;
   state: LegDispatchState | null;
   vehicles: VehicleRow[];
   drivers: DriverWithPerson[];
+  driverCandidates: DriverCandidate[];
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
   const [reason, setReason] = React.useState("");
   const terminal = isTerminalLeg(state);
   const departed = Boolean(state?.actual_departure) || terminal;
+
+  /** LEGACY COMPAT: an already assigned driver resource stays readable even if the
+   *  person no longer carries the driver responsibility in this operation. */
+  const assignedCandidate = driverCandidates.find((c) => c.driver_id === leg.driver_id) ?? null;
+  const legacyDriver =
+    leg.driver_id && !assignedCandidate
+      ? (drivers.find((d) => d.id === leg.driver_id) ?? null)
+      : null;
 
   const call = useMutation({
     mutationFn: async (payload: { fn: "vehicle" | "driver" | "clear"; id?: string }) => {
@@ -308,10 +333,10 @@ function AssignmentPanel({
         if (error) throw error;
       } else if (payload.fn === "driver") {
         const { error } = await supabase.rpc(
-          "assign_driver_to_leg",
+          "assign_operation_driver_to_leg",
           rpcArgs({
             _transport_leg_id: leg.id,
-            _driver_id: payload.id!,
+            _person_id: payload.id!,
             _reason: reason || undefined,
           }),
         );
@@ -365,16 +390,29 @@ function AssignmentPanel({
           <select
             id="assign-driver"
             className={SELECT_CLASS}
-            value={leg.driver_id ?? ""}
-            onChange={(e) => call.mutate({ fn: "driver", id: e.target.value })}
+            value={
+              assignedCandidate?.person_id ?? (legacyDriver ? `legacy:${legacyDriver.id}` : "")
+            }
+            onChange={(e) => {
+              if (!e.target.value || e.target.value.startsWith("legacy:")) return;
+              call.mutate({ fn: "driver", id: e.target.value });
+            }}
           >
             <option value="">—</option>
-            {drivers.map((driver) => (
-              <option key={driver.id} value={driver.id}>
-                {driver.people?.full_name ?? "—"}
+            {legacyDriver ? (
+              <option value={`legacy:${legacyDriver.id}`} disabled>
+                {legacyDriver.people?.full_name ?? "—"}
+              </option>
+            ) : null}
+            {driverCandidates.map((candidate) => (
+              <option key={candidate.person_id} value={candidate.person_id}>
+                {candidate.full_name}
               </option>
             ))}
           </select>
+          {driverCandidates.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("w05.driver.noCandidates")}</p>
+          ) : null}
         </div>
       </div>
       <div className="space-y-1.5">
@@ -1009,28 +1047,30 @@ function MobilityPage() {
   const data = useQuery({
     queryKey: ["mobility", operationId],
     queryFn: async () => {
-      const [operation, legs, vehicles, drivers, steps, events, overview] = await Promise.all([
-        supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
-        supabase
-          .from("transport_legs")
-          .select("*")
-          .eq("operation_id", operationId)
-          .order("sequence"),
-        supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
-        supabase.from("drivers").select("*, people(full_name)").eq("is_active", true),
-        supabase
-          .from("journey_steps")
-          .select("id, title")
-          .eq("operation_id", operationId)
-          .order("sequence"),
-        supabase
-          .from("transport_events")
-          .select("*")
-          .eq("operation_id", operationId)
-          .order("occurred_at", { ascending: false })
-          .limit(40),
-        supabase.rpc("w05_operation_mobility", { _operation_id: operationId }),
-      ]);
+      const [operation, legs, vehicles, drivers, driverCandidates, steps, events, overview] =
+        await Promise.all([
+          supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
+          supabase
+            .from("transport_legs")
+            .select("*")
+            .eq("operation_id", operationId)
+            .order("sequence"),
+          supabase.from("vehicles").select("*").eq("is_active", true).order("label"),
+          supabase.from("drivers").select("*, people(full_name)"),
+          supabase.rpc("w05_operation_driver_candidates", { _operation_id: operationId }),
+          supabase
+            .from("journey_steps")
+            .select("id, title")
+            .eq("operation_id", operationId)
+            .order("sequence"),
+          supabase
+            .from("transport_events")
+            .select("*")
+            .eq("operation_id", operationId)
+            .order("occurred_at", { ascending: false })
+            .limit(40),
+          supabase.rpc("w05_operation_mobility", { _operation_id: operationId }),
+        ]);
       if (operation.error) throw operation.error;
       if (legs.error) throw legs.error;
       return {
@@ -1038,6 +1078,8 @@ function MobilityPage() {
         legs: (legs.data ?? []) as TransportLegRow[],
         vehicles: (vehicles.data ?? []) as VehicleRow[],
         drivers: (drivers.data ?? []) as unknown as DriverWithPerson[],
+        driverCandidates: ((driverCandidates.data as { candidates?: DriverCandidate[] } | null)
+          ?.candidates ?? []) as DriverCandidate[],
         steps: (steps.data ?? []) as Array<{ id: string; title: string }>,
         events: (events.data ?? []) as TransportEventRow[],
         overview: (overview.data ?? null) as unknown as OperationMobility | null,
@@ -1231,6 +1273,7 @@ function MobilityPage() {
                     state={state}
                     vehicles={data.data?.vehicles ?? []}
                     drivers={data.data?.drivers ?? []}
+                    driverCandidates={data.data?.driverCandidates ?? []}
                     onRefresh={refresh}
                   />
                 </div>
