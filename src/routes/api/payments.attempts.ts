@@ -7,7 +7,8 @@ import { paymentAttemptRequestSchema, sanitizePaymentAttemptResponse } from "@/l
 
 function userSupabaseClient(token: string) {
   const url = process.env["SUPABASE_URL"] ?? import.meta.env["VITE_SUPABASE_URL"];
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+  const key =
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ?? import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) return null;
 
   return createClient<Database>(url, key, {
