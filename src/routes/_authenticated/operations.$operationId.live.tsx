@@ -1025,18 +1025,17 @@ function LiveRuntimePage() {
       </header>
 
 
-      {/* NOW */}
-      <article className="surface-panel border-primary/40 p-4 sm:p-5">
+      {/* NOW — full runtime detail; the hero above only orients. */}
+      <article className="surface-panel p-4 sm:p-5">
         <SectionLabel>{t("w04.live.now")}</SectionLabel>
         {current ? (
           <>
-            <h3 className="mt-1 text-2xl font-semibold tracking-tight">{current.title}</h3>
+            <h3 className="mt-1 text-lg font-semibold tracking-tight">{current.title}</h3>
             <p className="text-sm text-muted-foreground">
               {t(`w04.kind.${current.step_kind}`)}
               {current.location_label ? ` · ${current.location_label}` : ""}
             </p>
 
-            <LiveTimingStrip current={current} next={next} />
 
             {readiness ? (
               <div
