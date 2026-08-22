@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { Button } from "@/components/ui/button";
+import { PanelSkeleton } from "@/components/feedback/loading";
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
@@ -60,6 +61,10 @@ function Posture() {
           .in("status", ["planning", "ready", "active"])
           .is("archived_at", null),
       ]);
+
+      const failed = [people, members, experiences, liveOps].find((result) => result.error);
+      if (failed?.error) throw failed.error;
+
       return {
         people: people.count ?? 0,
         members: members.count ?? 0,
@@ -69,15 +74,40 @@ function Posture() {
     },
   });
 
+  if (counts.isPending) {
+    return (
+      <section className="surface-panel p-4" aria-label={t("overview.title")}>
+        <PanelSkeleton rows={2} />
+      </section>
+    );
+  }
+
+  if (counts.isError) {
+    return (
+      <section className="surface-panel p-4" role="alert" aria-live="polite">
+        <p className="text-sm font-semibold">{t("state.error.title")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("state.error.body")}</p>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 min-h-11"
+          onClick={() => void counts.refetch()}
+        >
+          {t("state.error.retry")}
+        </Button>
+      </section>
+    );
+  }
+
   const cards = [
     { icon: Building2, label: t("settings.title"), value: tenant?.name ?? "—" },
     {
       icon: CalendarRange,
       label: t("w02.experiences"),
-      value: String(counts.data?.experiences ?? "—"),
+      value: String(counts.data.experiences),
     },
-    { icon: Activity, label: t("w02.activeOps"), value: String(counts.data?.liveOps ?? "—") },
-    { icon: Users, label: t("people.title"), value: String(counts.data?.people ?? "—") },
+    { icon: Activity, label: t("w02.activeOps"), value: String(counts.data.liveOps) },
+    { icon: Users, label: t("people.title"), value: String(counts.data.people) },
     { icon: ShieldCheck, label: t("team.inviteRole"), value: role ? t(`role.${role}`) : "—" },
   ];
 
