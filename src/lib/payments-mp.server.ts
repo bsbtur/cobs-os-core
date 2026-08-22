@@ -1,12 +1,14 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+import { z } from "zod";
+
 import type { PaymentEventType } from "@/lib/payments";
 
 /**
  * COBS OS · MP-01 hardening — Mercado Pago signature + provider abstraction.
  *
- * The webhook is a TRIGGER, never evidence. Financial truth is always read back
- * from the provider through PaymentProvider.getPayment().
+ * A webhook is a trigger, never financial evidence. Financial truth is read
+ * back from the provider through PaymentProvider.getPayment().
  */
 
 export type ProviderPayment = {
@@ -27,9 +29,19 @@ export type PaymentProvider = {
     currency: string;
     paymentMethod: string;
     description: string;
-  }): Promise<ProviderPayment>;
+  }): Promise<ProviderPayment | null>;
   getPayment(providerPaymentId: string): Promise<ProviderPayment | null>;
   refundPayment(providerPaymentId: string, amount?: number): Promise<ProviderPayment | null>;
+};
+
+export type CanonicalProviderEvent = {
+  eventType: PaymentEventType;
+  providerPaymentId: string;
+  providerStatus: string;
+  providerStatusDetail: string | null;
+  externalReference: string | null;
+  amount: number;
+  occurredAt: string | null;
 };
 
 /** Provider status → canonical COBS payment event. */
@@ -65,7 +77,7 @@ export function parseSignatureHeader(header: string | null): { ts: string; v1: s
   return { ts, v1 };
 }
 
-/** Official Mercado Pago manifest form. */
+/** Official Mercado Pago manifest form. Missing pairs are omitted. */
 export function buildSignatureManifest(input: {
   dataId: string;
   requestId: string | null;
@@ -100,26 +112,81 @@ export function verifyMercadoPagoSignature(input: {
   return safeEqualHex(signManifest(manifest, input.secret).toLowerCase(), parsed.v1.toLowerCase());
 }
 
+const providerPaymentSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  status: z.string().min(1),
+  status_detail: z.string().nullable().optional(),
+  transaction_amount: z.number().positive(),
+  currency_id: z.string().min(1),
+  external_reference: z.string().nullable().optional(),
+  date_approved: z.string().nullable().optional(),
+});
+
+export function normalizeMercadoPagoPayment(value: unknown): ProviderPayment | null {
+  const parsed = providerPaymentSchema.safeParse(value);
+  if (!parsed.success) return null;
+  return {
+    provider_payment_id: String(parsed.data.id),
+    status: parsed.data.status,
+    status_detail: parsed.data.status_detail ?? null,
+    amount: parsed.data.transaction_amount,
+    currency: parsed.data.currency_id,
+    external_reference: parsed.data.external_reference ?? null,
+    approved_at: parsed.data.date_approved ?? null,
+  };
+}
+
+/** Only provider-reconciled data can become a COBS financial event. */
+export function toCanonicalProviderEvent(payment: ProviderPayment): CanonicalProviderEvent | null {
+  const eventType = mapProviderStatus(payment.status);
+  if (!eventType) return null;
+  return {
+    eventType,
+    providerPaymentId: payment.provider_payment_id,
+    providerStatus: payment.status,
+    providerStatusDetail: payment.status_detail,
+    externalReference: payment.external_reference,
+    amount: payment.amount,
+    occurredAt: payment.approved_at,
+  };
+}
+
 /**
- * Stub provider. No real network call is performed in MP-01; a real
- * implementation replaces only the bodies below.
+ * MP-01 provider boundary. createPayment/refundPayment are intentionally disabled
+ * until MP-02/MP-03. getPayment may reconcile when a server-only access token is
+ * configured, or use an injected lookup in tests.
  */
 export function createMercadoPagoProvider(options?: {
   accessToken?: string | undefined;
   lookup?: (id: string) => Promise<ProviderPayment | null>;
 }): PaymentProvider {
   const lookup = options?.lookup;
+  const accessToken = options?.accessToken;
+
   return {
     name: "mercadopago",
     async createPayment() {
-      throw new Error("MercadoPagoProvider.createPayment is not enabled in this phase");
+      return null;
     },
     async getPayment(providerPaymentId: string) {
       if (lookup) return lookup(providerPaymentId);
-      return null;
+      if (!accessToken) return null;
+
+      const response = await fetch(
+        `https://api.mercadopago.com/v1/payments/${encodeURIComponent(providerPaymentId)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/json",
+          },
+        },
+      );
+      if (!response.ok) return null;
+      return normalizeMercadoPagoPayment(await response.json().catch(() => null));
     },
     async refundPayment() {
-      throw new Error("MercadoPagoProvider.refundPayment is not enabled in this phase");
+      return null;
     },
   };
 }
