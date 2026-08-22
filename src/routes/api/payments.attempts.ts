@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
-import {
-  createMercadoPagoProvider,
-  toCanonicalProviderEvent,
-} from "@/lib/payments-mp.server";
+import { createMercadoPagoProvider, toCanonicalProviderEvent } from "@/lib/payments-mp.server";
 import { paymentAttemptRequestSchema, sanitizePaymentAttemptResponse } from "@/lib/payments-api";
 
 function userSupabaseClient(token: string) {
