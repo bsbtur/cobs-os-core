@@ -4,13 +4,6 @@ import { z } from "zod";
 
 import type { PaymentEventType } from "@/lib/payments";
 
-/**
- * COBS OS · Mercado Pago provider boundary.
- *
- * A webhook is a trigger, never financial evidence. Financial truth is read
- * back from Mercado Pago before a canonical COBS event is recorded.
- */
-
 export type ProviderPayment = {
   provider_payment_id: string;
   status: string;
@@ -19,6 +12,9 @@ export type ProviderPayment = {
   currency: string;
   external_reference: string | null;
   approved_at: string | null;
+  pix_qr_code?: string | null;
+  pix_qr_code_base64?: string | null;
+  pix_ticket_url?: string | null;
 };
 
 export type PaymentProvider = {
@@ -29,6 +25,8 @@ export type PaymentProvider = {
     currency: string;
     paymentMethod: string;
     description: string;
+    payerEmail: string;
+    idempotencyKey: string;
   }): Promise<ProviderPayment | null>;
   getPayment(providerPaymentId: string): Promise<ProviderPayment | null>;
   refundPayment(providerPaymentId: string, amount?: number): Promise<ProviderPayment | null>;
@@ -44,7 +42,6 @@ export type CanonicalProviderEvent = {
   occurredAt: string | null;
 };
 
-/** Provider status → canonical COBS payment event. Supports legacy Payments + Orders. */
 export const EVENT_TYPE_BY_PROVIDER_STATUS: Record<string, PaymentEventType> = {
   pending: "PAYMENT_PENDING",
   in_process: "PAYMENT_PENDING",
@@ -68,7 +65,6 @@ export function mapProviderStatus(status: string): PaymentEventType | null {
   return EVENT_TYPE_BY_PROVIDER_STATUS[status] ?? null;
 }
 
-/** `ts=1700000000,v1=abc...` → parts. */
 export function parseSignatureHeader(header: string | null): { ts: string; v1: string } | null {
   if (!header) return null;
   const parts: Record<string, string> = {};
@@ -83,7 +79,6 @@ export function parseSignatureHeader(header: string | null): { ts: string; v1: s
   return { ts, v1 };
 }
 
-/** Official Mercado Pago manifest form. Missing pairs are omitted. */
 export function buildSignatureManifest(input: {
   dataId: string;
   requestId: string | null;
@@ -160,6 +155,13 @@ const providerOrderSchema = z.object({
           z.object({
             status: z.string().min(1).optional(),
             status_detail: z.string().nullable().optional(),
+            payment_method: z
+              .object({
+                qr_code: z.string().nullable().optional(),
+                qr_code_base64: z.string().nullable().optional(),
+                ticket_url: z.string().url().nullable().optional(),
+              })
+              .optional(),
           }),
         )
         .optional(),
@@ -167,7 +169,6 @@ const providerOrderSchema = z.object({
     .optional(),
 });
 
-/** Normalize the authoritative resource returned by GET /v1/orders/{id}. */
 export function normalizeMercadoPagoOrder(value: unknown): ProviderPayment | null {
   const parsed = providerOrderSchema.safeParse(value);
   if (!parsed.success) return null;
@@ -184,7 +185,6 @@ export function normalizeMercadoPagoOrder(value: unknown): ProviderPayment | nul
   if (!currency) return null;
 
   return {
-    // DB contract keeps this historic field name; for Orders it stores the order resource ID.
     provider_payment_id: parsed.data.id,
     status: payment?.status ?? parsed.data.status,
     status_detail: payment?.status_detail ?? parsed.data.status_detail ?? null,
@@ -195,10 +195,12 @@ export function normalizeMercadoPagoOrder(value: unknown): ProviderPayment | nul
       (payment?.status ?? parsed.data.status) === "processed"
         ? (parsed.data.last_updated_date ?? null)
         : null,
+    pix_qr_code: payment?.payment_method?.qr_code ?? null,
+    pix_qr_code_base64: payment?.payment_method?.qr_code_base64 ?? null,
+    pix_ticket_url: payment?.payment_method?.ticket_url ?? null,
   };
 }
 
-/** Only provider-reconciled data can become a COBS financial event. */
 export function toCanonicalProviderEvent(payment: ProviderPayment): CanonicalProviderEvent | null {
   const eventType = mapProviderStatus(payment.status);
   if (!eventType) return null;
@@ -213,30 +215,54 @@ export function toCanonicalProviderEvent(payment: ProviderPayment): CanonicalPro
   };
 }
 
-/**
- * MP-02 Orders API provider boundary.
- *
- * createPayment/refundPayment remain intentionally disabled until the authenticated
- * COBS attempt contract carries the payer data required by Mercado Pago. Reconciliation
- * is live against GET /v1/orders/{id}, matching the Order webhook topic.
- */
 export function createMercadoPagoProvider(options?: {
   accessToken?: string | undefined;
   lookup?: (id: string) => Promise<ProviderPayment | null>;
+  request?: typeof fetch;
 }): PaymentProvider {
   const lookup = options?.lookup;
   const accessToken = options?.accessToken;
+  const request = options?.request ?? fetch;
 
   return {
     name: "mercadopago",
-    async createPayment() {
-      return null;
+    async createPayment(input) {
+      if (!accessToken || input.paymentMethod !== "pix" || input.currency !== "BRL") return null;
+      if (!input.payerEmail || !input.idempotencyKey || input.amount <= 0) return null;
+
+      const amount = input.amount.toFixed(2);
+      const response = await request("https://api.mercadopago.com/v1/orders", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": input.idempotencyKey,
+        },
+        body: JSON.stringify({
+          type: "online",
+          total_amount: amount,
+          external_reference: input.externalReference,
+          processing_mode: "automatic",
+          transactions: {
+            payments: [
+              {
+                amount,
+                payment_method: { id: "pix", type: "bank_transfer" },
+              },
+            ],
+          },
+          payer: { email: input.payerEmail },
+        }),
+      });
+      if (!response.ok) return null;
+      return normalizeMercadoPagoOrder(await response.json().catch(() => null));
     },
     async getPayment(providerOrderId: string) {
       if (lookup) return lookup(providerOrderId);
       if (!accessToken) return null;
 
-      const response = await fetch(
+      const response = await request(
         `https://api.mercadopago.com/v1/orders/${encodeURIComponent(providerOrderId)}`,
         {
           method: "GET",
