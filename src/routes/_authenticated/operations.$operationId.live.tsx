@@ -1152,16 +1152,18 @@ function LiveRuntimePage() {
         </article>
       ) : null}
 
-      {current && current.presence_requirement !== "none" ? (
-        <PresencePanel
-          step={current}
-          roster={live.data?.roster ?? []}
-          presence={live.data?.presence ?? []}
-          boardingStarted={boardingStartedStepIds.has(current.id)}
-          arrived={arrivedStepIds.has(current.id)}
-          onRefresh={refresh}
-        />
-      ) : null}
+      <div ref={peopleRef} id="live-people" className="scroll-mt-20">
+        {current && current.presence_requirement !== "none" ? (
+          <PresencePanel
+            step={current}
+            roster={live.data?.roster ?? []}
+            presence={live.data?.presence ?? []}
+            boardingStarted={boardingStartedStepIds.has(current.id)}
+            arrived={arrivedStepIds.has(current.id)}
+            onRefresh={refresh}
+          />
+        ) : null}
+      </div>
 
       {current ? (
         <ChecklistPanel
