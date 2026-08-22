@@ -1000,16 +1000,30 @@ function LiveRuntimePage() {
 
   return (
     <section className="space-y-4">
-      <header>
-        <h2 className="text-xl font-semibold">{t("w04.live.title")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
-      </header>
-
       {operation.status !== "active" ? (
         <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
           {t("w04.live.notStarted")} {t("w04.live.notStartedBody")}
         </p>
       ) : null}
+
+      {/* V1.1 COCKPIT — first fold: step · next action · time · people */}
+      <OperationCockpit
+        operationId={operation.id}
+        current={current}
+        next={next}
+        readiness={readiness}
+        summary={cockpitSummary}
+        action={cockpitAction}
+        pending={cockpitCall.isPending}
+        onRun={(action) => cockpitCall.mutate(action)}
+        onFocusPeople={focusPeople}
+      />
+
+      <header>
+        <h2 className="text-xl font-semibold">{t("w04.live.title")}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
+      </header>
+
 
       {/* NOW */}
       <article className="surface-panel border-primary/40 p-4 sm:p-5">
