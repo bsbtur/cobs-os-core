@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
-import { createMercadoPagoProvider } from "@/lib/payments-mp.server";
+import {
+  createMercadoPagoProvider,
+  toCanonicalProviderEvent,
+} from "@/lib/payments-mp.server";
 import { paymentAttemptRequestSchema, sanitizePaymentAttemptResponse } from "@/lib/payments-api";
 
 function userSupabaseClient(token: string) {
@@ -52,6 +55,12 @@ export const Route = createFileRoute("/api/payments/attempts")({
         if (!parsed.success) {
           return Response.json({ error: "invalid_payload" }, { status: 400 });
         }
+        if (parsed.data.payment_method !== "pix") {
+          return Response.json({ error: "payment_method_not_enabled" }, { status: 422 });
+        }
+        if (!authData.user.email) {
+          return Response.json({ error: "payer_email_required" }, { status: 422 });
+        }
 
         const { data, error } = await supabase.rpc("create_payment_attempt", {
           _payment_order_id: parsed.data.payment_order_id,
@@ -71,8 +80,6 @@ export const Route = createFileRoute("/api/payments/attempts")({
           return Response.json({ error: "invalid_attempt_response" }, { status: 500 });
         }
 
-        // MP-01 exercises the provider boundary without creating a real charge.
-        const provider = createMercadoPagoProvider();
         const amount = typeof safeAttempt["amount"] === "number" ? safeAttempt["amount"] : 0;
         const currency =
           typeof safeAttempt["currency"] === "string" ? safeAttempt["currency"] : "BRL";
@@ -80,15 +87,72 @@ export const Route = createFileRoute("/api/payments/attempts")({
           typeof safeAttempt["external_reference"] === "string"
             ? safeAttempt["external_reference"]
             : "";
-        await provider.createPayment({
+        if (!amount || !externalReference || currency !== "BRL") {
+          return Response.json({ error: "invalid_attempt_contract" }, { status: 500 });
+        }
+
+        const accessToken = process.env["MP_ACCESS_TOKEN"];
+        if (!accessToken) {
+          return Response.json({ error: "provider_not_configured" }, { status: 503 });
+        }
+
+        const provider = createMercadoPagoProvider({ accessToken });
+        const providerPayment = await provider.createPayment({
           externalReference,
           amount,
           currency,
-          paymentMethod: parsed.data.payment_method,
+          paymentMethod: "pix",
           description: "COBS payment",
+          payerEmail: authData.user.email,
+          idempotencyKey: parsed.data.idempotency_key,
         });
+        if (!providerPayment) {
+          return Response.json({ error: "provider_creation_failed" }, { status: 502 });
+        }
+        if (
+          providerPayment.external_reference !== externalReference ||
+          providerPayment.amount !== amount ||
+          providerPayment.currency !== currency
+        ) {
+          return Response.json({ error: "provider_contract_mismatch" }, { status: 502 });
+        }
 
-        return Response.json({ ...safeAttempt, provider_payment_created: false }, { status: 201 });
+        const canonical = toCanonicalProviderEvent(providerPayment);
+        if (!canonical) {
+          return Response.json({ error: "provider_status_unmapped" }, { status: 502 });
+        }
+
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { error: recordError } = await supabaseAdmin.rpc("record_provider_payment_event", {
+          _provider: "mercadopago",
+          _event_type: canonical.eventType,
+          _external_reference: externalReference,
+          _provider_payment_id: canonical.providerPaymentId,
+          _provider_event_id: `create:${canonical.providerPaymentId}`,
+          _provider_status: canonical.providerStatus,
+          _provider_status_detail: canonical.providerStatusDetail,
+          _amount: canonical.amount,
+          _payload: { source: "pix_order_create", reconciled: true },
+          ...(canonical.occurredAt ? { _occurred_at: canonical.occurredAt } : {}),
+        });
+        if (recordError) {
+          console.error("[MP-02B] provider creation could not be recorded", recordError.message);
+          return Response.json({ error: "provider_record_failed" }, { status: 500 });
+        }
+
+        return Response.json(
+          {
+            ...safeAttempt,
+            provider_payment_created: true,
+            provider_order_id: canonical.providerPaymentId,
+            provider_status: canonical.providerStatus,
+            provider_status_detail: canonical.providerStatusDetail,
+            pix_qr_code: providerPayment.pix_qr_code ?? null,
+            pix_qr_code_base64: providerPayment.pix_qr_code_base64 ?? null,
+            pix_ticket_url: providerPayment.pix_ticket_url ?? null,
+          },
+          { status: 201 },
+        );
       },
     },
   },
