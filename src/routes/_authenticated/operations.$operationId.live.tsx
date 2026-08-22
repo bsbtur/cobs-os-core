@@ -580,8 +580,50 @@ function ChecklistPanel({
 }
 
 /* ------------------------------------------------------------------ */
+/* Runtime action errors                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Maps the known W04 runtime validation messages to safe, actionable copy.
+ * Display only: it never changes what the server decided, and it never leaks
+ * SQL, identifiers, stack traces or raw internals — unknown failures fall back
+ * to the shared `humanizeError`.
+ */
+function journeyActionError(
+  error: unknown,
+  t: (key: string) => string,
+  locale: string,
+): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const rules: Array<[RegExp, string]> = [
+    [/permission for this operation runtime|not have permission|owners and admins/i, "w04.error.permission"],
+    [/Authentication required/i, "w04.error.auth"],
+    [/operation must be ready before the journey/i, "w04.error.operationNotReady"],
+    [/only be authorized on a running operation|ready or running operation/i, "w04.error.operationNotRunning"],
+    [/Another step is still running/i, "w04.error.anotherStepRunning"],
+    [/was skipped and cannot be started/i, "w04.error.stepSkipped"],
+    [/step has not started yet/i, "w04.error.stepNotStarted"],
+    [/step is already closed|already completed|cannot be changed/i, "w04.error.stepClosed"],
+    [/step is not ready yet/i, "w04.error.notReady"],
+    [/has not arrived for this step/i, "w04.error.arrivalRequired"],
+    [/Boarding has not started/i, "w04.error.boardingNotStarted"],
+    [/does not track boarding/i, "w04.error.noBoardingTracking"],
+    [/Departure has not been authorized/i, "w04.error.departureNotAuthorized"],
+    [/already been authorized|unchanged/i, "w04.error.departureAlreadyAuthorized"],
+    [/group has not departed yet/i, "w04.error.notDeparted"],
+    [/already started cannot be skipped/i, "w04.error.stepAlreadyStarted"],
+    [/reason is required to skip/i, "w04.error.reasonRequired"],
+    [/cannot be recorded in the future/i, "w04.error.future"],
+    [/cannot be backdated/i, "w04.error.backdated"],
+  ];
+  const hit = rules.find(([pattern]) => pattern.test(raw));
+  return hit ? t(hit[1]) : humanizeError(error, locale);
+}
+
+/* ------------------------------------------------------------------ */
 /* Step actions                                                        */
 /* ------------------------------------------------------------------ */
+
 
 function StepActions({
   step,
