@@ -998,7 +998,25 @@ function LiveRuntimePage() {
 
             <div className="mt-4">
               <SectionLabel>{t("w04.live.action")}</SectionLabel>
+              {/* DISPLAY ONLY: the server gate is never overridden here — the operator
+                  just sees why a gated action would be refused, before trying it. */}
+              {readiness && !readiness.ready ? (
+                <p className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-warning-soft px-3 py-2 text-xs text-warning">
+                  <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+                  <span>
+                    {t("w04.live.blockedSummary")}{" "}
+                    <span className="tabular-nums">
+                      {readiness.missing_participations.length} {t("w04.live.blockedPeopleCount")}
+                    </span>
+                    {" · "}
+                    <span className="tabular-nums">
+                      {readiness.missing_required_items.length} {t("w04.live.blockedItemsCount")}
+                    </span>
+                  </span>
+                </p>
+              ) : null}
               <div className="mt-2">
+
                 <StepActions
                   step={current}
                   ready={readiness?.ready ?? true}
