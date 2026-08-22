@@ -204,3 +204,32 @@ export function buildVisitPointUpdateArgs(
     ...(parsed === null ? { _clear_estimated_minutes: true } : { _estimated_minutes: parsed }),
   };
 }
+
+/* ------------------------------------------------------------------------ *
+ * W11 HOTFIX — read failures must never look like "no visit points".
+ * ------------------------------------------------------------------------ */
+
+/** What the visit-points panel must render for a given query state. */
+export type VisitPointsPanelView = "loading" | "error" | "empty" | "list";
+
+export function visitPointsPanelView(query: {
+  isError: boolean;
+  isLoading: boolean;
+  total: number;
+}): VisitPointsPanelView {
+  if (query.isError) return "error";
+  if (query.isLoading) return "loading";
+  return query.total === 0 ? "empty" : "list";
+}
+
+/**
+ * The add button stays disabled for the WHOLE create + refresh cycle, so a
+ * second click can never silently create a duplicate point.
+ */
+export function canSubmitNewVisitPoint(input: {
+  title: string;
+  isPending: boolean;
+  isRefreshing?: boolean;
+}): boolean {
+  return input.title.trim().length > 0 && !input.isPending && !input.isRefreshing;
+}

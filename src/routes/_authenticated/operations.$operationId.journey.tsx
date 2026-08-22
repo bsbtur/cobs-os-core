@@ -1202,6 +1202,9 @@ function JourneyPlanPage() {
                   (event) => event.journey_step_id === step.id,
                 )}
                 editable={canEditBlueprints(role)}
+                isError={visitPoints.isError}
+                isLoading={visitPoints.isLoading}
+                onRetry={() => void visitPoints.refetch()}
               />
             </li>
           ))}
