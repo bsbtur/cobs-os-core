@@ -130,9 +130,11 @@ export const Route = createFileRoute("/api/payments/attempts")({
           _provider_payment_id: canonical.providerPaymentId,
           _provider_event_id: `create:${canonical.providerPaymentId}`,
           _provider_status: canonical.providerStatus,
-          _provider_status_detail: canonical.providerStatusDetail,
           _amount: canonical.amount,
           _payload: { source: "pix_order_create", reconciled: true },
+          ...(canonical.providerStatusDetail
+            ? { _provider_status_detail: canonical.providerStatusDetail }
+            : {}),
           ...(canonical.occurredAt ? { _occurred_at: canonical.occurredAt } : {}),
         });
         if (recordError) {
