@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.revoke_operation_completion(uuid, text, uuid) FROM anon;
