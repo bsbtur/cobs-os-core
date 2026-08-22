@@ -140,3 +140,70 @@ export function progressLabel(
   if (state.currentPosition === null) return null;
   return { position: state.currentPosition, total: state.total };
 }
+
+/* ------------------------------------------------------------------------ *
+ * W11 HOTFIX — operational access + explicit content clearing.
+ * Mirrors the server rules; the server remains the sole authority.
+ * ------------------------------------------------------------------------ */
+
+/** Tenant roles that may plan (create / edit / reorder) visit points. */
+export const W11_PLANNING_ROLES = ["owner", "admin", "operations_agent"] as const;
+
+/** Canonical operation role keys with field-execution responsibility. */
+export const W11_FIELD_ROLE_KEYS = [
+  "guide",
+  "coordinator",
+  "academic_coordinator",
+  "monitor",
+] as const;
+
+export type VisitPointAccess = {
+  /** Tenant membership role for the ACTIVE tenant, null when signed out. */
+  role: (typeof W11_PLANNING_ROLES)[number] | "member" | null;
+  /** True only when the user is crew of THIS operation with a field role. */
+  isOperationFieldCrew: boolean;
+};
+
+/** Planning stays elevated-only. Field crew never plans. */
+export function canPlanVisitPoints(access: VisitPointAccess): boolean {
+  return (
+    access.role !== null &&
+    (W11_PLANNING_ROLES as readonly string[]).includes(access.role)
+  );
+}
+
+/** Reading and recording runtime facts: elevated roles OR this operation's field crew. */
+export function canOperateVisitPoints(access: VisitPointAccess): boolean {
+  return canPlanVisitPoints(access) || access.isOperationFieldCrew;
+}
+
+export type VisitPointUpdateInput = {
+  title: string;
+  interpretiveContent: string;
+  operationalNote: string;
+  minutes: string;
+  isRequired: boolean;
+};
+
+/**
+ * Builds the RPC arguments for update_visit_point.
+ * An emptied text field is an EXPLICIT clear, never a silent no-op.
+ */
+export function buildVisitPointUpdateArgs(
+  visitPointId: string,
+  input: VisitPointUpdateInput,
+): Record<string, unknown> {
+  const interpretive = input.interpretiveContent.trim();
+  const operational = input.operationalNote.trim();
+  const parsed = parseEstimatedMinutes(input.minutes);
+  return {
+    _visit_point_id: visitPointId,
+    _title: input.title.trim(),
+    _is_required: input.isRequired,
+    ...(interpretive
+      ? { _interpretive_content: interpretive }
+      : { _clear_interpretive_content: true }),
+    ...(operational ? { _operational_note: operational } : { _clear_operational_note: true }),
+    ...(parsed === null ? { _clear_estimated_minutes: true } : { _estimated_minutes: parsed }),
+  };
+}
