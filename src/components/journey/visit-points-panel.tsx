@@ -156,12 +156,18 @@ export function VisitPointsPanel({
   points,
   events,
   editable,
+  isError = false,
+  isLoading = false,
+  onRetry,
 }: {
   stepId: string;
   operationId: string;
   points: VisitPointRow[];
   events: VisitPointEventRow[];
   editable: boolean;
+  isError?: boolean;
+  isLoading?: boolean;
+  onRetry?: () => void;
 }) {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
@@ -169,11 +175,13 @@ export function VisitPointsPanel({
   const [editing, setEditing] = React.useState<VisitPointView | null>(null);
 
   const state = React.useMemo(() => deriveStepVisitPoints(points, events), [points, events]);
+  const view = visitPointsPanelView({ isError, isLoading, total: state.total });
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ["visit-points", operationId] });
   };
 
+  /** Create AND refresh in the same pending cycle — the list is authoritative. */
   const add = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.rpc("create_visit_point", {
@@ -182,11 +190,11 @@ export function VisitPointsPanel({
         _idempotency_key: newIdempotencyKey(),
       });
       if (error) throw error;
+      await queryClient.refetchQueries({ queryKey: ["visit-points", operationId] });
     },
     onSuccess: () => {
       feedback.success(t("w11.added"));
       setTitle("");
-      invalidate();
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
