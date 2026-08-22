@@ -449,8 +449,6 @@ function OperationDetail() {
 
   return (
     <div className="space-y-6">
-
-
       <header className="surface-panel animate-rise space-y-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-2xl font-semibold">{op.name}</h2>
@@ -508,4 +506,3 @@ function OperationDetail() {
     </div>
   );
 }
-

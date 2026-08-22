@@ -126,8 +126,7 @@ export const W08_PT: Record<string, string> = {
   "w08.inbox.title": "Minhas mensagens",
   "w08.inbox.subtitle": "Mensagens publicadas endereçadas a você nesta organização.",
   "w08.inbox.empty": "Nenhuma mensagem para você.",
-  "w08.inbox.emptyBody":
-    "Você verá aqui as mensagens operacionais das operações em que participa.",
+  "w08.inbox.emptyBody": "Você verá aqui as mensagens operacionais das operações em que participa.",
   "w08.inbox.noPerson": "Sua conta ainda não está vinculada a uma pessoa nesta organização.",
   "w08.inbox.noPersonBody": "Peça a um administrador para vincular seu acesso ao seu cadastro.",
   "w08.inbox.markRead": "Marcar como lida",

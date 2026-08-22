@@ -23,7 +23,9 @@ export const Route = createFileRoute("/api/public/health")({
     handlers: {
       GET: async () => {
         const url = process.env["SUPABASE_URL"] ?? import.meta.env["VITE_SUPABASE_URL"];
-        const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+        const key =
+          process.env["SUPABASE_PUBLISHABLE_KEY"] ??
+          import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
 
         const app: PlaneState = "up";
         let auth: PlaneState = "down";

@@ -479,7 +479,6 @@ function MessageDetail({
         .order("full_name");
       if (peopleError) throw peopleError;
       return (people ?? []) as PersonOption[];
-
     },
   });
 
@@ -586,7 +585,8 @@ function MessageDetail({
         ) : null}
         {message.cancelled_at ? (
           <p className="text-xs text-destructive">
-            {t("w08.status.cancelled")} · {formatDateTime(message.cancelled_at, { locale, timeZone })}
+            {t("w08.status.cancelled")} ·{" "}
+            {formatDateTime(message.cancelled_at, { locale, timeZone })}
             {message.cancel_reason ? ` — ${message.cancel_reason}` : ""}
           </p>
         ) : null}
@@ -924,7 +924,9 @@ function MessageDetail({
 }
 
 function CommunicationTab() {
-  const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/communication" });
+  const { operationId } = useParams({
+    from: "/_authenticated/operations/$operationId/communication",
+  });
   const { t, locale, timeZone } = useI18n();
   const { tenant } = useTenant();
   const queryClient = useQueryClient();

@@ -3,12 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
 import { useMyEventProgram, useMyOverview } from "@/lib/w10";
 import { PortalShell } from "@/app/portal/portal-shell";
-import {
-  PortalCard,
-  PortalEmpty,
-  PortalQueryGate,
-  PortalTime,
-} from "@/app/portal/portal-states";
+import { PortalCard, PortalEmpty, PortalQueryGate, PortalTime } from "@/app/portal/portal-states";
 
 export const Route = createFileRoute("/_authenticated/my/$operationId/events")({
   head: () => ({

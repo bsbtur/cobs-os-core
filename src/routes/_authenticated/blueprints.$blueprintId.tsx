@@ -124,7 +124,11 @@ function StepDialog({
 
   const changeKind = (kind: StepKind) => {
     // The requirement always follows the canonical contract when the kind changes.
-    setDraft((d) => ({ ...d, step_kind: kind, presence_requirement: defaultPresenceRequirement(kind) }));
+    setDraft((d) => ({
+      ...d,
+      step_kind: kind,
+      presence_requirement: defaultPresenceRequirement(kind),
+    }));
   };
 
   const save = useMutation({
@@ -369,11 +373,7 @@ function ConfirmDialog({
           >
             {t("common.cancel")}
           </Button>
-          <Button
-            className="min-h-11"
-            disabled={pending || disabled}
-            onClick={onConfirm}
-          >
+          <Button className="min-h-11" disabled={pending || disabled} onClick={onConfirm}>
             {pending ? t("bp.busy") : confirmLabel}
           </Button>
         </div>
@@ -916,11 +916,7 @@ function BlueprintWorkspace({ blueprintId }: { blueprintId: string }) {
         </div>
         <div className="flex flex-wrap gap-2">
           {mayCreateVersion ? (
-            <Button
-              variant="outline"
-              className="min-h-11"
-              onClick={() => setNewVersionOpen(true)}
-            >
+            <Button variant="outline" className="min-h-11" onClick={() => setNewVersionOpen(true)}>
               {t("bp.newVersion.action")}
             </Button>
           ) : null}

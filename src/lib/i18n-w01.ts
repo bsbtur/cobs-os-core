@@ -182,8 +182,7 @@ export const W01_EN: Record<string, string> = {
   "settings.auditHint": "Immutable ledger. It cannot be edited or deleted.",
   "settings.auditEmpty": "No events recorded yet.",
   "identity.title": "Your display name",
-  "identity.hint":
-    "How your name appears to your organization. Only you can change your own name.",
+  "identity.hint": "How your name appears to your organization. Only you can change your own name.",
   "identity.field": "Display name",
   "identity.save": "Save name",
   "identity.saved": "Name updated.",

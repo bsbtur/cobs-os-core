@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  createFileRoute,
-  Outlet,
-  redirect,
-  useRouterState,
-} from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { TenantProvider } from "@/lib/tenant";
@@ -86,4 +81,3 @@ function AuthenticatedLayout() {
     </TenantProvider>
   );
 }
-

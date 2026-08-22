@@ -78,7 +78,6 @@ export function MobileTabBar({
   );
 }
 
-
 /** Full navigation drawer for the remaining destinations on mobile. */
 export function MobileNavDrawer({
   open,

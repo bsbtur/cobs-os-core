@@ -428,10 +428,7 @@ function AddPersonDialog({
                   <option value="">{t("common.none")}</option>
                   {roles.map((id) => (
                     <option key={id} value={id}>
-                      {roleLabel(
-                        roleTypes.find((r) => r.id === id) ?? null,
-                        t,
-                      )}
+                      {roleLabel(roleTypes.find((r) => r.id === id) ?? null, t)}
                     </option>
                   ))}
                 </select>
@@ -584,7 +581,6 @@ function PortalAccessAction({
 /* ------------------------------------------------------------------ */
 
 function RosterCard({
-
   row,
   roleTypes,
   operationId,
@@ -773,7 +769,6 @@ function RosterCard({
             personId={row.person_id}
             disabled={row.status === "cancelled"}
           />
-
 
           <div className="flex flex-wrap gap-2">
             {transitions
