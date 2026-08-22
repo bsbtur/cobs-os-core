@@ -6348,6 +6348,8 @@ export type Database = {
       update_visit_point: {
         Args: {
           _clear_estimated_minutes?: boolean
+          _clear_interpretive_content?: boolean
+          _clear_operational_note?: boolean
           _estimated_minutes?: number
           _interpretive_content?: string
           _is_required?: boolean

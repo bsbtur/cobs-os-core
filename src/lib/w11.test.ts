@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
 import {
+  buildVisitPointUpdateArgs,
+  canOperateVisitPoints,
+  canPlanVisitPoints,
   canSkip,
   deriveStepVisitPoints,
   nextUnresolvedAfter,
@@ -254,5 +257,70 @@ describe("W11 — estimated minutes", () => {
     expect(parseEstimatedMinutes("1441")).toBeNull();
     expect(parseEstimatedMinutes("abc")).toBeNull();
     expect(parseEstimatedMinutes("")).toBeNull();
+  });
+});
+
+describe("W11 — operational access", () => {
+  it("elevated tenant operators keep full access", () => {
+    for (const role of ["owner", "admin", "operations_agent"] as const) {
+      const access = { role, isOperationFieldCrew: false };
+      expect(canPlanVisitPoints(access)).toBe(true);
+      expect(canOperateVisitPoints(access)).toBe(true);
+    }
+  });
+
+  it("field crew of this operation reads and executes but never plans", () => {
+    const access = { role: "member" as const, isOperationFieldCrew: true };
+    expect(canOperateVisitPoints(access)).toBe(true);
+    expect(canPlanVisitPoints(access)).toBe(false);
+  });
+
+  it("a user from another operation or tenant is denied", () => {
+    const otherOperation = { role: "member" as const, isOperationFieldCrew: false };
+    expect(canOperateVisitPoints(otherOperation)).toBe(false);
+    const otherTenant = { role: null, isOperationFieldCrew: false };
+    expect(canOperateVisitPoints(otherTenant)).toBe(false);
+  });
+
+  it("anon is denied", () => {
+    const anon = { role: null, isOperationFieldCrew: false };
+    expect(canPlanVisitPoints(anon)).toBe(false);
+    expect(canOperateVisitPoints(anon)).toBe(false);
+  });
+});
+
+describe("W11 — explicit content clearing", () => {
+  const base = {
+    title: "Catedral",
+    interpretiveContent: "Vitrais",
+    operationalNote: "Entrada lateral",
+    minutes: "6",
+    isRequired: true,
+  };
+
+  it("clears interpretive_content when emptied", () => {
+    const args = buildVisitPointUpdateArgs("vp-1", { ...base, interpretiveContent: "   " });
+    expect(args["_clear_interpretive_content"]).toBe(true);
+    expect(args["_interpretive_content"]).toBeUndefined();
+    expect(args["_operational_note"]).toBe("Entrada lateral");
+  });
+
+  it("clears operational_note when emptied", () => {
+    const args = buildVisitPointUpdateArgs("vp-1", { ...base, operationalNote: "" });
+    expect(args["_clear_operational_note"]).toBe(true);
+    expect(args["_operational_note"]).toBeUndefined();
+    expect(args["_interpretive_content"]).toBe("Vitrais");
+  });
+
+  it("keeps values and omits clear flags when the fields are unchanged", () => {
+    const args = buildVisitPointUpdateArgs("vp-1", base);
+    expect(args).toEqual({
+      _visit_point_id: "vp-1",
+      _title: "Catedral",
+      _is_required: true,
+      _interpretive_content: "Vitrais",
+      _operational_note: "Entrada lateral",
+      _estimated_minutes: 6,
+    });
   });
 });

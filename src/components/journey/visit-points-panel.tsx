@@ -7,8 +7,8 @@ import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { newIdempotencyKey } from "@/lib/w04";
 import {
+  buildVisitPointUpdateArgs,
   deriveStepVisitPoints,
-  parseEstimatedMinutes,
   type VisitPointEventRow,
   type VisitPointRow,
   type VisitPointView,
@@ -69,15 +69,16 @@ function EditVisitPointDialog({
 
   const save = useMutation({
     mutationFn: async () => {
-      const parsed = parseEstimatedMinutes(minutes);
-      const { error } = await supabase.rpc("update_visit_point", {
-        _visit_point_id: point!.id,
-        _title: title.trim(),
-        _is_required: required,
-        ...(interpretive.trim() ? { _interpretive_content: interpretive.trim() } : {}),
-        ...(operational.trim() ? { _operational_note: operational.trim() } : {}),
-        ...(parsed === null ? { _clear_estimated_minutes: true } : { _estimated_minutes: parsed }),
-      });
+      const { error } = await supabase.rpc(
+        "update_visit_point",
+        buildVisitPointUpdateArgs(point!.id, {
+          title,
+          interpretiveContent: interpretive,
+          operationalNote: operational,
+          minutes,
+          isRequired: required,
+        }),
+      );
       if (error) throw error;
     },
     onSuccess: () => {
