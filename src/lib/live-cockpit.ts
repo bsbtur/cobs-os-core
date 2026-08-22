@@ -284,7 +284,16 @@ export type CockpitSummary = {
 /**
  * Counts for the current step, derived exactly like the presence panel:
  * only non-retracted effective facts count, and only confirmed roster rows.
+ *
+ * Visual summary contract (post V1.1 review):
+ * - present = physical/resolved positive presence only:
+ *   PRESENT_AT_MEETING_POINT, BOARDED, DISEMBARKED.
+ * - boarded = only BOARDED.
+ * - absent = ABSENCE_NOTED or NO_SHOW_CONFIRMED.
+ * - pending = still not resolved for the step requirement (readiness logic),
+ *   but NO_SHOW_CONFIRMED is considered resolved, never counted as present.
  */
+
 export function summarizeStepPresence(
   step: JourneyStepRow,
   roster: SummaryRoster[],
@@ -314,6 +323,11 @@ export function summarizeStepPresence(
   };
 
   const satisfying = SATISFYING_FACTS[step.presence_requirement] as string[];
+  const POSITIVE_PRESENCE_FACTS: readonly string[] = [
+    "PRESENT_AT_MEETING_POINT",
+    "BOARDED",
+    "DISEMBARKED",
+  ];
   let present = 0;
   let boarded = 0;
   let absent = 0;
@@ -323,8 +337,10 @@ export function summarizeStepPresence(
     const fact = row.status === "confirmed" ? effectiveFor(row.id) : null;
     if (fact === "BOARDED") boarded += 1;
     if (fact === "ABSENCE_NOTED" || fact === "NO_SHOW_CONFIRMED") absent += 1;
-    if (fact && satisfying.includes(fact as PresenceFact)) present += 1;
-    else pending += 1;
+    if (fact && POSITIVE_PRESENCE_FACTS.includes(fact)) present += 1;
+
+    const resolved = fact && satisfying.includes(fact as PresenceFact);
+    if (!resolved) pending += 1;
   }
 
   return { population: relevant.length, present, boarded, pending, absent };
