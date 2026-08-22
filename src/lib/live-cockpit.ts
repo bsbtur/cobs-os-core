@@ -323,6 +323,11 @@ export function summarizeStepPresence(
   };
 
   const satisfying = SATISFYING_FACTS[step.presence_requirement] as string[];
+  const POSITIVE_PRESENCE_FACTS: readonly string[] = [
+    "PRESENT_AT_MEETING_POINT",
+    "BOARDED",
+    "DISEMBARKED",
+  ];
   let present = 0;
   let boarded = 0;
   let absent = 0;
@@ -332,9 +337,12 @@ export function summarizeStepPresence(
     const fact = row.status === "confirmed" ? effectiveFor(row.id) : null;
     if (fact === "BOARDED") boarded += 1;
     if (fact === "ABSENCE_NOTED" || fact === "NO_SHOW_CONFIRMED") absent += 1;
-    if (fact && satisfying.includes(fact as PresenceFact)) present += 1;
-    else pending += 1;
+    if (fact && POSITIVE_PRESENCE_FACTS.includes(fact)) present += 1;
+
+    const resolved = fact && satisfying.includes(fact as PresenceFact);
+    if (!resolved) pending += 1;
   }
 
   return { population: relevant.length, present, boarded, pending, absent };
 }
+
