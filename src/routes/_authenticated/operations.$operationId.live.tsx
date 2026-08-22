@@ -43,6 +43,8 @@ import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
 import { OperationCockpit } from "@/components/journey/operation-cockpit";
+import { CurrentVisitPoint } from "@/components/journey/current-visit-point";
+import type { VisitPointEventRow, VisitPointRow } from "@/lib/w11";
 import { summarizeStepPresence, type CockpitAction } from "@/lib/live-cockpit";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -786,6 +788,8 @@ function LiveRuntimePage() {
         executions,
         roster,
         state,
+        visitPoints,
+        visitPointEvents,
       ] = await Promise.all([
         supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
         supabase
@@ -828,6 +832,17 @@ function LiveRuntimePage() {
           .eq("operation_id", operationId)
           .neq("status", "cancelled"),
         supabase.rpc("w04_operation_runtime_state", { _operation_id: operationId }),
+        // W11: visit points and their append-only facts (advisory guidance only).
+        supabase
+          .from("journey_visit_points")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
+        supabase
+          .from("journey_visit_point_events")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("occurred_at"),
       ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
@@ -861,6 +876,8 @@ function LiveRuntimePage() {
         executions: (executions.data ?? []) as PlaybookExecutionRow[],
         roster: (roster.data ?? []) as unknown as RosterRow[],
         state: (state.data ?? null) as RuntimeState | null,
+        visitPoints: (visitPoints.data ?? []) as VisitPointRow[],
+        visitPointEvents: (visitPointEvents.data ?? []) as VisitPointEventRow[],
       };
     },
   });
@@ -984,6 +1001,18 @@ function LiveRuntimePage() {
           if (action.rpc && stepId) cockpitCall.mutate({ fn: action.rpc, stepId });
         }}
       />
+
+      {current ? (
+        <CurrentVisitPoint
+          points={(live.data?.visitPoints ?? []).filter(
+            (point) => point.journey_step_id === current.id,
+          )}
+          events={(live.data?.visitPointEvents ?? []).filter(
+            (event) => event.journey_step_id === current.id,
+          )}
+          onRecorded={refresh}
+        />
+      ) : null}
 
       {/* NOW */}
       <article className="surface-panel border-primary/40 p-4 sm:p-5">

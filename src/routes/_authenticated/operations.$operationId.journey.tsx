@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, ListChecks, Plus, Route as RouteIcon } from "lu
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { VisitPointsPanel } from "@/components/journey/visit-points-panel";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import { useTenant } from "@/lib/tenant";
@@ -887,6 +888,28 @@ function JourneyPlanPage() {
    * Provisioning origin: one row joined to its version and blueprint, so the banner and the
    * per-step chips are served by a single query (never one query per step).
    */
+  /** W11 visit points + their append-only facts, one query for the whole operation. */
+  const visitPoints = useQuery({
+    queryKey: ["visit-points", operationId],
+    queryFn: async () => {
+      const [points, events] = await Promise.all([
+        supabase
+          .from("journey_visit_points")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("sequence"),
+        supabase
+          .from("journey_visit_point_events")
+          .select("*")
+          .eq("operation_id", operationId)
+          .order("occurred_at"),
+      ]);
+      if (points.error) throw points.error;
+      if (events.error) throw events.error;
+      return { points: points.data ?? [], events: events.data ?? [] };
+    },
+  });
+
   const provisioning = useQuery({
     queryKey: ["journey-provisioning", operationId],
     queryFn: async () => {
@@ -1167,6 +1190,18 @@ function JourneyPlanPage() {
                 items={items.filter((item) => item.journey_step_id === step.id)}
                 roleTypes={roleTypes}
                 operationId={operationId}
+              />
+
+              <VisitPointsPanel
+                stepId={step.id}
+                operationId={operationId}
+                points={(visitPoints.data?.points ?? []).filter(
+                  (point) => point.journey_step_id === step.id,
+                )}
+                events={(visitPoints.data?.events ?? []).filter(
+                  (event) => event.journey_step_id === step.id,
+                )}
+                editable={canEditBlueprints(role)}
               />
             </li>
           ))}

@@ -4,6 +4,7 @@ import { W01_DICTIONARIES } from "./i18n-w01";
 import { W02_DICTIONARIES } from "./i18n-w02";
 import { W03_DICTIONARIES } from "./i18n-w03";
 import { W04_DICTIONARIES } from "./i18n-w04";
+import { W11_DICTIONARIES } from "./i18n-w11";
 import { W05_DICTIONARIES } from "./i18n-w05";
 import { W06_DICTIONARIES } from "./i18n-w06";
 import { W07_DICTIONARIES } from "./i18n-w07";
@@ -199,6 +200,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W08_DICTIONARIES["pt-BR"],
     ...W09_DICTIONARIES["pt-BR"],
     ...W10_DICTIONARIES["pt-BR"],
+    ...W11_DICTIONARIES["pt-BR"],
     ...ACCESS_DICTIONARIES["pt-BR"],
     ...BLUEPRINT_DICTIONARIES["pt-BR"],
   },
@@ -214,6 +216,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W08_DICTIONARIES["en-US"],
     ...W09_DICTIONARIES["en-US"],
     ...W10_DICTIONARIES["en-US"],
+    ...W11_DICTIONARIES["en-US"],
     ...ACCESS_DICTIONARIES["en-US"],
     ...BLUEPRINT_DICTIONARIES["en-US"],
   },
@@ -229,6 +232,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W08_DICTIONARIES["es-ES"],
     ...W09_DICTIONARIES["es-ES"],
     ...W10_DICTIONARIES["es-ES"],
+    ...W11_DICTIONARIES["es-ES"],
     ...ACCESS_DICTIONARIES["es-ES"],
     ...BLUEPRINT_DICTIONARIES["es-ES"],
   },

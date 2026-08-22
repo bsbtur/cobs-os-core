@@ -2085,6 +2085,170 @@ export type Database = {
           },
         ]
       }
+      journey_visit_point_events: {
+        Row: {
+          actor_profile_id: string | null
+          context: Json
+          created_at: string
+          event_type: Database["public"]["Enums"]["visit_point_event_type"]
+          id: string
+          idempotency_key: string | null
+          journey_step_id: string
+          occurred_at: string
+          operation_id: string
+          reason: string | null
+          recorded_at: string
+          tenant_id: string
+          visit_point_id: string
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          context?: Json
+          created_at?: string
+          event_type: Database["public"]["Enums"]["visit_point_event_type"]
+          id?: string
+          idempotency_key?: string | null
+          journey_step_id: string
+          occurred_at: string
+          operation_id: string
+          reason?: string | null
+          recorded_at?: string
+          tenant_id: string
+          visit_point_id: string
+        }
+        Update: {
+          actor_profile_id?: string | null
+          context?: Json
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["visit_point_event_type"]
+          id?: string
+          idempotency_key?: string | null
+          journey_step_id?: string
+          occurred_at?: string
+          operation_id?: string
+          reason?: string | null
+          recorded_at?: string
+          tenant_id?: string
+          visit_point_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_visit_point_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_visit_point_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jvp_events_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "jvp_events_point_fk"
+            columns: ["visit_point_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_visit_points"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "jvp_events_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+        ]
+      }
+      journey_visit_points: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          estimated_minutes: number | null
+          id: string
+          interpretive_content: string | null
+          is_required: boolean
+          journey_step_id: string
+          metadata: Json
+          operation_id: string
+          operational_note: string | null
+          sequence: number
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          interpretive_content?: string | null
+          is_required?: boolean
+          journey_step_id: string
+          metadata?: Json
+          operation_id: string
+          operational_note?: string | null
+          sequence: number
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          interpretive_content?: string | null
+          is_required?: boolean
+          journey_step_id?: string
+          metadata?: Json
+          operation_id?: string
+          operational_note?: string | null
+          sequence?: number
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_visit_points_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_visit_points_operation_fk"
+            columns: ["operation_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "journey_visit_points_step_fk"
+            columns: ["journey_step_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "journey_steps"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "journey_visit_points_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -5237,6 +5401,18 @@ export type Database = {
         }
         Returns: Json
       }
+      create_visit_point: {
+        Args: {
+          _estimated_minutes?: number
+          _idempotency_key: string
+          _interpretive_content?: string
+          _is_required?: boolean
+          _journey_step_id: string
+          _operational_note?: string
+          _title: string
+        }
+        Returns: Json
+      }
       deactivate_playbook_item: {
         Args: { _playbook_item_id: string; _reason: string }
         Returns: Json
@@ -5355,6 +5531,10 @@ export type Database = {
       }
       list_participant_access_grants: {
         Args: { _operation_id?: string; _tenant_id: string }
+        Returns: Json
+      }
+      list_step_visit_points: {
+        Args: { _journey_step_id: string }
         Returns: Json
       }
       lock_event_program: {
@@ -5575,6 +5755,16 @@ export type Database = {
         }
         Returns: Json
       }
+      record_visit_point_event: {
+        Args: {
+          _event_type: Database["public"]["Enums"]["visit_point_event_type"]
+          _idempotency_key: string
+          _occurred_at?: string
+          _reason?: string
+          _visit_point_id: string
+        }
+        Returns: Json
+      }
       reinstate_operation: {
         Args: {
           _idempotency_key: string
@@ -5658,6 +5848,10 @@ export type Database = {
       }
       reorder_journey_steps: {
         Args: { _operation_id: string; _step_ids: string[] }
+        Returns: Json
+      }
+      reorder_visit_points: {
+        Args: { _journey_step_id: string; _visit_point_ids: string[] }
         Returns: Json
       }
       request_vehicle: {
@@ -6151,8 +6345,24 @@ export type Database = {
         }
         Returns: Json
       }
+      update_visit_point: {
+        Args: {
+          _clear_estimated_minutes?: boolean
+          _estimated_minutes?: number
+          _interpretive_content?: string
+          _is_required?: boolean
+          _operational_note?: string
+          _title?: string
+          _visit_point_id: string
+        }
+        Returns: Json
+      }
       validate_blueprint_version: {
         Args: { _version_id: string }
+        Returns: Json
+      }
+      visit_point_runtime_state: {
+        Args: { _journey_step_id: string }
         Returns: Json
       }
       w04_operation_runtime_state: {
@@ -6409,6 +6619,10 @@ export type Database = {
         | "boat"
         | "shuttle"
         | "other"
+      visit_point_event_type:
+        | "VISIT_POINT_STARTED"
+        | "VISIT_POINT_COMPLETED"
+        | "VISIT_POINT_SKIPPED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6783,6 +6997,11 @@ export const Constants = {
         "boat",
         "shuttle",
         "other",
+      ],
+      visit_point_event_type: [
+        "VISIT_POINT_STARTED",
+        "VISIT_POINT_COMPLETED",
+        "VISIT_POINT_SKIPPED",
       ],
     },
   },
