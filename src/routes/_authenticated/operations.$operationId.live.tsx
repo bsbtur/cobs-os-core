@@ -973,6 +973,31 @@ function LiveRuntimePage() {
       )
     : [];
 
+  /** V1.1 cockpit — derived only from facts already loaded above. */
+  const currentFacts = current
+    ? (live.data?.stepFacts?.get(current.id) ?? new Set<string>())
+    : new Set<string>();
+  const cockpitFlags: CockpitFlags = {
+    boardingStarted: currentFacts.has("BOARDING_STARTED"),
+    boardingCompleted: currentFacts.has("BOARDING_COMPLETED"),
+    departureAuthorized: currentFacts.has("DEPARTURE_AUTHORIZED"),
+    departed: currentFacts.has("DEPARTED"),
+    arrived: currentFacts.has("ARRIVED"),
+    disembarked: currentFacts.has("DISEMBARKATION_COMPLETED"),
+  };
+  const cockpitAction = deriveNextAction({
+    current,
+    next,
+    readiness,
+    flags: cockpitFlags,
+    journeyResolved,
+  });
+  const cockpitSummary =
+    current && current.presence_requirement !== "none"
+      ? summarizeStepPresence(current, live.data?.roster ?? [], live.data?.presence ?? [])
+      : null;
+
+
   return (
     <section className="space-y-4">
       <header>
