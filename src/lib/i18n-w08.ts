@@ -288,6 +288,8 @@ export const W08_ES: Record<string, string> = {
     "Publicar congela la audiencia. Un mensaje publicado nunca se edita: se corrige con un mensaje nuevo.",
   "w08.empty": "No hay mensajes en esta operación.",
   "w08.emptyBody": "Crea un borrador, define la audiencia y publica cuando esté correcto.",
+  "w08.selectPrompt": "Selecciona un mensaje",
+  "w08.selectPromptBody": "Elige un mensaje de la lista para ver audiencia, entrega y lecturas.",
   "w08.forbidden": "No tienes acceso a la comunicación de esta operación.",
   "w08.forbiddenBody": "Habla con un propietario o administrador de la organización.",
   "w08.loadError": "No se pudo cargar la comunicación.",
