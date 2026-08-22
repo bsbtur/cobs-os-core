@@ -884,6 +884,33 @@ function LiveRuntimePage() {
     void queryClient.invalidateQueries({ queryKey: ["live", operationId] });
   };
 
+  const peopleRef = React.useRef<HTMLDivElement | null>(null);
+
+  /**
+   * V1.1 cockpit CTA. It calls the very same deployed W04 commands as the
+   * step action row below — no new RPC, no bypass: a server refusal is shown
+   * through the shared, humanized error mapper.
+   */
+  const cockpitCall = useMutation({
+    mutationFn: async (action: CockpitAction) => {
+      if (!action.fn || !action.targetStepId) return;
+      const { error } = await supabase.rpc(action.fn as "start_journey_step", {
+        _journey_step_id: action.targetStepId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.live.recorded"));
+      refresh();
+    },
+    onError: (error) => feedback.error(journeyActionError(error, t, locale)),
+  });
+
+  const focusPeople = () => {
+    peopleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+
   if (live.isLoading) return <PanelSkeleton />;
 
   const operation = live.data?.operation;
