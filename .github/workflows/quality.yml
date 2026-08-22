@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   quality:
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -31,30 +33,19 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Generate lint autofix package
-        if: failure()
+      - name: Apply and commit lint autofixes on audit branch
+        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'audit/release-gate-ci-20260822'
         run: |
           bunx eslint . --fix || true
-          git diff --binary > /tmp/lint-autofix.patch
-          git diff --name-only -z | tar --null -T - -czf /tmp/lint-autofix-files.tgz
-
-      - name: Upload lint autofix patch
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-autofix-patch
-          path: /tmp/lint-autofix.patch
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload lint autofix files
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-autofix-files
-          path: /tmp/lint-autofix-files.tgz
-          if-no-files-found: error
-          retention-days: 1
+          if git diff --quiet; then
+            echo "No autofixes generated"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src
+          git commit -m "Apply ESLint and Prettier autofixes"
+          git push origin HEAD:audit/release-gate-ci-20260822
 
       - name: Tests
         run: bun run test
