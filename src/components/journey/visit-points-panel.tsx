@@ -9,6 +9,8 @@ import { newIdempotencyKey } from "@/lib/w04";
 import {
   buildVisitPointUpdateArgs,
   deriveStepVisitPoints,
+  visitPointsPanelView,
+  canSubmitNewVisitPoint,
   type VisitPointEventRow,
   type VisitPointRow,
   type VisitPointView,
@@ -232,7 +234,18 @@ export function VisitPointsPanel({
         {t("w11.title")}
       </p>
 
-      {state.points.length === 0 ? (
+      {view === "error" ? (
+        <div className="mt-2 space-y-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3">
+          <p className="text-sm text-destructive">{t("w11.error.load")}</p>
+          {onRetry ? (
+            <Button variant="outline" size="sm" className="min-h-9" onClick={onRetry}>
+              {t("w11.retry")}
+            </Button>
+          ) : null}
+        </div>
+      ) : view === "loading" ? (
+        <p className="mt-2 text-sm text-muted-foreground">{t("w11.loading")}</p>
+      ) : view === "empty" ? (
         <p className="mt-2 text-sm text-muted-foreground">{t("w11.empty")}</p>
       ) : (
         <ol className="mt-2 space-y-1.5">
@@ -291,7 +304,7 @@ export function VisitPointsPanel({
         </ol>
       )}
 
-      {editable ? (
+      {editable && view !== "error" ? (
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <Input
             aria-label={t("w11.add")}
@@ -302,7 +315,7 @@ export function VisitPointsPanel({
           />
           <Button
             className="min-h-11"
-            disabled={!title.trim() || add.isPending}
+            disabled={!canSubmitNewVisitPoint({ title, isPending: add.isPending })}
             onClick={() => add.mutate()}
           >
             <Plus className="mr-1.5 size-4" aria-hidden="true" />
