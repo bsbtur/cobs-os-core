@@ -21,6 +21,7 @@ function step(overrides: Partial<JourneyStepRow> = {}): JourneyStepRow {
     planned_end: null,
     expected_start: null,
     expected_end: null,
+    ...overrides,
   } as unknown as JourneyStepRow;
 }
 

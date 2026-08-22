@@ -167,7 +167,9 @@ export function deriveNextAction(input: {
     return {
       id: isBoarding ? "confirm_boarding" : "resolve_people",
       mode: "focus",
-      labelKey: isBoarding ? "w04.cockpit.action.confirmBoarding" : "w04.cockpit.action.resolvePeople",
+      labelKey: isBoarding
+        ? "w04.cockpit.action.confirmBoarding"
+        : "w04.cockpit.action.resolvePeople",
       blocked: false,
       reasonKey: "w04.cockpit.reason.peoplePending",
     };

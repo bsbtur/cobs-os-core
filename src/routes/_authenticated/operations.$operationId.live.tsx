@@ -916,7 +916,6 @@ function LiveRuntimePage() {
     peopleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-
   if (live.isLoading) return <PanelSkeleton />;
 
   const operation = live.data?.operation;
@@ -996,7 +995,6 @@ function LiveRuntimePage() {
       ? summarizeStepPresence(current, live.data?.roster ?? [], live.data?.presence ?? [])
       : null;
 
-
   return (
     <section className="space-y-4">
       {operation.status !== "active" ? (
@@ -1023,7 +1021,6 @@ function LiveRuntimePage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
       </header>
 
-
       {/* NOW — full runtime detail; the hero above only orients. */}
       <article className="surface-panel p-4 sm:p-5">
         <SectionLabel>{t("w04.live.now")}</SectionLabel>
@@ -1034,7 +1031,6 @@ function LiveRuntimePage() {
               {t(`w04.kind.${current.step_kind}`)}
               {current.location_label ? ` · ${current.location_label}` : ""}
             </p>
-
 
             {readiness ? (
               <div
