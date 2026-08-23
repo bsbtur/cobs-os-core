@@ -1,5 +1,3 @@
-const CONTROL_OR_BACKSLASH = /[\\\u0000-\u001f\u007f]/;
-
 /**
  * Accept only same-origin application paths for post-auth navigation.
  *
@@ -10,7 +8,11 @@ const CONTROL_OR_BACKSLASH = /[\\\u0000-\u001f\u007f]/;
 export function isSafeAppPath(value: string | undefined): value is string {
   if (typeof value !== "string" || value.length === 0) return false;
   if (!value.startsWith("/") || value.startsWith("//")) return false;
-  if (CONTROL_OR_BACKSLASH.test(value)) return false;
+
+  for (const char of value) {
+    const code = char.codePointAt(0) ?? 0;
+    if (char === "\\" || code <= 31 || code === 127) return false;
+  }
 
   try {
     const base = new URL("https://cobs.invalid");
