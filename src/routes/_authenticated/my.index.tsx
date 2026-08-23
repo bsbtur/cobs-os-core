@@ -2,19 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, Compass, MapPin, ShieldOff } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { useMyOperations, type PortalOperationCard } from "@/lib/w10";
 import { PortalFrame } from "@/app/portal/portal-shell";
 import { PortalQueryGate, PortalTag } from "@/app/portal/portal-states";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { Button } from "@/components/ui/button";
+
+type ClaimOutcomeState = "ok" | "invalid" | "wrong-account";
 
 export const Route = createFileRoute("/_authenticated/my/")({
-  // DEF-PILOT-016: the claim route redirects here with an explicit outcome.
   validateSearch: (
     search: Record<string, unknown>,
-  ): { claim?: "ok" | "invalid"; operation?: string } => ({
-    ...(search["claim"] === "ok" || search["claim"] === "invalid"
-      ? { claim: search["claim"] as "ok" | "invalid" }
+  ): { claim?: ClaimOutcomeState; operation?: string } => ({
+    ...(search["claim"] === "ok" ||
+    search["claim"] === "invalid" ||
+    search["claim"] === "wrong-account"
+      ? { claim: search["claim"] as ClaimOutcomeState }
       : {}),
     ...(typeof search["operation"] === "string"
       ? { operation: search["operation"] as string }
@@ -37,9 +42,11 @@ export const Route = createFileRoute("/_authenticated/my/")({
   component: MyOperationsPage,
 });
 
-function ClaimOutcome({ claim }: { claim: "ok" | "invalid" }) {
+function ClaimOutcome({ claim }: { claim: ClaimOutcomeState }) {
   const { t } = useI18n();
+  const { signOut } = useAuth();
   const ok = claim === "ok";
+  const wrongAccount = claim === "wrong-account";
   const Icon = ok ? CheckCircle2 : ShieldOff;
 
   return (
@@ -53,13 +60,35 @@ function ClaimOutcome({ claim }: { claim: "ok" | "invalid" }) {
         className={`mt-0.5 size-5 shrink-0 ${ok ? "text-success" : "text-destructive"}`}
         aria-hidden="true"
       />
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-foreground">
-          {ok ? t("w10.claim.success") : t("w10.claim.invalid")}
+          {ok
+            ? t("w10.claim.success")
+            : wrongAccount
+              ? "Este convite pertence a outra conta"
+              : t("w10.claim.invalid")}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          {ok ? t("w10.claim.body") : t("w10.denied.body")}
+          {ok
+            ? t("w10.claim.body")
+            : wrongAccount
+              ? "O convite continua válido e não foi consumido. Saia desta conta e abra novamente o link do convite em uma janela privada, entrando com a conta do viajante convidado."
+              : "Não foi possível aceitar este convite. Ele pode estar expirado, revogado ou já ter sido utilizado. Solicite um novo convite ao responsável pela operação."}
         </p>
+        {wrongAccount ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3"
+            onClick={() => {
+              void signOut().then(() => {
+                window.location.assign("/auth");
+              });
+            }}
+          >
+            Sair desta conta
+          </Button>
+        ) : null}
       </div>
     </div>
   );
