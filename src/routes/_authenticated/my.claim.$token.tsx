@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { portalKeys } from "@/lib/w10";
-import { clearPendingClaim } from "@/lib/claim-intent";
+import { clearPendingClaim, savePendingClaim } from "@/lib/claim-intent";
 import { PortalFrame } from "@/app/portal/portal-shell";
 import { EmptyState } from "@/components/feedback/empty-state";
 
@@ -15,10 +15,11 @@ import { EmptyState } from "@/components/feedback/empty-state";
  * bar, history, referrer or any log.
  *
  * The claim is consumed in `beforeLoad`, before anything is rendered, and the
- * route then redirects (history replace) to the portal with an explicit
- * outcome flag. A valid invitation opened under the wrong authenticated
- * account is NOT consumed; the backend returns `claim_error=wrong_account` so
- * the UI can give recoverable guidance instead of mislabelling it as invalid.
+ * route then redirects (history replace) to an explicit outcome. A valid
+ * invitation opened under the wrong authenticated account is NOT consumed.
+ * In that case the token is preserved only in this browser's local storage so
+ * the user can sign out, authenticate with the invited account and resume the
+ * same claim without generating another invitation.
  */
 export const Route = createFileRoute("/_authenticated/my/claim/$token")({
   head: () => ({
@@ -36,15 +37,12 @@ export const Route = createFileRoute("/_authenticated/my/claim/$token")({
     ],
   }),
   beforeLoad: async ({ params, context }) => {
-    // The pending intent has served its purpose; clearing it first prevents
-    // any resume loop, whatever the outcome of the claim.
-    clearPendingClaim();
-
     const { data, error } = await supabase.rpc("accept_participant_access_invitation", {
       _token: params.token,
     });
 
     if (error) {
+      clearPendingClaim();
       // Never log or echo the token. Invalid / expired / revoked / already
       // used all resolve to one explicit, safe outcome.
       throw redirect({ to: "/my", search: { claim: "invalid" as const }, replace: true });
@@ -52,15 +50,14 @@ export const Route = createFileRoute("/_authenticated/my/claim/$token")({
 
     const payload = (data ?? {}) as Record<string, unknown>;
     if (payload["claim_error"] === "wrong_account") {
-      // The invitation remains unused. The traveler can sign out and reopen
-      // the original link using the account that owns the invited Person.
-      throw redirect({
-        to: "/my",
-        search: { claim: "wrong-account" as const },
-        replace: true,
-      });
+      // Keep the unused token locally so the public recovery screen can sign
+      // this session out and the authenticated boundary can resume the exact
+      // same claim after the traveler signs in with the correct account.
+      savePendingClaim(params.token);
+      throw redirect({ to: "/claim-account-mismatch", replace: true });
     }
 
+    clearPendingClaim();
     const operationId =
       typeof payload["operation_id"] === "string" ? payload["operation_id"] : undefined;
 
