@@ -14,12 +14,11 @@ import { EmptyState } from "@/components/feedback/empty-state";
  * SECURITY: the raw token is single-use and must never linger in the address
  * bar, history, referrer or any log.
  *
- * DEF-PILOT-016: the claim is consumed in `beforeLoad`, before anything is
- * rendered, and the route then redirects (history replace) to the portal with
- * an explicit outcome flag. The previous implementation consumed the token in
- * a component effect while rewriting the URL with `history.replaceState`,
- * which made the router re-match `/my` and unmount the page mid-flight — the
- * claim never completed and the traveler silently landed on an empty portal.
+ * The claim is consumed in `beforeLoad`, before anything is rendered, and the
+ * route then redirects (history replace) to the portal with an explicit
+ * outcome flag. A valid invitation opened under the wrong authenticated
+ * account is NOT consumed; the backend returns `claim_error=wrong_account` so
+ * the UI can give recoverable guidance instead of mislabelling it as invalid.
  */
 export const Route = createFileRoute("/_authenticated/my/claim/$token")({
   head: () => ({
@@ -47,11 +46,21 @@ export const Route = createFileRoute("/_authenticated/my/claim/$token")({
 
     if (error) {
       // Never log or echo the token. Invalid / expired / revoked / already
-      // used / foreign identity all resolve to one explicit, safe outcome.
+      // used all resolve to one explicit, safe outcome.
       throw redirect({ to: "/my", search: { claim: "invalid" as const }, replace: true });
     }
 
     const payload = (data ?? {}) as Record<string, unknown>;
+    if (payload["claim_error"] === "wrong_account") {
+      // The invitation remains unused. The traveler can sign out and reopen
+      // the original link using the account that owns the invited Person.
+      throw redirect({
+        to: "/my",
+        search: { claim: "wrong-account" as const },
+        replace: true,
+      });
+    }
+
     const operationId =
       typeof payload["operation_id"] === "string" ? payload["operation_id"] : undefined;
 
