@@ -25,6 +25,15 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      # TanStack Router generates src/routeTree.gen.ts through the Vite plugin.
+      # Build first so the current route set exists before static validation.
+      - name: Build
+        run: bun run build
+
+      # Normalize generated files and source formatting before ESLint/Prettier validation.
+      - name: Format
+        run: bun run format
+
       - name: Typecheck
         run: bun run typecheck
 
@@ -33,6 +42,3 @@ jobs:
 
       - name: Tests
         run: bun run test
-
-      - name: Build
-        run: bun run build
