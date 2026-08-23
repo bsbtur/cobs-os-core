@@ -10,7 +10,6 @@ import {
 import { livePreStartBanner } from "@/lib/w04";
 import type { JourneyStepRow, PresenceEventRow, Readiness } from "@/lib/w04";
 
-
 function step(overrides: Partial<JourneyStepRow> = {}): JourneyStepRow {
   return {
     id: "step-1",

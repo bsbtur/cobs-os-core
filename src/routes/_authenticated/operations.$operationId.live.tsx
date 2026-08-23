@@ -25,7 +25,6 @@ import {
   eventLabel,
   livePreStartBanner,
   matchesPersonSearch,
-
   presenceLabel,
   type JourneyEventRow,
   type JourneyStepRow,
@@ -968,7 +967,7 @@ function LiveRuntimePage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
       </header>
 
-{(() => {
+      {(() => {
         const banner = livePreStartBanner(operation.status);
         if (!banner) return null;
         return (
@@ -977,7 +976,6 @@ function LiveRuntimePage() {
           </p>
         );
       })()}
-
 
       <OperationCockpit
         operationStatus={operation.status}
