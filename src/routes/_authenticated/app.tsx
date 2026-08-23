@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
-import { DashboardHeader, OperationalDashboard } from "@/components/dashboard/operational-dashboard";
+import {
+  DashboardHeaderV2,
+  OperationalDashboardV2,
+} from "@/components/dashboard/operational-dashboard-v2";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -27,10 +30,10 @@ function CommandCenter() {
   return (
     <AppShell activeId="overview" title={t("overview.title")}>
       <div className="mx-auto w-full max-w-7xl space-y-6">
-        <DashboardHeader />
+        <DashboardHeaderV2 />
         <RequireTenant>
           <div className="animate-rise" style={{ animationDelay: "80ms" }}>
-            <OperationalDashboard />
+            <OperationalDashboardV2 />
           </div>
         </RequireTenant>
       </div>
