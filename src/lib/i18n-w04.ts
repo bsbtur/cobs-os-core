@@ -107,6 +107,16 @@ export const W04_PT: Record<string, string> = {
   "w04.live.notStarted": "A operação ainda não está pronta para execução.",
   "w04.live.notStartedBody":
     "Coloque a operação em “pronta” na visão geral para liberar o registro ao vivo.",
+  "w04.live.preStart.ready": "Operação pronta para execução.",
+  "w04.live.preStart.readyBody":
+    "A execução ainda não foi iniciada. Inicie a operação pela visão geral para começar o registro ao vivo.",
+  "w04.live.preStart.completed": "Operação encerrada.",
+  "w04.live.preStart.completedBody":
+    "Esta operação foi concluída. O registro ao vivo permanece disponível apenas para consulta.",
+  "w04.live.preStart.cancelled": "Operação cancelada.",
+  "w04.live.preStart.cancelledBody":
+    "Esta operação foi cancelada. Não há execução ao vivo em andamento.",
+
   "w04.live.noSteps": "Esta operação ainda não tem jornada.",
   "w04.live.noStepsBody": "Monte a jornada antes de operar ao vivo.",
   "w04.live.noEvents": "Nenhum fato registrado ainda.",
