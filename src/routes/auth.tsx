@@ -5,6 +5,7 @@ import { ArrowLeft, MailCheck, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError, useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { isSafeAppPath } from "@/lib/safe-redirect";
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,10 +38,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-function isSafePath(value: string | undefined): value is string {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//");
-}
-
 function AuthPage() {
   const { t, locale } = useI18n();
   const navigate = useNavigate();
@@ -49,7 +46,7 @@ function AuthPage() {
   const [busy, setBusy] = React.useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = React.useState<string | null>(null);
 
-  const destination = isSafePath(search.redirect) ? search.redirect : "/app";
+  const destination = isSafeAppPath(search.redirect) ? search.redirect : "/app";
 
   React.useEffect(() => {
     if (!loading && session) {
