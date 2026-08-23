@@ -326,3 +326,28 @@ describe("deriveTone", () => {
     ).toBe("ready");
   });
 });
+
+describe("livePreStartBanner", () => {
+  it("shows no banner while the operation is active", () => {
+    expect(livePreStartBanner("active")).toBeNull();
+  });
+
+  it("shows truthful ready copy instead of the not-ready warning", () => {
+    expect(livePreStartBanner("ready")).toEqual({
+      titleKey: "w04.live.preStart.ready",
+      bodyKey: "w04.live.preStart.readyBody",
+    });
+  });
+
+  it("keeps the move-to-ready guidance for draft/planning states", () => {
+    expect(livePreStartBanner("draft")).toEqual({
+      titleKey: "w04.live.notStarted",
+      bodyKey: "w04.live.notStartedBody",
+    });
+  });
+
+  it("never asks to move terminal operations to ready", () => {
+    expect(livePreStartBanner("completed")?.titleKey).toBe("w04.live.preStart.completed");
+    expect(livePreStartBanner("cancelled")?.titleKey).toBe("w04.live.preStart.cancelled");
+  });
+});
