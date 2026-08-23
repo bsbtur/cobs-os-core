@@ -1,8 +1,6 @@
 import {
   Activity,
-  BarChart3,
   CalendarRange,
-  Globe2,
   Inbox,
   Map,
   LayoutGrid,
@@ -16,7 +14,8 @@ import {
 /**
  * Typed navigation registry + route metadata (W00).
  * Single source of truth for desktop nav, mobile nav, command palette and breadcrumbs.
- * `status: "planned"` items are architectural placeholders — they render, but carry no data.
+ * V1 exposes only destinations with a real workflow; planned domains stay out of navigation
+ * until they have an implemented route and data contract.
  */
 
 export type NavStatus = "live" | "planned";
@@ -25,7 +24,6 @@ export type NavItem = {
   id: string;
   /** i18n key for the label */
   labelKey: string;
-  /** Route path — planned routes intentionally resolve to the shell overview in W00. */
   to:
     | "/app"
     | "/experiences"
@@ -137,25 +135,6 @@ export const NAV_SECTIONS: NavSection[] = [
         domain: "identity",
         activatesIn: "W01",
       },
-
-      {
-        id: "network",
-        labelKey: "nav.network",
-        to: "/app",
-        icon: Globe2,
-        status: "planned",
-        domain: "network",
-        activatesIn: "W04",
-      },
-      {
-        id: "insights",
-        labelKey: "nav.insights",
-        to: "/app",
-        icon: BarChart3,
-        status: "planned",
-        domain: "insight",
-        activatesIn: "W05",
-      },
     ],
   },
   {
@@ -235,7 +214,6 @@ export const ROUTE_META: RouteMeta[] = [
     indexable: false,
   },
   { path: "/people", titleKey: "people.title", authenticated: true, indexable: false },
-
   { path: "/team", titleKey: "team.title", authenticated: true, indexable: false },
   { path: "/settings", titleKey: "settings.title", authenticated: true, indexable: false },
   { path: "/settings/fleet", titleKey: "w05.fleet.title", authenticated: true, indexable: false },
