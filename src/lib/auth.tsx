@@ -177,6 +177,48 @@ export function humanizeError(error: unknown, locale: string): string {
       "Sessão expirada. Entre novamente.",
       "Session expired. Please sign in again.",
     ],
+    // QA-FINAL-20260822: lifecycle guards must tell the operator which
+    // precondition is still open instead of collapsing to the generic fallback.
+    [
+      /Operation not found/i,
+      "A operação não foi encontrada ou não está mais disponível.",
+      "The operation was not found or is no longer available.",
+    ],
+    [
+      /You do not have permission to change this operation/i,
+      "Seu usuário não tem permissão para alterar o ciclo de vida desta operação.",
+      "Your account does not have permission to change this operation lifecycle.",
+    ],
+    [
+      /hospitality stay\(s\) are still open/i,
+      "Existem hospedagens ainda abertas nesta operação. Encerre ou cancele cada hospedagem antes de concluir a operação.",
+      "There are still open hospitality stays in this operation. Complete or cancel each stay before completing the operation.",
+    ],
+    [
+      /nothing was executed yet/i,
+      "A operação ainda não possui evidência operacional. Registre fatos reais de Jornada, presença ou transporte antes de concluir; se nada foi executado, cancele a operação.",
+      "The operation has no execution evidence yet. Record real Journey, presence or transport facts before completing it; if nothing ran, cancel the operation.",
+    ],
+    [
+      /journey step\(s\) are still pending/i,
+      "Existem etapas da Jornada ainda pendentes. Conclua ou pule explicitamente cada etapa antes de concluir a operação.",
+      "There are still pending Journey steps. Complete or explicitly skip each step before completing the operation.",
+    ],
+    [
+      /staff assignment\(s\) are still active/i,
+      "Existem alocações de equipe ainda ativas. Conclua, cancele ou recuse essas alocações antes de concluir a operação.",
+      "There are still active staff assignments. Complete, cancel or decline them before completing the operation.",
+    ],
+    [
+      /A (completed|cancelled) operation cannot change status/i,
+      "Esta operação já está encerrada e não aceita nova mudança de status.",
+      "This operation is already terminal and cannot change status again.",
+    ],
+    [
+      /Transition from .* to .* is not allowed/i,
+      "Essa mudança de status não é permitida a partir do estado atual da operação.",
+      "That status transition is not allowed from the operation's current state.",
+    ],
     // DEF-PILOT-007: temporal runtime guards must read as operational guidance,
     // never as a raw database message.
     [
