@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
   BedDouble,
   Building2,
   CalendarClock,
@@ -21,16 +20,14 @@ import { useTenant } from "@/lib/tenant";
 
 type OperationStatus = "draft" | "planning" | "ready" | "active" | "completed" | "cancelled";
 type ActivityDomain = "Jornada" | "Mobilidade" | "Hospedagem" | "Eventos" | "Comunicação";
+type MetricRows = Array<[string, string]>;
 
 type OperationRow = {
   id: string;
   name: string;
-  code: string;
   status: OperationStatus;
   planned_start: string;
   planned_end: string;
-  completed_at: string | null;
-  cancelled_at: string | null;
   archived_at: string | null;
   updated_at: string;
 };
@@ -44,7 +41,6 @@ type RawActivity = {
 
 type ActivityItem = {
   id: string;
-  operationId: string;
   operationName: string;
   domain: ActivityDomain;
   type: string;
@@ -151,20 +147,17 @@ export function OperationalDashboardV2() {
         eventsResult,
         eventRuntimeResult,
         messagesResult,
-        messageRecipientsResult,
-        messageDeliveriesResult,
+        recipientsResult,
+        deliveriesResult,
         communicationEventsResult,
       ] = await Promise.all([
         supabase
           .from("operations")
-          .select(
-            "id,name,code,status,planned_start,planned_end,completed_at,cancelled_at,archived_at,updated_at",
-          )
-          .eq("tenant_id", tenantId!)
-          .order("planned_start", { ascending: false }),
+          .select("id,name,status,planned_start,planned_end,archived_at,updated_at")
+          .eq("tenant_id", tenantId!),
         supabase
           .from("operation_participations")
-          .select("id,operation_id,participation_kind,status,cancelled_at")
+          .select("id,operation_id,participation_kind,cancelled_at")
           .eq("tenant_id", tenantId!),
         supabase
           .from("journey_events")
@@ -174,7 +167,7 @@ export function OperationalDashboardV2() {
           .limit(40),
         supabase
           .from("transport_legs")
-          .select("id,operation_id,planned_departure,planned_arrival")
+          .select("id,operation_id,planned_departure")
           .eq("tenant_id", tenantId!),
         supabase
           .from("transport_events")
@@ -184,7 +177,7 @@ export function OperationalDashboardV2() {
           .limit(80),
         supabase
           .from("hospitality_stays")
-          .select("id,operation_id,status,planned_check_in,planned_check_out")
+          .select("id,operation_id,status,planned_check_out")
           .eq("tenant_id", tenantId!),
         supabase
           .from("hospitality_events")
@@ -192,28 +185,19 @@ export function OperationalDashboardV2() {
           .eq("tenant_id", tenantId!)
           .order("occurred_at", { ascending: false })
           .limit(40),
-        supabase
-          .from("events")
-          .select("id,operation_id,status,closed_out_at")
-          .eq("tenant_id", tenantId!),
+        supabase.from("events").select("id,operation_id,status").eq("tenant_id", tenantId!),
         supabase
           .from("event_runtime_events")
           .select("id,operation_id,event_type,occurred_at")
           .eq("tenant_id", tenantId!)
           .order("occurred_at", { ascending: false })
           .limit(40),
-        supabase
-          .from("messages")
-          .select("id,operation_id,status,published_at,recipient_count,in_app_reachable_count")
-          .eq("tenant_id", tenantId!),
+        supabase.from("messages").select("id,status").eq("tenant_id", tenantId!),
         supabase
           .from("message_recipients")
           .select("id,message_id,in_app_eligible,first_read_at")
           .eq("tenant_id", tenantId!),
-        supabase
-          .from("message_deliveries")
-          .select("id,message_id,status,delivered_at")
-          .eq("tenant_id", tenantId!),
+        supabase.from("message_deliveries").select("id,message_id").eq("tenant_id", tenantId!),
         supabase
           .from("communication_events")
           .select("id,operation_id,event_type,occurred_at")
@@ -250,30 +234,17 @@ export function OperationalDashboardV2() {
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         .slice(0, 5);
 
-      const activeParticipations = (participationsResult.data ?? []).filter(
-        (item) => !item.cancelled_at,
-      );
-      const participants = activeParticipations.filter(
+      const participations = (participationsResult.data ?? []).filter((item) => !item.cancelled_at);
+      const participantCount = participations.filter(
         (item) => item.participation_kind === "participant",
       ).length;
-      const crew = activeParticipations.filter((item) => item.participation_kind === "crew").length;
+      const crewCount = participations.filter((item) => item.participation_kind === "crew").length;
 
       const alerts: Array<{ label: string; operationId?: string }> = [];
       for (const operation of visibleOperations) {
         if (operation.status === "active" && new Date(operation.planned_end).getTime() < now) {
           alerts.push({
             label: `${operation.name}: operação ativa após o fim planejado`,
-            operationId: operation.id,
-          });
-        }
-        const start = new Date(operation.planned_start).getTime();
-        if (
-          ["planning", "ready"].includes(operation.status) &&
-          start >= now &&
-          start - now <= 86_400_000
-        ) {
-          alerts.push({
-            label: `${operation.name}: inicia nas próximas 24 horas`,
             operationId: operation.id,
           });
         }
@@ -291,27 +262,27 @@ export function OperationalDashboardV2() {
         }
       }
 
-      const transportLegs = transportLegsResult.error ? null : (transportLegsResult.data ?? []);
+      const legs = transportLegsResult.error ? null : (transportLegsResult.data ?? []);
       const transportEvents = transportEventsResult.error ? null : (transportEventsResult.data ?? []);
-      let punctuality:
+      let timing:
         | {
             samples: number;
             early: number;
             onTime: number;
             late: number;
             rate: number;
-            avgDeviation: number;
+            average: number;
           }
         | null = null;
-      let departedLegs: number | null = null;
-      let arrivedLegs: number | null = null;
+      let departed = 0;
+      let arrived = 0;
 
-      if (transportLegs && transportEvents) {
-        const legMap = new Map(transportLegs.map((leg) => [leg.id, leg]));
+      if (legs && transportEvents) {
+        const legMap = new Map(legs.map((leg) => [leg.id, leg]));
         const departures = transportEvents.filter((event) => event.event_type === "LEG_DEPARTED");
         const arrivals = transportEvents.filter((event) => event.event_type === "DESTINATION_ARRIVED");
-        departedLegs = new Set(departures.map((event) => event.transport_leg_id)).size;
-        arrivedLegs = new Set(arrivals.map((event) => event.transport_leg_id)).size;
+        departed = new Set(departures.map((event) => event.transport_leg_id)).size;
+        arrived = new Set(arrivals.map((event) => event.transport_leg_id)).size;
 
         const samples = departures
           .map((event) => {
@@ -326,27 +297,25 @@ export function OperationalDashboardV2() {
           const early = samples.filter((value) => value < -5).length;
           const onTime = samples.filter((value) => value >= -5 && value <= 5).length;
           const late = samples.filter((value) => value > 5).length;
-          punctuality = {
+          timing = {
             samples: samples.length,
             early,
             onTime,
             late,
             rate: Math.round((onTime / samples.length) * 100),
-            avgDeviation: Math.round(samples.reduce((sum, value) => sum + value, 0) / samples.length),
+            average: Math.round(samples.reduce((sum, value) => sum + value, 0) / samples.length),
           };
         }
       }
 
       const messages = messagesResult.error ? null : (messagesResult.data ?? []);
-      const recipients = messageRecipientsResult.error ? null : (messageRecipientsResult.data ?? []);
-      const deliveries = messageDeliveriesResult.error ? null : (messageDeliveriesResult.data ?? []);
+      const recipients = recipientsResult.error ? null : (recipientsResult.data ?? []);
+      const deliveries = deliveriesResult.error ? null : (deliveriesResult.data ?? []);
       const communication =
         messages && recipients && deliveries
           ? (() => {
               const publishedIds = new Set(
-                messages
-                  .filter((message) => message.status === "published")
-                  .map((message) => message.id),
+                messages.filter((message) => message.status === "published").map((message) => message.id),
               );
               const scopedRecipients = recipients.filter((recipient) =>
                 publishedIds.has(recipient.message_id),
@@ -364,23 +333,21 @@ export function OperationalDashboardV2() {
           : null;
 
       const events = eventsResult.error ? null : (eventsResult.data ?? []);
-      const eventRuntime = eventRuntimeResult.error ? null : (eventRuntimeResult.data ?? []);
+      const runtime = eventRuntimeResult.error ? null : (eventRuntimeResult.data ?? []);
       const eventSummary =
-        events && eventRuntime
+        events && runtime
           ? {
               total: events.length,
               closed: events.filter((event) => event.status === "closed_out").length,
-              sessionsCompleted: eventRuntime.filter(
-                (event) => event.event_type === "SESSION_COMPLETED",
-              ).length,
+              sessionsCompleted: runtime.filter((event) => event.event_type === "SESSION_COMPLETED")
+                .length,
             }
           : null;
 
       const hospitalitySummary = stays
         ? {
             total: stays.length,
-            active: stays.filter((stay) => stay.status === "active").length,
-            confirmed: stays.filter((stay) => stay.status === "confirmed").length,
+            active: stays.filter((stay) => ["active", "confirmed"].includes(stay.status)).length,
             completed: stays.filter((stay) => stay.status === "completed").length,
           }
         : null;
@@ -398,10 +365,7 @@ export function OperationalDashboardV2() {
           domain: "Hospedagem",
           rows: hospitalityEventsResult.error ? [] : (hospitalityEventsResult.data ?? []),
         },
-        {
-          domain: "Eventos",
-          rows: eventRuntimeResult.error ? [] : (eventRuntimeResult.data ?? []),
-        },
+        { domain: "Eventos", rows: runtime ?? [] },
         {
           domain: "Comunicação",
           rows: communicationEventsResult.error ? [] : (communicationEventsResult.data ?? []),
@@ -415,7 +379,6 @@ export function OperationalDashboardV2() {
             return [
               {
                 id: `${domain}-${row.id}`,
-                operationId: row.operation_id,
                 operationName: operationMap.get(row.operation_id) ?? "Operação",
                 domain,
                 type: humanizeEventType(row.event_type),
@@ -432,12 +395,10 @@ export function OperationalDashboardV2() {
         statusCounts,
         upcoming,
         recentOperations,
-        participation: { total: activeParticipations.length, participants, crew },
+        participation: { total: participations.length, participants: participantCount, crew: crewCount },
         alerts,
-        punctuality,
-        mobility: transportLegs
-          ? { total: transportLegs.length, departed: departedLegs ?? 0, arrived: arrivedLegs ?? 0 }
-          : null,
+        timing,
+        mobility: legs ? { total: legs.length, departed, arrived } : null,
         hospitality: hospitalitySummary,
         events: eventSummary,
         communication,
@@ -447,26 +408,14 @@ export function OperationalDashboardV2() {
   });
 
   if (dashboard.isLoading) {
-    return (
-      <section className="surface-panel p-6 text-sm text-muted-foreground">
-        Carregando indicadores reais…
-      </section>
-    );
+    return <section className="surface-panel p-6 text-sm text-muted-foreground">Carregando indicadores reais…</section>;
   }
 
   if (dashboard.isError || !dashboard.data) {
     return (
       <section className="surface-panel border-destructive/30 p-6" role="alert">
         <p className="font-semibold text-destructive">Não foi possível carregar o dashboard.</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Nenhum número é estimado. Tente novamente para consultar os dados reais da organização.
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-3"
-          onClick={() => void dashboard.refetch()}
-        >
+        <Button type="button" variant="outline" className="mt-3" onClick={() => void dashboard.refetch()}>
           Tentar novamente
         </Button>
       </section>
@@ -475,94 +424,43 @@ export function OperationalDashboardV2() {
 
   const data = dashboard.data;
   const maxStatusCount = Math.max(1, ...STATUS_ORDER.map((status) => data.statusCounts[status]));
-  const kpis = [
-    {
-      icon: Activity,
-      label: "Em execução",
-      value: data.statusCounts.active,
-      helper: `${data.operations.length} operação(ões) não arquivada(s)`,
-    },
-    {
-      icon: CalendarClock,
-      label: "Próximas operações",
-      value: data.upcoming.length,
-      helper: "Planejamento ou pronto com início futuro",
-    },
-    {
-      icon: Users,
-      label: "Pessoas envolvidas",
-      value: data.participation.total,
-      helper: `${data.participation.participants} participante(s) · ${data.participation.crew} equipe`,
-    },
-    {
-      icon: AlertTriangle,
-      label: "Atenções objetivas",
-      value: data.alerts.length,
-      helper: "Somente regras derivadas de datas e estados reais",
-    },
-  ];
-
-  const punctualityRows = data.punctuality
+  const timingRows: MetricRows | null = data.timing
     ? [
-        ["Amostras de partida", String(data.punctuality.samples)],
-        ["Pontuais (± 5 min)", `${data.punctuality.rate}% (${data.punctuality.onTime})`],
-        ["Adiantadas (> 5 min)", String(data.punctuality.early)],
-        ["Atrasadas (> 5 min)", String(data.punctuality.late)],
-        ["Desvio médio", formatDeviation(data.punctuality.avgDeviation)],
+        ["Amostras de partida", String(data.timing.samples)],
+        ["Pontuais (± 5 min)", `${data.timing.rate}% (${data.timing.onTime})`],
+        ["Adiantadas (> 5 min)", String(data.timing.early)],
+        ["Atrasadas (> 5 min)", String(data.timing.late)],
+        ["Desvio médio", formatDeviation(data.timing.average)],
       ]
     : null;
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="KPIs principais">
-        {kpis.map(({ icon: Icon, label, value, helper }) => (
-          <article key={label} className="surface-panel p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {label}
-                </p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums">{value}</p>
-              </div>
-              <span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary">
-                <Icon className="size-4" />
-              </span>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">{helper}</p>
-          </article>
-        ))}
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi title="Em execução" value={data.statusCounts.active} detail={`${data.operations.length} operações não arquivadas`} icon={Activity} />
+        <Kpi title="Próximas operações" value={data.upcoming.length} detail="Planejamento ou pronto com início futuro" icon={CalendarClock} />
+        <Kpi title="Pessoas envolvidas" value={data.participation.total} detail={`${data.participation.participants} participantes · ${data.participation.crew} equipe`} icon={Users} />
+        <Kpi title="Atenções objetivas" value={data.alerts.length} detail="Somente regras derivadas de fatos" icon={AlertTriangle} />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <section className="grid gap-6 xl:grid-cols-2">
         <article className="surface-panel p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold">Operações por estado</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Distribuição real das operações não arquivadas.
-              </p>
+              <h3 className="font-semibold">Operações por estado</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Distribuição real das operações não arquivadas.</p>
             </div>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/operations">Abrir operações</Link>
-            </Button>
+            <Button asChild variant="outline" size="sm"><Link to="/operations">Abrir operações</Link></Button>
           </div>
           <div className="mt-5 space-y-3">
             {STATUS_ORDER.map((status) => {
               const value = data.statusCounts[status];
               const width = value === 0 ? 0 : Math.max(8, (value / maxStatusCount) * 100);
               return (
-                <div
-                  key={status}
-                  className="grid grid-cols-[112px_1fr_32px] items-center gap-3 text-sm"
-                >
+                <div key={status} className="grid grid-cols-[112px_1fr_32px] items-center gap-3 text-sm">
                   <span className="text-muted-foreground">{STATUS_LABEL[status]}</span>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${width}%` }}
-                    />
-                  </div>
-                  <span className="text-right font-mono tabular-nums">{value}</span>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} /></div>
+                  <span className="text-right font-mono">{value}</span>
                 </div>
               );
             })}
@@ -570,112 +468,35 @@ export function OperationalDashboardV2() {
         </article>
 
         <article className="surface-panel p-5">
-          <h3 className="text-base font-semibold">Atenções operacionais</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Alertas determinísticos, sem inferência subjetiva.
-          </p>
+          <h3 className="font-semibold">Atenções operacionais</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Alertas determinísticos, sem inferência subjetiva.</p>
           <div className="mt-4 space-y-2">
-            {data.alerts.length === 0 ? (
-              <NoData text="Nenhuma atenção objetiva detectada agora." />
-            ) : (
-              data.alerts.slice(0, 6).map((alert) => (
-                <div
-                  key={alert.label}
-                  className="flex items-start gap-3 rounded-lg border p-3 text-sm"
-                >
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <div className="min-w-0 flex-1">
-                    <p>{alert.label}</p>
-                    {alert.operationId ? (
-                      <Link
-                        to="/operations/$operationId"
-                        params={{ operationId: alert.operationId }}
-                        className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                      >
-                        Abrir operação <ArrowRight className="size-3" />
-                      </Link>
-                    ) : null}
-                  </div>
-                </div>
-              ))
-            )}
+            {data.alerts.length === 0 ? <NoData text="Nenhuma atenção objetiva detectada agora." /> : data.alerts.map((alert) => <div key={alert.label} className="rounded-lg border p-3 text-sm">{alert.label}</div>)}
           </div>
         </article>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <DomainCard icon={Gauge} title="Desempenho operacional" rows={punctualityRows} />
-        <DomainCard
-          icon={RouteIcon}
-          title="Mobilidade"
-          rows={
-            data.mobility
-              ? [
-                  ["Trechos", String(data.mobility.total)],
-                  ["Partiram", String(data.mobility.departed)],
-                  ["Chegaram", String(data.mobility.arrived)],
-                ]
-              : null
-          }
-        />
-        <DomainCard
-          icon={BedDouble}
-          title="Hospedagem"
-          rows={
-            data.hospitality
-              ? [
-                  ["Hospedagens", String(data.hospitality.total)],
-                  [
-                    "Ativas / confirmadas",
-                    String(data.hospitality.active + data.hospitality.confirmed),
-                  ],
-                  ["Encerradas", String(data.hospitality.completed)],
-                ]
-              : null
-          }
-        />
-        <DomainCard
-          icon={CalendarClock}
-          title="Eventos"
-          rows={
-            data.events
-              ? [
-                  ["Eventos", String(data.events.total)],
-                  ["Encerrados", String(data.events.closed)],
-                  ["Sessões concluídas", String(data.events.sessionsCompleted)],
-                ]
-              : null
-          }
-        />
+        <DomainCard icon={Gauge} title="Desempenho operacional" rows={timingRows} />
+        <DomainCard icon={RouteIcon} title="Mobilidade" rows={data.mobility ? [["Trechos", String(data.mobility.total)], ["Partiram", String(data.mobility.departed)], ["Chegaram", String(data.mobility.arrived)]] : null} />
+        <DomainCard icon={BedDouble} title="Hospedagem" rows={data.hospitality ? [["Hospedagens", String(data.hospitality.total)], ["Ativas / confirmadas", String(data.hospitality.active)], ["Encerradas", String(data.hospitality.completed)]] : null} />
+        <DomainCard icon={CalendarClock} title="Eventos" rows={data.events ? [["Eventos", String(data.events.total)], ["Encerrados", String(data.events.closed)], ["Sessões concluídas", String(data.events.sessionsCompleted)]] : null} />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <article className="surface-panel p-5">
-          <h3 className="flex items-center gap-2 text-base font-semibold">
-            <Megaphone className="size-4" /> Comunicação
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Publicação, entrega e leitura registradas como fatos.
-          </p>
+          <h3 className="flex items-center gap-2 font-semibold"><Megaphone className="size-4" /> Comunicação</h3>
           {data.communication ? (
             <div className="mt-5 grid grid-cols-2 gap-3">
               <MiniMetric label="Publicadas" value={data.communication.published} />
               <MiniMetric label="Entregas" value={data.communication.deliveries} />
               <MiniMetric label="Leituras" value={data.communication.reads} />
-              <MiniMetric
-                label="Taxa de leitura"
-                value={
-                  data.communication.readRate === null ? "—" : `${data.communication.readRate}%`
-                }
-              />
+              <MiniMetric label="Taxa de leitura" value={data.communication.readRate === null ? "—" : `${data.communication.readRate}%`} />
             </div>
-          ) : (
-            <NoData />
-          )}
+          ) : <NoData />}
         </article>
-
         <article className="surface-panel p-5">
-          <h3 className="text-base font-semibold">Próximas e recentes</h3>
+          <h3 className="font-semibold">Próximas e recentes</h3>
           <div className="mt-4 grid gap-5 md:grid-cols-2">
             <OperationList title="Próximas operações" operations={data.upcoming} />
             <OperationList title="Atualizadas recentemente" operations={data.recentOperations} />
@@ -684,162 +505,46 @@ export function OperationalDashboardV2() {
       </section>
 
       <article className="surface-panel p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold">Atividade recente</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Fatos mais recentes registrados pelos domínios operacionais.
-            </p>
-          </div>
-          <Clock3 className="size-4 text-muted-foreground" />
-        </div>
+        <div className="flex items-center justify-between"><div><h3 className="font-semibold">Atividade recente</h3><p className="mt-1 text-sm text-muted-foreground">Fatos em linguagem operacional.</p></div><Clock3 className="size-4 text-muted-foreground" /></div>
         <div className="mt-4 divide-y">
-          {data.recentActivity.length === 0 ? (
-            <NoData />
-          ) : (
-            data.recentActivity.map((item) => (
-              <div
-                key={item.id}
-                className="grid gap-1 py-3 sm:grid-cols-[120px_1fr_auto] sm:items-center sm:gap-4"
-              >
-                <span className="text-xs font-medium text-primary">{item.domain}</span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{item.operationName}</p>
-                  <p className="truncate text-sm text-muted-foreground">{item.type}</p>
-                </div>
-                <time className="text-xs text-muted-foreground">
-                  {formatDateTime(item.occurredAt)}
-                </time>
-              </div>
-            ))
-          )}
+          {data.recentActivity.length === 0 ? <NoData /> : data.recentActivity.map((item) => (
+            <div key={item.id} className="grid gap-1 py-3 sm:grid-cols-[120px_1fr_auto] sm:items-center sm:gap-4">
+              <span className="text-xs font-medium text-primary">{item.domain}</span>
+              <div className="min-w-0"><p className="truncate text-sm font-medium">{item.operationName}</p><p className="truncate text-sm text-muted-foreground">{item.type}</p></div>
+              <time className="text-xs text-muted-foreground">{formatDateTime(item.occurredAt)}</time>
+            </div>
+          ))}
         </div>
       </article>
 
       <section className="surface-panel flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-3">
-          <Building2 className="size-4 text-primary" />
-          <div>
-            <p className="text-sm font-medium">{tenant?.name ?? "Organização"}</p>
-            <p className="text-xs text-muted-foreground">
-              Papel atual: {role ?? "—"} · dados atualizados automaticamente
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/people">Pessoas</Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/operations">Operações</Link>
-          </Button>
-        </div>
+        <div className="flex items-center gap-3"><Building2 className="size-4 text-primary" /><div><p className="text-sm font-medium">{tenant?.name ?? "Organização"}</p><p className="text-xs text-muted-foreground">Papel atual: {role ?? "—"} · dados atualizados automaticamente</p></div></div>
+        <div className="flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/people">Pessoas</Link></Button><Button asChild variant="outline" size="sm"><Link to="/operations">Operações</Link></Button></div>
       </section>
     </div>
   );
 }
 
-function DomainCard({
-  icon: Icon,
-  title,
-  rows,
-}: {
-  icon: typeof Activity;
-  title: string;
-  rows: Array<[string, string]> | null;
-}) {
-  return (
-    <article className="surface-panel p-4">
-      <div className="flex items-center justify-between gap-3">
-        <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">
-          <Icon className="size-4" />
-        </span>
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/operations">Abrir</Link>
-        </Button>
-      </div>
-      <h3 className="mt-4 font-semibold">{title}</h3>
-      {rows ? (
-        <dl className="mt-3 space-y-2">
-          {rows.map(([label, value]) => (
-            <div key={label} className="flex items-center justify-between gap-3 text-sm">
-              <dt className="text-muted-foreground">{label}</dt>
-              <dd className="text-right font-medium tabular-nums">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <NoData />
-      )}
-    </article>
-  );
+function Kpi({ title, value, detail, icon: Icon }: { title: string; value: number; detail: string; icon: typeof Activity }) {
+  return <article className="surface-panel p-4"><div className="flex items-start justify-between"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{title}</p><p className="mt-2 text-3xl font-semibold">{value}</p></div><span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary"><Icon className="size-4" /></span></div><p className="mt-3 text-xs text-muted-foreground">{detail}</p></article>;
+}
+
+function DomainCard({ icon: Icon, title, rows }: { icon: typeof Activity; title: string; rows: MetricRows | null }) {
+  return <article className="surface-panel p-4"><span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary"><Icon className="size-4" /></span><h3 className="mt-4 font-semibold">{title}</h3>{rows ? <dl className="mt-3 space-y-2">{rows.map(([label, value]) => <div key={label} className="flex items-center justify-between gap-3 text-sm"><dt className="text-muted-foreground">{label}</dt><dd className="text-right font-medium tabular-nums">{value}</dd></div>)}</dl> : <NoData />}</article>;
 }
 
 function MiniMetric({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-lg border p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-    </div>
-  );
+  return <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p></div>;
 }
 
 function NoData({ text = "Sem dados suficientes." }: { text?: string }) {
-  return (
-    <p className="mt-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">{text}</p>
-  );
+  return <p className="mt-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">{text}</p>;
 }
 
 function OperationList({ title, operations }: { title: string; operations: OperationRow[] }) {
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
-      <div className="mt-2 space-y-2">
-        {operations.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma operação neste recorte.</p>
-        ) : (
-          operations.map((operation) => (
-            <Link
-              key={operation.id}
-              to="/operations/$operationId"
-              params={{ operationId: operation.id }}
-              className="block rounded-lg border p-3 transition-colors hover:bg-muted/40"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{operation.name}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {formatDateTime(operation.planned_start)}
-                  </p>
-                </div>
-                <span className="shrink-0 text-[10px] font-semibold uppercase text-primary">
-                  {STATUS_LABEL[operation.status]}
-                </span>
-              </div>
-            </Link>
-          ))
-        )}
-      </div>
-    </div>
-  );
+  return <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p><div className="mt-2 space-y-2">{operations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma operação neste recorte.</p> : operations.map((operation) => <Link key={operation.id} to="/operations/$operationId" params={{ operationId: operation.id }} className="block rounded-lg border p-3 hover:bg-muted/40"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-medium">{operation.name}</p><p className="mt-1 text-xs text-muted-foreground">{formatDateTime(operation.planned_start)}</p></div><span className="shrink-0 text-[10px] font-semibold uppercase text-primary">{STATUS_LABEL[operation.status]}</span></div></Link>)}</div></div>;
 }
 
 export function DashboardHeaderV2() {
-  return (
-    <section className="animate-rise flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
-          Inteligência operacional
-        </p>
-        <h2 className="mt-1 text-2xl font-semibold lg:text-3xl">Centro de comando</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Dados reais do tenant atual. O COBS mostra estado, atenção e evidência — nunca números
-          simulados.
-        </p>
-      </div>
-      <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs text-muted-foreground">
-        <CheckCircle2 className="size-4 text-primary" /> Atualização automática a cada 60 s
-      </div>
-    </section>
-  );
+  return <section className="animate-rise flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">Inteligência operacional</p><h2 className="mt-1 text-2xl font-semibold lg:text-3xl">Centro de comando</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Dados reais do tenant atual. O COBS mostra estado, atenção e evidência — nunca números simulados.</p></div><div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4 text-primary" /> Atualização automática a cada 60 s</div></section>;
 }
