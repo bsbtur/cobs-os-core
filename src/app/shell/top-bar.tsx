@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell, Languages, Menu, Moon, Search, Sun, UserRound } from "lucide-react";
 
+import { useAuth } from "@/lib/auth";
 import { useI18n, LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { formatTimeZoneLabel } from "@/lib/format";
@@ -29,6 +30,7 @@ export function TopBar({
 }) {
   const { t, locale, setLocale, timeZone } = useI18n();
   const { theme, toggle } = useTheme();
+  const { session, signOut } = useAuth();
   const [clock, setClock] = React.useState("");
 
   React.useEffect(() => {
@@ -155,17 +157,35 @@ export function TopBar({
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {t("account.signedOut")}
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel className="min-w-0">
+                <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  {session ? "Sessão ativa" : t("account.signedOut")}
+                </span>
+                {session?.user.email ? (
+                  <span className="mt-1 block truncate text-xs font-normal text-foreground">
+                    {session.user.email}
+                  </span>
+                ) : null}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>{t("account.profile")}</DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/auth" search={{ redirect: undefined }}>
-                  {t("account.signIn")}
-                </Link>
-              </DropdownMenuItem>
+              {session ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    void signOut();
+                  }}
+                >
+                  {t("account.signOut")}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem asChild>
+                  <Link to="/auth" search={{ redirect: undefined }}>
+                    {t("account.signIn")}
+                  </Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
