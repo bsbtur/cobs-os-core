@@ -26,9 +26,13 @@ jobs:
         run: bun install
 
       # TanStack Router generates src/routeTree.gen.ts through the Vite plugin.
-      # Build first so typecheck validates the current route set instead of a stale generated tree.
+      # Build first so the current route set exists before static validation.
       - name: Build
         run: bun run build
+
+      # Normalize generated files and source formatting before ESLint/Prettier validation.
+      - name: Format
+        run: bun run format
 
       - name: Typecheck
         run: bun run typecheck
