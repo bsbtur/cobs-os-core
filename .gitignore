@@ -21,6 +21,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
