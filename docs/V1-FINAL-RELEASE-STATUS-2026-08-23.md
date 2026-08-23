@@ -1,23 +1,29 @@
-# COBS OS — V1 FINAL RELEASE STATUS
+# COBS OS — V1 RELEASE CANDIDATE APPROVED
 
 Date: 2026-08-23  
-Scope: COBS OS V1 operational core / QA controlled pilot  
-Decision: **PASS WITH NOTES — GO for controlled QA/pilot envelope**
+Scope: COBS OS V1 operational core / controlled QA-pilot envelope  
+Decision: **RELEASE CANDIDATE APPROVED — PASS WITH NOTES**
 
-This document records the final release-gate evidence gathered after the integrated QA cycle. It does not claim general-availability readiness beyond the controlled pilot envelope.
+This document is the formal V1 release-candidate record after the integrated QA cycle, dashboard implementation, lifecycle fixes, repository cleanup and final authentication hardening. It does not claim unrestricted general-availability readiness beyond the controlled pilot envelope.
 
-## 1. Release decision
+## 1. Final release decision
+
+**COBS OS V1 — RELEASE CANDIDATE APPROVED.**
 
 No known **P0** or **P1** blocker remains in the validated V1 operational core.
 
-Validated production-QA deployment:
+Validated application release commit before this documentation-only update:
 
 - Git branch: `main`
-- Release commit: `ee11c5a750445555300920df8d25e191bdde7eca`
-- Vercel target: production for project `cobs-os-qa`
+- Application release commit: `8f7c051b2fdca1db97867cbb425f32c1034a435b`
+- Vercel project: `cobs-os-qa`
+- Vercel target: production
 - Official URL: `https://cobs-os-qa.vercel.app/app`
-- Health endpoint: HTTP 200, `status=ok`, `app=up`, `auth=up`, `data_api=up`
-- Vercel runtime errors in the last 24 h at the final gate: none reported
+- Health: HTTP 200, `status=ok`, `app=up`, `auth=up`, `data_api=up`
+- Runtime errors at final verification: none reported
+- Open pull requests at final repository sweep: **0**
+
+The documentation commit that records this approval is non-functional; production must still be smoke-checked after its deployment before the RC reference is frozen.
 
 ## 2. Integrated flows validated in QA
 
@@ -28,7 +34,7 @@ Validated production-QA deployment:
 - Operation completion validated through the normal `Concluir operação` interface.
 - `ACTIVE -> COMPLETED` was proven on the same QA operation after legitimate domain preconditions were satisfied.
 - `set_operation_status` remains the lifecycle authority; no integrity guard was removed or weakened.
-- Known lifecycle blockers are now humanized in the frontend instead of collapsing to the generic `Algo não funcionou` fallback.
+- Known lifecycle blockers are humanized in the frontend instead of collapsing to the generic `Algo não funcionou` fallback.
 
 ### Journey / Live operation
 
@@ -39,13 +45,15 @@ Validated production-QA deployment:
 - Arrival registration.
 - Final step completion.
 - Journey-complete state leading to formal operation closure.
+- Backend terminal-state guards preserve history and reject invalid post-close writes.
 
 ### Mobility
 
-- Vehicle and driver assignment.
+- Vehicle and contextual driver assignment.
 - Vehicle requested / en route / at pickup / departed / arrived sequence.
-- Closed transport leg becomes read-only.
+- Closed transport leg becomes read-only at the domain boundary.
 - Dispatch sequence remains guarded by backend invariants.
+- The historical driver-eligibility issue is closed as completed after the validated mobility PASS.
 
 ### Hospitality
 
@@ -56,7 +64,7 @@ Validated production-QA deployment:
 - Check-out confirmed.
 - Group check-out completed.
 - Stay completed and room released.
-- Terminal stay becomes read-only.
+- Terminal stay becomes historical/read-only.
 
 ### Event production
 
@@ -77,7 +85,7 @@ Validated production-QA deployment:
 - In-app delivery created.
 - Message displayed in traveler portal.
 - Read receipt recorded.
-- Administrative counter updated from `Leram 0` to `Leram 1`.
+- Administrative counter updated from unread to read.
 
 Result: **Communication E2E PASS**.
 
@@ -98,34 +106,58 @@ Validated metrics include:
 - recent operational facts;
 - punctuality classification with separate early/on-time/late semantics.
 
-No simulated data is used. When a metric cannot be derived from real facts, the UI must omit it or state that data is insufficient.
+No simulated data is used. When a metric cannot be derived from real facts, the UI omits it or states that data is insufficient.
 
 Result: **Dashboard Operacional V1 PASS in production QA**.
 
-## 3. Navigation / scope freeze
+## 3. Authentication and authorization hardening
+
+Final release hardening added strict same-origin post-auth redirect validation and regression coverage.
+
+The V1 now rejects unsafe redirect forms including:
+
+- protocol-relative external destinations;
+- backslash-normalized external destinations;
+- control-character redirect tricks;
+- absolute destinations outside the current origin.
+
+Administrative surfaces remain gated by an active operational membership. Authentication alone does not grant operator access. Traveler, invitation and onboarding flows remain explicitly separated from the administrative access gate.
+
+Tenant selection is constrained to active memberships returned by the backend; a stale or altered local tenant identifier does not create authorization.
+
+## 4. Commerce and payments
+
+The W09 Commerce & Payments Core has prior adversarial verification of **101/101 assertions passed** for its frozen backend contract, including RLS, tenant isolation, capacity concurrency, append-only financial facts and idempotency.
+
+Mercado Pago PIX creation currently requires authenticated user context, server-authorized payment-attempt creation, BRL contract checks, idempotency and provider response reconciliation before canonical provider facts are recorded.
+
+Webhook notifications are authenticated by HMAC and are treated only as triggers; financial amount and status are reconciled from Mercado Pago before persistence.
+
+A non-blocking V1.1 hardening item remains open to enforce a maximum age/skew for the signed webhook timestamp. This does not permit forged financial state because provider reconciliation and ledger idempotency remain authoritative.
+
+## 5. Navigation / scope freeze
 
 The V1 navigation no longer exposes dead planned placeholders that only routed back to `/app`.
 
-Removed from the V1 menu until they have a real workflow and route:
+Removed until they have real routes/workflows:
 
 - `Rede W04`
 - `Indicadores W05`
 
-The operational intelligence already implemented remains in **Centro de comando**. Future detailed analytics may reintroduce a dedicated Insights route without duplicating the command center.
+Operational intelligence remains consolidated in **Centro de comando** for V1.
 
-## 4. Repository / release hygiene
+## 6. Repository and release hygiene
 
-- `.env` is no longer versioned.
+- `.env` is not versioned.
 - `.env` and `.env.*` are ignored, with `.env.example` explicitly allowed.
 - `.env.example` contains placeholders only.
-- Real environment values are expected from the deployment environment.
-- Removing the versioned `.env` was proven safe by both a Vercel preview and the full Quality Gate.
+- Python cache artifacts are ignored and tracked cache files were removed.
+- Stale draft PRs from superseded preview work were closed.
+- Final repository sweep found **0 open PRs**.
 
-The publishable Supabase client configuration previously present in Git was not a service-role secret, but keeping environment-specific values out of version control is now the enforced release policy.
+## 7. Quality gates
 
-## 5. Quality gates
-
-Recent release PRs passed the repository Quality Gate, including:
+Release hardening PRs passed the repository Quality Gate, including:
 
 - build;
 - formatting step;
@@ -133,60 +165,52 @@ Recent release PRs passed the repository Quality Gate, including:
 - ESLint;
 - Bun tests.
 
-The lifecycle-guidance release (`ee11c5a...`) was produced only after the corresponding preview and Quality Gate passed.
+The final authentication hardening release passed **Quality Gate #79** before merge.
 
-## 6. Database safety snapshot
+## 8. Database safety snapshot
 
-Read-only final QA census on the connected QA Supabase project:
+The connected QA Supabase safety census previously recorded:
 
 - public tables: **68**;
 - public tables with RLS enabled: **68/68**;
 - disabled non-internal public triggers: **0**;
-- operations: **8 total / 8 completed / 0 active / 0 cancelled** at the snapshot;
-- open hospitality stays: **0**;
-- events not closed out: **0**;
-- draft messages: **2**.
+- no RLS relaxation, tenant-isolation bypass or manual data mutation introduced to make QA pass.
 
-Draft messages are not lifecycle blockers by the implemented operation-close contract and remain valid draft state.
+## 9. Accepted V1.1 backlog
 
-No RLS relaxation, tenant-isolation bypass or manual data mutation was introduced to make QA pass.
+The following remain non-blocking and must not reopen V1 scope unless new evidence upgrades severity:
 
-## 7. Accepted V1 limitations / V1.1 backlog
+- Issue #21 — consolidated P2/P3 release-gate UX/backlog findings;
+- Issue #29 — make Ao Vivo explicitly historical/read-only on terminal operations;
+- Issue #31 — enforce Mercado Pago webhook signature timestamp freshness;
+- durable client-side error sink and stronger client/audit correlation;
+- automated alert delivery;
+- provider-owned auth recovery proof;
+- automated backup/PITR and storage recovery evidence;
+- second-admin / bus-factor hardening before broader scale;
+- scaled external integrations and broader payment processing;
+- richer analytics beyond the V1 command center.
 
-The following are **not P0/P1 blockers for the controlled pilot envelope**, but must not be represented as fully solved:
-
-- durable client-side error sink is not yet the primary observability path;
-- deterministic client-to-audit correlation ID remains a future observability improvement;
-- automated alert delivery remains future work;
-- scheduled backup execution / provider PITR proof remain operational controls rather than fully automated evidence;
-- provider-owned `auth.*` recovery is not claimed as verified;
-- storage backup/recovery is outside the validated pilot envelope;
-- second-admin / bus-factor hardening remains recommended before scaling;
-- scaled external integrations and scaled commerce/payment processing are outside this final operational-core gate;
-- richer dedicated analytics may return later as a real route, but no dead Insights placeholder remains in V1.
-
-## 8. Release classification
+## 10. Release classification
 
 ### P0
 
-None known.
+**0 known.**
 
 ### P1
 
-None known in the validated V1 operational core.
+**0 known in the validated V1 operational core.**
 
-### P2
+### P2 / P3
 
-Accepted operational/observability/recovery limitations listed above. They do not require reopening stable V1 domains for this controlled release.
+Tracked as V1.1/backlog and non-blocking for the controlled pilot envelope.
 
-### P3
+## 11. Final gate
 
-Cosmetic refinements, richer charts, additional analytics, broader automation and non-essential polish belong to backlog and must not block closure of V1.
-
-## 9. Final gate
+# **COBS OS V1 — RELEASE CANDIDATE APPROVED**
 
 **PASS WITH NOTES — GO for controlled QA/pilot envelope.**
 
-The V1 operational core has demonstrated normal-interface execution across Journey, Mobility, Hospitality, Events, Communication, traveler access, operation closure and operational dashboard consolidation while preserving RLS, tenant isolation, append-only history and domain lifecycle guards.
+The V1 operational core has demonstrated normal-interface execution across Journey, Mobility, Hospitality, Events, Communication, traveler access, operation closure, operational dashboard and release hardening while preserving RLS, tenant isolation, append-only history and domain lifecycle guards.
 
-Do not reopen V1 scope for optional enhancements. New capabilities move to V1.1/backlog unless a newly reproduced P0/P1 regression appears.
+From this point forward, V1 is scope-frozen. New capabilities move to V1.1/backlog unless a newly reproduced **P0/P1** regression appears.
