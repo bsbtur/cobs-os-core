@@ -968,11 +968,16 @@ function LiveRuntimePage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("w04.live.subtitle")}</p>
       </header>
 
-      {operation.status !== "active" ? (
-        <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
-          {t("w04.live.notStarted")} {t("w04.live.notStartedBody")}
-        </p>
-      ) : null}
+{(() => {
+        const banner = livePreStartBanner(operation.status);
+        if (!banner) return null;
+        return (
+          <p className="surface-panel px-4 py-3 text-sm text-muted-foreground">
+            {t(banner.titleKey)} {t(banner.bodyKey)}
+          </p>
+        );
+      })()}
+
 
       <OperationCockpit
         operationStatus={operation.status}
