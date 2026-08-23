@@ -107,6 +107,16 @@ export const W04_PT: Record<string, string> = {
   "w04.live.notStarted": "A operação ainda não está pronta para execução.",
   "w04.live.notStartedBody":
     "Coloque a operação em “pronta” na visão geral para liberar o registro ao vivo.",
+  "w04.live.preStart.ready": "Operação pronta para execução.",
+  "w04.live.preStart.readyBody":
+    "A execução ainda não foi iniciada. Inicie a operação pela visão geral para começar o registro ao vivo.",
+  "w04.live.preStart.completed": "Operação encerrada.",
+  "w04.live.preStart.completedBody":
+    "Esta operação foi concluída. O registro ao vivo permanece disponível apenas para consulta.",
+  "w04.live.preStart.cancelled": "Operação cancelada.",
+  "w04.live.preStart.cancelledBody":
+    "Esta operação foi cancelada. Não há execução ao vivo em andamento.",
+
   "w04.live.noSteps": "Esta operação ainda não tem jornada.",
   "w04.live.noStepsBody": "Monte a jornada antes de operar ao vivo.",
   "w04.live.noEvents": "Nenhum fato registrado ainda.",
@@ -392,6 +402,15 @@ export const W04_EN: Record<string, string> = {
   "w04.live.notStarted": "This operation is not ready to run yet.",
   "w04.live.notStartedBody":
     "Move the operation to “ready” on the overview to unlock live recording.",
+  "w04.live.preStart.ready": "Operation ready to run.",
+  "w04.live.preStart.readyBody":
+    "Execution has not started yet. Start the operation from the overview to begin live recording.",
+  "w04.live.preStart.completed": "Operation closed.",
+  "w04.live.preStart.completedBody":
+    "This operation is completed. Live records remain available for consultation only.",
+  "w04.live.preStart.cancelled": "Operation cancelled.",
+  "w04.live.preStart.cancelledBody": "This operation was cancelled. There is no live execution.",
+
   "w04.live.noSteps": "This operation has no journey yet.",
   "w04.live.noStepsBody": "Build the journey before running it live.",
   "w04.live.noEvents": "No facts recorded yet.",

@@ -150,3 +150,34 @@ export function matchesPersonSearch(name: string | null | undefined, query: stri
 export function newIdempotencyKey() {
   return globalThis.crypto.randomUUID();
 }
+
+/**
+ * PRE-START BANNER (display only, V1 hotfix).
+ * The live screen must never claim an operation is "not ready" when it is `ready`.
+ * Returns the i18n keys for the status-aware banner, or null when no banner applies.
+ */
+export type LivePreStartBanner = { titleKey: string; bodyKey: string } | null;
+
+export function livePreStartBanner(status: string | null | undefined): LivePreStartBanner {
+  switch (status) {
+    case "active":
+      return null;
+    case "ready":
+      return {
+        titleKey: "w04.live.preStart.ready",
+        bodyKey: "w04.live.preStart.readyBody",
+      };
+    case "completed":
+      return {
+        titleKey: "w04.live.preStart.completed",
+        bodyKey: "w04.live.preStart.completedBody",
+      };
+    case "cancelled":
+      return {
+        titleKey: "w04.live.preStart.cancelled",
+        bodyKey: "w04.live.preStart.cancelledBody",
+      };
+    default:
+      return { titleKey: "w04.live.notStarted", bodyKey: "w04.live.notStartedBody" };
+  }
+}
