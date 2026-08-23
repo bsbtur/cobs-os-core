@@ -64,6 +64,59 @@ export function isResolvedStatus(status: VisitPointStatus): boolean {
   return status === "completed" || status === "skipped";
 }
 
+type RuntimeVisitPointRow = VisitPointRow & {
+  /** Legacy production columns retained by the deployed W11 schema. */
+  interpretation?: string | null;
+  guide_tip?: string | null;
+  metadata?: unknown;
+  /** Newer generated-client aliases. They can be absent at runtime. */
+  interpretive_content?: string | null;
+  operational_note?: string | null;
+  estimated_minutes?: number | null;
+  is_required?: boolean | null;
+};
+
+function metadataObject(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/**
+ * The deployed W11 table still stores the original fields as
+ * interpretation / guide_tip and the V1 extensions inside metadata, while
+ * newer generated client types expose interpretive_content / operational_note /
+ * estimated_minutes / is_required. Normalize both shapes at the boundary so
+ * the UI always rehydrates the authoritative persisted values.
+ */
+function readVisitPointPlanFields(point: VisitPointRow) {
+  const runtime = point as RuntimeVisitPointRow;
+  const metadata = metadataObject(runtime.metadata);
+
+  const metadataMinutes = metadata["estimated_minutes"];
+  const estimatedMinutes =
+    typeof runtime.estimated_minutes === "number"
+      ? runtime.estimated_minutes
+      : typeof metadataMinutes === "number"
+        ? metadataMinutes
+        : null;
+
+  const metadataRequired = metadata["is_required"];
+  const isRequired =
+    typeof runtime.is_required === "boolean"
+      ? runtime.is_required
+      : typeof metadataRequired === "boolean"
+        ? metadataRequired
+        : false;
+
+  return {
+    interpretiveContent: runtime.interpretive_content ?? runtime.interpretation ?? null,
+    operationalNote: runtime.operational_note ?? runtime.guide_tip ?? null,
+    estimatedMinutes,
+    isRequired,
+  };
+}
+
 /** Derived state for one step. Order is always by sequence, never by insertion. */
 export function deriveStepVisitPoints(
   points: VisitPointRow[],
@@ -73,14 +126,15 @@ export function deriveStepVisitPoints(
     .sort((a, b) => a.sequence - b.sequence)
     .map((point) => {
       const status = statusOf(point.id, events);
+      const plan = readVisitPointPlanFields(point);
       return {
         id: point.id,
         sequence: point.sequence,
         title: point.title,
-        interpretiveContent: point.interpretive_content,
-        operationalNote: point.operational_note,
-        estimatedMinutes: point.estimated_minutes,
-        isRequired: point.is_required,
+        interpretiveContent: plan.interpretiveContent,
+        operationalNote: plan.operationalNote,
+        estimatedMinutes: plan.estimatedMinutes,
+        isRequired: plan.isRequired,
         status,
         resolved: isResolvedStatus(status),
       };
