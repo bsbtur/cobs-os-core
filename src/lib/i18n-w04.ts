@@ -402,6 +402,15 @@ export const W04_EN: Record<string, string> = {
   "w04.live.notStarted": "This operation is not ready to run yet.",
   "w04.live.notStartedBody":
     "Move the operation to “ready” on the overview to unlock live recording.",
+  "w04.live.preStart.ready": "Operation ready to run.",
+  "w04.live.preStart.readyBody":
+    "Execution has not started yet. Start the operation from the overview to begin live recording.",
+  "w04.live.preStart.completed": "Operation closed.",
+  "w04.live.preStart.completedBody":
+    "This operation is completed. Live records remain available for consultation only.",
+  "w04.live.preStart.cancelled": "Operation cancelled.",
+  "w04.live.preStart.cancelledBody": "This operation was cancelled. There is no live execution.",
+
   "w04.live.noSteps": "This operation has no journey yet.",
   "w04.live.noStepsBody": "Build the journey before running it live.",
   "w04.live.noEvents": "No facts recorded yet.",
