@@ -34,6 +34,7 @@ import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
+import { Route as ApiPaymentsAttemptsRouteImport } from './routes/api/payments.attempts'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedMyOperationIdIndexRouteImport } from './routes/_authenticated/my.$operationId.index'
 import { Route as AuthenticatedMyOperationIdEventsRouteImport } from './routes/_authenticated/my.$operationId.events'
@@ -190,6 +191,11 @@ const AuthenticatedSettingsVenuesRoute =
     path: '/settings/venues',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPaymentsAttemptsRoute = ApiPaymentsAttemptsRouteImport.update({
+  id: '/api/payments/attempts',
+  path: '/api/payments/attempts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blueprints/': typeof AuthenticatedBlueprintsIndexRoute
   '/commerce/': typeof AuthenticatedCommerceIndexRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blueprints': typeof AuthenticatedBlueprintsIndexRoute
   '/commerce': typeof AuthenticatedCommerceIndexRoute
@@ -397,6 +405,7 @@ export interface FileRoutesById {
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/blueprints/': typeof AuthenticatedBlueprintsIndexRoute
   '/_authenticated/commerce/': typeof AuthenticatedCommerceIndexRoute
@@ -442,6 +451,7 @@ export interface FileRouteTypes {
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/api/payments/attempts'
     | '/api/public/health'
     | '/blueprints/'
     | '/commerce/'
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/api/payments/attempts'
     | '/api/public/health'
     | '/blueprints'
     | '/commerce'
@@ -526,6 +537,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
     | '/_authenticated/settings_/venues'
+    | '/api/payments/attempts'
     | '/api/public/health'
     | '/_authenticated/blueprints/'
     | '/_authenticated/commerce/'
@@ -554,6 +566,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsMercadopagoRoute: typeof ApiPublicPaymentsMercadopagoRoute
 }
@@ -734,6 +747,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/venues'
       preLoaderRoute: typeof AuthenticatedSettingsVenuesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/payments/attempts': {
+      id: '/api/payments/attempts'
+      path: '/api/payments/attempts'
+      fullPath: '/api/payments/attempts'
+      preLoaderRoute: typeof ApiPaymentsAttemptsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/health': {
       id: '/api/public/health'
@@ -993,6 +1013,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsMercadopagoRoute: ApiPublicPaymentsMercadopagoRoute,
 }
