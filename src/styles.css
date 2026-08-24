@@ -312,3 +312,33 @@
     }
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Live runtime — single-action UX                                             */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * The hero cockpit is the only place where journey commands are executed.
+ * Keep the historical command strip visible for orientation, but make it
+ * read-only so an operator cannot fire an earlier/later command out of order.
+ */
+.surface-panel[class*="border-primary/40"] .mt-4 > .mt-2 > .flex.flex-wrap.gap-2 button {
+  pointer-events: none;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* A completed checklist item is a fact, not another primary action. */
+#cockpit-checklist button:not(.bg-primary) {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Once a person already satisfies the current presence requirement, prevent the
+ * primary presence button from being fired again. The correction menu remains available. */
+#cockpit-people li:has(span.text-success) > div:last-child > button:first-child {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}

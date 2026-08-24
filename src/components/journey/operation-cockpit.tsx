@@ -1,7 +1,9 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import type { JourneyStepRow } from "@/lib/w04";
 import {
@@ -16,12 +18,24 @@ import {
 import { formatDuration } from "@/components/journey/live-timing-strip";
 
 /**
- * COBS OS · V1.1 — Operational Cockpit hero (display only).
- * Shows CURRENT STEP → NEXT ACTION → TIME → SUMMARY → primary CTA.
- * The CTA only orients and calls existing W04 commands; all guards stay on the server.
+ * COBS OS · V1.1 — Operational Cockpit hero.
+ * Shows CURRENT STEP → ONE NEXT ACTION → TIME → SUMMARY → primary CTA.
+ *
+ * UX contract: only the next valid runtime command is actionable here. Historical
+ * commands remain visible in the secondary strip on the live page, but that strip
+ * is intentionally read-only. Backend guards remain authoritative.
  */
 
 const TICK_MS = 30_000;
+const PROGRESS_EVENT_TYPES = [
+  "GATHERING_STARTED",
+  "BOARDING_STARTED",
+  "BOARDING_COMPLETED",
+  "DEPARTURE_AUTHORIZED",
+  "DEPARTED",
+  "ARRIVED",
+  "DISEMBARKATION_COMPLETED",
+] as const;
 
 const TONE_CLASS: Record<CockpitTone, string> = {
   ready: "border-success/40",
@@ -79,6 +93,11 @@ export function OperationCockpit({
   readiness,
   arrived,
   boardingStarted,
+  gatheringStarted,
+  boardingCompleted,
+  departureAuthorized,
+  departed,
+  disembarkationCompleted,
   journeyResolved,
   summary,
   pending,
@@ -91,13 +110,49 @@ export function OperationCockpit({
   const { t } = useI18n();
   const now = useNow();
 
+  // Keep the sequencing source complete even while the legacy live route still
+  // passes only BOARDING_STARTED/ARRIVED. The key intentionally shares the
+  // ["live", operationId] prefix so the parent mutation invalidation refreshes
+  // these facts immediately after every successful runtime command.
+  const progress = useQuery({
+    queryKey: ["live", current?.operation_id ?? null, "cockpit-progress", current?.id ?? null],
+    enabled: Boolean(current?.id),
+    refetchInterval: 10_000,
+    queryFn: async () => {
+      if (!current) return new Set<string>();
+      const { data, error } = await supabase
+        .from("journey_events")
+        .select("event_type")
+        .eq("journey_step_id", current.id)
+        .in("event_type", [...PROGRESS_EVENT_TYPES]);
+      if (error) throw error;
+      return new Set((data ?? []).map((row) => row.event_type));
+    },
+  });
+
+  const progressFacts = progress.data ?? new Set<string>();
+  const effectiveGatheringStarted = gatheringStarted ?? progressFacts.has("GATHERING_STARTED");
+  const effectiveBoardingStarted = boardingStarted || progressFacts.has("BOARDING_STARTED");
+  const effectiveBoardingCompleted = boardingCompleted ?? progressFacts.has("BOARDING_COMPLETED");
+  const effectiveDepartureAuthorized =
+    departureAuthorized ?? progressFacts.has("DEPARTURE_AUTHORIZED");
+  const effectiveDeparted = departed ?? progressFacts.has("DEPARTED");
+  const effectiveArrived = arrived || progressFacts.has("ARRIVED");
+  const effectiveDisembarkationCompleted =
+    disembarkationCompleted ?? progressFacts.has("DISEMBARKATION_COMPLETED");
+
   const action = deriveNextAction({
     operationStatus,
     current,
     next,
     readiness,
-    arrived,
-    boardingStarted,
+    arrived: effectiveArrived,
+    boardingStarted: effectiveBoardingStarted,
+    gatheringStarted: effectiveGatheringStarted,
+    boardingCompleted: effectiveBoardingCompleted,
+    departureAuthorized: effectiveDepartureAuthorized,
+    departed: effectiveDeparted,
+    disembarkationCompleted: effectiveDisembarkationCompleted,
     journeyResolved,
   });
   const delay = computeStepDelay(current, now ?? Date.now());
@@ -106,6 +161,10 @@ export function OperationCockpit({
   const stepTitle = current?.title ?? next?.title ?? t("w04.cockpit.noStep");
   const timeLabel = timeText(current, next, now, delay.lateMs, t);
   const actionable = action.rpc !== null || action.anchor !== null;
+  const nextActionText = action.labelKey
+    ? t(action.labelKey)
+    : t(`w04.cockpit.action.${action.key}`);
+  const ctaText = action.ctaKey ? t(action.ctaKey) : t(`w04.cockpit.cta.${action.key}`);
 
   return (
     <article
@@ -144,7 +203,7 @@ export function OperationCockpit({
               aria-hidden="true"
             />
           )}
-          <span>{t(`w04.cockpit.action.${action.key}`)}</span>
+          <span>{nextActionText}</span>
         </p>
       </div>
 
@@ -176,7 +235,7 @@ export function OperationCockpit({
         <Button
           className="mt-4 min-h-12 w-full sm:w-auto"
           variant={tone === "blocked" ? "outline" : "default"}
-          disabled={pending}
+          disabled={pending || progress.isFetching}
           onClick={() => onAction(action)}
         >
           {action.anchor ? (
@@ -184,7 +243,7 @@ export function OperationCockpit({
           ) : (
             <CheckCircle2 className="size-4" aria-hidden="true" />
           )}
-          {t(`w04.cockpit.cta.${action.key}`)}
+          {ctaText}
         </Button>
       ) : null}
     </article>
