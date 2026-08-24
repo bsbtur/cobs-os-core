@@ -21,6 +21,11 @@ import { W04_ES } from "@/lib/i18n-es-w04";
 import { W05_ES } from "@/lib/i18n-es-w05";
 import { W07_ES_FULL } from "@/lib/i18n-es-w07";
 import { BLUEPRINT_ES_FULL } from "@/lib/i18n-es-blueprints";
+import {
+  W02_ES_CORE_DELTA,
+  W04_ES_CORE_DELTA,
+  W05_ES_CORE_DELTA,
+} from "@/lib/i18n-es-core-delta";
 import { formatDateTime, formatMoney, formatNumber, formatTime } from "@/lib/format";
 
 const INSTANT = "2026-01-15T15:30:00.000Z";
@@ -74,10 +79,10 @@ describe("International Readiness V1 · regional context", () => {
 
 describe("International Readiness V1 · Spanish key coverage", () => {
   test("W01 parity", () => expectSameKeys(W01_PT, W01_ES_FULL));
-  test("W02 parity", () => expectSameKeys(W02_PT, W02_ES));
+  test("W02 parity", () => expectSameKeys(W02_PT, { ...W02_ES, ...W02_ES_CORE_DELTA }));
   test("W03 parity", () => expectSameKeys(W03_PT, W03_ES));
-  test("W04 parity", () => expectSameKeys(W04_PT, W04_ES));
-  test("W05 parity", () => expectSameKeys(W05_PT, W05_ES));
+  test("W04 parity", () => expectSameKeys(W04_PT, { ...W04_ES, ...W04_ES_CORE_DELTA }));
+  test("W05 parity", () => expectSameKeys(W05_PT, { ...W05_ES, ...W05_ES_CORE_DELTA }));
   test("W06 parity", () => expectSameKeys(W06_DICTIONARIES["pt-BR"], W06_DICTIONARIES["es-ES"]));
   test("W07 parity", () => expectSameKeys(W07_PT, W07_ES_FULL));
   test("W08 parity", () => expectSameKeys(W08_DICTIONARIES["pt-BR"], W08_DICTIONARIES["es-ES"]));
