@@ -79,6 +79,11 @@ export function OperationCockpit({
   readiness,
   arrived,
   boardingStarted,
+  gatheringStarted,
+  boardingCompleted,
+  departureAuthorized,
+  departed,
+  disembarkationCompleted,
   journeyResolved,
   summary,
   pending,
@@ -98,6 +103,11 @@ export function OperationCockpit({
     readiness,
     arrived,
     boardingStarted,
+    gatheringStarted,
+    boardingCompleted,
+    departureAuthorized,
+    departed,
+    disembarkationCompleted,
     journeyResolved,
   });
   const delay = computeStepDelay(current, now ?? Date.now());
@@ -106,6 +116,10 @@ export function OperationCockpit({
   const stepTitle = current?.title ?? next?.title ?? t("w04.cockpit.noStep");
   const timeLabel = timeText(current, next, now, delay.lateMs, t);
   const actionable = action.rpc !== null || action.anchor !== null;
+  const nextActionText = action.labelKey
+    ? t(action.labelKey)
+    : t(`w04.cockpit.action.${action.key}`);
+  const ctaText = action.ctaKey ? t(action.ctaKey) : t(`w04.cockpit.cta.${action.key}`);
 
   return (
     <article
@@ -144,7 +158,7 @@ export function OperationCockpit({
               aria-hidden="true"
             />
           )}
-          <span>{t(`w04.cockpit.action.${action.key}`)}</span>
+          <span>{nextActionText}</span>
         </p>
       </div>
 
@@ -184,7 +198,7 @@ export function OperationCockpit({
           ) : (
             <CheckCircle2 className="size-4" aria-hidden="true" />
           )}
-          {t(`w04.cockpit.cta.${action.key}`)}
+          {ctaText}
         </Button>
       ) : null}
     </article>
