@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Fingerprint, Layers, ShieldCheck, Waypoints } from "lucide-react";
 
-import { useI18n } from "@/lib/i18n";
+import { LOCALE_LABELS, type Locale, useI18n } from "@/lib/i18n";
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 
@@ -36,27 +36,99 @@ const PILLARS = [
 
 type PillarKey = (typeof PILLARS)[number]["key"];
 
-const PILLAR_COPY: Record<PillarKey, { title: string; body: string }> = {
-  planned: {
-    title: "PLANNED ≠ EXPECTED ≠ ACTUAL",
-    body: "Three distinct truths, never collapsed into one status field.",
+type LandingLocaleCopy = {
+  runtimeTitle: string;
+  runtimeRows: Array<[string, string]>;
+  pillars: Record<PillarKey, { title: string; body: string }>;
+};
+
+const LANDING_COPY: Record<Locale, LandingLocaleCopy> = {
+  "pt-BR": {
+    runtimeTitle: "Postura operacional",
+    runtimeRows: [
+      ["Tenancy", "Multi-tenant desde o primeiro dia"],
+      ["Modelo de verdade", "Fatos em runtime append-only"],
+      ["Indicadores", "Somente quando existirem fatos reais"],
+      ["Idiomas", "pt-BR · en-US · es-ES"],
+    ],
+    pillars: {
+      planned: {
+        title: "PLANEJADO ≠ PREVISTO ≠ REALIZADO",
+        body: "Três verdades distintas, nunca reduzidas a um único campo de status.",
+      },
+      domain: {
+        title: "RESPONSABILIDADE POR DOMÍNIO",
+        body: "Cada fato tem um único responsável. Não há estado mutável compartilhado entre domínios.",
+      },
+      person: {
+        title: "PESSOA ≠ LOGIN ≠ FUNÇÃO",
+        body: "Uma pessoa existe sem uma conta. Identidade não é autorização.",
+      },
+      security: {
+        title: "SEGURANÇA POR PADRÃO",
+        body: "Isolamento multi-tenant, auditabilidade e idempotência desde o primeiro dia.",
+      },
+    },
   },
-  domain: {
-    title: "DOMAIN OWNERSHIP",
-    body: "Every fact has one owner. No shared mutable state across domains.",
+  "en-US": {
+    runtimeTitle: "Runtime posture",
+    runtimeRows: [
+      ["Tenancy", "Multi-tenant from day one"],
+      ["Truth model", "Facts, append-only runtime"],
+      ["Analytics", "Only when real facts exist"],
+      ["Locales", "pt-BR · en-US · es-ES"],
+    ],
+    pillars: {
+      planned: {
+        title: "PLANNED ≠ EXPECTED ≠ ACTUAL",
+        body: "Three distinct truths, never collapsed into one status field.",
+      },
+      domain: {
+        title: "DOMAIN OWNERSHIP",
+        body: "Every fact has one owner. No shared mutable state across domains.",
+      },
+      person: {
+        title: "PERSON ≠ LOGIN ≠ ROLE",
+        body: "A person exists without an account. Identity is not authorization.",
+      },
+      security: {
+        title: "SECURITY BY DEFAULT",
+        body: "Multi-tenant isolation, auditability and idempotency from day one.",
+      },
+    },
   },
-  person: {
-    title: "PERSON ≠ LOGIN ≠ ROLE",
-    body: "A person exists without an account. Identity is not authorization.",
-  },
-  security: {
-    title: "SECURITY BY DEFAULT",
-    body: "Multi-tenant isolation, auditability and idempotency from day one.",
+  "es-ES": {
+    runtimeTitle: "Postura operativa",
+    runtimeRows: [
+      ["Tenancy", "Multi-tenant desde el primer día"],
+      ["Modelo de verdad", "Hechos en runtime append-only"],
+      ["Indicadores", "Solo cuando existan hechos reales"],
+      ["Idiomas", "pt-BR · en-US · es-ES"],
+    ],
+    pillars: {
+      planned: {
+        title: "PLANIFICADO ≠ PREVISTO ≠ REALIZADO",
+        body: "Tres verdades distintas, nunca reducidas a un único campo de estado.",
+      },
+      domain: {
+        title: "RESPONSABILIDAD POR DOMINIO",
+        body: "Cada hecho tiene un único responsable. No existe estado mutable compartido entre dominios.",
+      },
+      person: {
+        title: "PERSONA ≠ LOGIN ≠ ROL",
+        body: "Una persona existe sin una cuenta. La identidad no es autorización.",
+      },
+      security: {
+        title: "SEGURIDAD POR DEFECTO",
+        body: "Aislamiento multi-tenant, auditabilidad e idempotencia desde el primer día.",
+      },
+    },
   },
 };
 
 function Landing() {
-  const { t } = useI18n();
+  const { locale, setLocale, t } = useI18n();
+  const copy = LANDING_COPY[locale];
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -69,13 +141,31 @@ function Landing() {
         aria-hidden="true"
       />
 
-      <header className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 lg:px-8">
+      <header className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-5 lg:px-8">
         <BrandLockup />
-        <Button asChild size="sm">
-          <Link to="/auth" search={{ redirect: undefined }}>
-            {t("landing.primary")}
-          </Link>
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <label className="sr-only" htmlFor="landing-locale">
+            {t("topbar.language")}
+          </label>
+          <select
+            id="landing-locale"
+            value={locale}
+            onChange={(event) => setLocale(event.target.value as Locale)}
+            className="h-8 max-w-[9rem] rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring sm:max-w-none"
+            aria-label={t("topbar.language")}
+          >
+            {(Object.keys(LOCALE_LABELS) as Locale[]).map((option) => (
+              <option key={option} value={option}>
+                {LOCALE_LABELS[option]}
+              </option>
+            ))}
+          </select>
+          <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Link to="/auth" search={{ redirect: undefined }}>
+              {t("landing.primary")}
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <main className="relative mx-auto max-w-6xl px-5 pb-20 lg:px-8">
@@ -113,21 +203,16 @@ function Landing() {
           >
             <div className="rounded-[calc(var(--radius-xl)-4px)] bg-sidebar p-5 text-sidebar-foreground">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-sidebar-foreground/50">
-                Runtime posture
+                {copy.runtimeTitle}
               </p>
               <dl className="mt-4 space-y-3 text-sm">
-                {[
-                  ["Tenancy", "Multi-tenant, day one"],
-                  ["Truth model", "Facts, append-only runtime"],
-                  ["Analytics", "None until real facts exist"],
-                  ["Locale", "pt-BR · en-US · es-ES"],
-                ].map(([k, v]) => (
+                {copy.runtimeRows.map(([key, value]) => (
                   <div
-                    key={k}
-                    className="flex items-center justify-between gap-4 border-b border-sidebar-border/60 pb-2 last:border-0"
+                    key={key}
+                    className="flex items-start justify-between gap-4 border-b border-sidebar-border/60 pb-2 last:border-0"
                   >
-                    <dt className="text-sidebar-foreground/55">{k}</dt>
-                    <dd className="text-right font-medium">{v}</dd>
+                    <dt className="min-w-0 text-sidebar-foreground/55">{key}</dt>
+                    <dd className="max-w-[62%] text-right font-medium leading-snug">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -147,9 +232,9 @@ function Landing() {
               </span>
               <div className="min-w-0">
                 <h2 className="font-mono text-[11px] uppercase tracking-[0.14em]">
-                  {PILLAR_COPY[key].title}
+                  {copy.pillars[key].title}
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">{PILLAR_COPY[key].body}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{copy.pillars[key].body}</p>
               </div>
             </article>
           ))}
