@@ -19,6 +19,9 @@ export type CockpitActionKey =
   | "startBoarding"
   | "resolvePresence"
   | "resolveChecklist"
+  | "completeBoarding"
+  | "authorizeDeparture"
+  | "recordDeparted"
   | "recordArrival"
   | "completeDisembarkation"
   | "completeStep"
@@ -33,6 +36,10 @@ export type CockpitAction = {
   anchor: string | null;
   /** True when the server would currently refuse the gated command. */
   blocked: boolean;
+  /** Optional existing i18n key used when a dedicated cockpit sentence is not needed. */
+  labelKey?: string;
+  /** Optional existing i18n key for the CTA. */
+  ctaKey?: string;
 };
 
 export type CockpitDelay = {
@@ -151,16 +158,36 @@ export type CockpitInput = {
   readiness: Readiness | null;
   arrived: boolean;
   boardingStarted: boolean;
+  gatheringStarted?: boolean;
+  boardingCompleted?: boolean;
+  departureAuthorized?: boolean;
+  departed?: boolean;
+  disembarkationCompleted?: boolean;
   journeyResolved: boolean;
 };
 
 /**
  * NEXT ACTION MACHINE — first matching rule wins.
- * Mirrors the deployed W04 guards; it can only be more conservative, never less.
+ *
+ * UX invariant: the live screen exposes exactly one operational next action.
+ * Past commands remain visible only as disabled history in the secondary action strip.
+ * Server guards stay authoritative; this helper is intentionally at least as conservative.
  */
 export function deriveNextAction(input: CockpitInput): CockpitAction {
-  const { operationStatus, current, next, readiness, arrived, boardingStarted, journeyResolved } =
-    input;
+  const {
+    operationStatus,
+    current,
+    next,
+    readiness,
+    arrived,
+    boardingStarted,
+    gatheringStarted = false,
+    boardingCompleted = false,
+    departureAuthorized = false,
+    departed = false,
+    disembarkationCompleted = false,
+    journeyResolved,
+  } = input;
 
   if (operationStatus !== "active") {
     return { key: "operationNotActive", rpc: null, anchor: null, blocked: true };
@@ -174,7 +201,8 @@ export function deriveNextAction(input: CockpitInput): CockpitAction {
     return { key: "waiting", rpc: null, anchor: null, blocked: false };
   }
 
-  if (current.step_kind === "meeting" && (readiness?.satisfied ?? 0) === 0) {
+  // Opening commands establish the operational context before human confirmations.
+  if (current.step_kind === "meeting" && !gatheringStarted) {
     return { key: "startGathering", rpc: "start_gathering", anchor: null, blocked: false };
   }
 
@@ -183,11 +211,47 @@ export function deriveNextAction(input: CockpitInput): CockpitAction {
   }
 
   const notReady = readiness ? !readiness.ready : false;
+
+  // In field UX, required checklist is resolved before presence and before advancing commands.
+  if (notReady && (readiness?.missing_required_items.length ?? 0) > 0) {
+    return { key: "resolveChecklist", rpc: null, anchor: "cockpit-checklist", blocked: true };
+  }
   if (notReady && (readiness?.missing_participations.length ?? 0) > 0) {
     return { key: "resolvePresence", rpc: null, anchor: "cockpit-people", blocked: true };
   }
-  if (notReady && (readiness?.missing_required_items.length ?? 0) > 0) {
-    return { key: "resolveChecklist", rpc: null, anchor: "cockpit-checklist", blocked: true };
+
+  // Boarding is deliberately linear: open → confirm people/checklist → close → authorize → depart.
+  if (current.presence_requirement === "boarded") {
+    if (!boardingCompleted) {
+      return {
+        key: "completeBoarding",
+        rpc: "complete_boarding",
+        anchor: null,
+        blocked: notReady,
+        labelKey: "w04.action.completeBoarding",
+        ctaKey: "w04.action.completeBoarding",
+      };
+    }
+    if (!departureAuthorized) {
+      return {
+        key: "authorizeDeparture",
+        rpc: "authorize_departure",
+        anchor: null,
+        blocked: false,
+        labelKey: "w04.action.authorizeDeparture",
+        ctaKey: "w04.action.authorizeDeparture",
+      };
+    }
+    if (!departed) {
+      return {
+        key: "recordDeparted",
+        rpc: "record_departed",
+        anchor: null,
+        blocked: false,
+        labelKey: "w04.action.departed",
+        ctaKey: "w04.action.departed",
+      };
+    }
   }
 
   const needsArrival =
@@ -199,12 +263,12 @@ export function deriveNextAction(input: CockpitInput): CockpitAction {
     return { key: "recordArrival", rpc: "record_arrival", anchor: null, blocked: false };
   }
 
-  if (current.step_kind === "disembarkation" && arrived) {
+  if (current.step_kind === "disembarkation" && !disembarkationCompleted) {
     return {
       key: "completeDisembarkation",
       rpc: "complete_disembarkation",
       anchor: null,
-      blocked: notReady,
+      blocked: notReady || !arrived,
     };
   }
 
