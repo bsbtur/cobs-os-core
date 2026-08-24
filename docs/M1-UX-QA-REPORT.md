@@ -6,12 +6,12 @@ Nada foi redesenhado; nenhuma funcionalidade nova; W11 permanece fechado.
 
 ## 1. Resultado por cenário (API real, sessões autenticadas)
 
-| Cenário | Cobertura | Resultado |
-| --- | --- | --- |
-| S1 — Identidade e roster (W01–W03) | bootstrap de tenant, convites, papéis, pessoas, participações | PASS 17/17 |
-| S2 — Planejamento (W04–W08) | jornada, mobilidade, hospedagem, evento, comunicação | PASS 40/40 |
-| S3 — Comércio (W09) | catálogo, pedido, reserva, pagamento, estorno, conclusão | PASS 20/20 |
-| S5 — Golden Path completo (W02→W10, passe único reproduzível) | operação nova do zero até `completed` + portal do viajante | PASS 80/80 |
+| Cenário                                                       | Cobertura                                                     | Resultado  |
+| ------------------------------------------------------------- | ------------------------------------------------------------- | ---------- |
+| S1 — Identidade e roster (W01–W03)                            | bootstrap de tenant, convites, papéis, pessoas, participações | PASS 17/17 |
+| S2 — Planejamento (W04–W08)                                   | jornada, mobilidade, hospedagem, evento, comunicação          | PASS 40/40 |
+| S3 — Comércio (W09)                                           | catálogo, pedido, reserva, pagamento, estorno, conclusão      | PASS 20/20 |
+| S5 — Golden Path completo (W02→W10, passe único reproduzível) | operação nova do zero até `completed` + portal do viajante    | PASS 80/80 |
 
 O Golden Path (`/tmp/m1/s5_goldenpath.py`) roda em **uma única passagem reproduzível** sobre uma
 operação nova a cada execução — requisito imposto pela natureza append-only do runtime.
@@ -39,11 +39,11 @@ Capturas: `/tmp/browser/m1/*.png` · Relatório: `/tmp/browser/m1/report.json`
 
 ### Defeitos abertos (P2 — cosméticos, só em 390px)
 
-| ID | Rota | Sintoma |
-| --- | --- | --- |
-| DEF-M1-001 | `/operations` | overflow horizontal de 9px |
+| ID         | Rota                   | Sintoma                                         |
+| ---------- | ---------------------- | ----------------------------------------------- |
+| DEF-M1-001 | `/operations`          | overflow horizontal de 9px                      |
 | DEF-M1-002 | `/operations/:id/live` | overflow horizontal de 21px (também para agent) |
-| DEF-M1-003 | `/commerce` | overflow horizontal de 16px |
+| DEF-M1-003 | `/commerce`            | overflow horizontal de 16px                     |
 
 Nenhum ocorre em 430px nem no desktop.
 

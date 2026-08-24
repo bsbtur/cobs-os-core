@@ -263,24 +263,26 @@ export function OperationalDashboardV2() {
       }
 
       const legs = transportLegsResult.error ? null : (transportLegsResult.data ?? []);
-      const transportEvents = transportEventsResult.error ? null : (transportEventsResult.data ?? []);
-      let timing:
-        | {
-            samples: number;
-            early: number;
-            onTime: number;
-            late: number;
-            rate: number;
-            average: number;
-          }
-        | null = null;
+      const transportEvents = transportEventsResult.error
+        ? null
+        : (transportEventsResult.data ?? []);
+      let timing: {
+        samples: number;
+        early: number;
+        onTime: number;
+        late: number;
+        rate: number;
+        average: number;
+      } | null = null;
       let departed = 0;
       let arrived = 0;
 
       if (legs && transportEvents) {
         const legMap = new Map(legs.map((leg) => [leg.id, leg]));
         const departures = transportEvents.filter((event) => event.event_type === "LEG_DEPARTED");
-        const arrivals = transportEvents.filter((event) => event.event_type === "DESTINATION_ARRIVED");
+        const arrivals = transportEvents.filter(
+          (event) => event.event_type === "DESTINATION_ARRIVED",
+        );
         departed = new Set(departures.map((event) => event.transport_leg_id)).size;
         arrived = new Set(arrivals.map((event) => event.transport_leg_id)).size;
 
@@ -315,7 +317,9 @@ export function OperationalDashboardV2() {
         messages && recipients && deliveries
           ? (() => {
               const publishedIds = new Set(
-                messages.filter((message) => message.status === "published").map((message) => message.id),
+                messages
+                  .filter((message) => message.status === "published")
+                  .map((message) => message.id),
               );
               const scopedRecipients = recipients.filter((recipient) =>
                 publishedIds.has(recipient.message_id),
@@ -324,7 +328,8 @@ export function OperationalDashboardV2() {
               const reads = readable.filter((recipient) => Boolean(recipient.first_read_at));
               return {
                 published: publishedIds.size,
-                deliveries: deliveries.filter((delivery) => publishedIds.has(delivery.message_id)).length,
+                deliveries: deliveries.filter((delivery) => publishedIds.has(delivery.message_id))
+                  .length,
                 reads: reads.length,
                 readRate:
                   readable.length > 0 ? Math.round((reads.length / readable.length) * 100) : null,
@@ -395,7 +400,11 @@ export function OperationalDashboardV2() {
         statusCounts,
         upcoming,
         recentOperations,
-        participation: { total: participations.length, participants: participantCount, crew: crewCount },
+        participation: {
+          total: participations.length,
+          participants: participantCount,
+          crew: crewCount,
+        },
         alerts,
         timing,
         mobility: legs ? { total: legs.length, departed, arrived } : null,
@@ -408,14 +417,23 @@ export function OperationalDashboardV2() {
   });
 
   if (dashboard.isLoading) {
-    return <section className="surface-panel p-6 text-sm text-muted-foreground">Carregando indicadores reais…</section>;
+    return (
+      <section className="surface-panel p-6 text-sm text-muted-foreground">
+        Carregando indicadores reais…
+      </section>
+    );
   }
 
   if (dashboard.isError || !dashboard.data) {
     return (
       <section className="surface-panel border-destructive/30 p-6" role="alert">
         <p className="font-semibold text-destructive">Não foi possível carregar o dashboard.</p>
-        <Button type="button" variant="outline" className="mt-3" onClick={() => void dashboard.refetch()}>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3"
+          onClick={() => void dashboard.refetch()}
+        >
           Tentar novamente
         </Button>
       </section>
@@ -437,10 +455,30 @@ export function OperationalDashboardV2() {
   return (
     <div className="space-y-6">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi title="Em execução" value={data.statusCounts.active} detail={`${data.operations.length} operações não arquivadas`} icon={Activity} />
-        <Kpi title="Próximas operações" value={data.upcoming.length} detail="Planejamento ou pronto com início futuro" icon={CalendarClock} />
-        <Kpi title="Pessoas envolvidas" value={data.participation.total} detail={`${data.participation.participants} participantes · ${data.participation.crew} equipe`} icon={Users} />
-        <Kpi title="Atenções objetivas" value={data.alerts.length} detail="Somente regras derivadas de fatos" icon={AlertTriangle} />
+        <Kpi
+          title="Em execução"
+          value={data.statusCounts.active}
+          detail={`${data.operations.length} operações não arquivadas`}
+          icon={Activity}
+        />
+        <Kpi
+          title="Próximas operações"
+          value={data.upcoming.length}
+          detail="Planejamento ou pronto com início futuro"
+          icon={CalendarClock}
+        />
+        <Kpi
+          title="Pessoas envolvidas"
+          value={data.participation.total}
+          detail={`${data.participation.participants} participantes · ${data.participation.crew} equipe`}
+          icon={Users}
+        />
+        <Kpi
+          title="Atenções objetivas"
+          value={data.alerts.length}
+          detail="Somente regras derivadas de fatos"
+          icon={AlertTriangle}
+        />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
@@ -448,18 +486,30 @@ export function OperationalDashboardV2() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h3 className="font-semibold">Operações por estado</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Distribuição real das operações não arquivadas.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Distribuição real das operações não arquivadas.
+              </p>
             </div>
-            <Button asChild variant="outline" size="sm"><Link to="/operations">Abrir operações</Link></Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/operations">Abrir operações</Link>
+            </Button>
           </div>
           <div className="mt-5 space-y-3">
             {STATUS_ORDER.map((status) => {
               const value = data.statusCounts[status];
               const width = value === 0 ? 0 : Math.max(8, (value / maxStatusCount) * 100);
               return (
-                <div key={status} className="grid grid-cols-[112px_1fr_32px] items-center gap-3 text-sm">
+                <div
+                  key={status}
+                  className="grid grid-cols-[112px_1fr_32px] items-center gap-3 text-sm"
+                >
                   <span className="text-muted-foreground">{STATUS_LABEL[status]}</span>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} /></div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
                   <span className="text-right font-mono">{value}</span>
                 </div>
               );
@@ -469,31 +519,86 @@ export function OperationalDashboardV2() {
 
         <article className="surface-panel p-5">
           <h3 className="font-semibold">Atenções operacionais</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Alertas determinísticos, sem inferência subjetiva.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Alertas determinísticos, sem inferência subjetiva.
+          </p>
           <div className="mt-4 space-y-2">
-            {data.alerts.length === 0 ? <NoData text="Nenhuma atenção objetiva detectada agora." /> : data.alerts.map((alert) => <div key={alert.label} className="rounded-lg border p-3 text-sm">{alert.label}</div>)}
+            {data.alerts.length === 0 ? (
+              <NoData text="Nenhuma atenção objetiva detectada agora." />
+            ) : (
+              data.alerts.map((alert) => (
+                <div key={alert.label} className="rounded-lg border p-3 text-sm">
+                  {alert.label}
+                </div>
+              ))
+            )}
           </div>
         </article>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <DomainCard icon={Gauge} title="Desempenho operacional" rows={timingRows} />
-        <DomainCard icon={RouteIcon} title="Mobilidade" rows={data.mobility ? [["Trechos", String(data.mobility.total)], ["Partiram", String(data.mobility.departed)], ["Chegaram", String(data.mobility.arrived)]] : null} />
-        <DomainCard icon={BedDouble} title="Hospedagem" rows={data.hospitality ? [["Hospedagens", String(data.hospitality.total)], ["Ativas / confirmadas", String(data.hospitality.active)], ["Encerradas", String(data.hospitality.completed)]] : null} />
-        <DomainCard icon={CalendarClock} title="Eventos" rows={data.events ? [["Eventos", String(data.events.total)], ["Encerrados", String(data.events.closed)], ["Sessões concluídas", String(data.events.sessionsCompleted)]] : null} />
+        <DomainCard
+          icon={RouteIcon}
+          title="Mobilidade"
+          rows={
+            data.mobility
+              ? [
+                  ["Trechos", String(data.mobility.total)],
+                  ["Partiram", String(data.mobility.departed)],
+                  ["Chegaram", String(data.mobility.arrived)],
+                ]
+              : null
+          }
+        />
+        <DomainCard
+          icon={BedDouble}
+          title="Hospedagem"
+          rows={
+            data.hospitality
+              ? [
+                  ["Hospedagens", String(data.hospitality.total)],
+                  ["Ativas / confirmadas", String(data.hospitality.active)],
+                  ["Encerradas", String(data.hospitality.completed)],
+                ]
+              : null
+          }
+        />
+        <DomainCard
+          icon={CalendarClock}
+          title="Eventos"
+          rows={
+            data.events
+              ? [
+                  ["Eventos", String(data.events.total)],
+                  ["Encerrados", String(data.events.closed)],
+                  ["Sessões concluídas", String(data.events.sessionsCompleted)],
+                ]
+              : null
+          }
+        />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <article className="surface-panel p-5">
-          <h3 className="flex items-center gap-2 font-semibold"><Megaphone className="size-4" /> Comunicação</h3>
+          <h3 className="flex items-center gap-2 font-semibold">
+            <Megaphone className="size-4" /> Comunicação
+          </h3>
           {data.communication ? (
             <div className="mt-5 grid grid-cols-2 gap-3">
               <MiniMetric label="Publicadas" value={data.communication.published} />
               <MiniMetric label="Entregas" value={data.communication.deliveries} />
               <MiniMetric label="Leituras" value={data.communication.reads} />
-              <MiniMetric label="Taxa de leitura" value={data.communication.readRate === null ? "—" : `${data.communication.readRate}%`} />
+              <MiniMetric
+                label="Taxa de leitura"
+                value={
+                  data.communication.readRate === null ? "—" : `${data.communication.readRate}%`
+                }
+              />
             </div>
-          ) : <NoData />}
+          ) : (
+            <NoData />
+          )}
         </article>
         <article className="surface-panel p-5">
           <h3 className="font-semibold">Próximas e recentes</h3>
@@ -505,46 +610,184 @@ export function OperationalDashboardV2() {
       </section>
 
       <article className="surface-panel p-5">
-        <div className="flex items-center justify-between"><div><h3 className="font-semibold">Atividade recente</h3><p className="mt-1 text-sm text-muted-foreground">Fatos em linguagem operacional.</p></div><Clock3 className="size-4 text-muted-foreground" /></div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold">Atividade recente</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Fatos em linguagem operacional.</p>
+          </div>
+          <Clock3 className="size-4 text-muted-foreground" />
+        </div>
         <div className="mt-4 divide-y">
-          {data.recentActivity.length === 0 ? <NoData /> : data.recentActivity.map((item) => (
-            <div key={item.id} className="grid gap-1 py-3 sm:grid-cols-[120px_1fr_auto] sm:items-center sm:gap-4">
-              <span className="text-xs font-medium text-primary">{item.domain}</span>
-              <div className="min-w-0"><p className="truncate text-sm font-medium">{item.operationName}</p><p className="truncate text-sm text-muted-foreground">{item.type}</p></div>
-              <time className="text-xs text-muted-foreground">{formatDateTime(item.occurredAt)}</time>
-            </div>
-          ))}
+          {data.recentActivity.length === 0 ? (
+            <NoData />
+          ) : (
+            data.recentActivity.map((item) => (
+              <div
+                key={item.id}
+                className="grid gap-1 py-3 sm:grid-cols-[120px_1fr_auto] sm:items-center sm:gap-4"
+              >
+                <span className="text-xs font-medium text-primary">{item.domain}</span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{item.operationName}</p>
+                  <p className="truncate text-sm text-muted-foreground">{item.type}</p>
+                </div>
+                <time className="text-xs text-muted-foreground">
+                  {formatDateTime(item.occurredAt)}
+                </time>
+              </div>
+            ))
+          )}
         </div>
       </article>
 
       <section className="surface-panel flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-3"><Building2 className="size-4 text-primary" /><div><p className="text-sm font-medium">{tenant?.name ?? "Organização"}</p><p className="text-xs text-muted-foreground">Papel atual: {role ?? "—"} · dados atualizados automaticamente</p></div></div>
-        <div className="flex gap-2"><Button asChild variant="outline" size="sm"><Link to="/people">Pessoas</Link></Button><Button asChild variant="outline" size="sm"><Link to="/operations">Operações</Link></Button></div>
+        <div className="flex items-center gap-3">
+          <Building2 className="size-4 text-primary" />
+          <div>
+            <p className="text-sm font-medium">{tenant?.name ?? "Organização"}</p>
+            <p className="text-xs text-muted-foreground">
+              Papel atual: {role ?? "—"} · dados atualizados automaticamente
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/people">Pessoas</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/operations">Operações</Link>
+          </Button>
+        </div>
       </section>
     </div>
   );
 }
 
-function Kpi({ title, value, detail, icon: Icon }: { title: string; value: number; detail: string; icon: typeof Activity }) {
-  return <article className="surface-panel p-4"><div className="flex items-start justify-between"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{title}</p><p className="mt-2 text-3xl font-semibold">{value}</p></div><span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary"><Icon className="size-4" /></span></div><p className="mt-3 text-xs text-muted-foreground">{detail}</p></article>;
+function Kpi({
+  title,
+  value,
+  detail,
+  icon: Icon,
+}: {
+  title: string;
+  value: number;
+  detail: string;
+  icon: typeof Activity;
+}) {
+  return (
+    <article className="surface-panel p-4">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            {title}
+          </p>
+          <p className="mt-2 text-3xl font-semibold">{value}</p>
+        </div>
+        <span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary">
+          <Icon className="size-4" />
+        </span>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">{detail}</p>
+    </article>
+  );
 }
 
-function DomainCard({ icon: Icon, title, rows }: { icon: typeof Activity; title: string; rows: MetricRows | null }) {
-  return <article className="surface-panel p-4"><span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary"><Icon className="size-4" /></span><h3 className="mt-4 font-semibold">{title}</h3>{rows ? <dl className="mt-3 space-y-2">{rows.map(([label, value]) => <div key={label} className="flex items-center justify-between gap-3 text-sm"><dt className="text-muted-foreground">{label}</dt><dd className="text-right font-medium tabular-nums">{value}</dd></div>)}</dl> : <NoData />}</article>;
+function DomainCard({
+  icon: Icon,
+  title,
+  rows,
+}: {
+  icon: typeof Activity;
+  title: string;
+  rows: MetricRows | null;
+}) {
+  return (
+    <article className="surface-panel p-4">
+      <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">
+        <Icon className="size-4" />
+      </span>
+      <h3 className="mt-4 font-semibold">{title}</h3>
+      {rows ? (
+        <dl className="mt-3 space-y-2">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex items-center justify-between gap-3 text-sm">
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="text-right font-medium tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <NoData />
+      )}
+    </article>
+  );
 }
 
 function MiniMetric({ label, value }: { label: string; value: string | number }) {
-  return <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p></div>;
+  return (
+    <div className="rounded-lg border p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+    </div>
+  );
 }
 
 function NoData({ text = "Sem dados suficientes." }: { text?: string }) {
-  return <p className="mt-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">{text}</p>;
+  return (
+    <p className="mt-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">{text}</p>
+  );
 }
 
 function OperationList({ title, operations }: { title: string; operations: OperationRow[] }) {
-  return <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p><div className="mt-2 space-y-2">{operations.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma operação neste recorte.</p> : operations.map((operation) => <Link key={operation.id} to="/operations/$operationId" params={{ operationId: operation.id }} className="block rounded-lg border p-3 hover:bg-muted/40"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-medium">{operation.name}</p><p className="mt-1 text-xs text-muted-foreground">{formatDateTime(operation.planned_start)}</p></div><span className="shrink-0 text-[10px] font-semibold uppercase text-primary">{STATUS_LABEL[operation.status]}</span></div></Link>)}</div></div>;
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+      <div className="mt-2 space-y-2">
+        {operations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma operação neste recorte.</p>
+        ) : (
+          operations.map((operation) => (
+            <Link
+              key={operation.id}
+              to="/operations/$operationId"
+              params={{ operationId: operation.id }}
+              className="block rounded-lg border p-3 hover:bg-muted/40"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{operation.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatDateTime(operation.planned_start)}
+                  </p>
+                </div>
+                <span className="shrink-0 text-[10px] font-semibold uppercase text-primary">
+                  {STATUS_LABEL[operation.status]}
+                </span>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function DashboardHeaderV2() {
-  return <section className="animate-rise flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">Inteligência operacional</p><h2 className="mt-1 text-2xl font-semibold lg:text-3xl">Centro de comando</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Dados reais do tenant atual. O COBS mostra estado, atenção e evidência — nunca números simulados.</p></div><div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4 text-primary" /> Atualização automática a cada 60 s</div></section>;
+  return (
+    <section className="animate-rise flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
+          Inteligência operacional
+        </p>
+        <h2 className="mt-1 text-2xl font-semibold lg:text-3xl">Centro de comando</h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+          Dados reais do tenant atual. O COBS mostra estado, atenção e evidência — nunca números
+          simulados.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs text-muted-foreground">
+        <CheckCircle2 className="size-4 text-primary" /> Atualização automática a cada 60 s
+      </div>
+    </section>
+  );
 }

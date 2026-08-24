@@ -13,7 +13,8 @@ function TravelerPortalError({ reset }: { error: Error; reset: () => void }) {
         <h1 className="text-lg font-semibold">Não foi possível abrir o portal do viajante</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           O COBS encontrou um erro ao carregar esta página. Nenhum dado da operação foi alterado.
-          Tente novamente; se você chegou aqui por um convite, confirme também que está usando a conta do viajante convidado.
+          Tente novamente; se você chegou aqui por um convite, confirme também que está usando a
+          conta do viajante convidado.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button

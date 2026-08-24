@@ -2,28 +2,28 @@
 
 **State: FROZEN** · Last updated: 2026-08-10
 
-| Gate | Result |
-| --- | --- |
-| W07 Architecture Gate | PASS |
-| W07 Final Build Contract | PASS |
-| W07 Build | PASS |
-| W07 Security Gate | PASS |
-| W07 Final Hotfix (OBS-W07-001) | PASS |
-| W07 Focused Re-verification | PASS |
-| W07 Architecture Frozen | YES |
+| Gate                           | Result |
+| ------------------------------ | ------ |
+| W07 Architecture Gate          | PASS   |
+| W07 Final Build Contract       | PASS   |
+| W07 Build                      | PASS   |
+| W07 Security Gate              | PASS   |
+| W07 Final Hotfix (OBS-W07-001) | PASS   |
+| W07 Focused Re-verification    | PASS   |
+| W07 Architecture Frozen        | YES    |
 
 ## 1. Frozen surface
 
-| Contract | Value |
-| --- | --- |
-| Tables | 7 (`venues`, `venue_spaces`, `events`, `event_sessions`, `event_session_speakers`, `event_staff_assignments`, `event_runtime_events`) |
-| Enums | 5 (`event_lifecycle_status`, `event_source_kind`, `event_session_kind`, `event_staff_function`, `event_runtime_event_type`) |
-| Runtime event types | 12 |
-| Mutating commands | 35 |
-| Read functions | 4 (`get_event_program`, `get_event_runtime_state`, `list_event_runtime_events`, `get_venue_space_availability`) |
-| Public functions | 39 (no public function #40) |
-| Private helpers (`app_private.w07_*`) | 14 |
-| Realtime tables | 2 (`event_runtime_events`, `event_sessions`) |
+| Contract                              | Value                                                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Tables                                | 7 (`venues`, `venue_spaces`, `events`, `event_sessions`, `event_session_speakers`, `event_staff_assignments`, `event_runtime_events`) |
+| Enums                                 | 5 (`event_lifecycle_status`, `event_source_kind`, `event_session_kind`, `event_staff_function`, `event_runtime_event_type`)           |
+| Runtime event types                   | 12                                                                                                                                    |
+| Mutating commands                     | 35                                                                                                                                    |
+| Read functions                        | 4 (`get_event_program`, `get_event_runtime_state`, `list_event_runtime_events`, `get_venue_space_availability`)                       |
+| Public functions                      | 39 (no public function #40)                                                                                                           |
+| Private helpers (`app_private.w07_*`) | 14                                                                                                                                    |
+| Realtime tables                       | 2 (`event_runtime_events`, `event_sessions`)                                                                                          |
 
 ## 2. Domain invariants (proven)
 

@@ -17,6 +17,8 @@ import {
   allowedPresenceRequirements,
   defaultPresenceRequirement,
   isCanonicalPresence,
+  isChecklistEditable,
+  isDuplicateChecklistTitle,
   newIdempotencyKey,
   type JourneyStepRow,
   type PlaybookItemRow,
@@ -455,22 +457,220 @@ function ForecastDialog({
   );
 }
 
-function PlaybookEditor({
-  step,
+function ChecklistItemDialog({
+  item,
   items,
   roleTypes,
   operationId,
+  onOpenChange,
 }: {
-  step: JourneyStepRow;
+  item: PlaybookItemRow | null;
   items: PlaybookItemRow[];
   roleTypes: RoleTypeRow[];
   operationId: string;
+  onOpenChange: (open: boolean) => void;
 }) {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [title, setTitle] = React.useState("");
   const [requirement, setRequirement] = React.useState<PlaybookRequirement>("required");
   const [ownerRole, setOwnerRole] = React.useState("");
+
+  React.useEffect(() => {
+    setTitle(item?.title ?? "");
+    setRequirement((item?.requirement as PlaybookRequirement) ?? "required");
+    setOwnerRole(item?.owner_role_type_id ?? "");
+  }, [item?.id, item?.title, item?.requirement, item?.owner_role_type_id]);
+
+  const duplicate = item
+    ? isDuplicateChecklistTitle(items, {
+        stepId: item.journey_step_id,
+        title,
+        excludeId: item.id,
+      })
+    : false;
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("update_playbook_item", {
+        _playbook_item_id: item!.id,
+        _title: title.trim(),
+        _requirement: requirement,
+        ...(ownerRole ? { _owner_role_type_id: ownerRole } : {}),
+      });
+      if (error) throw error;
+      await queryClient.refetchQueries({ queryKey: ["journey", operationId] });
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.playbook.updated"));
+      onOpenChange(false);
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <Dialog open={Boolean(item)} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("w04.playbook.editTitle")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="pb-title">{t("w04.playbook.itemTitle")}</Label>
+            <Input
+              id="pb-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              className="min-h-11"
+            />
+            {duplicate ? (
+              <p className="text-xs text-destructive">{t("w04.playbook.duplicate")}</p>
+            ) : null}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="pb-requirement">{t("w04.playbook")}</Label>
+            <select
+              id="pb-requirement"
+              className={SELECT_CLASS}
+              value={requirement}
+              onChange={(event) => setRequirement(event.target.value as PlaybookRequirement)}
+            >
+              {PLAYBOOK_REQUIREMENTS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`w04.requirementLabel.${value}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="pb-owner">{t("w04.playbook.owner")}</Label>
+            <select
+              id="pb-owner"
+              className={SELECT_CLASS}
+              value={ownerRole}
+              onChange={(event) => setOwnerRole(event.target.value)}
+            >
+              <option value="">{t("w04.playbook.owner")}</option>
+              {roleTypes.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {roleLabel(role, t)}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>
+          </div>
+          <Button
+            className="min-h-11 w-full"
+            disabled={!title.trim() || duplicate || save.isPending}
+            onClick={() => save.mutate()}
+          >
+            {t("w04.playbook.save")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RemoveChecklistItemDialog({
+  item,
+  operationId,
+  onOpenChange,
+}: {
+  item: PlaybookItemRow | null;
+  operationId: string;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { t, locale } = useI18n();
+  const queryClient = useQueryClient();
+  const [reason, setReason] = React.useState("");
+
+  React.useEffect(() => {
+    setReason("");
+  }, [item?.id]);
+
+  const remove = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("deactivate_playbook_item", {
+        _playbook_item_id: item!.id,
+        _reason: reason.trim(),
+      });
+      if (error) throw error;
+      await queryClient.refetchQueries({ queryKey: ["journey", operationId] });
+    },
+    onSuccess: () => {
+      feedback.success(t("w04.playbook.removed"));
+      onOpenChange(false);
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <Dialog open={Boolean(item)} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("w04.playbook.removeTitle")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{t("w04.playbook.removeBody")}</p>
+          <p className="text-sm font-medium">{item?.title}</p>
+          <div className="space-y-1.5">
+            <Label htmlFor="pb-remove-reason">{t("w04.playbook.removeReason")}</Label>
+            <Textarea
+              id="pb-remove-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("w04.playbook.removeReasonRequired")}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row-reverse">
+            <Button
+              variant="destructive"
+              className="min-h-11 sm:flex-1"
+              disabled={!reason.trim() || remove.isPending}
+              onClick={() => remove.mutate()}
+            >
+              {t("w04.playbook.removeConfirm")}
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-11 sm:flex-1"
+              onClick={() => onOpenChange(false)}
+            >
+              {t("w04.playbook.cancel")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PlaybookEditor({
+  step,
+  items,
+  roleTypes,
+  operationId,
+  editable,
+}: {
+  step: JourneyStepRow;
+  items: PlaybookItemRow[];
+  roleTypes: RoleTypeRow[];
+  operationId: string;
+  editable: boolean;
+}) {
+  const { t, locale } = useI18n();
+  const queryClient = useQueryClient();
+  const [title, setTitle] = React.useState("");
+  const [requirement, setRequirement] = React.useState<PlaybookRequirement>("required");
+  const [ownerRole, setOwnerRole] = React.useState("");
+  const [editing, setEditing] = React.useState<PlaybookItemRow | null>(null);
+  const [removing, setRemoving] = React.useState<PlaybookItemRow | null>(null);
+
+  const duplicate = isDuplicateChecklistTitle(items, { stepId: step.id, title });
 
   const add = useMutation({
     mutationFn: async () => {
@@ -482,11 +682,11 @@ function PlaybookEditor({
         ...(ownerRole ? { _owner_role_type_id: ownerRole } : {}),
       });
       if (error) throw error;
+      await queryClient.refetchQueries({ queryKey: ["journey", operationId] });
     },
     onSuccess: () => {
       feedback.success(t("w04.playbook.added"));
       setTitle("");
-      void queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
@@ -504,7 +704,7 @@ function PlaybookEditor({
         <ul className="mt-2 space-y-1.5">
           {items.map((item) => (
             <li key={item.id} className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="min-w-0 flex-1 truncate">{item.title}</span>
+              <span className="min-w-0 flex-1 break-words">{item.title}</span>
               <Chip
                 className={
                   item.requirement === "required"
@@ -522,54 +722,97 @@ function PlaybookEditor({
                   )}
                 </Chip>
               ) : null}
+              {editable ? (
+                <span className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-h-9"
+                    aria-label={`${t("w04.playbook.edit")} — ${item.title}`}
+                    onClick={() => setEditing(item)}
+                  >
+                    {t("w04.playbook.edit")}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-9"
+                    aria-label={`${t("w04.playbook.remove")} — ${item.title}`}
+                    onClick={() => setRemoving(item)}
+                  >
+                    {t("w04.playbook.remove")}
+                  </Button>
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>
       )}
 
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <Input
-          aria-label={t("w04.playbook.add")}
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder={t("w04.playbook.add")}
-          className="min-h-11 flex-1"
-        />
-        <select
-          aria-label={t("w04.field.presenceRequirement")}
-          className={`${SELECT_CLASS} sm:w-44`}
-          value={requirement}
-          onChange={(event) => setRequirement(event.target.value as PlaybookRequirement)}
-        >
-          {PLAYBOOK_REQUIREMENTS.map((value) => (
-            <option key={value} value={value}>
-              {t(`w04.requirementLabel.${value}`)}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={t("w04.playbook.owner")}
-          className={`${SELECT_CLASS} sm:w-48`}
-          value={ownerRole}
-          onChange={(event) => setOwnerRole(event.target.value)}
-        >
-          <option value="">{t("w04.playbook.owner")}</option>
-          {roleTypes.map((role) => (
-            <option key={role.id} value={role.id}>
-              {roleLabel(role, t)}
-            </option>
-          ))}
-        </select>
-        <Button
-          className="min-h-11"
-          disabled={!title.trim() || add.isPending}
-          onClick={() => add.mutate()}
-        >
-          <Plus className="mr-1.5 size-4" aria-hidden="true" />
-          {t("w04.playbook.add")}
-        </Button>
-      </div>
+      {editable ? (
+        <>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <Input
+              aria-label={t("w04.playbook.add")}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder={t("w04.playbook.add")}
+              className="min-h-11 flex-1"
+            />
+            <select
+              aria-label={t("w04.field.presenceRequirement")}
+              className={`${SELECT_CLASS} sm:w-44`}
+              value={requirement}
+              onChange={(event) => setRequirement(event.target.value as PlaybookRequirement)}
+            >
+              {PLAYBOOK_REQUIREMENTS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`w04.requirementLabel.${value}`)}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label={t("w04.playbook.owner")}
+              className={`${SELECT_CLASS} sm:w-48`}
+              value={ownerRole}
+              onChange={(event) => setOwnerRole(event.target.value)}
+            >
+              <option value="">{t("w04.playbook.owner")}</option>
+              {roleTypes.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {roleLabel(role, t)}
+                </option>
+              ))}
+            </select>
+            <Button
+              className="min-h-11"
+              disabled={!title.trim() || duplicate || add.isPending}
+              onClick={() => add.mutate()}
+            >
+              <Plus className="mr-1.5 size-4" aria-hidden="true" />
+              {t("w04.playbook.add")}
+            </Button>
+          </div>
+          {duplicate ? (
+            <p className="mt-2 text-xs text-destructive">{t("w04.playbook.duplicate")}</p>
+          ) : null}
+        </>
+      ) : null}
+
       <p className="mt-2 text-xs text-muted-foreground">{t("w04.playbook.ownerHint")}</p>
+
+      <ChecklistItemDialog
+        item={editing}
+        items={items}
+        roleTypes={roleTypes}
+        operationId={operationId}
+        onOpenChange={(open) => setEditing(open ? editing : null)}
+      />
+      <RemoveChecklistItemDialog
+        item={removing}
+        operationId={operationId}
+        onOpenChange={(open) => setRemoving(open ? removing : null)}
+      />
     </div>
   );
 }
@@ -1190,6 +1433,7 @@ function JourneyPlanPage() {
                 items={items.filter((item) => item.journey_step_id === step.id)}
                 roleTypes={roleTypes}
                 operationId={operationId}
+                editable={isChecklistEditable(operation.status, role)}
               />
 
               <VisitPointsPanel

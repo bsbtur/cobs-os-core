@@ -8,20 +8,20 @@ Escopo: revisão transversal W01–W10. Nenhum novo domínio de negócio. W11 N�
 
 ## 1. Inventário verificado (estado vivo do backend)
 
-| Métrica | Valor |
-| --- | --- |
-| Tabelas públicas | 50 |
-| Tabelas sem RLS | 0 |
-| Políticas RLS | 72 |
-| Funções públicas | 226 (202 SECURITY DEFINER) |
-| Helpers privados (`app_private`) | 98 |
-| Enums de domínio | 48 |
-| Tabelas em Realtime | 12 |
-| SECURITY DEFINER sem `search_path` fixo | 0 |
-| Grants para `anon` em `public` | 0 |
-| Grants de escrita para `authenticated` | 0 (SELECT-only) |
-| Triggers desabilitados | 0 |
-| Tenants / usuários auth | 0 / 0 (base limpa) |
+| Métrica                                 | Valor                      |
+| --------------------------------------- | -------------------------- |
+| Tabelas públicas                        | 50                         |
+| Tabelas sem RLS                         | 0                          |
+| Políticas RLS                           | 72                         |
+| Funções públicas                        | 226 (202 SECURITY DEFINER) |
+| Helpers privados (`app_private`)        | 98                         |
+| Enums de domínio                        | 48                         |
+| Tabelas em Realtime                     | 12                         |
+| SECURITY DEFINER sem `search_path` fixo | 0                          |
+| Grants para `anon` em `public`          | 0                          |
+| Grants de escrita para `authenticated`  | 0 (SELECT-only)            |
+| Triggers desabilitados                  | 0                          |
+| Tenants / usuários auth                 | 0 / 0 (base limpa)         |
 
 Realtime seletivo (12): journey_steps, journey_events, participant_presence_events, playbook_executions, transport_legs, transport_events, hospitality_rooms, hospitality_events, event_sessions, event_runtime_events, communication_events, financial_facts.
 
@@ -129,7 +129,6 @@ Duas colunas novas em `participant_presence_events`: `retracts_presence_event_id
 - P1_RECOVERY_GAPS: **0** · REAL_BSBTUR_DATA_CHANGED: **NO** · QA_RESIDUE: **0**
 - READY_FOR_M4_OBSERVABILITY: **YES** · W11 e a primeira Operation real do piloto **não** foram iniciados
 
-
 ## 10. M4 — Observabilidade mínima de produção (2026-08-11 UTC)
 
 Entrega: **`docs/ALPHA-OBSERVABILITY-RUNBOOK.md`**. Camada aditiva **somente de frontend/SSR**:
@@ -154,13 +153,13 @@ Dados reais BSBTUR: **intocados**.
 
 Full record: `docs/ALPHA-PILOT-READINESS-FINAL.md` · Operating procedure: `docs/ALPHA-PILOT-DAY-CHECKLIST.md`
 
-| Milestone | M6 re-classification |
-|---|---|
-| M1 cross-workflow authenticated UX QA | VERIFIED WITH ACCEPTED LIMITATION (OBS-M1-005, P2) |
-| M2 real tenant bootstrap + owner identity | VERIFIED |
-| M3 / M3.1 operational recovery | VERIFIED |
-| M4 minimum production observability | VERIFIED WITH ACCEPTED LIMITATION (manual alerting, no durable client sink) |
-| M5 backup & restore | VERIFIED WITH ACCEPTED LIMITATION (no scheduled backup; auth.* UNVERIFIED) |
+| Milestone                                 | M6 re-classification                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| M1 cross-workflow authenticated UX QA     | VERIFIED WITH ACCEPTED LIMITATION (OBS-M1-005, P2)                          |
+| M2 real tenant bootstrap + owner identity | VERIFIED                                                                    |
+| M3 / M3.1 operational recovery            | VERIFIED                                                                    |
+| M4 minimum production observability       | VERIFIED WITH ACCEPTED LIMITATION (manual alerting, no durable client sink) |
+| M5 backup & restore                       | VERIFIED WITH ACCEPTED LIMITATION (no scheduled backup; auth.* UNVERIFIED)  |
 
 Baseline re-measured live and unchanged: 50 tables · 50 RLS · 72 policies · 229 public functions · 205 SD (0 without fixed search_path) · 98 private helpers · 48 enums · 98 public triggers · 0 disabled triggers · 0 anon grants · 12 realtime tables · 0 W11 objects. BSBTUR tenant + single owner identity intact; zero QA residue.
 

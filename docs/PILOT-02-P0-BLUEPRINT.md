@@ -6,31 +6,31 @@ Basis: GATE-PILOT-02 re-audit = READY_WITH_CONTROLS (controls C1–C6 binding).
 
 ## 1. Operation envelope
 
-| Field | Value |
-|---|---|
-| Tenant | BSBTUR (production) |
-| Experience / Offering | reuse an existing active tourism offering (no new catalog) |
-| Operation kind | single-day city tour, round trip |
-| Travelers | 5 (individual participations) |
-| Crew | 1 driver + 1 operations_agent |
-| Authority | Rafael (Owner), on call for the whole window |
-| Vehicle | 1, effective capacity KNOWN and >= 5 |
-| Transport legs | 2 (outbound, return) |
-| Seats | 5 labeled: A01–A05 |
-| Hospitality / Event / Commerce / External integrations | OFF |
-| Lifecycle | draft -> planning -> ready (T0-1d) -> active -> completed |
+| Field                                                  | Value                                                      |
+| ------------------------------------------------------ | ---------------------------------------------------------- |
+| Tenant                                                 | BSBTUR (production)                                        |
+| Experience / Offering                                  | reuse an existing active tourism offering (no new catalog) |
+| Operation kind                                         | single-day city tour, round trip                           |
+| Travelers                                              | 5 (individual participations)                              |
+| Crew                                                   | 1 driver + 1 operations_agent                              |
+| Authority                                              | Rafael (Owner), on call for the whole window               |
+| Vehicle                                                | 1, effective capacity KNOWN and >= 5                       |
+| Transport legs                                         | 2 (outbound, return)                                       |
+| Seats                                                  | 5 labeled: A01–A05                                         |
+| Hospitality / Event / Commerce / External integrations | OFF                                                        |
+| Lifecycle                                              | draft -> planning -> ready (T0-1d) -> active -> completed  |
 
 Out of scope by design: stays, rooming, venues, sessions, orders, payments, webhooks,
 ad-hoc legs beyond fallback, second vehicle, unnumbered seats.
 
 ## 2. Roster roles
 
-| # | Person | Participation kind | Status pre-T0 | Portal | Tenant membership |
-|---|---|---|---|---|---|
-| 1–5 | Travelers | `participant` | `confirmed` | grant + claim required | none |
-| 6 | Driver | `crew` | `confirmed` | not required | none (W05 driver record refs Person) |
-| 7 | Field operator | `crew` | `confirmed` | not required | `operations_agent` |
-| 8 | Rafael | not on roster | — | — | `owner` |
+| #   | Person         | Participation kind | Status pre-T0 | Portal                 | Tenant membership                    |
+| --- | -------------- | ------------------ | ------------- | ---------------------- | ------------------------------------ |
+| 1–5 | Travelers      | `participant`      | `confirmed`   | grant + claim required | none                                 |
+| 6   | Driver         | `crew`             | `confirmed`   | not required           | none (W05 driver record refs Person) |
+| 7   | Field operator | `crew`             | `confirmed`   | not required           | `operations_agent`                   |
+| 8   | Rafael         | not on roster      | —             | —                      | `owner`                              |
 
 Operational role assignments (W03) are contextual only and never grant login.
 
@@ -51,26 +51,26 @@ Crew (driver, operator) are NOT seat-assigned — capacity counts travelers only
 
 ## 5. Journey structure (W04)
 
-| Seq | Step | Kind | Presence population | Presence requirement |
-|---|---|---|---|---|
-| 1 | Encontro / check-in do grupo | `meeting` | participants | `accounted` |
-| 2 | Embarque (ida) | `boarding` | participants | `boarded` |
-| 3 | Deslocamento (ida) | `movement` | participants | `none` |
-| 4 | Chegada / roteiro | `arrival` | participants | `none` |
-| 5 | Atividade guiada | `activity` | participants | `accounted` |
-| 6 | Embarque (retorno) | `boarding` | participants | `boarded` |
-| 7 | Retorno | `return` | participants | `none` |
-| 8 | Desembarque final | `disembarkation` | participants | `none` |
+| Seq | Step                         | Kind             | Presence population | Presence requirement |
+| --- | ---------------------------- | ---------------- | ------------------- | -------------------- |
+| 1   | Encontro / check-in do grupo | `meeting`        | participants        | `accounted`          |
+| 2   | Embarque (ida)               | `boarding`       | participants        | `boarded`            |
+| 3   | Deslocamento (ida)           | `movement`       | participants        | `none`               |
+| 4   | Chegada / roteiro            | `arrival`        | participants        | `none`               |
+| 5   | Atividade guiada             | `activity`       | participants        | `accounted`          |
+| 6   | Embarque (retorno)           | `boarding`       | participants        | `boarded`            |
+| 7   | Retorno                      | `return`         | participants        | `none`               |
+| 8   | Desembarque final            | `disembarkation` | participants        | `none`               |
 
 Rules: `BOARDED` is only accepted after `BOARDING_STARTED` on that step; departure
 authorization is required before `DEPARTED`; `DISEMBARKED` only after `ARRIVED`.
 
 ## 6. Leg structure (W05)
 
-| Leg | Kind | Vehicle | Driver | Seats | Bound step |
-|---|---|---|---|---|---|
-| L1 | `outbound` | V1 | D1 | A01–A05 | step 2 |
-| L2 | `return` | V1 | D1 | A01–A05 | step 6 |
+| Leg | Kind       | Vehicle | Driver | Seats   | Bound step |
+| --- | ---------- | ------- | ------ | ------- | ---------- |
+| L1  | `outbound` | V1      | D1     | A01–A05 | step 2     |
+| L2  | `return`   | V1      | D1     | A01–A05 | step 6     |
 
 Dispatch path per leg: `planned -> assigned -> en_route_to_pickup -> at_pickup -> in_transit -> arrived`.
 Seat assignments are per leg; releasing on L1 does not affect L2.
@@ -131,19 +131,19 @@ Before authorizing departure on each leg:
 
 ## 11. Division of actions
 
-| Action | operations_agent | Rafael (Owner) |
-|---|---|---|
-| Seat assignment / release (single operator, C6) | YES | no |
-| Start journey / start & complete steps | YES | backup |
-| Start boarding, record PRESENT / BOARDED / DISEMBARKED | YES | backup |
-| `ABSENCE_NOTED` | YES | backup |
-| `NO_SHOW_CONFIRMED` | NO (owner/admin only) | YES |
-| Authorize departure | NO (owner/admin only) | YES |
-| Skip a journey step | NO (owner/admin only) | YES |
-| Change operation status / complete operation | NO | YES |
-| Publish in-app messages | YES | YES |
-| Grant / revoke participant access | YES | YES |
-| Retract a presence fact (correction) | NO | YES |
+| Action                                                 | operations_agent      | Rafael (Owner) |
+| ------------------------------------------------------ | --------------------- | -------------- |
+| Seat assignment / release (single operator, C6)        | YES                   | no             |
+| Start journey / start & complete steps                 | YES                   | backup         |
+| Start boarding, record PRESENT / BOARDED / DISEMBARKED | YES                   | backup         |
+| `ABSENCE_NOTED`                                        | YES                   | backup         |
+| `NO_SHOW_CONFIRMED`                                    | NO (owner/admin only) | YES            |
+| Authorize departure                                    | NO (owner/admin only) | YES            |
+| Skip a journey step                                    | NO (owner/admin only) | YES            |
+| Change operation status / complete operation           | NO                    | YES            |
+| Publish in-app messages                                | YES                   | YES            |
+| Grant / revoke participant access                      | YES                   | YES            |
+| Retract a presence fact (correction)                   | NO                    | YES            |
 
 Rafael must be reachable by phone at all times during the window (C2).
 

@@ -5,16 +5,16 @@
 
 ## Gate record
 
-| Gate | Result |
-| --- | --- |
-| W10 Architecture Gate | PASS |
-| W10 Final Architecture Correction | PASS |
-| W10-A Build (structure/security foundation) | PASS |
-| W10-B Access Engine Security Gate | PASS (62/62 after DEF-W10-001) |
-| W10-C Projection Privacy / IDOR Gate | PASS (142 assertions) |
-| W10-D/E Traveler Portal | PASS (delivered) |
-| W10-F Final Adversarial, Browser & UX Gate | PASS |
-| **W10 ARCHITECTURE FROZEN** | **YES** |
+| Gate                                        | Result                         |
+| ------------------------------------------- | ------------------------------ |
+| W10 Architecture Gate                       | PASS                           |
+| W10 Final Architecture Correction           | PASS                           |
+| W10-A Build (structure/security foundation) | PASS                           |
+| W10-B Access Engine Security Gate           | PASS (62/62 after DEF-W10-001) |
+| W10-C Projection Privacy / IDOR Gate        | PASS (142 assertions)          |
+| W10-D/E Traveler Portal                     | PASS (delivered)               |
+| W10-F Final Adversarial, Browser & UX Gate  | PASS                           |
+| **W10 ARCHITECTURE FROZEN**                 | **YES**                        |
 
 ## Defects & observations
 
@@ -37,26 +37,26 @@ token-inspection function or identity-rebinding shortcut was created or left beh
 
 ### Rows removed
 
-| Area | Removed |
-| --- | --- |
-| Tenants | 4 |
-| Auth users | 34 |
-| Profiles | 25 |
-| People | 36 |
-| Memberships | 8 |
-| Invitations (W01) | 4 |
-| W02 (experiences/offerings/operations) | 9 (operations) |
-| W03 (participations / role assignments / role types) | 26 / 0 / 34 |
-| W04 (journey steps / journey events / presence) | 4 / 3 / 1 |
-| W05 (vehicles / drivers / legs / stops / seats / events) | 2 / 1 / 2 / 1 / 3 / 7 |
+| Area                                                                          | Removed               |
+| ----------------------------------------------------------------------------- | --------------------- |
+| Tenants                                                                       | 4                     |
+| Auth users                                                                    | 34                    |
+| Profiles                                                                      | 25                    |
+| People                                                                        | 36                    |
+| Memberships                                                                   | 8                     |
+| Invitations (W01)                                                             | 4                     |
+| W02 (experiences/offerings/operations)                                        | 9 (operations)        |
+| W03 (participations / role assignments / role types)                          | 26 / 0 / 34           |
+| W04 (journey steps / journey events / presence)                               | 4 / 3 / 1             |
+| W05 (vehicles / drivers / legs / stops / seats / events)                      | 2 / 1 / 2 / 1 / 3 / 7 |
 | W06 (properties / rooms / stays / stay participations / assignments / events) | 1 / 1 / 1 / 2 / 2 / 4 |
-| W07 (venues / spaces / events / sessions / staff / runtime events) | 1 / 1 / 1 / 2 / 1 / 1 |
-| W08 (messages / recipients / selectors / comm events) | 6 / 5 / 6 / 6 |
-| W09 (orders / items / reservations / financial facts) | 0 / 0 / 0 / 0 |
-| participant_access_grants | 16 |
-| participant_access_invitations | 15 |
-| audit_events | 157 |
-| idempotency_keys | 108 |
+| W07 (venues / spaces / events / sessions / staff / runtime events)            | 1 / 1 / 1 / 2 / 1 / 1 |
+| W08 (messages / recipients / selectors / comm events)                         | 6 / 5 / 6 / 6         |
+| W09 (orders / items / reservations / financial facts)                         | 0 / 0 / 0 / 0         |
+| participant_access_grants                                                     | 16                    |
+| participant_access_invitations                                                | 15                    |
+| audit_events                                                                  | 157                   |
+| idempotency_keys                                                              | 108                   |
 
 ### Residual counts (verified live)
 
@@ -67,15 +67,15 @@ inspection/debug function exists.
 
 ## Structural freeze (verified live)
 
-| Metric | Value |
-| --- | --- |
-| W10_TABLE_COUNT | 2 |
-| W10_ENUM_COUNT | 2 |
-| W10_MUTATING_COMMAND_COUNT | 6 |
-| W10_READ_FUNCTION_COUNT | 9 |
-| W10_PUBLIC_FUNCTION_COUNT | 15 |
-| W10_PRIVATE_HELPER_COUNT | 9 |
-| W10_REALTIME_TABLE_COUNT | 0 |
+| Metric                     | Value |
+| -------------------------- | ----- |
+| W10_TABLE_COUNT            | 2     |
+| W10_ENUM_COUNT             | 2     |
+| W10_MUTATING_COMMAND_COUNT | 6     |
+| W10_READ_FUNCTION_COUNT    | 9     |
+| W10_PUBLIC_FUNCTION_COUNT  | 15    |
+| W10_PRIVATE_HELPER_COUNT   | 9     |
+| W10_REALTIME_TABLE_COUNT   | 0     |
 
 Mutating: `grant_participant_access`, `revoke_participant_access`,
 `reinstate_participant_access`, `invite_participant_access`,

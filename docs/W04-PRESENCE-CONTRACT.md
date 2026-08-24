@@ -4,16 +4,16 @@ Functional-only change. No table, column, enum, RLS or data was touched.
 
 ## Canonical matrix (backend default + allowed overrides)
 
-| step_kind | default | allowed |
-|---|---|---|
-| meeting | accounted | accounted |
-| boarding | boarded | boarded |
-| movement | none | none |
-| return | none | none |
-| arrival | none | none, accounted |
-| activity | none | none, accounted |
-| meal, hotel, event, break, free_time, other | none | none |
-| disembarkation | accounted | accounted |
+| step_kind                                   | default   | allowed         |
+| ------------------------------------------- | --------- | --------------- |
+| meeting                                     | accounted | accounted       |
+| boarding                                    | boarded   | boarded         |
+| movement                                    | none      | none            |
+| return                                      | none      | none            |
+| arrival                                     | none      | none, accounted |
+| activity                                    | none      | none, accounted |
+| meal, hotel, event, break, free_time, other | none      | none            |
+| disembarkation                              | accounted | accounted       |
 
 `boarded` is legal only on `boarding`. Population default stays `participants`;
 `all_confirmed` is preserved and only rejected when the step has no presence

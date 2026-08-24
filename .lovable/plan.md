@@ -15,6 +15,7 @@ No `operation_status_events`. No W03+ tables. No W01 semantic changes.
 ## Proposed tables
 
 ### experiences
+
 id, tenant_id, name, slug, short_description, description?, experience_kind (tourism|event|hybrid), category_tags text[], status (draft|active|archived), default_locale, default_timezone, country_code?, region?, city?, metadata jsonb, created_by, created_at, updated_at.
 
 - No price. No operational state.
@@ -22,6 +23,7 @@ id, tenant_id, name, slug, short_description, description?, experience_kind (tou
 - Lifecycle: draft → active → archived (archived → active allowed).
 
 ### offerings
+
 id, tenant_id, experience_id (NOT NULL), name, slug, status (draft|active|paused|archived), available_from?, available_until?, sales_start?, sales_end?, capacity?, currency_code?, metadata jsonb, created_by, created_at, updated_at.
 
 - No pricing, no payment.
@@ -29,6 +31,7 @@ id, tenant_id, experience_id (NOT NULL), name, slug, status (draft|active|paused
 - Lifecycle: draft → active ⇄ paused → archived.
 
 ### operations
+
 id, tenant_id, experience_id?, offering_id?, name (own copy), code (tenant-unique), operation_kind (tourism|event|hybrid), status (draft|planning|ready|active|completed|cancelled), primary_country, primary_region?, primary_city?, timezone, planned_start, planned_end, expected_start?, expected_end?, cancelled_at?, cancellation_reason?, completed_at?, archived_at?, source_experience_name?, source_offering_name?, metadata jsonb, created_by, created_at, updated_at.
 
 - No participants, journey, mobility, hospitality, commerce, communication.
@@ -39,7 +42,7 @@ id, tenant_id, experience_id?, offering_id?, name (own copy), code (tenant-uniqu
 experience 1—N offering (mandatory parent).  
 experience 1—N operation (optional).  
 offering 1—N operation (optional).  
-tenant 1—N all three.  
+tenant 1—N all three.
 
 Composite FKs on (tenant_id, id) make cross-tenant linkage structurally impossible.  
 Database constraint: if offering_id is set, experience_id must be set and must equal the offering's experience_id, and both must belong to the operation's tenant. Enforced at the database layer, not UI-only.
@@ -55,15 +58,18 @@ Not copied: descriptions, tags, capacity, currency, media. Renaming an Experienc
 ## Lifecycle
 
 ### Experience
+
 draft → active → archived (archived → active allowed).
 
 ### Offering
+
 draft → active ⇄ paused → archived.
 
 ### Operation
+
 draft → planning → ready → active → completed.  
 Cancelled from any non-completed state.  
-**completed never returns to active** (trigger-enforced).  
+**completed never returns to active** (trigger-enforced).
 
 `archived` is **not** a lifecycle status for Operation. Administrative archival is orthogonal, represented by `archived_at` (and future `archived_by` / `archive_reason` if needed). A completed Operation that is archived remains `status = completed`. A cancelled Operation that is archived remains `status = cancelled`. Archival must never destroy business outcome semantics.
 
@@ -72,6 +78,7 @@ Experience and Offering retain their own `archived` status because those are cat
 ## Temporal integrity
 
 ### Planned window as baseline
+
 During `draft` and `planning`, `planned_start` / `planned_end` may be edited by authorized users; changes are audited.
 
 Once the Operation reaches `ready`, the planned window becomes the canonical baseline and must **not** be mutated through normal product flows. This rule holds through `ready`, `active`, `completed` and `cancelled`.
@@ -79,21 +86,23 @@ Once the Operation reaches `ready`, the planned window becomes the canonical bas
 Operational forecast changes from `ready` onward must use `expected_start` / `expected_end` with actor, reason and audit.
 
 ### Expected window
+
 `expected_start` / `expected_end` is the current forecast. Changes require a reason and are audited with previous value, new value, actor and reason.
 
 ### Actual
+
 No actual timestamps in W02. Actuals are future Journey/Runtime facts.
 
 ## RLS matrix
 
 Uses W01 `app_private.is_tenant_member` and `app_private.has_tenant_role` only. No parallel tenant logic.
 
-| Action | experiences | offerings | operations |
-|---|---|---|---|
-| SELECT | is_tenant_member | is_tenant_member | is_tenant_member |
-| INSERT | owner/admin | owner/admin | owner/admin/operations_agent |
-| UPDATE | owner/admin | owner/admin | owner/admin/operations_agent |
-| DELETE | owner/admin (draft, no children) | owner/admin (draft, no operations) | denied |
+| Action | experiences                      | offerings                          | operations                   |
+| ------ | -------------------------------- | ---------------------------------- | ---------------------------- |
+| SELECT | is_tenant_member                 | is_tenant_member                   | is_tenant_member             |
+| INSERT | owner/admin                      | owner/admin                        | owner/admin/operations_agent |
+| UPDATE | owner/admin                      | owner/admin                        | owner/admin/operations_agent |
+| DELETE | owner/admin (draft, no children) | owner/admin (draft, no operations) | denied                       |
 
 member = read only. No contextual per-operation assignment (W03).
 
@@ -163,4 +172,4 @@ METADATA_EXTENSION_ONLY: YES
 OFFERING_EXPERIENCE_CONSISTENCY_DB_ENFORCED: YES  
 STANDALONE_OPERATION_SUPPORTED: YES  
 W01 MODIFIED: NO  
-W03+ TABLES PROPOSED: NO  
+W03+ TABLES PROPOSED: NO

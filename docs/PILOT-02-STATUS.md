@@ -8,15 +8,15 @@
 
 ## 1. Identificação da operação
 
-| Campo | Valor |
-| --- | --- |
-| operation_id | `2d581923-534a-4fd6-8442-55ac425152ec` |
-| operation_code | `CITYES-20260811` |
-| Nome | City Tour Brasilia Essencial — Pilot-02 |
-| Status final | `completed` |
-| completed_at | 2026-08-12 03:45:52.953Z |
-| Auditoria `operation.completed` | `e0130886-61fd-482b-9a0b-ae334b428ae0` |
-| Resultado | **COMPLETED_WITH_HISTORICAL_DEFECTS** |
+| Campo                           | Valor                                   |
+| ------------------------------- | --------------------------------------- |
+| operation_id                    | `2d581923-534a-4fd6-8442-55ac425152ec`  |
+| operation_code                  | `CITYES-20260811`                       |
+| Nome                            | City Tour Brasilia Essencial — Pilot-02 |
+| Status final                    | `completed`                             |
+| completed_at                    | 2026-08-12 03:45:52.953Z                |
+| Auditoria `operation.completed` | `e0130886-61fd-482b-9a0b-ae334b428ae0`  |
+| Resultado                       | **COMPLETED_WITH_HISTORICAL_DEFECTS**   |
 
 ## 2. Resultado executivo
 
@@ -30,28 +30,28 @@ histórico imutável. O código atual está corrigido e a invariante foi validad
 
 ## 3. Censo final
 
-| Métrica | Valor |
-| --- | --- |
-| Etapas concluídas | 8 / 8 |
-| journey_events | 26 |
-| Fatos de presença | 28 |
-| Participantes confirmados | 5 |
-| Crew confirmado | 2 |
-| Desembarcados na seq 80 | 5 / 5 |
-| Escritas após `operation.completed` | 0 |
+| Métrica                             | Valor |
+| ----------------------------------- | ----- |
+| Etapas concluídas                   | 8 / 8 |
+| journey_events                      | 26    |
+| Fatos de presença                   | 28    |
+| Participantes confirmados           | 5     |
+| Crew confirmado                     | 2     |
+| Desembarcados na seq 80             | 5 / 5 |
+| Escritas após `operation.completed` | 0     |
 
 ## 4. Censo das oito etapas
 
-| Seq | Etapa | Resultado |
-| --- | --- | --- |
-| 10 | Encontro / concentração | COMPLETO |
-| 20 | Embarque de ida | COMPLETO |
-| 30 | Deslocamento de ida | COMPLETO_COM_DEFEITO_HISTÓRICO |
-| 40 | Chegada | COMPLETO |
-| 50 | Atividade / visita | COMPLETO |
-| 60 | Embarque de retorno | COMPLETO |
-| 70 | Deslocamento de retorno | COMPLETO_COM_DEFEITO_HISTÓRICO |
-| 80 | Desembarque / encerramento | COMPLETO |
+| Seq | Etapa                      | Resultado                      |
+| --- | -------------------------- | ------------------------------ |
+| 10  | Encontro / concentração    | COMPLETO                       |
+| 20  | Embarque de ida            | COMPLETO                       |
+| 30  | Deslocamento de ida        | COMPLETO_COM_DEFEITO_HISTÓRICO |
+| 40  | Chegada                    | COMPLETO                       |
+| 50  | Atividade / visita         | COMPLETO                       |
+| 60  | Embarque de retorno        | COMPLETO                       |
+| 70  | Deslocamento de retorno    | COMPLETO_COM_DEFEITO_HISTÓRICO |
+| 80  | Desembarque / encerramento | COMPLETO                       |
 
 ## 5. Sequência real de eventos por etapa
 
@@ -66,14 +66,14 @@ histórico imutável. O código atual está corrigido e a invariante foi validad
 
 ## 6. Distribuição dos 28 fatos de presença
 
-| Seq | Tipo | Quantidade |
-| --- | --- | --- |
-| 10 | Confirmação / presença no ponto de encontro (inclui 1 retração legítima) | 8 |
-| 20 | `BOARDED` | 5 |
-| 50 | `PRESENT_AT_MEETING_POINT` | 5 |
-| 60 | `BOARDED` | 5 |
-| 80 | `DISEMBARKED` | 5 |
-| **Total** | | **28** |
+| Seq       | Tipo                                                                     | Quantidade |
+| --------- | ------------------------------------------------------------------------ | ---------- |
+| 10        | Confirmação / presença no ponto de encontro (inclui 1 retração legítima) | 8          |
+| 20        | `BOARDED`                                                                | 5          |
+| 50        | `PRESENT_AT_MEETING_POINT`                                               | 5          |
+| 60        | `BOARDED`                                                                | 5          |
+| 80        | `DISEMBARKED`                                                            | 5          |
+| **Total** |                                                                          | **28**     |
 
 Crew (2 integrantes) permanece corretamente fora da avaliação de readiness de passageiros.
 
@@ -88,11 +88,13 @@ Crew (2 integrantes) permanece corretamente fora da avaliação de readiness de 
 ## 8. Defeitos encontrados
 
 ### DEF-PILOT-021 — Feedback genérico de toast em ações de ausência
+
 - Impacto: UX / observabilidade.
 - Integridade de dados não afetada.
 - **Status: FECHADO.**
 
 ### DEF-PILOT-023 — `STEP_COMPLETED` permitido sem `ARRIVED`
+
 - Ocorrências históricas: seq 30 e seq 70.
 - Backend corrigido em `public.complete_journey_step`; UI passou a espelhar a invariante.
 - Correção validada em runtime na seq 80.
@@ -100,12 +102,14 @@ Crew (2 integrantes) permanece corretamente fora da avaliação de readiness de 
 - Não inserir `ARRIVED` retroativamente.
 
 ### DEF-PILOT-024 — Seq 80 provisionada com `presence_requirement=none`
+
 - Reparada via `public.update_journey_step` para `accounted` / `participants`.
 - Readiness restaurado para 5 participantes.
 - Default do domínio para `disembarkation` já é `accounted`.
 - **Status: FECHADO NA INSTÂNCIA.** Pendência: impedir overrides explícitos incoerentes em templates.
 
 ### DEF-PILOT-025 — UI não oferecia `ARRIVED` em etapas de desembarque
+
 - `record_arrival` disponibilizado; bloqueios de desembarque/conclusão implementados.
 - Validado com `ARRIVED` real e cinco `DISEMBARKED`.
 - **Status: FECHADO.**

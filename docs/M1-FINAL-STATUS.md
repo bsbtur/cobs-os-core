@@ -5,15 +5,15 @@ Scope: W01–W10 authenticated Golden Path QA + mobile viewport hotfixes + QA da
 
 ## Verdict
 
-| Item | Result |
-| --- | --- |
-| M1_CROSS_WORKFLOW_AUTHENTICATED_QA | PASS |
-| M1_CLEAN_DATABASE | YES |
-| P0_OPEN | 0 |
-| P1_OPEN | 0 |
-| P2_OPEN | OBS-M1-005 only |
-| W01–W10 | FROZEN (unchanged) |
-| W11 | BLOCKED |
+| Item                               | Result             |
+| ---------------------------------- | ------------------ |
+| M1_CROSS_WORKFLOW_AUTHENTICATED_QA | PASS               |
+| M1_CLEAN_DATABASE                  | YES                |
+| P0_OPEN                            | 0                  |
+| P1_OPEN                            | 0                  |
+| P2_OPEN                            | OBS-M1-005 only    |
+| W01–W10                            | FROZEN (unchanged) |
+| W11                                | BLOCKED            |
 
 ## Defects
 
@@ -50,15 +50,15 @@ Left behind: nothing. No cleanup RPC, no maintenance endpoint, no history-delete
 
 Structural baseline (unchanged vs. W10 freeze):
 
-| Metric | Value |
-| --- | --- |
-| Public tables | 50 |
-| Public functions | 226 |
-| `app_private` helpers | 98 |
-| RLS policies | 72 |
-| Public enums | 48 |
-| Non-internal triggers | 103 |
-| Realtime publication tables | 12 |
+| Metric                      | Value |
+| --------------------------- | ----- |
+| Public tables               | 50    |
+| Public functions            | 226   |
+| `app_private` helpers       | 98    |
+| RLS policies                | 72    |
+| Public enums                | 48    |
+| Non-internal triggers       | 103   |
+| Realtime publication tables | 12    |
 
 Schema, RLS, ACL, functions, helpers, triggers, Realtime and W01–W10 semantics: UNCHANGED. W11+ schema: ABSENT.
 

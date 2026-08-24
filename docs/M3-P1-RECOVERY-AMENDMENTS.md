@@ -13,15 +13,15 @@ recusa qualquer transição a partir de `cancelled`/`completed`.
 
 **Comando entregue:** `public.reinstate_operation(_operation_id uuid, _reason text, _idempotency_key uuid) → jsonb`
 
-| Propriedade | Implementação |
-| --- | --- |
-| Transição | **exclusivamente** `cancelled → planning` |
-| Autor | **Owner apenas**, identidade derivada de `auth.uid()` |
-| Motivo | obrigatório, validado (`assert_generic_note`, sem segredos/PII) |
-| Idempotência | `idempotency_keys` com escopo de ação; replay devolve o mesmo payload |
-| Auditoria | `operation.reinstated` com `from_status`, `to_status`, `reason`, `original_cancelled_at`, `original_cancellation_reason` |
-| DML direto | continua negado (RLS SELECT-only + guards W02) |
-| Segurança | `SECURITY DEFINER`, `search_path` fixo, `EXECUTE` revogado de `PUBLIC`/`anon`, concedido a `authenticated` |
+| Propriedade  | Implementação                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Transição    | **exclusivamente** `cancelled → planning`                                                                                |
+| Autor        | **Owner apenas**, identidade derivada de `auth.uid()`                                                                    |
+| Motivo       | obrigatório, validado (`assert_generic_note`, sem segredos/PII)                                                          |
+| Idempotência | `idempotency_keys` com escopo de ação; replay devolve o mesmo payload                                                    |
+| Auditoria    | `operation.reinstated` com `from_status`, `to_status`, `reason`, `original_cancelled_at`, `original_cancellation_reason` |
+| DML direto   | continua negado (RLS SELECT-only + guards W02)                                                                           |
+| Segurança    | `SECURITY DEFINER`, `search_path` fixo, `EXECUTE` revogado de `PUBLIC`/`anon`, concedido a `authenticated`               |
 
 **Nota de conformidade:** a constraint congelada `operations_cancelled_consistency` exige
 `cancelled_at IS NULL` fora de `cancelled`. O comando limpa `cancelled_at`/`cancellation_reason`
@@ -38,6 +38,7 @@ continua impossível.
 derivado — número relevante para segurança na autorização de partida — continuava contando o fato errado.
 
 **Entregue:**
+
 1. Valor de enum `presence_fact.PRESENCE_RETRACTED`.
 2. Coluna `participant_presence_events.retracts_presence_event_id` (+ constraint de forma e índice
    único parcial `presence_one_effective_retraction`).
@@ -46,18 +47,18 @@ derivado — número relevante para segurança na autorização de partida — c
 4. Comando `public.retract_presence_fact(_presence_fact_id uuid, _reason text, _idempotency_key uuid) → jsonb`.
 5. `w04_step_readiness` (e a autorização de partida que dela deriva) passa a ignorar fatos retratados.
 
-| Propriedade | Implementação |
-| --- | --- |
-| Autor | **Owner/Admin apenas**, identidade de `auth.uid()` |
-| Motivo | obrigatório e validado |
-| Modelo | **append-only**: a retração é um novo fato que referencia o original |
-| Imutabilidade | o fato original permanece intacto e visível no histórico |
-| Retração de retração | proibida |
-| Dupla retração | o mesmo fato não pode ser retratado duas vezes |
-| Mint indevido | `record_presence_fact` recusa `PRESENCE_RETRACTED` |
-| Derivação | headcount efetivo = fatos não retratados; partida bloqueia/libera de acordo |
-| Correção | após retratar, o fato correto pode ser re-registrado (`supersedes_*`), com dedupe preservado |
-| Auditoria | `presence.retracted` com `retraction_event_id`, `retracted_presence_fact`, `reason` |
+| Propriedade          | Implementação                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| Autor                | **Owner/Admin apenas**, identidade de `auth.uid()`                                           |
+| Motivo               | obrigatório e validado                                                                       |
+| Modelo               | **append-only**: a retração é um novo fato que referencia o original                         |
+| Imutabilidade        | o fato original permanece intacto e visível no histórico                                     |
+| Retração de retração | proibida                                                                                     |
+| Dupla retração       | o mesmo fato não pode ser retratado duas vezes                                               |
+| Mint indevido        | `record_presence_fact` recusa `PRESENCE_RETRACTED`                                           |
+| Derivação            | headcount efetivo = fatos não retratados; partida bloqueia/libera de acordo                  |
+| Correção             | após retratar, o fato correto pode ser re-registrado (`supersedes_*`), com dedupe preservado |
+| Auditoria            | `presence.retracted` com `retraction_event_id`, `retracted_presence_fact`, `reason`          |
 
 ---
 
@@ -66,11 +67,11 @@ derivado — número relevante para segurança na autorização de partida — c
 Ambiente: dois tenants QA isolados (`qam31-alpha`, `qam31-bravo`), 5 identidades QA
 (owner/admin/agent/traveler + owner cross-tenant). Nenhum dado real BSBTUR foi tocado.
 
-| Suite | Resultado |
-| --- | --- |
-| G-02 | **27 / 27 PASS** |
-| G-03 | **38 / 38 PASS** (32 do ciclo principal + 6 do segundo ciclo de correção) |
-| **Total** | **65 / 65 PASS** |
+| Suite     | Resultado                                                                 |
+| --------- | ------------------------------------------------------------------------- |
+| G-02      | **27 / 27 PASS**                                                          |
+| G-03      | **38 / 38 PASS** (32 do ciclo principal + 6 do segundo ciclo de correção) |
+| **Total** | **65 / 65 PASS**                                                          |
 
 Cobertura: anônimo, traveler sem membership, operations_agent, admin (negado em G-02),
 owner cross-tenant (negado genericamente, sem vazar existência), id inexistente, motivo em branco,
@@ -80,6 +81,7 @@ leitura cross-tenant, evidência de auditoria sem segredos/PII, e — em G-03 �
 headcount efetivo e o bloqueio/liberação real de `authorize_departure`.
 
 ### Defeitos encontrados e corrigidos durante o gate
+
 - **DEF-M31-001** — `reinstate_operation` colidia com `operations_cancelled_consistency`. Corrigido
   (limpeza da linha mutável + preservação da evidência em auditoria).
 - **DEF-M31-002** — o índice `presence_fact_once` impedia re-registrar o fato correto após a
@@ -91,16 +93,16 @@ headcount efetivo e o bloqueio/liberação real de `authorize_departure`.
 
 ## 4. Relatório de drift estrutural
 
-| Métrica | Antes (M3) | Depois (M3.1) | Δ |
-| --- | --- | --- | --- |
-| Tabelas públicas | 50 | 50 | 0 |
-| Funções públicas | 227 | **229** | +2 (`reinstate_operation`, `retract_presence_fact`) |
-| Helpers `app_private` | 98 | 98 | 0 |
-| Enums públicos | 48 | 48 | 0 (+1 valor em `presence_fact`) |
-| Políticas RLS | 72 | 72 | 0 |
-| Triggers | 103 | 103 | 0 |
-| Tabelas sem RLS | 0 | **0** | 0 |
-| Colunas novas | — | `retracts_presence_event_id`, `supersedes_presence_event_id` | +2 |
+| Métrica               | Antes (M3) | Depois (M3.1)                                                | Δ                                                   |
+| --------------------- | ---------- | ------------------------------------------------------------ | --------------------------------------------------- |
+| Tabelas públicas      | 50         | 50                                                           | 0                                                   |
+| Funções públicas      | 227        | **229**                                                      | +2 (`reinstate_operation`, `retract_presence_fact`) |
+| Helpers `app_private` | 98         | 98                                                           | 0                                                   |
+| Enums públicos        | 48         | 48                                                           | 0 (+1 valor em `presence_fact`)                     |
+| Políticas RLS         | 72         | 72                                                           | 0                                                   |
+| Triggers              | 103        | 103                                                          | 0                                                   |
+| Tabelas sem RLS       | 0          | **0**                                                        | 0                                                   |
+| Colunas novas         | —          | `retracts_presence_event_id`, `supersedes_presence_event_id` | +2                                                  |
 
 Ambos os comandos: `SECURITY DEFINER`, `search_path` fixo, `anon` sem EXECUTE, `authenticated` com EXECUTE.
 
