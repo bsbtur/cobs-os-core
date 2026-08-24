@@ -46,8 +46,8 @@ const LANDING_COPY: Record<Locale, LandingLocaleCopy> = {
   "pt-BR": {
     runtimeTitle: "Postura operacional",
     runtimeRows: [
-      ["Tenancy", "Multi-tenant desde o primeiro dia"],
-      ["Modelo de verdade", "Fatos em runtime append-only"],
+      ["Arquitetura", "Multiempresa desde o primeiro dia"],
+      ["Modelo de verdade", "Fatos imutáveis, registrados em sequência"],
       ["Indicadores", "Somente quando existirem fatos reais"],
       ["Idiomas", "pt-BR · en-US · es-ES"],
     ],
@@ -66,7 +66,7 @@ const LANDING_COPY: Record<Locale, LandingLocaleCopy> = {
       },
       security: {
         title: "SEGURANÇA POR PADRÃO",
-        body: "Isolamento multi-tenant, auditabilidade e idempotência desde o primeiro dia.",
+        body: "Isolamento entre organizações, auditabilidade e idempotência desde o primeiro dia.",
       },
     },
   },
@@ -100,8 +100,8 @@ const LANDING_COPY: Record<Locale, LandingLocaleCopy> = {
   "es-ES": {
     runtimeTitle: "Postura operativa",
     runtimeRows: [
-      ["Tenancy", "Multi-tenant desde el primer día"],
-      ["Modelo de verdad", "Hechos en runtime append-only"],
+      ["Arquitectura", "Multiempresa desde el primer día"],
+      ["Modelo de verdad", "Hechos inmutables, registrados en secuencia"],
       ["Indicadores", "Solo cuando existan hechos reales"],
       ["Idiomas", "pt-BR · en-US · es-ES"],
     ],
@@ -120,7 +120,7 @@ const LANDING_COPY: Record<Locale, LandingLocaleCopy> = {
       },
       security: {
         title: "SEGURIDAD POR DEFECTO",
-        body: "Aislamiento multi-tenant, auditabilidad e idempotencia desde el primer día.",
+        body: "Aislamiento entre organizaciones, auditabilidad e idempotencia desde el primer día.",
       },
     },
   },
