@@ -11,6 +11,7 @@ import {
   type VisitPointEventRow,
   type VisitPointRow,
 } from "@/lib/w11";
+import { normalizeVisitPointRuntimeEvents } from "@/lib/w11-runtime";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +39,14 @@ export function CurrentVisitPoint({
   const [reason, setReason] = React.useState("");
   const [submittedPointId, setSubmittedPointId] = React.useState<string | null>(null);
 
-  const state = React.useMemo(() => deriveStepVisitPoints(points, events), [points, events]);
+  const normalizedEvents = React.useMemo(
+    () => normalizeVisitPointRuntimeEvents(events),
+    [events],
+  );
+  const state = React.useMemo(
+    () => deriveStepVisitPoints(points, normalizedEvents),
+    [points, normalizedEvents],
+  );
   const current = state.current;
 
   React.useEffect(() => {
