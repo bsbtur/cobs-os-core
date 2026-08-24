@@ -13,10 +13,11 @@ import { W09_DICTIONARIES } from "./i18n-w09";
 import { W10_DICTIONARIES } from "./i18n-w10";
 import { ACCESS_DICTIONARIES } from "./i18n-access";
 import { BLUEPRINT_DICTIONARIES } from "./i18n-blueprints";
+import { ES_COMPLETE_V1 } from "./i18n-es-complete";
 
 /**
  * COBS OS — i18n foundation (W00)
- * Global-first: locale, timezone and currency are runtime context, never hardcoded.
+ * Global-first: locale, timezone and currency are independent runtime context.
  * Dictionaries are flat key maps; missing keys fall back to the default locale.
  */
 
@@ -26,6 +27,13 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "pt-BR";
 export const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 export const DEFAULT_CURRENCY = "BRL";
+
+/** Readiness presets only. Selecting a language never silently selects a region. */
+export const REGIONAL_PRESETS = {
+  BR: { locale: "pt-BR" as const, timeZone: "America/Sao_Paulo", currency: "BRL" },
+  US: { locale: "en-US" as const, timeZone: "America/New_York", currency: "USD" },
+  ES: { locale: "es-ES" as const, timeZone: "Europe/Madrid", currency: "EUR" },
+};
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   "pt-BR": "Português (BR)",
@@ -167,7 +175,7 @@ const enUS: Dictionary = {
 };
 
 const esES: Dictionary = {
-  ...enUS,
+  "brand.name": "COBS OS",
   "brand.tagline": "Sistema operativo de experiencias globales",
   "nav.overview": "Visión general",
   "nav.experiences": "Experiencias",
@@ -175,16 +183,60 @@ const esES: Dictionary = {
   "nav.people": "Personas",
   "nav.network": "Red",
   "nav.insights": "Indicadores",
-  "nav.settings": "Ajustes",
+  "nav.settings": "Configuración",
   "nav.more": "Más",
   "nav.section.command": "Centro de mando",
   "nav.section.domains": "Dominios",
   "nav.section.system": "Sistema",
   "topbar.search": "Buscar o ejecutar un comando",
   "topbar.searchShort": "Buscar",
-  "account.signIn": "Entrar",
-  "signin.title": "Acceder a COBS OS",
+  "topbar.notifications": "Notificaciones",
+  "topbar.account": "Cuenta",
+  "topbar.theme": "Cambiar tema",
+  "topbar.language": "Idioma",
+  "topbar.menu": "Abrir menú",
+  "org.context": "Contexto de la organización",
+  "org.placeholder": "Ninguna organización activa",
+  "org.hint": "El cambio de tenant se define en W01.",
+  "command.placeholder": "Escribe un comando o busca…",
+  "command.empty": "Sin resultados. La búsqueda operativa llega en W01.",
+  "command.group.navigate": "Navegar",
+  "notifications.empty": "Sin notificaciones",
+  "notifications.emptyHint": "El flujo de eventos operativos se habilita en W01.",
+  "account.signedOut": "Sesión estructural",
+  "account.signIn": "Iniciar sesión",
+  "account.signOut": "Cerrar sesión",
+  "account.profile": "Perfil",
+  "state.loading": "Cargando",
+  "state.empty.title": "Todavía no hay nada aquí",
+  "state.empty.body": "Este dominio se activará en un flujo de trabajo posterior.",
+  "state.error.title": "Esta página no se ha cargado",
+  "state.error.body": "Algo ha fallado de nuestro lado. Inténtalo de nuevo o vuelve al inicio.",
+  "state.error.retry": "Intentar de nuevo",
+  "state.error.home": "Ir al inicio",
+  "state.notFound.title": "Página no encontrada",
+  "state.notFound.body": "La ruta solicitada no existe en este sistema.",
+  "landing.eyebrow": "Global Experience Operations",
+  "landing.title": "El sistema operativo para las experiencias que ofrece tu organización",
+  "landing.body":
+    "Planificado, previsto y realizado — separados por diseño. Hechos por encima del estado manual. Multi-tenant desde el primer día.",
   "landing.primary": "Entrar en COBS OS",
+  "landing.secondary": "Ver la constitución del producto",
+  "landing.status": "Fundación W00 activa",
+  "signin.title": "Acceder a COBS OS",
+  "signin.body": "Frontera estructural de autenticación. La autenticación real se define en W01.",
+  "signin.email": "Correo corporativo",
+  "signin.password": "Contraseña",
+  "signin.submit": "Continuar",
+  "signin.notice": "Entorno estructural: no se envían ni validan credenciales.",
+  "signin.back": "Volver",
+  "signin.preview": "Ver el entorno autenticado",
+  "overview.title": "Centro de mando",
+  "overview.subtitle": "Fundación estructural. Por principio, no se muestran datos operativos.",
+  "overview.noAnalytics": "Sin analítica ficticia",
+  "overview.noAnalyticsBody": "Los indicadores aparecen únicamente cuando el sistema registra hechos reales.",
+  "principles.title": "Constitución arquitectónica",
+  "footer.rights": "Fundación W00 — sin datos operativos.",
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
@@ -194,13 +246,13 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W02_DICTIONARIES["pt-BR"],
     ...W03_DICTIONARIES["pt-BR"],
     ...W04_DICTIONARIES["pt-BR"],
+    ...W11_DICTIONARIES["pt-BR"],
     ...W05_DICTIONARIES["pt-BR"],
     ...W06_DICTIONARIES["pt-BR"],
     ...W07_DICTIONARIES["pt-BR"],
     ...W08_DICTIONARIES["pt-BR"],
     ...W09_DICTIONARIES["pt-BR"],
     ...W10_DICTIONARIES["pt-BR"],
-    ...W11_DICTIONARIES["pt-BR"],
     ...ACCESS_DICTIONARIES["pt-BR"],
     ...BLUEPRINT_DICTIONARIES["pt-BR"],
   },
@@ -210,13 +262,13 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W02_DICTIONARIES["en-US"],
     ...W03_DICTIONARIES["en-US"],
     ...W04_DICTIONARIES["en-US"],
+    ...W11_DICTIONARIES["en-US"],
     ...W05_DICTIONARIES["en-US"],
     ...W06_DICTIONARIES["en-US"],
     ...W07_DICTIONARIES["en-US"],
     ...W08_DICTIONARIES["en-US"],
     ...W09_DICTIONARIES["en-US"],
     ...W10_DICTIONARIES["en-US"],
-    ...W11_DICTIONARIES["en-US"],
     ...ACCESS_DICTIONARIES["en-US"],
     ...BLUEPRINT_DICTIONARIES["en-US"],
   },
@@ -226,15 +278,16 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     ...W02_DICTIONARIES["es-ES"],
     ...W03_DICTIONARIES["es-ES"],
     ...W04_DICTIONARIES["es-ES"],
+    ...W11_DICTIONARIES["es-ES"],
     ...W05_DICTIONARIES["es-ES"],
     ...W06_DICTIONARIES["es-ES"],
     ...W07_DICTIONARIES["es-ES"],
     ...W08_DICTIONARIES["es-ES"],
     ...W09_DICTIONARIES["es-ES"],
     ...W10_DICTIONARIES["es-ES"],
-    ...W11_DICTIONARIES["es-ES"],
     ...ACCESS_DICTIONARIES["es-ES"],
     ...BLUEPRINT_DICTIONARIES["es-ES"],
+    ...ES_COMPLETE_V1,
   },
 };
 
@@ -242,44 +295,92 @@ export type I18nValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   timeZone: string;
+  setTimeZone: (timeZone: string) => void;
   currency: string;
+  setCurrency: (currency: string) => void;
   t: (key: string) => string;
 };
 
 const I18nContext = React.createContext<I18nValue | null>(null);
 
-const STORAGE_KEY = "cobs.locale";
+const LOCALE_STORAGE_KEY = "cobs.locale";
+const TIMEZONE_STORAGE_KEY = "cobs.timeZone";
+const CURRENCY_STORAGE_KEY = "cobs.currency";
+
+function isValidTimeZone(value: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function normalizeCurrency(value: string) {
+  const normalized = value.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(normalized) ? normalized : DEFAULT_CURRENCY;
+}
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = React.useState<Locale>(DEFAULT_LOCALE);
+  const [timeZone, setTimeZoneState] = React.useState(DEFAULT_TIMEZONE);
+  const [currency, setCurrencyState] = React.useState(DEFAULT_CURRENCY);
 
   React.useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (stored && (LOCALES as readonly string[]).includes(stored)) setLocaleState(stored);
+    const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null;
+    const storedTimeZone = window.localStorage.getItem(TIMEZONE_STORAGE_KEY);
+    const storedCurrency = window.localStorage.getItem(CURRENCY_STORAGE_KEY);
+
+    if (storedLocale && (LOCALES as readonly string[]).includes(storedLocale)) {
+      setLocaleState(storedLocale);
+      document.documentElement.lang = storedLocale;
+    } else {
+      document.documentElement.lang = DEFAULT_LOCALE;
+    }
+
+    if (storedTimeZone && isValidTimeZone(storedTimeZone)) setTimeZoneState(storedTimeZone);
+    if (storedCurrency) setCurrencyState(normalizeCurrency(storedCurrency));
   }, []);
 
   const setLocale = React.useCallback((next: Locale) => {
     setLocaleState(next);
-    window.localStorage.setItem(STORAGE_KEY, next);
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
     document.documentElement.lang = next;
+  }, []);
+
+  const setTimeZone = React.useCallback((next: string) => {
+    const value = isValidTimeZone(next) ? next : DEFAULT_TIMEZONE;
+    setTimeZoneState(value);
+    window.localStorage.setItem(TIMEZONE_STORAGE_KEY, value);
+  }, []);
+
+  const setCurrency = React.useCallback((next: string) => {
+    const value = normalizeCurrency(next);
+    setCurrencyState(value);
+    window.localStorage.setItem(CURRENCY_STORAGE_KEY, value);
   }, []);
 
   const value = React.useMemo<I18nValue>(
     () => ({
       locale,
       setLocale,
-      timeZone: DEFAULT_TIMEZONE,
-      currency: DEFAULT_CURRENCY,
+      timeZone,
+      setTimeZone,
+      currency,
+      setCurrency,
       t: (key: string) => DICTIONARIES[locale][key] ?? DICTIONARIES[DEFAULT_LOCALE][key] ?? key,
     }),
-    [locale, setLocale],
+    [currency, locale, setCurrency, setLocale, setTimeZone, timeZone],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
 export function useI18n(): I18nValue {
-  const ctx = React.useContext(I18nContext);
+  const ctx = React.useContext(I18nValueContextCompat ?? I18nContext);
   if (!ctx) throw new Error("useI18n must be used within I18nProvider");
   return ctx;
 }
+
+// Compatibility alias is deliberately null; kept out of runtime state.
+const I18nValueContextCompat: React.Context<I18nValue | null> | null = null;
