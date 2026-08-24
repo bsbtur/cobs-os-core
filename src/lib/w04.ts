@@ -209,7 +209,7 @@ export function normalizeChecklistTitle(value: string): string {
 /** True when another ACTIVE item on the same step already uses this title. */
 export function isDuplicateChecklistTitle(
   items: Array<Pick<PlaybookItemRow, "id" | "title" | "journey_step_id" | "is_active">>,
-  args: { stepId: string; title: string; excludeId?: string | null },
+  args: { stepId: string | null; title: string; excludeId?: string | null },
 ): boolean {
   const target = normalizeChecklistTitle(args.title);
   if (!target) return false;
