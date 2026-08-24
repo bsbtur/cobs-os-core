@@ -5,6 +5,11 @@ import { W04_ES } from "./i18n-es-w04";
 import { W05_ES } from "./i18n-es-w05";
 import { W07_ES_FULL } from "./i18n-es-w07";
 import { BLUEPRINT_ES_FULL } from "./i18n-es-blueprints";
+import {
+  W02_ES_CORE_DELTA,
+  W04_ES_CORE_DELTA,
+  W05_ES_CORE_DELTA,
+} from "./i18n-es-core-delta";
 
 /**
  * International Readiness V1 — compatibility overlay for legacy workflow
@@ -15,9 +20,12 @@ import { BLUEPRINT_ES_FULL } from "./i18n-es-blueprints";
 export const ES_COMPLETE_V1: Record<string, string> = {
   ...W01_ES_FULL,
   ...W02_ES,
+  ...W02_ES_CORE_DELTA,
   ...W03_ES,
   ...W04_ES,
+  ...W04_ES_CORE_DELTA,
   ...W05_ES,
+  ...W05_ES_CORE_DELTA,
   ...W07_ES_FULL,
   ...BLUEPRINT_ES_FULL,
   "role.tour_guide": "Guía de turismo",
