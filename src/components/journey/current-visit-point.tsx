@@ -63,11 +63,14 @@ export function CurrentVisitPoint({
       const status = input.type === "VISIT_POINT_COMPLETED" ? "visited" : "ignored";
       const note = input.type === "VISIT_POINT_SKIPPED" ? reason.trim() || null : null;
 
-      const { error } = await supabase.rpc("set_journey_visit_point_status", {
+      // The deployed Supabase schema already exposes this guarded W11 RPC, but the
+      // checked-in generated types lag that schema. Keep the bridge local until the
+      // next full type regeneration rather than widening the client globally.
+      const { error } = await supabase.rpc("set_journey_visit_point_status" as never, {
         _visit_point_id: input.pointId,
         _status: status,
         ...(note ? { _note: note } : {}),
-      });
+      } as never);
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
