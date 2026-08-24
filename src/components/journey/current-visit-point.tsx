@@ -5,13 +5,13 @@ import { MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
-import { newIdempotencyKey } from "@/lib/w04";
 import {
   canSkip,
   deriveStepVisitPoints,
   type VisitPointEventRow,
   type VisitPointRow,
 } from "@/lib/w11";
+import { normalizeVisitPointRuntimeEvents } from "@/lib/w11-runtime";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +20,8 @@ import { feedback } from "@/components/feedback/feedback";
 
 /**
  * W11 live guidance — rendered BELOW the Cockpit Core, never competing with it.
- * It shows the current visit point and records facts through record_visit_point_event.
+ * It shows the current visit point and records facts through the canonical
+ * set_journey_visit_point_status RPC used by the deployed W11 schema.
  * It never completes a W04 step, never touches readiness and never blocks completion.
  */
 export function CurrentVisitPoint({
@@ -36,32 +37,59 @@ export function CurrentVisitPoint({
   const [showAll, setShowAll] = React.useState(false);
   const [skipOpen, setSkipOpen] = React.useState(false);
   const [reason, setReason] = React.useState("");
+  const [submittedPointId, setSubmittedPointId] = React.useState<string | null>(null);
 
-  const state = React.useMemo(() => deriveStepVisitPoints(points, events), [points, events]);
+  const normalizedEvents = React.useMemo(
+    () => normalizeVisitPointRuntimeEvents(events),
+    [events],
+  );
+  const state = React.useMemo(
+    () => deriveStepVisitPoints(points, normalizedEvents),
+    [points, normalizedEvents],
+  );
   const current = state.current;
 
+  React.useEffect(() => {
+    if (submittedPointId && current?.id !== submittedPointId) {
+      setSubmittedPointId(null);
+    }
+  }, [current?.id, submittedPointId]);
+
   const record = useMutation({
-    mutationFn: async (input: { type: "VISIT_POINT_COMPLETED" | "VISIT_POINT_SKIPPED" }) => {
-      const { error } = await supabase.rpc("record_visit_point_event", {
-        _visit_point_id: current!.id,
-        _event_type: input.type,
-        _idempotency_key: newIdempotencyKey(),
-        ...(input.type === "VISIT_POINT_SKIPPED" && reason.trim()
-          ? { _reason: reason.trim() }
-          : {}),
-      });
+    mutationFn: async (input: {
+      type: "VISIT_POINT_COMPLETED" | "VISIT_POINT_SKIPPED";
+      pointId: string;
+    }) => {
+      const status = input.type === "VISIT_POINT_COMPLETED" ? "visited" : "ignored";
+      const note = input.type === "VISIT_POINT_SKIPPED" ? reason.trim() || null : null;
+
+      // The deployed Supabase schema already exposes this guarded W11 RPC, but the
+      // checked-in generated types lag that schema. Keep the bridge local until the
+      // next full type regeneration rather than widening the client globally.
+      const { error } = await supabase.rpc("set_journey_visit_point_status" as never, {
+        _visit_point_id: input.pointId,
+        _status: status,
+        ...(note ? { _note: note } : {}),
+      } as never);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      setSubmittedPointId(variables.pointId);
       feedback.success(t("w11.recorded"));
       setReason("");
       setSkipOpen(false);
       onRecorded();
     },
-    onError: (error) => feedback.error(humanizeError(error, locale)),
+    onError: (error) => {
+      setSubmittedPointId(null);
+      feedback.error(humanizeError(error, locale));
+    },
   });
 
   if (state.total === 0) return null;
+
+  const currentAlreadySubmitted = Boolean(current && submittedPointId === current.id);
+  const actionDisabled = record.isPending || currentAlreadySubmitted;
 
   return (
     <section
@@ -110,16 +138,18 @@ export function CurrentVisitPoint({
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <Button
               className="min-h-11 flex-1"
-              disabled={record.isPending}
-              onClick={() => record.mutate({ type: "VISIT_POINT_COMPLETED" })}
+              disabled={actionDisabled}
+              onClick={() =>
+                record.mutate({ type: "VISIT_POINT_COMPLETED", pointId: current.id })
+              }
             >
-              {t("w11.live.complete")}
+              {currentAlreadySubmitted ? t("w11.status.completed") : t("w11.live.complete")}
             </Button>
             <Button
               variant="outline"
               className="min-h-11"
               onClick={() => setSkipOpen(true)}
-              disabled={record.isPending}
+              disabled={actionDisabled}
             >
               {t("w11.live.skip")}
             </Button>
@@ -174,9 +204,12 @@ export function CurrentVisitPoint({
             <Button
               className="min-h-11 w-full"
               disabled={
-                record.isPending || !current || !canSkip({ isRequired: current.isRequired }, reason)
+                actionDisabled || !current || !canSkip({ isRequired: current.isRequired }, reason)
               }
-              onClick={() => record.mutate({ type: "VISIT_POINT_SKIPPED" })}
+              onClick={() =>
+                current &&
+                record.mutate({ type: "VISIT_POINT_SKIPPED", pointId: current.id })
+              }
             >
               {t("w11.live.skip")}
             </Button>
