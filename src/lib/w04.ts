@@ -181,3 +181,43 @@ export function livePreStartBanner(status: string | null | undefined): LivePreSt
       return { titleKey: "w04.live.notStarted", bodyKey: "w04.live.notStartedBody" };
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Checklist (playbook) planning helpers — V1 CRUD hotfix              */
+/* ------------------------------------------------------------------ */
+
+/** Only tenant operators plan the checklist; operational roles grant nothing. */
+export function canManageChecklist(
+  role: Database["public"]["Enums"]["app_role"] | null | undefined,
+): boolean {
+  return role === "owner" || role === "admin" || role === "operations_agent";
+}
+
+/** Checklist planning is editable only while the baseline is open. */
+export function isChecklistEditable(
+  status: string | null | undefined,
+  role: Database["public"]["Enums"]["app_role"] | null | undefined,
+): boolean {
+  return (status === "draft" || status === "planning") && canManageChecklist(role);
+}
+
+/** trim + collapse inner whitespace + case/accent insensitive. */
+export function normalizeChecklistTitle(value: string): string {
+  return normalizePersonSearch(value).replace(/\s+/g, " ");
+}
+
+/** True when another ACTIVE item on the same step already uses this title. */
+export function isDuplicateChecklistTitle(
+  items: Array<Pick<PlaybookItemRow, "id" | "title" | "journey_step_id" | "is_active">>,
+  args: { stepId: string; title: string; excludeId?: string | null },
+): boolean {
+  const target = normalizeChecklistTitle(args.title);
+  if (!target) return false;
+  return items.some(
+    (item) =>
+      item.is_active !== false &&
+      item.journey_step_id === args.stepId &&
+      item.id !== args.excludeId &&
+      normalizeChecklistTitle(item.title) === target,
+  );
+}
