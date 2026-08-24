@@ -6,14 +6,14 @@
 
 ## 1. Estado final da operação (W02)
 
-| Campo | Valor |
-| --- | --- |
-| status | `completed` |
-| completed_at | 2026-08-11 12:18:24.970571Z |
-| cancelled_at | — |
-| archived_at | — (não arquivado, conforme instrução) |
-| planned | 2026-08-15 10:30Z → 17:00Z (baseline preservado) |
-| expected | 2026-08-11 06:00Z → 08:00Z (forecast) |
+| Campo        | Valor                                            |
+| ------------ | ------------------------------------------------ |
+| status       | `completed`                                      |
+| completed_at | 2026-08-11 12:18:24.970571Z                      |
+| cancelled_at | —                                                |
+| archived_at  | — (não arquivado, conforme instrução)            |
+| planned      | 2026-08-15 10:30Z → 17:00Z (baseline preservado) |
+| expected     | 2026-08-11 06:00Z → 08:00Z (forecast)            |
 
 PLANNED != EXPECTED != ACTUAL: o baseline de 15/08 nunca foi reescrito pela
 antecipação para 11/08. ✅
@@ -32,14 +32,14 @@ registrada e revogada — nada foi apagado. ✅
 
 ## 3. Jornada (W04) — 6 etapas, 22 eventos
 
-| Seq | Etapa | Tipo | Presença | STEP_STARTED | STEP_COMPLETED |
-| --- | --- | --- | --- | --- | --- |
-| 10 | Encontro e embarque — Torre de TV | boarding | boarded | 1 | 1 |
-| 20 | Praça dos Três Poderes e Esplanada | activity | none | 1 | 1 |
-| 30 | Catedral Metropolitana | activity | none | 1 | 1 |
-| 40 | Memorial JK e Eixo Monumental | activity | none | 1 | 1 |
-| 50 | Parada para almoço | meal | none | 1 | 1 |
-| 60 | Retorno e encerramento | return | boarded | 1 | 1 |
+| Seq | Etapa                              | Tipo     | Presença | STEP_STARTED | STEP_COMPLETED |
+| --- | ---------------------------------- | -------- | -------- | ------------ | -------------- |
+| 10  | Encontro e embarque — Torre de TV  | boarding | boarded  | 1            | 1              |
+| 20  | Praça dos Três Poderes e Esplanada | activity | none     | 1            | 1              |
+| 30  | Catedral Metropolitana             | activity | none     | 1            | 1              |
+| 40  | Memorial JK e Eixo Monumental      | activity | none     | 1            | 1              |
+| 50  | Parada para almoço                 | meal     | none     | 1            | 1              |
+| 60  | Retorno e encerramento             | return   | boarded  | 1            | 1              |
 
 Todas `plan_origin = planned` (nenhuma etapa ad-hoc). Nenhuma etapa pulada,
 nenhuma duplicada, nenhum evento fora de ordem.
@@ -60,11 +60,11 @@ Tripulação (crew) corretamente fora da população `participants`. ✅
 
 ## 5. Roster (W03)
 
-| Pessoa | Tipo | Status |
-| --- | --- | --- |
+| Pessoa                             | Tipo        | Status    |
+| ---------------------------------- | ----------- | --------- |
 | PEDRO PAULO DE LIMA SANTOS CARDOSO | participant | confirmed |
-| RAFAEL LIMA | crew | expected |
-| REGINA APARECIDA TIAGO DE MOURA | crew | expected |
+| RAFAEL LIMA                        | crew        | expected  |
+| REGINA APARECIDA TIAGO DE MOURA    | crew        | expected  |
 
 Nenhum papel operacional (`operation_role_assignments`) foi atribuído.
 
@@ -102,12 +102,12 @@ envelope do PILOT-01 (somente W02/W03/W04/W05/W08/W10).
 
 ## 10. Observações (não são defeitos bloqueantes)
 
-| ID | Observação | Severidade |
-| --- | --- | --- |
-| OBS-PP-001 | 2 assentos ativos por leg com `seat_label` vazio (Rafael, Regina); `assign_seat` aceita rótulo em branco e a UI não confirma. | P2 |
-| OBS-PP-002 | Mensagem `c2937b62` permanece publicada com 0 entregas; não há reprocessamento retroativo de elegibilidade após DEF-PILOT-004. | P2 |
-| OBS-PP-003 | Tripulação permaneceu `expected` durante toda a execução; nada obriga confirmação de crew. | P3 |
-| OBS-PP-004 | `assign_seat` não valida capacidade do veículo (já registrado como achado pós-piloto). | P2 |
+| ID         | Observação                                                                                                                     | Severidade |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| OBS-PP-001 | 2 assentos ativos por leg com `seat_label` vazio (Rafael, Regina); `assign_seat` aceita rótulo em branco e a UI não confirma.  | P2         |
+| OBS-PP-002 | Mensagem `c2937b62` permanece publicada com 0 entregas; não há reprocessamento retroativo de elegibilidade após DEF-PILOT-004. | P2         |
+| OBS-PP-003 | Tripulação permaneceu `expected` durante toda a execução; nada obriga confirmação de crew.                                     | P3         |
+| OBS-PP-004 | `assign_seat` não valida capacidade do veículo (já registrado como achado pós-piloto).                                         | P2         |
 
 Nenhuma inconsistência silenciosa: nenhum evento órfão, nenhuma etapa sem par
 start/complete, nenhum fato de presença retratado, nenhum registro apagado.

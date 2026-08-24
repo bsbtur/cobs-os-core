@@ -12,17 +12,17 @@ Regra constitucional deste layer: **nenhum sinal pode conter PII, segredos, toke
 
 ## 1. Inventário real de sinais (verificado, não presumido)
 
-| # | Sinal | Onde vive | Retenção | Contém PII? | Consultável por |
-|---|---|---|---|---|---|
-| S1 | `public.audit_events` | Banco (tenant-scoped, RLS) | permanente | não (ids + metadata controlada) | operador (UI/SQL), suporte |
-| S2 | Fatos de domínio append-only (`*_events` W04–W09) | Banco | permanente | mínimo, tenant-scoped | operador |
-| S3 | `postgres_logs` (SQLSTATE, severidade, `user_name`) | Analytics do backend | janela curta da plataforma | mensagens SQL cruas — **tratar como sensível** | suporte |
-| S4 | `auth_logs` (path, status, error_code) | Analytics do backend | janela curta | não expõe e-mail no evento de falha | suporte |
-| S5 | `edge_logs` (método, path, status HTTP do API gateway) | Analytics do backend | janela curta | não (sem corpo) | suporte |
-| S6 | Logs de worker/SSR (`console.error`, wrapper `src/server.ts`) | Plataforma (≈1h) | ~1 hora | somente o que o app emitir | suporte |
-| S7 | **`[COBS_OBS]` envelope estruturado** (novo em M4) | S6 + console do navegador | ~1h / sessão | **não, por construção** | suporte |
-| S8 | **`GET /api/public/health`** (novo em M4) | Endpoint público | instantâneo | não | qualquer um |
-| S9 | Toast de erro humanizado (`feedback.error` + `humanizeError`) | UI | efêmero | não | operador em campo |
+| #   | Sinal                                                         | Onde vive                  | Retenção                   | Contém PII?                                    | Consultável por            |
+| --- | ------------------------------------------------------------- | -------------------------- | -------------------------- | ---------------------------------------------- | -------------------------- |
+| S1  | `public.audit_events`                                         | Banco (tenant-scoped, RLS) | permanente                 | não (ids + metadata controlada)                | operador (UI/SQL), suporte |
+| S2  | Fatos de domínio append-only (`*_events` W04–W09)             | Banco                      | permanente                 | mínimo, tenant-scoped                          | operador                   |
+| S3  | `postgres_logs` (SQLSTATE, severidade, `user_name`)           | Analytics do backend       | janela curta da plataforma | mensagens SQL cruas — **tratar como sensível** | suporte                    |
+| S4  | `auth_logs` (path, status, error_code)                        | Analytics do backend       | janela curta               | não expõe e-mail no evento de falha            | suporte                    |
+| S5  | `edge_logs` (método, path, status HTTP do API gateway)        | Analytics do backend       | janela curta               | não (sem corpo)                                | suporte                    |
+| S6  | Logs de worker/SSR (`console.error`, wrapper `src/server.ts`) | Plataforma (≈1h)           | ~1 hora                    | somente o que o app emitir                     | suporte                    |
+| S7  | **`[COBS_OBS]` envelope estruturado** (novo em M4)            | S6 + console do navegador  | ~1h / sessão               | **não, por construção**                        | suporte                    |
+| S8  | **`GET /api/public/health`** (novo em M4)                     | Endpoint público           | instantâneo                | não                                            | qualquer um                |
+| S9  | Toast de erro humanizado (`feedback.error` + `humanizeError`) | UI                         | efêmero                    | não                                            | operador em campo          |
 
 Verificação executada em 2026-08-11 UTC contra o backend real (drills da seção 6).
 
@@ -62,12 +62,12 @@ Não expõe schema, contagens, topologia, variáveis de ambiente ou texto de err
 
 ## 3. Classificação de severidade (alinhada ao M3)
 
-| SEV | Significado operacional | Exemplo | Resposta |
-|---|---|---|---|
-| SEV-1 | Operação viva não pode ser conduzida | `data_api: down`, falha de rede em `/live` ou `/mobility`, health 503 | imediata; runbook M3 |
+| SEV   | Significado operacional                           | Exemplo                                                                 | Resposta                 |
+| ----- | ------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------ |
+| SEV-1 | Operação viva não pode ser conduzida              | `data_api: down`, falha de rede em `/live` ou `/mobility`, health 503   | imediata; runbook M3     |
 | SEV-2 | Função crítica degradada / autorização inesperada | `forbidden`/`unauthorized` recorrente, erro não tratado fora do runtime | mesma janela operacional |
-| SEV-3 | Falha isolada, recuperável pelo usuário | `invalid_state`, `not_found`, conflito de idempotência | próximo dia útil |
-| SEV-4 | Ruído/cosmético | erro de UI sem perda de função | backlog |
+| SEV-3 | Falha isolada, recuperável pelo usuário           | `invalid_state`, `not_found`, conflito de idempotência                  | próximo dia útil         |
+| SEV-4 | Ruído/cosmético                                   | erro de UI sem perda de função                                          | backlog                  |
 
 Mapeamento é código, não julgamento: `severityOf(error_code, domain)`.
 
@@ -93,15 +93,15 @@ join log↔auditoria é **temporal, não determinístico**. Fechar isso exigiria
 
 ## 5. Blind spots conhecidos (declarados, não mascarados)
 
-| ID | Lacuna | Sev | Por que é aceitável no piloto | Remédio futuro |
-|---|---|---|---|---|
-| OBS-M4-001 | Erros de cliente não são **persistidos**; vivem em log de plataforma (~1h) e console | P2 | piloto é assistido, escala pequena, o operador reporta em minutos | sink de erro dedicado |
-| OBS-M4-002 | `audit_events.correlation_id` não é preenchido pelo cliente | P2 | correlação temporal é suficiente na escala do piloto | emenda de assinatura pós-piloto |
-| OBS-M4-003 | Negação por RLS numa leitura filtrada retorna 200 + conjunto vazio: **é silenciosa** | P2 | isolamento continua garantido (verificado em W01–W10); é lacuna de *visibilidade*, não de segurança | contadores de negação server-side |
-| OBS-M4-004 | Não há canal automático de alerta (e-mail/push/paging) | P2 | piloto tem operador humano presente; health é polido manualmente | monitor externo apontando para `/api/public/health` |
-| OBS-M4-005 | Logs de worker retêm ~1h; `postgres/auth/edge logs` têm janela curta da plataforma | P3 | incidentes de piloto são detectados dentro da janela | export periódico |
-| OBS-M4-006 | Sem métrica de latência/volume (não é APM) | P3 | não é requisito de piloto | fase pós-piloto |
-| OBS-M4-007 | `postgres_logs` contém texto SQL cru (potencialmente sensível) | P3 | acessível somente a suporte, não ao tenant | manter restrito |
+| ID         | Lacuna                                                                               | Sev | Por que é aceitável no piloto                                                                       | Remédio futuro                                      |
+| ---------- | ------------------------------------------------------------------------------------ | --- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| OBS-M4-001 | Erros de cliente não são **persistidos**; vivem em log de plataforma (~1h) e console | P2  | piloto é assistido, escala pequena, o operador reporta em minutos                                   | sink de erro dedicado                               |
+| OBS-M4-002 | `audit_events.correlation_id` não é preenchido pelo cliente                          | P2  | correlação temporal é suficiente na escala do piloto                                                | emenda de assinatura pós-piloto                     |
+| OBS-M4-003 | Negação por RLS numa leitura filtrada retorna 200 + conjunto vazio: **é silenciosa** | P2  | isolamento continua garantido (verificado em W01–W10); é lacuna de _visibilidade_, não de segurança | contadores de negação server-side                   |
+| OBS-M4-004 | Não há canal automático de alerta (e-mail/push/paging)                               | P2  | piloto tem operador humano presente; health é polido manualmente                                    | monitor externo apontando para `/api/public/health` |
+| OBS-M4-005 | Logs de worker retêm ~1h; `postgres/auth/edge logs` têm janela curta da plataforma   | P3  | incidentes de piloto são detectados dentro da janela                                                | export periódico                                    |
+| OBS-M4-006 | Sem métrica de latência/volume (não é APM)                                           | P3  | não é requisito de piloto                                                                           | fase pós-piloto                                     |
+| OBS-M4-007 | `postgres_logs` contém texto SQL cru (potencialmente sensível)                       | P3  | acessível somente a suporte, não ao tenant                                                          | manter restrito                                     |
 
 Nenhuma lacuna **P0** ou **P1** aberta.
 
@@ -109,16 +109,16 @@ Nenhuma lacuna **P0** ou **P1** aberta.
 
 ## 6. Drills executados (falhas reais, backend real, zero escrita)
 
-| # | Drill | Resultado | Sinal produzido |
-|---|---|---|---|
-| D1 | RPC de comando privilegiado como anônimo (`reinstate_operation`) | HTTP 401 `42501 permission denied for function` | `edge_logs` |
-| D2 | Leitura anônima de `operations` | HTTP 401 `42501 permission denied for table` | `edge_logs` (401 GET `/rest/v1/operations`) |
-| D3 | Bearer inválido | HTTP 401 `PGRST301 JWT cryptographic operation failed` | `edge_logs` |
-| D4 | Login com credenciais inválidas | HTTP 400 `invalid_credentials` | `auth_logs` (**sem e-mail no evento**) |
-| D5 | Erro de banco (relação inexistente) | `42P01` | `postgres_logs` com SQLSTATE + severidade |
-| D6 | Frontend publicado | HTTP 200 | — |
-| D7 | `GET /api/public/health` | `{"status":"ok","checks":{"app":"up","auth":"up","data_api":"up"}}` | S8 |
-| D8 | Envelope com senha+JWT+e-mail+hash+UUID+chave | tudo redigido; `[COBS_OBS]` bem-formado | S7 |
+| #   | Drill                                                            | Resultado                                                           | Sinal produzido                             |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------- |
+| D1  | RPC de comando privilegiado como anônimo (`reinstate_operation`) | HTTP 401 `42501 permission denied for function`                     | `edge_logs`                                 |
+| D2  | Leitura anônima de `operations`                                  | HTTP 401 `42501 permission denied for table`                        | `edge_logs` (401 GET `/rest/v1/operations`) |
+| D3  | Bearer inválido                                                  | HTTP 401 `PGRST301 JWT cryptographic operation failed`              | `edge_logs`                                 |
+| D4  | Login com credenciais inválidas                                  | HTTP 400 `invalid_credentials`                                      | `auth_logs` (**sem e-mail no evento**)      |
+| D5  | Erro de banco (relação inexistente)                              | `42P01`                                                             | `postgres_logs` com SQLSTATE + severidade   |
+| D6  | Frontend publicado                                               | HTTP 200                                                            | —                                           |
+| D7  | `GET /api/public/health`                                         | `{"status":"ok","checks":{"app":"up","auth":"up","data_api":"up"}}` | S8                                          |
+| D8  | Envelope com senha+JWT+e-mail+hash+UUID+chave                    | tudo redigido; `[COBS_OBS]` bem-formado                             | S7                                          |
 
 Nenhum dado real BSBTUR foi lido, escrito ou alterado. Nenhuma tabela, função, política ou enum mudou.
 

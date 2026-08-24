@@ -46,9 +46,9 @@ function ClaimAccountMismatchPage() {
           <div className="min-w-0">
             <h1 className="text-lg font-semibold">Este convite pertence a outra conta</h1>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              O convite continua válido e não foi consumido. Para proteger o acesso do viajante,
-              o COBS não permite aceitar este convite usando uma conta diferente da conta já
-              vinculada à pessoa convidada.
+              O convite continua válido e não foi consumido. Para proteger o acesso do viajante, o
+              COBS não permite aceitar este convite usando uma conta diferente da conta já vinculada
+              à pessoa convidada.
             </p>
           </div>
         </div>
@@ -56,8 +56,8 @@ function ClaimAccountMismatchPage() {
         <div className="mt-5 rounded-lg border border-border bg-background/60 p-4 text-sm">
           <p className="font-medium">O que fazer agora</p>
           <p className="mt-1 text-muted-foreground">
-            Saia desta sessão e entre com a conta do viajante convidado. O COBS preservou o
-            convite neste navegador e tentará retomá-lo automaticamente após o login correto.
+            Saia desta sessão e entre com a conta do viajante convidado. O COBS preservou o convite
+            neste navegador e tentará retomá-lo automaticamente após o login correto.
           </p>
           {!loading && session?.user?.email ? (
             <p className="mt-3 break-all font-mono text-xs text-muted-foreground">
@@ -66,8 +66,8 @@ function ClaimAccountMismatchPage() {
           ) : null}
           {!hasPendingClaim ? (
             <p className="mt-3 text-sm text-destructive">
-              O convite não está mais disponível neste navegador. Abra novamente o link original
-              do convite antes de entrar com a conta correta.
+              O convite não está mais disponível neste navegador. Abra novamente o link original do
+              convite antes de entrar com a conta correta.
             </p>
           ) : null}
         </div>

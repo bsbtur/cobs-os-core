@@ -60,19 +60,19 @@ zero `IN_APP_DELIVERY_CREATED` facts. No retrospective repair was performed.
 
 Two throwaway tenants, ten throwaway auth accounts, four operations.
 
-| # | Case | Expected | Result |
-|---|------|----------|--------|
-| 1 | Active Membership recipient | eligible | eligible |
-| 2 | Effective Participant Access, same Operation, no Membership | eligible | eligible |
-| 3 | Auth account, person without profile binding | ineligible | ineligible |
-| 4 | Revoked grant | ineligible | ineligible |
-| 5 | Cancelled participation | ineligible | ineligible (also rejected at audience layer) |
-| 6 | Cancelled operation | ineligible | `effective = false`, portal access denied |
-| 7 | Grant for a different Operation (same tenant) | ineligible | ineligible |
-| 8 | Cross-tenant person/profile/grant | ineligible | ineligible |
-| 9 | Profile/person binding mismatch | ineligible | unreachable by construction (`guard_w10_grant_binding` keeps the binding immutable); predicate asserts both `grant.profile_id` and `people.profile_id` |
-| 10 | Person with no login | recipient only, no delivery | recipient created, `in_app_eligible = false`, no delivery |
-| 11 | `operation_id IS NULL` + traveler grant | ineligible | ineligible |
+| #   | Case                                                        | Expected                    | Result                                                                                                                                                 |
+| --- | ----------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Active Membership recipient                                 | eligible                    | eligible                                                                                                                                               |
+| 2   | Effective Participant Access, same Operation, no Membership | eligible                    | eligible                                                                                                                                               |
+| 3   | Auth account, person without profile binding                | ineligible                  | ineligible                                                                                                                                             |
+| 4   | Revoked grant                                               | ineligible                  | ineligible                                                                                                                                             |
+| 5   | Cancelled participation                                     | ineligible                  | ineligible (also rejected at audience layer)                                                                                                           |
+| 6   | Cancelled operation                                         | ineligible                  | `effective = false`, portal access denied                                                                                                              |
+| 7   | Grant for a different Operation (same tenant)               | ineligible                  | ineligible                                                                                                                                             |
+| 8   | Cross-tenant person/profile/grant                           | ineligible                  | ineligible                                                                                                                                             |
+| 9   | Profile/person binding mismatch                             | ineligible                  | unreachable by construction (`guard_w10_grant_binding` keeps the binding immutable); predicate asserts both `grant.profile_id` and `people.profile_id` |
+| 10  | Person with no login                                        | recipient only, no delivery | recipient created, `in_app_eligible = false`, no delivery                                                                                              |
+| 11  | `operation_id IS NULL` + traveler grant                     | ineligible                  | ineligible                                                                                                                                             |
 
 Publication proof (single traveler with Participant Access, zero Membership,
 zero admin role): `MESSAGE_RECIPIENT_COUNT = 1`, `IN_APP_DELIVERY_COUNT = 1`,

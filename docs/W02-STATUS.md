@@ -8,11 +8,11 @@
 
 ### Tables (3, no others were created)
 
-| Table         | Meaning                                                    |
-| ------------- | ---------------------------------------------------------- |
-| `experiences` | Catalog. What the organization is able to deliver.          |
-| `offerings`   | Commercial format of an experience. Never stands alone.     |
-| `operations`  | A real execution with its own historical identity.          |
+| Table         | Meaning                                                 |
+| ------------- | ------------------------------------------------------- |
+| `experiences` | Catalog. What the organization is able to deliver.      |
+| `offerings`   | Commercial format of an experience. Never stands alone. |
+| `operations`  | A real execution with its own historical identity.      |
 
 `EXPERIENCE != OFFERING != OPERATION` is structural, not conventional.
 

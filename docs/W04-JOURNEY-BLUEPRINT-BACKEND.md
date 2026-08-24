@@ -5,12 +5,12 @@ This work is **not** W11; it is an extension of the W04 journey domain.
 
 ## Model
 
-| Table | Purpose |
-|---|---|
-| `public.journey_blueprints` | Stable, tenant-scoped identity of a reusable itinerary (`name`, `slug`, `status active\|archived`, `default_timezone`, `metadata`). Unique `(tenant_id, slug)`. Never physically deleted. |
-| `public.journey_blueprint_versions` | Versioned, publishable content unit (`version_number`, `status draft\|published\|archived`, `notes`, `published_at/by`, `step_count`, `checksum`). Unique `(blueprint_id, version_number)`; partial unique index allows **one draft per blueprint**. |
-| `public.journey_blueprint_steps` | Steps in **relative offsets**, never absolute dates (`sequence`, `title`, `step_kind`, `start_offset_minutes`, `duration_minutes`, labels, `traveler_facing`, `presence_requirement` nullable, `presence_population`). Unique `(version_id, sequence)`. |
-| `public.operation_journey_provisionings` | One row per provisioned operation: which blueprint/version/checksum produced the journey. Unique `(operation_id)` and `(tenant_id, idempotency_key)`. Append-only. |
+| Table                                    | Purpose                                                                                                                                                                                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `public.journey_blueprints`              | Stable, tenant-scoped identity of a reusable itinerary (`name`, `slug`, `status active\|archived`, `default_timezone`, `metadata`). Unique `(tenant_id, slug)`. Never physically deleted.                                                               |
+| `public.journey_blueprint_versions`      | Versioned, publishable content unit (`version_number`, `status draft\|published\|archived`, `notes`, `published_at/by`, `step_count`, `checksum`). Unique `(blueprint_id, version_number)`; partial unique index allows **one draft per blueprint**.    |
+| `public.journey_blueprint_steps`         | Steps in **relative offsets**, never absolute dates (`sequence`, `title`, `step_kind`, `start_offset_minutes`, `duration_minutes`, labels, `traveler_facing`, `presence_requirement` nullable, `presence_population`). Unique `(version_id, sequence)`. |
+| `public.operation_journey_provisionings` | One row per provisioned operation: which blueprint/version/checksum produced the journey. Unique `(operation_id)` and `(tenant_id, idempotency_key)`. Append-only.                                                                                      |
 
 Traceability columns added to `public.journey_steps`:
 `source_blueprint_version_id`, `source_blueprint_step_id` (both null on the 14 historical steps).
@@ -31,18 +31,18 @@ default" (`app_private.w04_default_presence_requirement`). The W04 contract itse
 
 ## RPCs (all SECURITY DEFINER, safe `search_path`, auth required, idempotency key required)
 
-| RPC | Roles | Notes |
-|---|---|---|
-| `create_journey_blueprint(_tenant_id,_name,_slug,_idempotency_key,_description,_default_timezone)` | owner, admin, operations_agent | creates blueprint + version 1 draft |
-| `create_blueprint_version(_blueprint_id,_from_version_id,_idempotency_key,_notes)` | owner, admin, operations_agent | source must be published; clones steps with new ids; blocked when a draft is open |
-| `add_blueprint_step(_version_id,_title,_step_kind,_start_offset_minutes,_idempotency_key,_sequence,…)` | owner, admin, operations_agent | draft only; resolves effective requirement then asserts the W04 contract |
-| `update_blueprint_step(_step_id,_idempotency_key,…, _clear_duration, _clear_presence_requirement)` | owner, admin, operations_agent | draft only; omitted fields untouched; full revalidation of the final state |
-| `remove_blueprint_step(_step_id,_idempotency_key)` | owner, admin, operations_agent | draft only; no renumbering |
-| `reorder_blueprint_steps(_version_id,_ordered_step_ids,_idempotency_key)` | owner, admin, operations_agent | draft only; list must contain every step exactly once; renumbers 10,20,30… atomically |
-| `validate_blueprint_version(_version_id)` | any member (STABLE, read-only) | returns `{valid, step_count, violations[]}` |
-| `publish_blueprint_version(_version_id,_idempotency_key)` | owner, admin | freezes the version |
-| `apply_journey_blueprint_to_operation(_operation_id,_version_id,_idempotency_key,_anchor_start)` | owner, admin, operations_agent | provisions the journey |
-| `archive_journey_blueprint(_blueprint_id,_reason,_idempotency_key)` | owner, admin | reason mandatory |
+| RPC                                                                                                    | Roles                          | Notes                                                                                 |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------- |
+| `create_journey_blueprint(_tenant_id,_name,_slug,_idempotency_key,_description,_default_timezone)`     | owner, admin, operations_agent | creates blueprint + version 1 draft                                                   |
+| `create_blueprint_version(_blueprint_id,_from_version_id,_idempotency_key,_notes)`                     | owner, admin, operations_agent | source must be published; clones steps with new ids; blocked when a draft is open     |
+| `add_blueprint_step(_version_id,_title,_step_kind,_start_offset_minutes,_idempotency_key,_sequence,…)` | owner, admin, operations_agent | draft only; resolves effective requirement then asserts the W04 contract              |
+| `update_blueprint_step(_step_id,_idempotency_key,…, _clear_duration, _clear_presence_requirement)`     | owner, admin, operations_agent | draft only; omitted fields untouched; full revalidation of the final state            |
+| `remove_blueprint_step(_step_id,_idempotency_key)`                                                     | owner, admin, operations_agent | draft only; no renumbering                                                            |
+| `reorder_blueprint_steps(_version_id,_ordered_step_ids,_idempotency_key)`                              | owner, admin, operations_agent | draft only; list must contain every step exactly once; renumbers 10,20,30… atomically |
+| `validate_blueprint_version(_version_id)`                                                              | any member (STABLE, read-only) | returns `{valid, step_count, violations[]}`                                           |
+| `publish_blueprint_version(_version_id,_idempotency_key)`                                              | owner, admin                   | freezes the version                                                                   |
+| `apply_journey_blueprint_to_operation(_operation_id,_version_id,_idempotency_key,_anchor_start)`       | owner, admin, operations_agent | provisions the journey                                                                |
+| `archive_journey_blueprint(_blueprint_id,_reason,_idempotency_key)`                                    | owner, admin                   | reason mandatory                                                                      |
 
 ## Publication contract
 
@@ -72,7 +72,7 @@ everything back.
 Existing `public.idempotency_keys` mechanism, per actor and action
 (`blueprint.create`, `blueprint.version_create`, `blueprint.step_add|update|remove|reorder`,
 `blueprint.version_publish`, `blueprint.archive`, `journey.blueprint_apply`).
-Replaying a key returns the stored result with no new write. A *different* key
+Replaying a key returns the stored result with no new write. A _different_ key
 against an already-provisioned operation is rejected explicitly, enforced twice:
 by check inside the RPC and by `unique (operation_id)`.
 

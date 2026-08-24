@@ -9,12 +9,12 @@ Lovable Cloud managed backend. The external "COBS OS CLEAN BUILD" project is NOT
 
 ## Security gate outcome
 
-| Flag                              | Result |
-| --------------------------------- | ------ |
-| W01 SECURITY GATE                 | PASS   |
-| RLS MULTIUSER REAL TESTED         | YES    |
-| CROSS_TENANT LEAK FOUND           | NO     |
-| SIGNUP_CONFIRMATION_REAL_TESTED   | NO (no mailbox access; email confirmation remains ON) |
+| Flag                            | Result                                                |
+| ------------------------------- | ----------------------------------------------------- |
+| W01 SECURITY GATE               | PASS                                                  |
+| RLS MULTIUSER REAL TESTED       | YES                                                   |
+| CROSS_TENANT LEAK FOUND         | NO                                                    |
+| SIGNUP_CONFIRMATION_REAL_TESTED | NO (no mailbox access; email confirmation remains ON) |
 
 ## Frozen surface
 
