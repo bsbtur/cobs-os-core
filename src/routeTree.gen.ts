@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ClaimAccountMismatchRouteImport } from './routes/claim-account-mismatch'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedMyRouteImport } from './routes/_authenticated/my'
@@ -65,6 +66,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClaimAccountMismatchRoute = ClaimAccountMismatchRouteImport.update({
+  id: '/claim-account-mismatch',
+  path: '/claim-account-mismatch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -301,6 +307,7 @@ const ApiPublicPaymentsMercadopagoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/my': typeof AuthenticatedMyRouteWithChildren
@@ -345,6 +352,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/my': typeof AuthenticatedMyRouteWithChildren
@@ -434,6 +443,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/claim-account-mismatch'
     | '/app'
     | '/inbox'
     | '/my'
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/claim-account-mismatch'
     | '/app'
     | '/inbox'
     | '/onboarding'
@@ -520,6 +531,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/claim-account-mismatch'
     | '/_authenticated/app'
     | '/_authenticated/inbox'
     | '/_authenticated/my'
@@ -566,6 +578,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ClaimAccountMismatchRoute: typeof ClaimAccountMismatchRoute
   ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsMercadopagoRoute: typeof ApiPublicPaymentsMercadopagoRoute
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/claim-account-mismatch': {
+      id: '/claim-account-mismatch'
+      path: '/claim-account-mismatch'
+      fullPath: '/claim-account-mismatch'
+      preLoaderRoute: typeof ClaimAccountMismatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -1013,6 +1033,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ClaimAccountMismatchRoute: ClaimAccountMismatchRoute,
   ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsMercadopagoRoute: ApiPublicPaymentsMercadopagoRoute,
