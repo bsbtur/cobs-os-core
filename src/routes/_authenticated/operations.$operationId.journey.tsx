@@ -17,6 +17,8 @@ import {
   allowedPresenceRequirements,
   defaultPresenceRequirement,
   isCanonicalPresence,
+  isChecklistEditable,
+  isDuplicateChecklistTitle,
   newIdempotencyKey,
   type JourneyStepRow,
   type PlaybookItemRow,
@@ -1432,6 +1434,7 @@ function JourneyPlanPage() {
                 items={items.filter((item) => item.journey_step_id === step.id)}
                 roleTypes={roleTypes}
                 operationId={operationId}
+                editable={isChecklistEditable(operation.status, role)}
               />
 
               <VisitPointsPanel
