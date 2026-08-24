@@ -111,10 +111,11 @@ export function OperationCockpit({
   const now = useNow();
 
   // Keep the sequencing source complete even while the legacy live route still
-  // passes only BOARDING_STARTED/ARRIVED. This query is narrow (one current step)
-  // and lets the cockpit advance through every canonical W04 runtime fact.
+  // passes only BOARDING_STARTED/ARRIVED. The key intentionally shares the
+  // ["live", operationId] prefix so the parent mutation invalidation refreshes
+  // these facts immediately after every successful runtime command.
   const progress = useQuery({
-    queryKey: ["live-cockpit-progress", current?.id ?? null],
+    queryKey: ["live", current?.operation_id ?? null, "cockpit-progress", current?.id ?? null],
     enabled: Boolean(current?.id),
     refetchInterval: 10_000,
     queryFn: async () => {
