@@ -467,7 +467,8 @@ export const W08_ES: Record<string, string> = {
   "w08.outbox.nextAttempt": "Próximo intento",
   "w08.outbox.error": "Error",
   "w08.outbox.retry": "Reenviar",
-  "w08.outbox.retryConfirm": "¿Reenviar esta entrega? Se registrará un nuevo intento con auditoría.",
+  "w08.outbox.retryConfirm":
+    "¿Reenviar esta entrega? Se registrará un nuevo intento con auditoría.",
   "w08.outbox.retried": "Reenvío solicitado.",
   "w08.outbox.status.queued": "En cola",
   "w08.outbox.status.processing": "Procesando",
