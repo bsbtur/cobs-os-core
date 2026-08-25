@@ -84,7 +84,7 @@ export function buildSignatureManifest(input: {
   requestId: string | null;
   ts: string;
 }) {
-  const id = input.dataId.toLowerCase();
+  const id = input.dataId;
   return `id:${id};${input.requestId ? `request-id:${input.requestId};` : ""}ts:${input.ts};`;
 }
 
