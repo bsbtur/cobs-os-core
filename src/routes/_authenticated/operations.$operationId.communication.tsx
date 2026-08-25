@@ -39,6 +39,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
+import { ExternalDeliverySection } from "@/components/communication/external-delivery-section";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
@@ -902,6 +903,14 @@ function MessageDetail({
         </section>
       ) : null}
 
+      {/* External delivery: names come from the already-loaded recipient snapshot. */}
+      <ExternalDeliverySection
+        messageId={message.id}
+        names={Object.fromEntries(
+          (recipients.data?.recipients ?? []).map((r) => [r.person_id, r.full_name]),
+        )}
+      />
+
       <section className="surface-panel space-y-2 p-4">
         <h3 className="text-sm font-medium">{t("w08.timeline")}</h3>
         {(facts.data ?? []).length === 0 ? (
@@ -944,7 +953,7 @@ function CommunicationTab() {
     },
   });
 
-  /* Realtime: exactly one table carries communication facts. */
+  /* Realtime: one table carries communication facts; outbox changes refresh delivery. */
   React.useEffect(() => {
     const channel = supabase
       .channel(`w08-${operationId}`)
@@ -955,6 +964,13 @@ function CommunicationTab() {
           void queryClient.invalidateQueries({ queryKey: ["w08-feed", operationId] });
           void queryClient.invalidateQueries({ queryKey: ["w08-recipients"] });
           void queryClient.invalidateQueries({ queryKey: ["w08-facts"] });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "communication_outbox" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["w08-outbox"] });
         },
       )
       .subscribe();
