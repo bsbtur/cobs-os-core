@@ -31,6 +31,28 @@ describe("MP-01 Mercado Pago webhook signature", () => {
     ).toBe(true);
   });
 
+  it("preserves uppercase Order IDs in the signed manifest", () => {
+    const secret = "test-secret";
+    const dataId = "ORDTST01M0V4S29MHK4CRGZRC1WYWPQP";
+    const manifest = buildSignatureManifest({
+      dataId,
+      requestId: "req-order-123",
+      ts: "1704908010",
+    });
+    expect(manifest).toBe(
+      `id:${dataId};request-id:req-order-123;ts:1704908010;`,
+    );
+    const v1 = signManifest(manifest, secret);
+    expect(
+      verifyMercadoPagoSignature({
+        signatureHeader: `ts=1704908010,v1=${v1}`,
+        requestId: "req-order-123",
+        dataId,
+        secret,
+      }),
+    ).toBe(true);
+  });
+
   it("rejects a tampered signature", () => {
     expect(
       verifyMercadoPagoSignature({
