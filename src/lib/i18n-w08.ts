@@ -138,6 +138,28 @@ export const W08_PT: Record<string, string> = {
   "w08.inbox.unread": "Não lida",
   "w08.inbox.expired": "Expirada",
   "w08.inbox.cancelled": "Esta mensagem foi cancelada pela operação.",
+
+  "w08.outbox.title": "Entrega externa",
+  "w08.outbox.hint":
+    "Estado real registrado pelo provedor externo. O COBS nunca inventa status de entrega.",
+  "w08.outbox.unknownRecipient": "Destinatário",
+  "w08.outbox.attempts": "Tentativas",
+  "w08.outbox.retryAuto": "Uma nova tentativa será feita automaticamente.",
+  "w08.outbox.nextAttempt": "Próxima tentativa",
+  "w08.outbox.error": "Erro",
+  "w08.outbox.retry": "Reenviar",
+  "w08.outbox.retryConfirm":
+    "Reenviar esta entrega? Uma nova tentativa será registrada com auditoria.",
+  "w08.outbox.retried": "Reenvio solicitado.",
+  "w08.outbox.status.queued": "Na fila",
+  "w08.outbox.status.processing": "Processando",
+  "w08.outbox.status.accepted": "Aceita",
+  "w08.outbox.status.sent": "Enviada",
+  "w08.outbox.status.delivered": "Entregue",
+  "w08.outbox.status.read": "Lida",
+  "w08.outbox.status.retry_wait": "Aguardando nova tentativa",
+  "w08.outbox.status.failed": "Falhou",
+  "w08.outbox.status.dead_letter": "Falha definitiva",
 };
 
 export const W08_EN: Record<string, string> = {
@@ -275,6 +297,27 @@ export const W08_EN: Record<string, string> = {
   "w08.inbox.unread": "Unread",
   "w08.inbox.expired": "Expired",
   "w08.inbox.cancelled": "This message was cancelled by the operation.",
+
+  "w08.outbox.title": "External delivery",
+  "w08.outbox.hint":
+    "Real state recorded by the external provider. COBS never fabricates delivery status.",
+  "w08.outbox.unknownRecipient": "Recipient",
+  "w08.outbox.attempts": "Attempts",
+  "w08.outbox.retryAuto": "A new attempt will be made automatically.",
+  "w08.outbox.nextAttempt": "Next attempt",
+  "w08.outbox.error": "Error",
+  "w08.outbox.retry": "Retry",
+  "w08.outbox.retryConfirm": "Retry this delivery? A new attempt will be recorded with audit.",
+  "w08.outbox.retried": "Retry requested.",
+  "w08.outbox.status.queued": "Queued",
+  "w08.outbox.status.processing": "Processing",
+  "w08.outbox.status.accepted": "Accepted",
+  "w08.outbox.status.sent": "Sent",
+  "w08.outbox.status.delivered": "Delivered",
+  "w08.outbox.status.read": "Read",
+  "w08.outbox.status.retry_wait": "Awaiting retry",
+  "w08.outbox.status.failed": "Failed",
+  "w08.outbox.status.dead_letter": "Permanently failed",
 };
 
 export const W08_ES: Record<string, string> = {
@@ -414,6 +457,27 @@ export const W08_ES: Record<string, string> = {
   "w08.inbox.unread": "No leído",
   "w08.inbox.expired": "Expirado",
   "w08.inbox.cancelled": "Este mensaje fue cancelado por la operación.",
+
+  "w08.outbox.title": "Entrega externa",
+  "w08.outbox.hint":
+    "Estado real registrado por el proveedor externo. COBS nunca inventa estados de entrega.",
+  "w08.outbox.unknownRecipient": "Destinatario",
+  "w08.outbox.attempts": "Intentos",
+  "w08.outbox.retryAuto": "Se hará un nuevo intento automáticamente.",
+  "w08.outbox.nextAttempt": "Próximo intento",
+  "w08.outbox.error": "Error",
+  "w08.outbox.retry": "Reenviar",
+  "w08.outbox.retryConfirm": "¿Reenviar esta entrega? Se registrará un nuevo intento con auditoría.",
+  "w08.outbox.retried": "Reenvío solicitado.",
+  "w08.outbox.status.queued": "En cola",
+  "w08.outbox.status.processing": "Procesando",
+  "w08.outbox.status.accepted": "Aceptado",
+  "w08.outbox.status.sent": "Enviado",
+  "w08.outbox.status.delivered": "Entregado",
+  "w08.outbox.status.read": "Leído",
+  "w08.outbox.status.retry_wait": "Esperando reintento",
+  "w08.outbox.status.failed": "Falló",
+  "w08.outbox.status.dead_letter": "Fallo definitivo",
 };
 
 export const W08_DICTIONARIES: Record<Locale, Record<string, string>> = {
