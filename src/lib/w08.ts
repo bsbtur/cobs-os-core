@@ -220,3 +220,94 @@ export function rpcArgs<T extends Record<string, unknown>>(input: T) {
     [K in keyof T]: Exclude<T[K], undefined>;
   };
 }
+
+/**
+ * W08 — External delivery outbox (read-only operator view).
+ * The provider pipeline is the authority; the UI NEVER fabricates or mutates
+ * status — it renders rows from `communication_outbox` and can only request a
+ * retry through the audited `retry_communication_delivery` command.
+ * `destination_snapshot`, provider ids and error payloads stay out of the UI.
+ */
+export type OutboxStatus =
+  | "queued"
+  | "processing"
+  | "accepted"
+  | "sent"
+  | "delivered"
+  | "read"
+  | "retry_wait"
+  | "failed"
+  | "dead_letter";
+
+export type OutboxRow = {
+  id: string;
+  message_id: string;
+  person_id: string | null;
+  channel: string;
+  status: OutboxStatus;
+  attempt_count: number;
+  next_attempt_at: string | null;
+  last_error_code: string | null;
+  last_error_message: string | null;
+  accepted_at: string | null;
+  sent_at: string | null;
+  delivered_at: string | null;
+  read_at: string | null;
+  failed_at: string | null;
+  dead_lettered_at: string | null;
+  updated_at: string | null;
+};
+
+export const OUTBOX_STATUSES: OutboxStatus[] = [
+  "queued",
+  "processing",
+  "accepted",
+  "sent",
+  "delivered",
+  "read",
+  "retry_wait",
+  "failed",
+  "dead_letter",
+];
+
+/** Success → progress → failure, using only semantic tokens. */
+export const OUTBOX_STATUS_TONE: Record<OutboxStatus, string> = {
+  queued: "bg-elevated text-muted-foreground",
+  processing: "bg-warning-soft text-warning",
+  accepted: "bg-success-soft text-success",
+  sent: "bg-success-soft text-success",
+  delivered: "bg-success-soft text-success",
+  read: "bg-success-soft text-success",
+  retry_wait: "bg-warning-soft text-warning",
+  failed: "bg-destructive/10 text-destructive",
+  dead_letter: "bg-destructive/10 text-destructive",
+};
+
+/** Manual retry is offered ONLY for terminal failure states. */
+export function canRetryOutbox(status: OutboxStatus) {
+  return status === "failed" || status === "dead_letter";
+}
+
+/** The most relevant timestamp for a row, never recomputed client-side. */
+export function lastRelevantOutboxTimestamp(row: OutboxRow): string | null {
+  return (
+    row.read_at ??
+    row.delivered_at ??
+    row.sent_at ??
+    row.accepted_at ??
+    row.failed_at ??
+    row.dead_lettered_at ??
+    row.updated_at ??
+    null
+  );
+}
+
+/** Compact per-status counters for the summary strip. Order is stable. */
+export function summarizeOutbox(rows: OutboxRow[]): { status: OutboxStatus; count: number }[] {
+  const counts = new Map<OutboxStatus, number>();
+  for (const row of rows) counts.set(row.status, (counts.get(row.status) ?? 0) + 1);
+  return OUTBOX_STATUSES.filter((s) => counts.has(s)).map((s) => ({
+    status: s,
+    count: counts.get(s) ?? 0,
+  }));
+}
