@@ -30,12 +30,39 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+/**
+ * V3.1-A QA-only backend routing.
+ *
+ * The frozen V1 production/main continues to use its normal environment variables.
+ * The isolated V3.1-A Vercel preview is deliberately routed to the authorized
+ * secondary Supabase project used as the QA sandbox, where the V3.1-A migrations
+ * and synthetic QA facts live.
+ *
+ * The key below is a Supabase publishable key (client-safe by design), not a secret.
+ * Remove this branch-only override before the PR is ever merged to main.
+ */
+const V31A_QA_SUPABASE_URL = "https://mkjuoijrtbporbjkztla.supabase.co";
+const V31A_QA_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oGAygTekqi0WQvy4KbMsCA_8my6jvkD";
+
+function isV31APreview(): boolean {
+  if (typeof window !== "undefined") {
+    return window.location.hostname.includes("cobs-os-qa-git-feat-v31-a-c-");
+  }
+  return process.env["VERCEL_GIT_COMMIT_REF"] === "feat/v3.1-a-completion-achievements";
+}
+
 function createSupabaseClient() {
+  const preview = isV31APreview();
+
   // Use import.meta.env for client-side (Vite build-time replacement)
-  // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-  const SUPABASE_PUBLISHABLE_KEY =
-    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+  // Fall back to process.env for SSR (server-side rendering).
+  // The V3.1-A branch preview is intentionally isolated on the QA sandbox above.
+  const SUPABASE_URL = preview
+    ? V31A_QA_SUPABASE_URL
+    : import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
+  const SUPABASE_PUBLISHABLE_KEY = preview
+    ? V31A_QA_SUPABASE_PUBLISHABLE_KEY
+    : import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
