@@ -31,6 +31,7 @@ import { Route as AuthenticatedMyIndexRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedMyOperationIdRouteImport } from './routes/_authenticated/my.$operationId'
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
+import { Route as AuthenticatedPaymentsSandboxOrderIdRouteImport } from './routes/_authenticated/payments-sandbox.$orderId'
 import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_authenticated/settings_.catalog'
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
@@ -171,6 +172,12 @@ const AuthenticatedOperationsOperationIdRoute =
   AuthenticatedOperationsOperationIdRouteImport.update({
     id: '/operations/$operationId',
     path: '/operations/$operationId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentsSandboxOrderIdRoute =
+  AuthenticatedPaymentsSandboxOrderIdRouteImport.update({
+    id: '/payments-sandbox/$orderId',
+    path: '/payments-sandbox/$orderId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsCatalogRoute =
@@ -321,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/my/$operationId': typeof AuthenticatedMyOperationIdRouteWithChildren
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
+  '/payments-sandbox/$orderId': typeof AuthenticatedPaymentsSandboxOrderIdRoute
   '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
@@ -363,6 +371,7 @@ export interface FileRoutesByTo {
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/payments-sandbox/$orderId': typeof AuthenticatedPaymentsSandboxOrderIdRoute
   '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
@@ -410,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/my/$operationId': typeof AuthenticatedMyOperationIdRouteWithChildren
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
+  '/_authenticated/payments-sandbox/$orderId': typeof AuthenticatedPaymentsSandboxOrderIdRoute
   '/_authenticated/settings_/catalog': typeof AuthenticatedSettingsCatalogRoute
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/my/$operationId'
     | '/operations/$operationId'
+    | '/payments-sandbox/$orderId'
     | '/settings/catalog'
     | '/settings/fleet'
     | '/settings/properties'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
     | '/invite/$token'
+    | '/payments-sandbox/$orderId'
     | '/settings/catalog'
     | '/settings/fleet'
     | '/settings/properties'
@@ -545,6 +557,7 @@ export interface FileRouteTypes {
     | '/_authenticated/invite/$token'
     | '/_authenticated/my/$operationId'
     | '/_authenticated/operations/$operationId'
+    | '/_authenticated/payments-sandbox/$orderId'
     | '/_authenticated/settings_/catalog'
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
@@ -738,6 +751,13 @@ declare module '@tanstack/react-router' {
       path: '/operations/$operationId'
       fullPath: '/operations/$operationId'
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payments-sandbox/$orderId': {
+      id: '/_authenticated/payments-sandbox/$orderId'
+      path: '/payments-sandbox/$orderId'
+      fullPath: '/payments-sandbox/$orderId'
+      preLoaderRoute: typeof AuthenticatedPaymentsSandboxOrderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/catalog': {
@@ -990,6 +1010,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExperiencesExperienceIdRoute: typeof AuthenticatedExperiencesExperienceIdRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
+  AuthenticatedPaymentsSandboxOrderIdRoute: typeof AuthenticatedPaymentsSandboxOrderIdRoute
   AuthenticatedSettingsCatalogRoute: typeof AuthenticatedSettingsCatalogRoute
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
   AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
@@ -1016,6 +1037,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
   AuthenticatedOperationsOperationIdRoute:
     AuthenticatedOperationsOperationIdRouteWithChildren,
+  AuthenticatedPaymentsSandboxOrderIdRoute:
+    AuthenticatedPaymentsSandboxOrderIdRoute,
   AuthenticatedSettingsCatalogRoute: AuthenticatedSettingsCatalogRoute,
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
   AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
