@@ -6,7 +6,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  // src/integrations/supabase/types.ts is generated; its formatting is not ours to own.
+  // Generated/runtime-owned code is validated by its own toolchain, not the browser app lint.
   {
     ignores: [
       "dist",
@@ -14,6 +14,7 @@ export default tseslint.config(
       ".vinxi",
       "src/routeTree.gen.ts",
       "src/integrations/supabase/types.ts",
+      "supabase/functions/**",
     ],
   },
   {
