@@ -212,6 +212,13 @@ export function deriveNextAction(input: CockpitInput): CockpitAction {
 
   const notReady = readiness ? !readiness.ready : false;
 
+  // Disembarkation has a server-enforced arrival prerequisite for DISEMBARKED facts.
+  // Arrival must therefore be recorded before presence readiness is evaluated, otherwise
+  // the cockpit deadlocks: readiness asks for DISEMBARKED while DISEMBARKED requires ARRIVED.
+  if (current.step_kind === "disembarkation" && !arrived) {
+    return { key: "recordArrival", rpc: "record_arrival", anchor: null, blocked: false };
+  }
+
   // In field UX, required checklist is resolved before presence and before advancing commands.
   if (notReady && (readiness?.missing_required_items.length ?? 0) > 0) {
     return { key: "resolveChecklist", rpc: null, anchor: "cockpit-checklist", blocked: true };
@@ -257,8 +264,7 @@ export function deriveNextAction(input: CockpitInput): CockpitAction {
   const needsArrival =
     current.step_kind === "movement" ||
     current.step_kind === "arrival" ||
-    current.step_kind === "return" ||
-    current.step_kind === "disembarkation";
+    current.step_kind === "return";
   if (needsArrival && !arrived) {
     return { key: "recordArrival", rpc: "record_arrival", anchor: null, blocked: false };
   }
