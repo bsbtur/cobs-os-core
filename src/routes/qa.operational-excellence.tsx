@@ -78,6 +78,14 @@ const DIMENSIONS: Record<
   communication_readiness: { label: "Comunicação operacional", shortLabel: "Comunicação", icon: MessageCircle },
 };
 
+const DIMENSION_ORDER: DimensionKey[] = [
+  "journey_execution",
+  "temporal_precision",
+  "operational_compliance",
+  "flow_traceability",
+  "communication_readiness",
+];
+
 function isQaPayload(value: unknown): value is QaPayload {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
@@ -117,7 +125,7 @@ function evidenceNarrative(row: EvidenceRow) {
     return `${number(e.flow_completed)}/${number(e.flow_steps)} etapas de fluxo rastreadas até a conclusão.`;
   }
   if (row.dimension_key === "communication_readiness") {
-    return "Dimensão não aplicável neste snapshot: ainda não existe projeção canônica de comunicação por operação.";
+    return "Não aplicável nesta avaliação: a dimensão de comunicação ainda não possui evidência operacional canônica disponível.";
   }
   return "Evidência registrada pelo motor operacional.";
 }
@@ -179,6 +187,9 @@ function OperationalExcellenceQa() {
   const earned = applicable.reduce((sum, row) => sum + number(row.points_awarded), 0);
   const possible = applicable.reduce((sum, row) => sum + number(row.points_possible), 0);
   const lost = Math.max(0, possible - earned);
+  const orderedEvidence = [...payload.evidence].sort(
+    (a, b) => DIMENSION_ORDER.indexOf(a.dimension_key) - DIMENSION_ORDER.indexOf(b.dimension_key),
+  );
 
   return (
     <main className="min-h-screen bg-background px-4 py-7 text-foreground sm:px-6">
@@ -188,9 +199,7 @@ function OperationalExcellenceQa() {
             COBS Human Experience V3.1-B4 · QA Mobile
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">Operational Excellence</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Snapshot canônico real do sandbox · somente leitura
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Resultado final da operação · somente leitura</p>
         </div>
 
         <section
@@ -202,9 +211,7 @@ function OperationalExcellenceQa() {
           <div className="relative mx-auto grid size-20 place-items-center rounded-full border border-amber-500/30 bg-background shadow-lg">
             <Trophy className="size-10 text-amber-500" aria-hidden="true" />
           </div>
-          <p className="relative mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
-            Excelência operacional
-          </p>
+          <p className="relative mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">Excelência operacional</p>
           <h2 className="relative mt-1 text-2xl font-semibold">{classification}</h2>
           <div className="relative mt-3 flex items-end justify-center gap-1">
             <span className="text-6xl font-bold tracking-tight tabular-nums">{score}</span>
@@ -212,10 +219,7 @@ function OperationalExcellenceQa() {
           </div>
           <p className="relative mt-2 text-sm text-muted-foreground">{payload.operation.name}</p>
           <div className="relative mt-5 h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-amber-500 transition-[width] duration-1000 ease-out motion-reduce:transition-none"
-              style={{ width: revealed ? `${score}%` : "0%" }}
-            />
+            <div className="h-full rounded-full bg-amber-500 transition-[width] duration-1000 ease-out motion-reduce:transition-none" style={{ width: revealed ? `${score}%` : "0%" }} />
           </div>
           <div className="relative mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <CheckCircle2 className="size-4 text-emerald-500" />
@@ -224,31 +228,19 @@ function OperationalExcellenceQa() {
         </section>
 
         <section className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-2xl border border-border/70 bg-card p-3 text-center">
-            <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Obtidos</p>
-            <p className="mt-1 text-xl font-semibold">{earned.toFixed(2)}</p>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-card p-3 text-center">
-            <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Possíveis</p>
-            <p className="mt-1 text-xl font-semibold">{possible.toFixed(2)}</p>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-card p-3 text-center">
-            <p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Perdidos</p>
-            <p className="mt-1 text-xl font-semibold text-amber-600 dark:text-amber-400">-{lost.toFixed(2)}</p>
-          </div>
+          <div className="rounded-2xl border border-border/70 bg-card p-3 text-center"><p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Obtidos</p><p className="mt-1 text-xl font-semibold">{earned.toFixed(2)}</p></div>
+          <div className="rounded-2xl border border-border/70 bg-card p-3 text-center"><p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Possíveis</p><p className="mt-1 text-xl font-semibold">{possible.toFixed(2)}</p></div>
+          <div className="rounded-2xl border border-border/70 bg-card p-3 text-center"><p className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Perdidos</p><p className="mt-1 text-xl font-semibold text-amber-600 dark:text-amber-400">-{lost.toFixed(2)}</p></div>
         </section>
 
         <section className="mt-6">
           <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Dimensões</p>
-              <h3 className="mt-1 text-lg font-semibold">Como o score foi formado</h3>
-            </div>
+            <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Dimensões</p><h3 className="mt-1 text-lg font-semibold">Como o score foi formado</h3></div>
             <Award className="size-5 text-primary" />
           </div>
 
           <div className="space-y-2">
-            {payload.evidence.map((row, index) => {
+            {orderedEvidence.map((row, index) => {
               const meta = DIMENSIONS[row.dimension_key];
               const Icon = meta.icon;
               const possiblePoints = number(row.points_possible);
@@ -256,37 +248,20 @@ function OperationalExcellenceQa() {
               const ratio = possiblePoints > 0 ? (awardedPoints / possiblePoints) * 100 : 0;
               const na = row.outcome === "not_applicable";
               return (
-                <details
-                  key={row.dimension_key}
-                  className={`group rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-all duration-500 ${
-                    revealed ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
-                  }`}
-                  style={{ transitionDelay: `${180 + index * 70}ms` }}
-                >
+                <details key={row.dimension_key} className={`group rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-all duration-500 ${revealed ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`} style={{ transitionDelay: `${180 + index * 70}ms` }}>
                   <summary className="cursor-pointer list-none">
-                    <div className="flex items-center gap-3">
-                      <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted/70 text-primary">
-                        <Icon className="size-5" aria-hidden="true" />
-                      </div>
+                    <div className="flex items-start gap-3">
+                      <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted/70 text-primary"><Icon className="size-5" aria-hidden="true" /></div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="truncate text-sm font-semibold">{meta.label}</p>
-                          <p className="font-mono text-xs font-semibold tabular-nums">
-                            {na ? "N/A" : `${awardedPoints.toFixed(2)} / ${possiblePoints.toFixed(2)}`}
-                          </p>
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2">
+                          <p className="min-w-0 text-[13px] font-semibold leading-5 sm:text-sm">{meta.label}</p>
+                          <p className="whitespace-nowrap font-mono text-[11px] font-semibold leading-5 tabular-nums sm:text-xs">{na ? "N/A" : `${awardedPoints.toFixed(2)} / ${possiblePoints.toFixed(2)}`}</p>
                         </div>
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-primary transition-[width] duration-700"
-                            style={{ width: na ? "0%" : `${Math.max(0, Math.min(100, ratio))}%` }}
-                          />
-                        </div>
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: na ? "0%" : `${Math.max(0, Math.min(100, ratio))}%` }} /></div>
                       </div>
                     </div>
                   </summary>
-                  <div className="mt-3 border-t border-border/60 pt-3 text-sm leading-6 text-muted-foreground">
-                    {evidenceNarrative(row)}
-                  </div>
+                  <div className="mt-3 border-t border-border/60 pt-3 text-sm leading-6 text-muted-foreground">{evidenceNarrative(row)}</div>
                 </details>
               );
             })}
@@ -295,26 +270,17 @@ function OperationalExcellenceQa() {
 
         <section className="mt-6 rounded-3xl border border-primary/20 bg-primary/5 p-5">
           <div className="flex items-start gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-background text-primary shadow-sm">
-              <Sparkles className="size-5" />
-            </div>
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">Por que recebi esta nota?</p>
-              <p className="mt-2 text-sm leading-6">
-                A operação cumpriu integralmente jornada, pontos obrigatórios e rastreabilidade. A perda veio somente da dimensão temporal: uma partida registrada com 10 minutos de desvio reduziu essa dimensão para 80%.
-              </p>
-            </div>
+            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-background text-primary shadow-sm"><Sparkles className="size-5" /></div>
+            <div><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">Por que recebi esta nota?</p><p className="mt-2 text-sm leading-6">A operação cumpriu integralmente jornada, pontos obrigatórios e rastreabilidade. A perda veio somente da dimensão temporal: uma partida registrada com 10 minutos de desvio reduziu essa dimensão para 80%.</p></div>
           </div>
         </section>
 
         <section className="mt-4 rounded-2xl border border-border/70 bg-muted/20 p-4 text-xs leading-5 text-muted-foreground">
-          <div className="flex items-center justify-between gap-3"><span>Modelo</span><strong className="text-foreground">{payload.model.model_key}</strong></div>
+          <div className="flex items-center justify-between gap-3"><span>Modelo</span><strong className="break-all text-right text-foreground">{payload.model.model_key}</strong></div>
           <div className="mt-1 flex items-center justify-between gap-3"><span>Versão</span><strong className="text-foreground">v{payload.model.version}</strong></div>
           <div className="mt-1 flex items-center justify-between gap-3"><span>Status</span><strong className="text-foreground">{payload.snapshot.evaluation_status}</strong></div>
           <div className="mt-1 flex items-center justify-between gap-3"><span>Cobertura</span><strong className="text-foreground">{payload.snapshot.coverage_percent}%</strong></div>
-          <p className="mt-3 border-t border-border/60 pt-3 text-[11px]">
-            QA isolado. Este painel é read-only e consome um snapshot canônico persistido no sandbox; não altera score, evidências ou operação.
-          </p>
+          <p className="mt-3 border-t border-border/60 pt-3 text-[11px]">Ambiente QA isolado. Esta tela apenas consulta o resultado final persistido; não altera score, evidências ou operação.</p>
         </section>
       </div>
     </main>
