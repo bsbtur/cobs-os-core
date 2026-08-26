@@ -34,6 +34,11 @@ export const OPERATION_TRANSITIONS: Record<OperationStatus, OperationStatus[]> =
   cancelled: [],
 };
 
+/** Completed/cancelled operations are historical records and operationally read-only. */
+export function isOperationTerminal(status: OperationStatus | string | null | undefined) {
+  return status === "completed" || status === "cancelled";
+}
+
 /** Planned window is a baseline: editable only before the operation is committed. */
 export function isPlannedWindowEditable(status: OperationStatus) {
   return status === "draft" || status === "planning";
