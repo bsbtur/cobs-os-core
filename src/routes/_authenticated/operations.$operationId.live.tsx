@@ -45,8 +45,10 @@ import { feedback } from "@/components/feedback/feedback";
 import { LiveTimingStrip } from "@/components/journey/live-timing-strip";
 import { OperationCockpit } from "@/components/journey/operation-cockpit";
 import { CurrentVisitPoint } from "@/components/journey/current-visit-point";
+import { CompletionExperience } from "@/components/journey/completion-experience";
 import type { VisitPointEventRow, VisitPointRow } from "@/lib/w11";
 import { summarizeStepPresence, type CockpitAction } from "@/lib/live-cockpit";
+import { runJourneyCommand, type CompletionSnapshot } from "@/lib/completion-runtime";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -84,6 +86,12 @@ type RosterRow = {
   participation_kind: string;
   status: string;
   people: { full_name: string } | null;
+};
+
+type ActiveCompletion = {
+  stageTitle: string;
+  snapshot: CompletionSnapshot;
+  soundEnabled: boolean;
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -633,13 +641,21 @@ function StepActions({
   step,
   ready,
   arrived,
+  tenantId,
+  operationId,
+  totalSteps,
   onRefresh,
+  onCompleted,
 }: {
   step: JourneyStepRow;
   ready: boolean;
   /** DEF-PILOT-023 / 025: ARRIVED exists on this step. */
   arrived: boolean;
+  tenantId: string;
+  operationId: string;
+  totalSteps: number;
   onRefresh: () => void;
+  onCompleted: (stage: JourneyStepRow, snapshot: CompletionSnapshot) => void;
 }) {
   const { t, locale } = useI18n();
 
@@ -648,22 +664,28 @@ function StepActions({
       // DEF_PILOT_022 — temporary diagnostic instrumentation (no PII, no tokens)
       console.info("[W04_RPC_START]", { fn, stepId: step.id, at: new Date().toISOString() });
       const startedAt = performance.now();
-      const { data, error } = await supabase.rpc(fn as "start_journey_step", {
-        _journey_step_id: step.id,
+      const result = await runJourneyCommand({
+        fn,
+        stepId: step.id,
+        tenantId,
+        operationId,
+        totalSteps,
       });
       console.info("[W04_RPC_RESULT]", {
         fn,
-        ok: !error,
-        errorCode: error?.code ?? null,
-        errorMessage: error?.message ?? null,
-        hasData: data != null,
+        ok: true,
+        hasData: result.data != null,
+        hasCompletion: result.completion != null,
         durationMs: performance.now() - startedAt,
       });
-      if (error) throw error;
-      return data;
+      return result;
     },
-    onSuccess: (_data, fn) => {
+    onSuccess: (result, fn) => {
       console.info("[W04_SUCCESS]", { fn, at: new Date().toISOString() });
+      if (fn === "complete_journey_step" && result.completion) {
+        onCompleted(step, result.completion);
+        return;
+      }
       const action = actions.find((a) => a.fn === fn);
       feedback.success(`${t("w04.live.recorded")}: ${action?.label ?? ""}`.trim());
       onRefresh();
@@ -773,6 +795,7 @@ function LiveRuntimePage() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/live" });
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
+  const [completion, setCompletion] = React.useState<ActiveCompletion | null>(null);
 
   const live = useQuery({
     queryKey: ["live", operationId],
@@ -887,18 +910,36 @@ function LiveRuntimePage() {
     void queryClient.invalidateQueries({ queryKey: ["live", operationId] });
   };
 
+  const presentCompletion = React.useCallback((stage: JourneyStepRow, snapshot: CompletionSnapshot) => {
+    const soundEnabled =
+      typeof window !== "undefined" && window.localStorage.getItem("cobs.live.sound.v1") === "on";
+    setCompletion({ stageTitle: stage.title, snapshot, soundEnabled });
+  }, []);
+
   /**
    * V1.1 Cockpit CTA — calls the SAME W04 commands used by StepActions/StartNext.
-   * No new backend rule: the server keeps every guard and may still refuse.
+   * V3.1-A keeps the same canonical command path, but completion deliberately
+   * pauses invalidation until the celebration CTA is acknowledged.
    */
   const cockpitCall = useMutation({
-    mutationFn: async (input: { fn: string; stepId: string }) => {
-      const { error } = await supabase.rpc(input.fn as "start_journey_step", {
-        _journey_step_id: input.stepId,
+    mutationFn: async (input: { fn: string; stepId: string; stageTitle: string }) => {
+      const operation = live.data?.operation;
+      const steps = live.data?.steps ?? [];
+      if (!operation) throw new Error("Operation unavailable");
+      return runJourneyCommand({
+        fn: input.fn,
+        stepId: input.stepId,
+        tenantId: operation.tenant_id,
+        operationId,
+        totalSteps: steps.length,
       });
-      if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (result, input) => {
+      if (input.fn === "complete_journey_step" && result.completion) {
+        const stage = (live.data?.steps ?? []).find((step) => step.id === input.stepId);
+        if (stage) presentCompletion(stage, result.completion);
+        return;
+      }
       feedback.success(t("w04.live.recorded"));
       refresh();
     },
@@ -1002,8 +1043,10 @@ function LiveRuntimePage() {
               ?.scrollIntoView({ behavior: "smooth", block: "start" });
             return;
           }
-          const stepId = current?.id ?? next?.id ?? null;
-          if (action.rpc && stepId) cockpitCall.mutate({ fn: action.rpc, stepId });
+          const stage = current ?? next;
+          if (action.rpc && stage) {
+            cockpitCall.mutate({ fn: action.rpc, stepId: stage.id, stageTitle: stage.title });
+          }
         }}
       />
 
@@ -1101,7 +1144,11 @@ function LiveRuntimePage() {
                   step={current}
                   ready={readiness?.ready ?? true}
                   arrived={arrivedStepIds.has(current.id)}
+                  tenantId={operation.tenant_id}
+                  operationId={operation.id}
+                  totalSteps={steps.length}
                   onRefresh={refresh}
+                  onCompleted={presentCompletion}
                 />
               </div>
             </div>
@@ -1201,6 +1248,22 @@ function LiveRuntimePage() {
           </ol>
         )}
       </section>
+
+      {completion ? (
+        <CompletionExperience
+          open
+          stageTitle={completion.stageTitle}
+          awards={completion.snapshot.awards}
+          previousXp={completion.snapshot.previousXp}
+          totalXp={completion.snapshot.totalXp}
+          journeyProgressPercent={completion.snapshot.journeyProgressPercent}
+          soundEnabled={completion.soundEnabled}
+          onContinue={() => {
+            setCompletion(null);
+            refresh();
+          }}
+        />
+      ) : null}
     </section>
   );
 }
