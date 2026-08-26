@@ -17,7 +17,6 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
       new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
-    // New Supabase API keys are opaque strings, not bearer JWTs.
     if (
       isNewSupabaseApiKey(supabaseKey) &&
       headers.get("Authorization") === `Bearer ${supabaseKey}`
@@ -31,37 +30,36 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 /**
- * V3.1-A QA-only backend routing.
+ * V3.1 QA-only backend routing.
  *
  * The frozen V1 production/main continues to use its normal environment variables.
- * The isolated V3.1-A Vercel preview is deliberately routed to the authorized
- * secondary Supabase project used as the QA sandbox, where the V3.1-A migrations
- * and synthetic QA facts live.
+ * Isolated V3.1 preview branches are deliberately routed to the authorized secondary
+ * Supabase project used as the QA sandbox, where synthetic QA facts live.
  *
  * The key below is a Supabase publishable key (client-safe by design), not a secret.
- * Remove this branch-only override before the PR is ever merged to main.
+ * Remove this branch-only override before any V3.1 PR is merged to main.
  */
-const V31A_QA_SUPABASE_URL = "https://mkjuoijrtbporbjkztla.supabase.co";
-const V31A_QA_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oGAygTekqi0WQvy4KbMsCA_8my6jvkD";
+const V31_QA_SUPABASE_URL = "https://mkjuoijrtbporbjkztla.supabase.co";
+const V31_QA_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oGAygTekqi0WQvy4KbMsCA_8my6jvkD";
 
-function isV31APreview(): boolean {
+function isV31Preview(): boolean {
   if (typeof window !== "undefined") {
-    return window.location.hostname.includes("cobs-os-qa-git-feat-v31-a-c-");
+    return (
+      window.location.pathname.startsWith("/qa/") ||
+      window.location.hostname.includes("cobs-os-qa-git-feat-v31-")
+    );
   }
-  return process.env["VERCEL_GIT_COMMIT_REF"] === "feat/v3.1-a-completion-achievements";
+  return (process.env["VERCEL_GIT_COMMIT_REF"] ?? "").startsWith("feat/v3.1-");
 }
 
 function createSupabaseClient() {
-  const preview = isV31APreview();
+  const preview = isV31Preview();
 
-  // Use import.meta.env for client-side (Vite build-time replacement)
-  // Fall back to process.env for SSR (server-side rendering).
-  // The V3.1-A branch preview is intentionally isolated on the QA sandbox above.
   const SUPABASE_URL = preview
-    ? V31A_QA_SUPABASE_URL
+    ? V31_QA_SUPABASE_URL
     : import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
   const SUPABASE_PUBLISHABLE_KEY = preview
-    ? V31A_QA_SUPABASE_PUBLISHABLE_KEY
+    ? V31_QA_SUPABASE_PUBLISHABLE_KEY
     : import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
@@ -88,8 +86,6 @@ function createSupabaseClient() {
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
   get(_, prop, receiver) {
     if (!_supabase) _supabase = createSupabaseClient();
