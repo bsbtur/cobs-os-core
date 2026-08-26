@@ -81,8 +81,8 @@ function playCompletionChime() {
     const context = new AudioContextCtor();
     const gain = context.createGain();
     gain.gain.setValueAtTime(0.0001, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.07, context.currentTime + 0.025);
-    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.7);
+    gain.gain.exponentialRampToValueAtTime(0.14, context.currentTime + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.82);
     gain.connect(context.destination);
 
     [523.25, 659.25, 783.99].forEach((frequency, index) => {
@@ -91,13 +91,36 @@ function playCompletionChime() {
       oscillator.frequency.setValueAtTime(frequency, context.currentTime);
       oscillator.connect(gain);
       oscillator.start(context.currentTime + index * 0.09);
-      oscillator.stop(context.currentTime + 0.32 + index * 0.09);
+      oscillator.stop(context.currentTime + 0.38 + index * 0.09);
     });
 
-    window.setTimeout(() => void context.close(), 900);
+    const sparkleGain = context.createGain();
+    sparkleGain.gain.setValueAtTime(0.0001, context.currentTime + 0.28);
+    sparkleGain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 0.34);
+    sparkleGain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.76);
+    sparkleGain.connect(context.destination);
+    const sparkle = context.createOscillator();
+    sparkle.type = "sine";
+    sparkle.frequency.setValueAtTime(1046.5, context.currentTime + 0.28);
+    sparkle.connect(sparkleGain);
+    sparkle.start(context.currentTime + 0.28);
+    sparkle.stop(context.currentTime + 0.78);
+
+    window.setTimeout(() => void context.close(), 1050);
   } catch {
     // Progressive enhancement: completion never depends on audio availability.
   }
+}
+
+function triggerCompletionHaptic() {
+  try {
+    if ("vibrate" in navigator && typeof navigator.vibrate === "function") {
+      return navigator.vibrate([30, 25, 55]);
+    }
+  } catch {
+    // Browsers may expose the API while blocking execution.
+  }
+  return false;
 }
 
 function CountUp({ from, to, active, reduced }: { from: number; to: number; active: boolean; reduced: boolean }) {
@@ -142,6 +165,7 @@ export function CompletionExperience({
 }: CompletionExperienceProps) {
   const reducedMotion = useReducedMotion();
   const [phase, setPhase] = React.useState(0);
+  const [sensoryFallback, setSensoryFallback] = React.useState(false);
   const playedForOpenRef = React.useRef(false);
 
   const newAwards = React.useMemo(() => awards.filter((award) => !award.duplicate), [awards]);
@@ -155,6 +179,7 @@ export function CompletionExperience({
   React.useEffect(() => {
     if (!open) {
       setPhase(0);
+      setSensoryFallback(false);
       playedForOpenRef.current = false;
       return;
     }
@@ -177,7 +202,11 @@ export function CompletionExperience({
     if (!open || phase < 3 || playedForOpenRef.current) return;
     playedForOpenRef.current = true;
     if (soundEnabled) playCompletionChime();
-    if (hapticEnabled && "vibrate" in navigator) navigator.vibrate?.([35, 35, 70]);
+    if (hapticEnabled && !triggerCompletionHaptic()) {
+      setSensoryFallback(true);
+      const timer = window.setTimeout(() => setSensoryFallback(false), 520);
+      return () => window.clearTimeout(timer);
+    }
   }, [hapticEnabled, open, phase, soundEnabled]);
 
   const iconName = featuredAward?.iconKey ?? "award";
@@ -251,12 +280,12 @@ export function CompletionExperience({
           <div
             className={`relative mt-5 transition-all duration-500 ${
               phase >= 3 ? "scale-100 opacity-100" : "scale-90 opacity-0"
-            }`}
+            } ${sensoryFallback && !reducedMotion ? "scale-[1.025]" : ""}`}
           >
             {featuredAward ? (
-              <div className="rounded-3xl border border-primary/25 bg-primary/5 px-4 py-5 shadow-sm">
+              <div className={`rounded-3xl border border-primary/25 bg-primary/5 px-4 py-5 shadow-sm transition-shadow duration-300 ${sensoryFallback ? "shadow-lg" : ""}`}>
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Recompensa revelada</p>
-                <div className="mx-auto mt-3 grid size-20 place-items-center rounded-full border border-primary/25 bg-background shadow-lg">
+                <div className={`mx-auto mt-3 grid size-20 place-items-center rounded-full border border-primary/25 bg-background shadow-lg transition-transform duration-300 ${sensoryFallback && !reducedMotion ? "scale-110" : "scale-100"}`}>
                   <BadgeIcon className="size-10 text-primary" aria-hidden="true" />
                 </div>
                 <p className="mt-3 text-xl font-semibold">{featuredAward.achievementName ?? featuredAward.achievementKey}</p>
