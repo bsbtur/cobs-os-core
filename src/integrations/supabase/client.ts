@@ -32,23 +32,14 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 /**
  * V3.1 QA-only backend routing.
  *
- * This file is being used from the isolated branch
- * `feat/v3.1-b6-3-ui-product-integration`. Every browser/server execution of this
- * branch must use the authorized secondary Supabase project used as the QA sandbox.
- *
+ * The isolated B6.3 branch is pinned to COBS OS STAGING V3.1 for QA.
  * The frozen V1 production/main continues to use its normal environment variables.
- * The key below is a Supabase publishable key (client-safe by design), not a secret.
  * This branch-only override MUST be removed before any V3.1 PR is merged to main.
  */
-const V31_QA_SUPABASE_URL = "https://mkjuoijrtbporbjkztla.supabase.co";
-const V31_QA_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oGAygTekqi0WQvy4KbMsCA_8my6jvkD";
+const V31_QA_SUPABASE_URL = "https://wzukfenbzwlwzhtadlxl.supabase.co";
+const V31_QA_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jDx7luxp7vohloi1dm8MXQ_g_Zxmsv0";
 
 function isV31Preview(): boolean {
-  // B6.3 QA Environment Alignment:
-  // the isolated branch is intentionally pinned to the V3.1 sandbox on both SSR
-  // and the hydrated browser. The previous hostname heuristic failed on Vercel's
-  // generated deployment host (cobs-os-<hash>-...), causing the browser to fall
-  // back to CLEAN BUILD after hydration.
   if (typeof window !== "undefined") return true;
   return (process.env["VERCEL_GIT_COMMIT_REF"] ?? "").startsWith("feat/v3.1-");
 }
