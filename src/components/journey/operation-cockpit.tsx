@@ -10,6 +10,7 @@ import { formatDuration } from "@/components/journey/live-timing-strip";
 
 const TICK_MS = 30_000;
 const SOUND_KEY = "cobs.live.sound.v1";
+const RUNTIME_BACKDATE_ALLOWANCE_MS = 24 * 60 * 60 * 1000;
 const PROGRESS_EVENT_TYPES = ["GATHERING_STARTED", "BOARDING_STARTED", "BOARDING_COMPLETED", "DEPARTURE_AUTHORIZED", "DEPARTED", "ARRIVED", "DISEMBARKATION_COMPLETED"] as const;
 const TONE_CLASS: Record<CockpitTone, string> = { ready: "border-success/50 shadow-sm", attention: "border-warning/60 shadow-sm", blocked: "border-destructive/50", delayed: "border-warning/70", neutral: "border-border" };
 const TONE_BADGE: Record<CockpitTone, string> = { ready: "bg-success-soft text-success", attention: "bg-warning-soft text-warning", blocked: "bg-destructive/10 text-destructive", delayed: "bg-warning-soft text-warning", neutral: "bg-muted text-muted-foreground" };
@@ -35,15 +36,55 @@ function Metric({ label, value, warning = false }: { label: string; value: numbe
   return <div className="rounded-xl border border-border/60 bg-muted/45 px-3 py-2.5"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p><p className={`text-xl font-semibold tabular-nums ${warning ? "text-warning" : ""}`}>{value}</p></div>;
 }
 
+function runtimeFactFloor(plannedStart: string | null, expectedStart: string | null): number | null {
+  const planned = plannedStart ? new Date(plannedStart).getTime() : Number.NaN;
+  const expected = expectedStart ? new Date(expectedStart).getTime() : Number.NaN;
+  const starts = [planned, expected].filter(Number.isFinite);
+  if (starts.length === 0) return null;
+  return Math.min(...starts) - RUNTIME_BACKDATE_ALLOWANCE_MS;
+}
+
+function formatRuntimeFloor(value: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export function OperationCockpit({ operationStatus, current, next, readiness, arrived, boardingStarted, gatheringStarted, boardingCompleted, departureAuthorized, departed, disembarkationCompleted, journeyResolved, summary, pending, onAction }: CockpitInput & { summary: StepPresenceSummary | null; pending: boolean; onAction: (action: CockpitAction) => void }) {
-  const { t } = useI18n(); const now = useNow();
+  const { t, locale } = useI18n(); const now = useNow();
   const [soundEnabled, setSoundEnabled] = React.useState(false); const [highlightNext, setHighlightNext] = React.useState(false);
   const previousActionRef = React.useRef<string | null>(null); const wasPendingRef = React.useRef(false);
   React.useEffect(() => { setSoundEnabled(window.localStorage.getItem(SOUND_KEY) === "on"); }, []);
 
+  const operationId = current?.operation_id ?? next?.operation_id ?? null;
+  const operationWindow = useQuery({
+    queryKey: ["live", operationId, "runtime-fact-window"],
+    enabled: Boolean(operationId),
+    staleTime: 30_000,
+    queryFn: async () => {
+      if (!operationId) return null;
+      const { data, error } = await supabase
+        .from("operations")
+        .select("planned_start, expected_start")
+        .eq("id", operationId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const progress = useQuery({ queryKey: ["live", current?.operation_id ?? null, "cockpit-progress", current?.id ?? null], enabled: Boolean(current?.id), refetchInterval: 10_000, queryFn: async () => { if (!current) return new Set<string>(); const { data, error } = await supabase.from("journey_events").select("event_type").eq("journey_step_id", current.id).in("event_type", [...PROGRESS_EVENT_TYPES]); if (error) throw error; return new Set((data ?? []).map((row) => row.event_type)); } });
   const facts = progress.data ?? new Set<string>();
-  const action = deriveNextAction({ operationStatus, current, next, readiness, arrived: arrived || facts.has("ARRIVED"), boardingStarted: boardingStarted || facts.has("BOARDING_STARTED"), gatheringStarted: gatheringStarted ?? facts.has("GATHERING_STARTED"), boardingCompleted: boardingCompleted ?? facts.has("BOARDING_COMPLETED"), departureAuthorized: departureAuthorized ?? facts.has("DEPARTURE_AUTHORIZED"), departed: departed ?? facts.has("DEPARTED"), disembarkationCompleted: disembarkationCompleted ?? facts.has("DISEMBARKATION_COMPLETED"), journeyResolved });
+  const derivedAction = deriveNextAction({ operationStatus, current, next, readiness, arrived: arrived || facts.has("ARRIVED"), boardingStarted: boardingStarted || facts.has("BOARDING_STARTED"), gatheringStarted: gatheringStarted ?? facts.has("GATHERING_STARTED"), boardingCompleted: boardingCompleted ?? facts.has("BOARDING_COMPLETED"), departureAuthorized: departureAuthorized ?? facts.has("DEPARTURE_AUTHORIZED"), departed: departed ?? facts.has("DEPARTED"), disembarkationCompleted: disembarkationCompleted ?? facts.has("DISEMBARKATION_COMPLETED"), journeyResolved });
+  const factFloor = runtimeFactFloor(operationWindow.data?.planned_start ?? null, operationWindow.data?.expected_start ?? null);
+  const beforeFactWindow = now !== null && factFloor !== null && now < factFloor;
+  const action: CockpitAction = beforeFactWindow
+    ? { ...derivedAction, rpc: null, anchor: null, blocked: true }
+    : derivedAction;
 
   React.useEffect(() => {
     const previous = previousActionRef.current; const changed = previous !== null && previous !== action.key; const completed = wasPendingRef.current && !pending;
@@ -53,10 +94,18 @@ export function OperationCockpit({ operationStatus, current, next, readiness, ar
   React.useEffect(() => { if (pending) wasPendingRef.current = true; }, [pending]);
 
   const delay = computeStepDelay(current, now ?? Date.now()); const tone = deriveTone({ action, delay, summary, operationStatus });
-  const stepTitle = current?.title ?? next?.title ?? t("w04.cockpit.noStep"); const timeLabel = timeText(current, next, now, delay.lateMs, t);
-  const actionable = action.rpc !== null || action.anchor !== null; const nextActionText = action.labelKey ? t(action.labelKey) : t(`w04.cockpit.action.${action.key}`); const ctaText = action.ctaKey ? t(action.ctaKey) : t(`w04.cockpit.cta.${action.key}`);
+  const stepTitle = current?.title ?? next?.title ?? t("w04.cockpit.noStep");
+  const normalTimeLabel = timeText(current, next, now, delay.lateMs, t);
+  const timeLabel = beforeFactWindow && now !== null && factFloor !== null
+    ? `${t("w04.timing.nextIn")} ${formatDuration(factFloor - now)}`
+    : normalTimeLabel;
+  const actionable = !beforeFactWindow && (action.rpc !== null || action.anchor !== null);
+  const nextActionText = beforeFactWindow && factFloor !== null
+    ? `Execução operacional disponível a partir de ${formatRuntimeFloor(factFloor, locale)}.`
+    : action.labelKey ? t(action.labelKey) : t(`w04.cockpit.action.${action.key}`);
+  const ctaText = action.ctaKey ? t(action.ctaKey) : t(`w04.cockpit.cta.${action.key}`);
   const toggleSound = () => { const value = !soundEnabled; setSoundEnabled(value); window.localStorage.setItem(SOUND_KEY, value ? "on" : "off"); if (value) playConfirmationTone(); };
-  const handleAction = () => { if (pending || progress.isFetching) return; if ("vibrate" in navigator) navigator.vibrate?.(18); onAction(action); };
+  const handleAction = () => { if (beforeFactWindow || pending || progress.isFetching) return; if ("vibrate" in navigator) navigator.vibrate?.(18); onAction(action); };
 
   return <article className={`surface-panel overflow-hidden p-0 ${TONE_CLASS[tone]}`} aria-label={t("w04.cockpit.title")}>
     <div className="h-1 w-full bg-muted"><div className={`h-full transition-all duration-500 ${tone === "blocked" ? "w-1/3 bg-destructive" : tone === "delayed" || tone === "attention" ? "w-2/3 bg-warning" : "w-full bg-success"}`} /></div>
