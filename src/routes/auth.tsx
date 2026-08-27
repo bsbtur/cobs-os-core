@@ -45,6 +45,7 @@ function AuthPage() {
   const search = Route.useSearch();
   const [busy, setBusy] = React.useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = React.useState<string | null>(null);
+  const [resendEmail, setResendEmail] = React.useState("");
 
   const destination = isSafeAppPath(search.redirect) ? search.redirect : "/app";
 
@@ -54,12 +55,39 @@ function AuthPage() {
     }
   }, [loading, session, destination]);
 
+  const resendConfirmation = async (email: string) => {
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      feedback.error("Informe o e-mail usado no cadastro.");
+      return;
+    }
+
+    setBusy(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: `${window.location.origin}${destination}`,
+      },
+    });
+    setBusy(false);
+
+    if (error) {
+      feedback.error(humanizeError(error, locale));
+      return;
+    }
+
+    feedback.success("E-mail reenviado", "Verifique sua caixa de entrada e também o spam.");
+  };
+
   const onSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    setResendEmail(email);
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({
-      email: String(form.get("email") ?? "").trim(),
+      email,
       password: String(form.get("password") ?? ""),
     });
     setBusy(false);
@@ -85,8 +113,6 @@ function AuthPage() {
       email,
       password,
       options: {
-        // DEF-PILOT-016: return the traveler to the pending claim URL after
-        // e-mail confirmation instead of dropping them on the landing page.
         emailRedirectTo: `${window.location.origin}${destination}`,
         data: { display_name: String(form.get("display_name") ?? "").trim() },
       },
@@ -97,9 +123,9 @@ function AuthPage() {
       feedback.error(humanizeError(error, locale));
       return;
     }
-    // Email confirmation is ON: signUp never returns a session.
     if (!data.session) {
       setAwaitingConfirmation(email);
+      setResendEmail(email);
       feedback.success(t("auth.created"), t("auth.confirmBody"));
     }
   };
@@ -145,8 +171,15 @@ function AuthPage() {
                 {t("auth.confirmHint")}
               </p>
               <Button
-                variant="outline"
                 className="mt-5 w-full"
+                disabled={busy}
+                onClick={() => void resendConfirmation(awaitingConfirmation)}
+              >
+                {busy ? "Reenviando..." : "Reenviar e-mail de confirmação"}
+              </Button>
+              <Button
+                variant="outline"
+                className="mt-3 w-full"
                 onClick={() => setAwaitingConfirmation(null)}
               >
                 {t("auth.backToSignIn")}
@@ -163,7 +196,14 @@ function AuthPage() {
                 <form onSubmit={onSignIn} className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="si-email">{t("auth.email")}</Label>
-                    <Input id="si-email" name="email" type="email" required autoComplete="email" />
+                    <Input
+                      id="si-email"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      onChange={(event) => setResendEmail(event.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="si-password">{t("auth.password")}</Label>
@@ -177,6 +217,15 @@ function AuthPage() {
                   </div>
                   <Button type="submit" className="min-h-11 w-full" disabled={busy}>
                     {busy ? t("auth.working") : t("auth.signIn")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="min-h-11 w-full"
+                    disabled={busy}
+                    onClick={() => void resendConfirmation(resendEmail)}
+                  >
+                    Reenviar e-mail de confirmação
                   </Button>
                 </form>
               </TabsContent>
