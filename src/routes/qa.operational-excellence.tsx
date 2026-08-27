@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/qa/operational-excellence")({
   head: () => ({
     meta: [
-      { title: "COBS V3.1-B4 — Operational Excellence QA" },
+      { title: "COBS V3.1-B5.4 — Runtime Excellence QA" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -134,15 +134,21 @@ function OperationalExcellenceQa() {
   const [payload, setPayload] = React.useState<QaPayload | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [revealed, setRevealed] = React.useState(false);
+  const [runtimeSnapshotId, setRuntimeSnapshotId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let active = true;
     const load = async () => {
       try {
         const client = supabase as unknown as RpcClient;
-        const { data, error: rpcError } = await client.rpc("get_v31b_b4_qa_excellence");
+        const snapshotId = new URLSearchParams(window.location.search).get("snapshot");
+        if (active) setRuntimeSnapshotId(snapshotId);
+        const { data, error: rpcError } = snapshotId
+          ? await client.rpc("get_v31b_b5_runtime_excellence", { p_snapshot_id: snapshotId })
+          : await client.rpc("get_v31b_b4_qa_excellence");
         if (rpcError) throw rpcError;
         if (!isQaPayload(data)) throw new Error("Snapshot QA canônico não disponível.");
+        if (snapshotId && data.snapshot.id !== snapshotId) throw new Error("Snapshot retornado não corresponde ao lifecycle runtime.");
         if (!active) return;
         setPayload(data);
         window.setTimeout(() => active && setRevealed(true), 80);
@@ -196,7 +202,7 @@ function OperationalExcellenceQa() {
       <div className="mx-auto max-w-md pb-8">
         <div className="mb-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
-            COBS Human Experience V3.1-B4 · QA Mobile
+            {runtimeSnapshotId ? "COBS Human Experience V3.1-B5.4 · Runtime E2E" : "COBS Human Experience V3.1-B4 · QA Mobile"}
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">Operational Excellence</h1>
           <p className="mt-1 text-sm text-muted-foreground">Resultado final da operação · somente leitura</p>
@@ -280,6 +286,7 @@ function OperationalExcellenceQa() {
           <div className="mt-1 flex items-center justify-between gap-3"><span>Versão</span><strong className="text-foreground">v{payload.model.version}</strong></div>
           <div className="mt-1 flex items-center justify-between gap-3"><span>Status</span><strong className="text-foreground">{payload.snapshot.evaluation_status}</strong></div>
           <div className="mt-1 flex items-center justify-between gap-3"><span>Cobertura</span><strong className="text-foreground">{payload.snapshot.coverage_percent}%</strong></div>
+          {runtimeSnapshotId ? <div className="mt-1 flex items-start justify-between gap-3"><span>Snapshot runtime</span><strong className="max-w-[220px] break-all text-right text-foreground">{payload.snapshot.id}</strong></div> : null}
           <p className="mt-3 border-t border-border/60 pt-3 text-[11px]">Ambiente QA isolado. Esta tela apenas consulta o resultado final persistido; não altera score, evidências ou operação.</p>
         </section>
       </div>
