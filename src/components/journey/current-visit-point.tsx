@@ -34,12 +34,6 @@ function formatClock(ms: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-/**
- * W11 live guidance — rendered BELOW the Cockpit Core, never competing with it.
- * It shows the current visit point and records facts through the canonical
- * set_journey_visit_point_status RPC used by the deployed W11 schema.
- * It never completes a W04 step, never touches readiness and never blocks completion.
- */
 export function CurrentVisitPoint({
   points,
   events,
@@ -47,7 +41,7 @@ export function CurrentVisitPoint({
 }: {
   points: VisitPointRow[];
   events: VisitPointEventRow[];
-  onRecorded: () => void;
+  onRecorded: () => void | Promise<void>;
 }) {
   const { t, locale } = useI18n();
   const now = useNow();
@@ -55,6 +49,7 @@ export function CurrentVisitPoint({
   const [skipOpen, setSkipOpen] = React.useState(false);
   const [reason, setReason] = React.useState("");
   const [submittedPointId, setSubmittedPointId] = React.useState<string | null>(null);
+  const [optimisticStarted, setOptimisticStarted] = React.useState<{ pointId: string; at: number } | null>(null);
 
   const normalizedEvents = React.useMemo(
     () => normalizeVisitPointRuntimeEvents(events),
@@ -66,7 +61,7 @@ export function CurrentVisitPoint({
   );
   const current = state.current;
 
-  const startedAt = React.useMemo(() => {
+  const persistedStartedAt = React.useMemo(() => {
     if (!current) return null;
     const started = normalizedEvents
       .filter(
@@ -74,10 +69,14 @@ export function CurrentVisitPoint({
           event.visit_point_id === current.id && event.event_type === "VISIT_POINT_STARTED",
       )
       .sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1))[0];
-    if (!started) return null;
+    if (!started?.occurred_at) return null;
     const value = new Date(started.occurred_at).getTime();
     return Number.isFinite(value) ? value : null;
   }, [current, normalizedEvents]);
+
+  const startedAt =
+    persistedStartedAt ??
+    (current && optimisticStarted?.pointId === current.id ? optimisticStarted.at : null);
 
   const timing = React.useMemo(() => {
     if (!current?.estimatedMinutes || startedAt === null) return null;
@@ -93,10 +92,19 @@ export function CurrentVisitPoint({
   }, [current?.estimatedMinutes, now, startedAt]);
 
   React.useEffect(() => {
+    if (persistedStartedAt !== null && optimisticStarted?.pointId === current?.id) {
+      setOptimisticStarted(null);
+    }
+  }, [persistedStartedAt, optimisticStarted?.pointId, current?.id]);
+
+  React.useEffect(() => {
+    if (optimisticStarted && current?.id !== optimisticStarted.pointId) {
+      setOptimisticStarted(null);
+    }
     if (submittedPointId && current?.id !== submittedPointId) {
       setSubmittedPointId(null);
     }
-  }, [current?.id, submittedPointId]);
+  }, [current?.id, optimisticStarted, submittedPointId]);
 
   const record = useMutation({
     mutationFn: async (input: {
@@ -118,16 +126,19 @@ export function CurrentVisitPoint({
       } as never);
       if (error) throw error;
     },
-    onSuccess: (_data, variables) => {
-      if (variables.type !== "VISIT_POINT_STARTED") {
+    onSuccess: async (_data, variables) => {
+      if (variables.type === "VISIT_POINT_STARTED") {
+        setOptimisticStarted({ pointId: variables.pointId, at: Date.now() });
+      } else {
         setSubmittedPointId(variables.pointId);
       }
-      feedback.success(t("w11.recorded"));
       setReason("");
       setSkipOpen(false);
-      onRecorded();
+      await onRecorded();
+      feedback.success(t("w11.recorded"));
     },
     onError: (error) => {
+      setOptimisticStarted(null);
       setSubmittedPointId(null);
       feedback.error(humanizeError(error, locale));
     },
@@ -152,33 +163,23 @@ export function CurrentVisitPoint({
 
       {current ? (
         <>
-          <h3 className="mt-1 break-words text-lg font-semibold text-foreground">
-            {current.title}
-          </h3>
+          <h3 className="mt-1 break-words text-lg font-semibold text-foreground">{current.title}</h3>
           <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-xs text-muted-foreground">{t("w11.live.progress")}</p>
-              <p className="tabular-nums">
-                {state.currentPosition} {t("w11.live.of")} {state.total}
-              </p>
+              <p className="tabular-nums">{state.currentPosition} {t("w11.live.of")} {state.total}</p>
             </div>
             {current.estimatedMinutes ? (
               <div>
                 <p className="text-xs text-muted-foreground">{t("w11.live.suggested")}</p>
-                <p className="tabular-nums">
-                  {current.estimatedMinutes} {t("w11.live.minutes")}
-                </p>
+                <p className="tabular-nums">{current.estimatedMinutes} {t("w11.live.minutes")}</p>
               </div>
             ) : null}
           </div>
 
           {currentStarted && timing ? (
             <div
-              className={`mt-3 overflow-hidden rounded-2xl border p-3 ${
-                timing.late
-                  ? "border-warning/50 bg-warning-soft/40"
-                  : "border-primary/25 bg-primary/5"
-              }`}
+              className={`mt-3 overflow-hidden rounded-2xl border p-3 ${timing.late ? "border-warning/50 bg-warning-soft/40" : "border-primary/25 bg-primary/5"}`}
               aria-live="polite"
             >
               <div className="flex items-center justify-between gap-3">
@@ -207,25 +208,15 @@ export function CurrentVisitPoint({
             </div>
           ) : null}
 
-          {current.interpretiveContent ? (
-            <p className="mt-3 break-words text-sm text-foreground/90">
-              {current.interpretiveContent}
-            </p>
-          ) : null}
-          {current.operationalNote ? (
-            <p className="mt-2 break-words text-sm text-muted-foreground">
-              {current.operationalNote}
-            </p>
-          ) : null}
+          {current.interpretiveContent ? <p className="mt-3 break-words text-sm text-foreground/90">{current.interpretiveContent}</p> : null}
+          {current.operationalNote ? <p className="mt-2 break-words text-sm text-muted-foreground">{current.operationalNote}</p> : null}
 
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             {!currentStarted ? (
               <Button
                 className="min-h-11 flex-1"
                 disabled={record.isPending}
-                onClick={() =>
-                  record.mutate({ type: "VISIT_POINT_STARTED", pointId: current.id })
-                }
+                onClick={() => record.mutate({ type: "VISIT_POINT_STARTED", pointId: current.id })}
               >
                 <Play className="size-4" />
                 Iniciar ponto
@@ -234,19 +225,12 @@ export function CurrentVisitPoint({
               <Button
                 className="min-h-11 flex-1"
                 disabled={actionDisabled}
-                onClick={() =>
-                  record.mutate({ type: "VISIT_POINT_COMPLETED", pointId: current.id })
-                }
+                onClick={() => record.mutate({ type: "VISIT_POINT_COMPLETED", pointId: current.id })}
               >
                 {currentAlreadySubmitted ? t("w11.status.completed") : t("w11.live.complete")}
               </Button>
             )}
-            <Button
-              variant="outline"
-              className="min-h-11"
-              onClick={() => setSkipOpen(true)}
-              disabled={actionDisabled}
-            >
+            <Button variant="outline" className="min-h-11" onClick={() => setSkipOpen(true)} disabled={actionDisabled}>
               {t("w11.live.skip")}
             </Button>
           </div>
@@ -255,12 +239,7 @@ export function CurrentVisitPoint({
         <p className="mt-2 text-sm text-muted-foreground">{t("w11.live.allResolved")}</p>
       )}
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mt-2 min-h-9 px-0"
-        onClick={() => setShowAll((value) => !value)}
-      >
+      <Button variant="ghost" size="sm" className="mt-2 min-h-9 px-0" onClick={() => setShowAll((value) => !value)}>
         {showAll ? t("w11.live.hideAll") : t("w11.live.seeAll")}
       </Button>
 
@@ -269,9 +248,7 @@ export function CurrentVisitPoint({
           {state.points.map((point) => (
             <li key={point.id} className="flex flex-wrap items-center gap-2">
               <span className="min-w-0 flex-1 break-words">{point.title}</span>
-              <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                {t(`w11.status.${point.status}`)}
-              </span>
+              <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{t(`w11.status.${point.status}`)}</span>
             </li>
           ))}
         </ol>
@@ -281,31 +258,17 @@ export function CurrentVisitPoint({
 
       <Dialog open={skipOpen} onOpenChange={setSkipOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("w11.live.skipTitle")}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{t("w11.live.skipTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="vp-skip-reason">{t("w11.field.reason")}</Label>
-              <Textarea
-                id="vp-skip-reason"
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                rows={3}
-              />
+              <Textarea id="vp-skip-reason" value={reason} onChange={(event) => setReason(event.target.value)} rows={3} />
             </div>
-            {current && current.isRequired && !reason.trim() ? (
-              <p className="text-xs text-warning">{t("w11.live.skipReasonRequired")}</p>
-            ) : null}
+            {current && current.isRequired && !reason.trim() ? <p className="text-xs text-warning">{t("w11.live.skipReasonRequired")}</p> : null}
             <Button
               className="min-h-11 w-full"
-              disabled={
-                actionDisabled || !current || !canSkip({ isRequired: current.isRequired }, reason)
-              }
-              onClick={() =>
-                current &&
-                record.mutate({ type: "VISIT_POINT_SKIPPED", pointId: current.id })
-              }
+              disabled={actionDisabled || !current || !canSkip({ isRequired: current.isRequired }, reason)}
+              onClick={() => current && record.mutate({ type: "VISIT_POINT_SKIPPED", pointId: current.id })}
             >
               {t("w11.live.skip")}
             </Button>
