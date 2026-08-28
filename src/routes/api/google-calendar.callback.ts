@@ -7,6 +7,26 @@ import {
   verifyOAuthState,
 } from "@/lib/google-calendar.server";
 
+function describeCallbackError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object") {
+    const candidate = error as {
+      message?: unknown;
+      code?: unknown;
+      details?: unknown;
+      hint?: unknown;
+    };
+    return JSON.stringify({
+      message: candidate.message ?? null,
+      code: candidate.code ?? null,
+      details: candidate.details ?? null,
+      hint: candidate.hint ?? null,
+    });
+  }
+  return "unknown";
+}
+
 export const Route = createFileRoute("/api/google-calendar/callback")({
   server: {
     handlers: {
@@ -31,33 +51,28 @@ export const Route = createFileRoute("/api/google-calendar/callback")({
         try {
           const tokens = await exchangeAuthorizationCode(config, code);
           const calendar = await fetchGoogleIdentity(tokens.access_token);
-          const row = {
-            tenant_id: state.tenantId,
-            profile_id: state.userId,
-            google_calendar_id: calendar.id,
-            google_calendar_label: calendar.summary ?? null,
-            google_timezone: calendar.timeZone ?? null,
-            access_token: encryptGoogleToken(tokens.access_token, config.tokenSecret),
-            ...(tokens.refresh_token
-              ? { refresh_token: encryptGoogleToken(tokens.refresh_token, config.tokenSecret) }
-              : {}),
-            access_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-            granted_scopes: tokens.scope?.split(" ") ?? [],
-            revoked_at: null,
-            updated_at: new Date().toISOString(),
-          };
-          // app_private is deliberately absent from the browser-facing generated Database type.
-          const { error } = await supabaseAdmin
-            .schema("app_private" as never)
-            .from("google_calendar_connections" as never)
-            .upsert(row as never, { onConflict: "tenant_id,profile_id" });
+          const { error } = await supabaseAdmin.rpc(
+            "persist_google_calendar_connection" as never,
+            {
+              _tenant_id: state.tenantId,
+              _profile_id: state.userId,
+              _google_calendar_id: calendar.id,
+              _google_calendar_label: calendar.summary ?? null,
+              _google_timezone: calendar.timeZone ?? null,
+              _access_token: encryptGoogleToken(tokens.access_token, config.tokenSecret),
+              _refresh_token: tokens.refresh_token
+                ? encryptGoogleToken(tokens.refresh_token, config.tokenSecret)
+                : null,
+              _access_token_expires_at: new Date(
+                Date.now() + tokens.expires_in * 1000,
+              ).toISOString(),
+              _granted_scopes: tokens.scope?.split(" ") ?? [],
+            } as never,
+          );
           if (error) throw error;
           return Response.redirect(new URL("/settings?calendar=connected", request.url), 303);
         } catch (error) {
-          console.error(
-            "[Google Calendar] callback failed",
-            error instanceof Error ? error.message : "unknown",
-          );
+          console.error("[Google Calendar] callback failed", describeCallbackError(error));
           return Response.redirect(new URL("/settings?calendar=error", request.url), 303);
         }
       },
