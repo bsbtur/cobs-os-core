@@ -1,5 +1,4 @@
 import * as React from "react";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { Bot, RefreshCw, Send } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +31,22 @@ type CommercialLeadResult = {
   created_at: string;
 };
 
-const automationDb = supabase as unknown as SupabaseClient;
+type AutomationQueryResponse = {
+  data: unknown;
+  error: { message?: string } | null;
+};
+
+type AutomationResultQuery = {
+  select: (columns: string) => {
+    eq: (column: string, value: string) => {
+      maybeSingle: () => Promise<AutomationQueryResponse>;
+    };
+  };
+};
+
+const automationDb = supabase as unknown as {
+  from: (relation: string) => AutomationResultQuery;
+};
 
 function automationError(value: unknown): string {
   if (value instanceof Error) return value.message;
@@ -83,7 +97,7 @@ async function loadResult(eventId: string): Promise<CommercialLeadResult | null>
     .eq("automation_event_id", eventId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw new Error(error.message ?? "automation_result_lookup_failed");
   return (data ?? null) as CommercialLeadResult | null;
 }
 
