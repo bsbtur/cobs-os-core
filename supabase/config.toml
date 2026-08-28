@@ -1,1 +1,7 @@
 project_id = "kkclthdpnwuamsndtxxq"
+
+# Called both by authenticated COBS users and by n8n service callbacks.
+# The function validates each caller explicitly; publishable/secret API keys
+# are not accepted as bearer JWTs by the platform-level verifier.
+[functions.automation-gateway]
+verify_jwt = false
