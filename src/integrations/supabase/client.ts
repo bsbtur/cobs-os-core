@@ -3,6 +3,24 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
 
+const CIOSP_QA_HOST = "cobs-os-qa-git-feat-ciosp-c-ff63d9-contatobsbtur-7062s-projects.vercel.app";
+
+function canonicalizeCiospPreviewHost() {
+  if (typeof window === "undefined") return;
+
+  const { hostname, pathname, search, hash } = window.location;
+  const immutableVercelPreview =
+    hostname.startsWith("cobs-os-") &&
+    !hostname.includes("-git-") &&
+    hostname.endsWith("-contatobsbtur-7062s-projects.vercel.app");
+
+  if (immutableVercelPreview && hostname !== CIOSP_QA_HOST) {
+    window.location.replace(`https://${CIOSP_QA_HOST}${pathname}${search}${hash}`);
+  }
+}
+
+canonicalizeCiospPreviewHost();
+
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
 }
@@ -34,11 +52,8 @@ function isCiospCommercialPreview(): boolean {
 
   const hostname = window.location.hostname;
 
-  // Vercel exposes two host shapes for the same Preview deployment:
-  // the stable branch alias and an immutable deployment hostname. Both must
-  // use STAGING; otherwise the exact same build can read a different database.
   return (
-    hostname.includes("cobs-os-qa-git-feat-ciosp-c-") ||
+    hostname === CIOSP_QA_HOST ||
     (hostname.startsWith("cobs-os-") && hostname.endsWith("-contatobsbtur-7062s-projects.vercel.app"))
   );
 }
