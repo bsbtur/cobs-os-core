@@ -67,12 +67,14 @@ describe("checklist planning helpers", () => {
     expect(canManageChecklist(null)).toBe(false);
   });
 
-  it("allows editing only while the baseline is open", () => {
+  it("allows planning edits and audited corrections during active operations", () => {
     expect(isChecklistEditable("draft", "admin")).toBe(true);
     expect(isChecklistEditable("planning", "operations_agent")).toBe(true);
+    expect(isChecklistEditable("active", "owner")).toBe(true);
+    expect(isChecklistEditable("active", "admin")).toBe(true);
     expect(isChecklistEditable("ready", "admin")).toBe(false);
-    expect(isChecklistEditable("active", "owner")).toBe(false);
     expect(isChecklistEditable("completed", "owner")).toBe(false);
-    expect(isChecklistEditable("planning", "member")).toBe(false);
+    expect(isChecklistEditable("cancelled", "owner")).toBe(false);
+    expect(isChecklistEditable("active", "member")).toBe(false);
   });
 });
