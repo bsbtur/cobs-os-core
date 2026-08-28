@@ -5,6 +5,7 @@ import { Plus, Receipt, ShoppingBag } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { CommercialLeadCard } from "@/components/commerce/commercial-lead-card";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -223,6 +224,8 @@ function CommerceWorkspace() {
         <p className="text-sm text-muted-foreground">{t("w09.subtitle")}</p>
         <p className="text-xs text-muted-foreground">{t("w09.boundary")}</p>
       </header>
+
+      <CommercialLeadCard tenantId={tenantId} />
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1.5">
