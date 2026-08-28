@@ -16,6 +16,7 @@ import { feedback } from "@/components/feedback/feedback";
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
+    mode: search["mode"] === "recovery" ? "recovery" : undefined,
   }),
   head: () => ({
     meta: [
@@ -45,14 +46,17 @@ function AuthPage() {
   const search = Route.useSearch();
   const [busy, setBusy] = React.useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = React.useState<string | null>(null);
+  const [resetRequested, setResetRequested] = React.useState<string | null>(null);
+  const [forgotMode, setForgotMode] = React.useState(false);
 
+  const recoveryMode = search.mode === "recovery";
   const destination = isSafeAppPath(search.redirect) ? search.redirect : "/app";
 
   React.useEffect(() => {
-    if (!loading && session) {
+    if (!recoveryMode && !loading && session) {
       window.location.replace(destination);
     }
-  }, [loading, session, destination]);
+  }, [loading, session, destination, recoveryMode]);
 
   const onSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -71,6 +75,47 @@ function AuthPage() {
     void navigate({ to: destination as "/app" });
   };
 
+  const onRequestPasswordReset = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth?mode=recovery`,
+    });
+    setBusy(false);
+    if (error) {
+      feedback.error(humanizeError(error, locale));
+      return;
+    }
+    setResetRequested(email);
+    feedback.success("E-mail de recuperação enviado");
+  };
+
+  const onUpdatePassword = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get("password") ?? "");
+    const confirmPassword = String(form.get("confirm_password") ?? "");
+    if (password.length < 8) {
+      feedback.error("A senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      feedback.error("As senhas não coincidem.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setBusy(false);
+    if (error) {
+      feedback.error(humanizeError(error, locale));
+      return;
+    }
+    feedback.success("Senha atualizada com sucesso");
+    window.location.replace("/commerce/payment-qa");
+  };
+
   const onSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -85,8 +130,6 @@ function AuthPage() {
       email,
       password,
       options: {
-        // DEF-PILOT-016: return the traveler to the pending claim URL after
-        // e-mail confirmation instead of dropping them on the landing page.
         emailRedirectTo: `${window.location.origin}${destination}`,
         data: { display_name: String(form.get("display_name") ?? "").trim() },
       },
@@ -97,7 +140,6 @@ function AuthPage() {
       feedback.error(humanizeError(error, locale));
       return;
     }
-    // Email confirmation is ON: signUp never returns a session.
     if (!data.session) {
       setAwaitingConfirmation(email);
       feedback.success(t("auth.created"), t("auth.confirmBody"));
@@ -113,10 +155,10 @@ function AuthPage() {
         </div>
         <div className="relative max-w-md animate-rise">
           <h2 className="text-3xl font-semibold leading-tight text-sidebar-foreground">
-            {t("auth.title")}
+            {recoveryMode ? "Redefinir senha" : t("auth.title")}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-sidebar-foreground/70">
-            {t("auth.subtitle")}
+            {recoveryMode ? "Defina uma nova senha para continuar no COBS OS." : t("auth.subtitle")}
           </p>
         </div>
         <p className="relative flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-sidebar-foreground/50">
@@ -131,7 +173,52 @@ function AuthPage() {
             <BrandLockup />
           </div>
 
-          {awaitingConfirmation ? (
+          {recoveryMode ? (
+            <form onSubmit={onUpdatePassword} className="animate-rise space-y-4">
+              <h1 className="text-xl font-semibold">Definir nova senha</h1>
+              <div className="space-y-2">
+                <Label htmlFor="recovery-password">Nova senha</Label>
+                <Input id="recovery-password" name="password" type="password" required minLength={8} autoComplete="new-password" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="recovery-password-confirm">Confirmar nova senha</Label>
+                <Input id="recovery-password-confirm" name="confirm_password" type="password" required minLength={8} autoComplete="new-password" />
+              </div>
+              <Button type="submit" className="min-h-11 w-full" disabled={busy || !session}>
+                {busy ? "Salvando…" : "Salvar nova senha"}
+              </Button>
+              {!session && !loading ? (
+                <p className="text-sm text-destructive">O link de recuperação é inválido ou expirou. Solicite um novo e-mail.</p>
+              ) : null}
+            </form>
+          ) : resetRequested ? (
+            <div className="animate-rise surface-panel p-6 text-center">
+              <span className="mx-auto grid size-11 place-items-center rounded-lg bg-primary-soft text-primary">
+                <MailCheck className="size-5" aria-hidden="true" />
+              </span>
+              <h1 className="mt-4 text-lg font-semibold">Confira seu e-mail</h1>
+              <p className="mt-2 text-sm text-muted-foreground">Enviamos o link para redefinir a senha.</p>
+              <p className="mt-3 break-all font-mono text-xs text-foreground">{resetRequested}</p>
+              <Button variant="outline" className="mt-5 w-full" onClick={() => { setResetRequested(null); setForgotMode(false); }}>
+                Voltar para entrar
+              </Button>
+            </div>
+          ) : forgotMode ? (
+            <form onSubmit={onRequestPasswordReset} className="animate-rise space-y-4">
+              <h1 className="text-xl font-semibold">Recuperar senha</h1>
+              <p className="text-sm text-muted-foreground">Informe seu e-mail e enviaremos um link seguro para redefinir a senha.</p>
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">E-mail</Label>
+                <Input id="reset-email" name="email" type="email" required autoComplete="email" />
+              </div>
+              <Button type="submit" className="min-h-11 w-full" disabled={busy}>
+                {busy ? "Enviando…" : "Enviar link de recuperação"}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => setForgotMode(false)}>
+                Voltar para entrar
+              </Button>
+            </form>
+          ) : awaitingConfirmation ? (
             <div className="animate-rise surface-panel p-6 text-center">
               <span className="mx-auto grid size-11 place-items-center rounded-lg bg-primary-soft text-primary">
                 <MailCheck className="size-5" aria-hidden="true" />
@@ -174,6 +261,11 @@ function AuthPage() {
                       required
                       autoComplete="current-password"
                     />
+                  </div>
+                  <div className="text-right">
+                    <button type="button" className="text-sm text-primary hover:underline" onClick={() => setForgotMode(true)}>
+                      Esqueci minha senha
+                    </button>
                   </div>
                   <Button type="submit" className="min-h-11 w-full" disabled={busy}>
                     {busy ? t("auth.working") : t("auth.signIn")}
