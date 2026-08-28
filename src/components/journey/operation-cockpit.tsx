@@ -109,8 +109,8 @@ export function OperationCockpit({ operationStatus, current, next, readiness, ar
 
   return <>
     <style>{`
-      article[data-primary-cockpit="true"] + article[data-live-secondary-command="true"],
-      article[data-primary-cockpit="true"] + section#cockpit-visit-point + article[data-live-secondary-command="true"] {
+      article[data-primary-cockpit="true"] + article,
+      article[data-primary-cockpit="true"] + section#cockpit-visit-point + article {
         display: none;
       }
     `}</style>
