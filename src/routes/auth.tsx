@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { feedback } from "@/components/feedback/feedback";
 
+const CIOSP_QA_ORIGIN = "https://cobs-os-qa-git-feat-ciosp-c-ff63d9-contatobsbtur-7062s-projects.vercel.app";
+
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
@@ -79,9 +81,12 @@ function AuthPage() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
+    const recoveryTarget = new URL("/auth", CIOSP_QA_ORIGIN);
+    recoveryTarget.searchParams.set("mode", "recovery");
+    recoveryTarget.searchParams.set("redirect", destination);
     setBusy(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?mode=recovery`,
+      redirectTo: recoveryTarget.toString(),
     });
     setBusy(false);
     if (error) {
@@ -113,7 +118,7 @@ function AuthPage() {
       return;
     }
     feedback.success("Senha atualizada com sucesso");
-    window.location.replace("/commerce/payment-qa");
+    window.location.replace(destination);
   };
 
   const onSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -130,7 +135,7 @@ function AuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}${destination}`,
+        emailRedirectTo: `${CIOSP_QA_ORIGIN}${destination}`,
         data: { display_name: String(form.get("display_name") ?? "").trim() },
       },
     });
