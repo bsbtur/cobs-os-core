@@ -6,6 +6,8 @@ import {
   Building2,
   Bus,
   CalendarDays,
+  CheckCircle2,
+  CircleAlert,
   History,
   Settings2,
   UserRound,
@@ -119,9 +121,49 @@ function DisplayNameCard() {
   );
 }
 
+type GoogleCalendarStatus = {
+  google_calendar_label: string | null;
+  google_timezone: string | null;
+  connected_at: string;
+  updated_at: string;
+};
+
 function Body() {
   const { t, locale } = useI18n();
   const { tenant } = useTenant();
+  const [calendarResult, setCalendarResult] = React.useState<"connected" | "error" | null>(null);
+
+  React.useEffect(() => {
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get("calendar");
+    if (result !== "connected" && result !== "error") return;
+
+    setCalendarResult(result);
+    if (result === "connected") {
+      feedback.success("Google Agenda conectada com sucesso.");
+    } else {
+      feedback.error("A conexão com o Google Agenda não foi concluída.");
+    }
+
+    url.searchParams.delete("calendar");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+
+  const calendarStatus = useQuery({
+    queryKey: ["google-calendar-status", tenant?.id],
+    enabled: Boolean(tenant?.id),
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc(
+        "get_my_google_calendar_connection_status" as never,
+        { _tenant_id: tenant!.id } as never,
+      );
+      if (error) throw error;
+      return (
+        (data as unknown as GoogleCalendarStatus[] | null)?.[0] ?? null
+      ) as GoogleCalendarStatus | null;
+    },
+  });
 
   const connectGoogleCalendar = async () => {
     if (!tenant) return;
@@ -177,6 +219,8 @@ function Body() {
       ]
     : [];
 
+  const isCalendarConnected = Boolean(calendarStatus.data) || calendarResult === "connected";
+
   return (
     <div className="space-y-6">
       <section className="surface-panel animate-rise p-5">
@@ -227,13 +271,53 @@ function Body() {
           Conecte sua agenda para sincronizar operações e consultar horários livres sem expor sua
           senha Google.
         </p>
+
+        {calendarStatus.isLoading ? (
+          <div className="mt-4 text-xs text-muted-foreground">Verificando conexão...</div>
+        ) : isCalendarConnected ? (
+          <div className="mt-4 rounded-lg border border-primary/30 bg-primary-soft p-3">
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold">Google Agenda conectada</p>
+                {calendarStatus.data?.google_calendar_label ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Agenda: {calendarStatus.data.google_calendar_label}
+                  </p>
+                ) : null}
+                {calendarStatus.data?.google_timezone ? (
+                  <p className="text-xs text-muted-foreground">
+                    Fuso horário: {calendarStatus.data.google_timezone}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : calendarResult === "error" ? (
+          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+            <div className="flex items-start gap-2">
+              <CircleAlert
+                className="mt-0.5 size-4 shrink-0 text-destructive"
+                aria-hidden="true"
+              />
+              <div>
+                <p className="text-sm font-semibold">Não foi possível conectar o Google Agenda</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Tente novamente. Se o erro persistir, o log técnico registrará a etapa exata da
+                  falha.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <Button
           type="button"
           className="mt-4 min-h-11"
           onClick={() => void connectGoogleCalendar()}
         >
           <CalendarDays className="mr-2 size-4" aria-hidden="true" />
-          Conectar Google Agenda
+          {isCalendarConnected ? "Reconectar Google Agenda" : "Conectar Google Agenda"}
         </Button>
       </section>
 
