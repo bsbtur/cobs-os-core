@@ -27,6 +27,9 @@ describe("Google Calendar OAuth", () => {
     );
     expect(url.searchParams.get("access_type")).toBe("offline");
     expect(url.searchParams.get("include_granted_scopes")).toBe("true");
+    expect(url.searchParams.get("scope")?.split(" ")).toContain(
+      "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+    );
     expect(url.searchParams.get("state")).toBe("signed");
   });
   test("never stores a Google token as plaintext", () => {
