@@ -39,7 +39,7 @@ type AutomationQueryResponse = {
 type AutomationResultQuery = {
   select: (columns: string) => {
     eq: (column: string, value: string) => {
-      maybeSingle: () => Promise<AutomationQueryResponse>;
+      maybeSingle: () => PromiseLike<AutomationQueryResponse>;
     };
   };
 };
@@ -105,7 +105,7 @@ async function waitForResult(eventId: string): Promise<CommercialLeadResult | nu
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const result = await loadResult(eventId);
     if (result) return result;
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
   }
   return null;
 }
@@ -170,7 +170,7 @@ export function CommercialLeadCard({ tenantId }: { tenantId: string }) {
 
     try {
       const idempotencyKey = `lead-ui:${tenantId}:${crypto.randomUUID()}`;
-      const { data, error } = await supabase.functions.invoke<DispatchResponse>("automation-gateway", {
+      const invocation = await supabase.functions.invoke("automation-gateway", {
         body: {
           tenant_id: tenantId,
           operation_id: operationId || null,
@@ -185,7 +185,8 @@ export function CommercialLeadCard({ tenantId }: { tenantId: string }) {
         },
       });
 
-      if (error) throw error;
+      if (invocation.error) throw invocation.error;
+      const data = invocation.data as DispatchResponse | null;
       if (!data?.ok) throw new Error(data?.error ?? "automation_dispatch_failed");
 
       const dispatchedEventId = data.event_id ?? data.event?.id ?? null;
@@ -197,9 +198,7 @@ export function CommercialLeadCard({ tenantId }: { tenantId: string }) {
 
       const analyzed = await waitForResult(dispatchedEventId);
       setResult(analyzed);
-      if (!analyzed) {
-        feedback.info("Lead aceito. A análise ainda está em processamento.");
-      }
+      if (!analyzed) feedback.info("Lead aceito. A análise ainda está em processamento.");
     } catch (error) {
       feedback.error("Falha ao enviar lead para análise.", automationError(error));
     } finally {
@@ -278,9 +277,7 @@ export function CommercialLeadCard({ tenantId }: { tenantId: string }) {
                 <p className="font-medium">Evento de automação</p>
                 <p className="break-all text-xs text-muted-foreground">{eventId}</p>
                 {correlationId && (
-                  <p className="mt-1 break-all text-xs text-muted-foreground">
-                    Correlação: {correlationId}
-                  </p>
+                  <p className="mt-1 break-all text-xs text-muted-foreground">Correlação: {correlationId}</p>
                 )}
               </div>
               <Button type="button" variant="outline" size="sm" onClick={refreshResult} disabled={refreshing}>
