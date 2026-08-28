@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { feedback } from "@/components/feedback/feedback";
 
 type AuthSearch = {
-  redirect?: string;
+  redirect?: string | undefined;
   mode?: "recovery";
 };
 
