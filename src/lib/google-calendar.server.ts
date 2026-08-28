@@ -6,6 +6,7 @@ const CALENDAR_API = "https://www.googleapis.com/calendar/v3";
 export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.freebusy",
+  "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
 ];
 
 type GoogleConfig = {
