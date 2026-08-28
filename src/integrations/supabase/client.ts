@@ -30,9 +30,16 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function isCiospCommercialPreview(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const hostname = window.location.hostname;
+
+  // Vercel exposes two host shapes for the same Preview deployment:
+  // the stable branch alias and an immutable deployment hostname. Both must
+  // use STAGING; otherwise the exact same build can read a different database.
   return (
-    typeof window !== "undefined" &&
-    window.location.hostname.includes("cobs-os-qa-git-feat-ciosp-c-")
+    hostname.includes("cobs-os-qa-git-feat-ciosp-c-") ||
+    (hostname.startsWith("cobs-os-") && hostname.endsWith("-contatobsbtur-7062s-projects.vercel.app"))
   );
 }
 
