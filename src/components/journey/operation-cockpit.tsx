@@ -108,10 +108,16 @@ export function OperationCockpit({ operationStatus, current, next, readiness, ar
   const handleAction = () => { if (beforeFactWindow || pending || progress.isFetching) return; if ("vibrate" in navigator) navigator.vibrate?.(18); onAction(action); };
 
   return <>
+    <style>{`
+      article[data-primary-cockpit="true"] + article[data-live-secondary-command="true"],
+      article[data-primary-cockpit="true"] + section#cockpit-visit-point + article[data-live-secondary-command="true"] {
+        display: none;
+      }
+    `}</style>
     {beforeFactWindow ? (
       <style>{`article[data-runtime-window-blocked="true"] + article { display: none; }`}</style>
     ) : null}
-    <article data-runtime-window-blocked={beforeFactWindow ? "true" : undefined} className={`surface-panel overflow-hidden p-0 ${TONE_CLASS[tone]}`} aria-label={t("w04.cockpit.title")}>
+    <article data-primary-cockpit="true" data-runtime-window-blocked={beforeFactWindow ? "true" : undefined} className={`surface-panel overflow-hidden p-0 ${TONE_CLASS[tone]}`} aria-label={t("w04.cockpit.title")}>
       <div className="h-1 w-full bg-muted"><div className={`h-full transition-all duration-500 ${tone === "blocked" ? "w-1/3 bg-destructive" : tone === "delayed" || tone === "attention" ? "w-2/3 bg-warning" : "w-full bg-success"}`} /></div>
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3"><div className="flex flex-wrap items-center gap-2"><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{t("w04.cockpit.currentStep")}</p><span className={`rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] ${TONE_BADGE[tone]}`}>{t(`w04.cockpit.tone.${tone}`)}</span></div><Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs text-muted-foreground" onClick={toggleSound} aria-pressed={soundEnabled} title={soundEnabled ? "Desativar feedback sonoro" : "Ativar feedback sonoro"}>{soundEnabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}<span className="hidden sm:inline">{soundEnabled ? "Som ligado" : "Som desligado"}</span></Button></div>
