@@ -13,11 +13,18 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { feedback } from "@/components/feedback/feedback";
 
+type AuthSearch = {
+  redirect?: string;
+  mode?: "recovery";
+};
+
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
-    mode: search["mode"] === "recovery" ? "recovery" : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): AuthSearch => {
+    const parsed: AuthSearch = {};
+    if (typeof search["redirect"] === "string") parsed.redirect = search["redirect"] as string;
+    if (search["mode"] === "recovery") parsed.mode = "recovery";
+    return parsed;
+  },
   head: () => ({
     meta: [
       { title: "Sign in — COBS OS identity" },
