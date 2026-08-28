@@ -18,6 +18,16 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/co
 
 const db = supabase as any;
 
+const CATEGORY_LABELS: Record<string, string> = {
+  hotel: "Hotel",
+  transport: "Transporte",
+  food: "Alimentação",
+  insurance: "Seguro",
+  event: "Inscrição / evento",
+  staff: "Equipe / guia",
+  other: "Outros",
+};
+
 function money(value: number | null | undefined) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
     (Number(value ?? 0) || 0) / 100,
@@ -28,6 +38,11 @@ function toMinor(value: string) {
   const normalized = value.replace(/\./g, "").replace(",", ".");
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? Math.round(parsed * 100) : 0;
+}
+
+function dateBR(value: string | null | undefined) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`));
 }
 
 function Metric({ label, value, note }: { label: string; value: string; note?: string }) {
@@ -169,13 +184,43 @@ function OperationCosts() {
   if (profitability.isLoading || quotes.isLoading || planQuery.isLoading) return <PanelSkeleton rows={5} />;
 
   const summary = profitability.data;
+  const quoteRows = (quotes.data ?? []) as any[];
+  const passengers = Math.max(1, Number(summary?.expected_paying_passengers ?? plan.passengers) || 1);
   const hasSelectedCosts = Number(summary?.selected_cost_minor ?? 0) > 0;
+
+  const grouped = quoteRows.reduce<Record<string, any[]>>((acc, row) => {
+    (acc[row.category] ??= []).push(row);
+    return acc;
+  }, {});
+
+  const rankedGroups = Object.entries(grouped)
+    .map(([category, rows]) => ({
+      category,
+      rows: [...rows].sort((a, b) => Number(a.amount_minor) - Number(b.amount_minor)).slice(0, 3),
+    }))
+    .sort((a, b) => (CATEGORY_LABELS[a.category] ?? a.category).localeCompare(CATEGORY_LABELS[b.category] ?? b.category));
+
+  const selectedPayments = quoteRows
+    .filter((row) => row.status === "selected" || row.status === "contracted")
+    .flatMap((row) =>
+      (row.quote_payment_schedule ?? []).map((payment: any) => ({
+        ...payment,
+        supplierName: row.supplier?.name ?? "Fornecedor",
+        category: row.category,
+        quoteAmount: row.amount_minor,
+      })),
+    )
+    .filter((payment) => payment.status !== "cancelled")
+    .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
+
+  const scheduledMinor = selectedPayments.reduce((sum, payment) => sum + Number(payment.amount_minor ?? 0), 0);
+  const nextPayment = selectedPayments.find((payment) => payment.status !== "paid");
 
   return (
     <div className="space-y-6">
       <section className="space-y-2">
         <h2 className="text-2xl font-semibold">Custos & Cotações</h2>
-        <p className="text-sm text-muted-foreground">Compare fornecedores, escolha a proposta vencedora e acompanhe o impacto na margem da operação.</p>
+        <p className="text-sm text-muted-foreground">Compare fornecedores, escolha a proposta vencedora, planeje os pagamentos e acompanhe a margem da operação.</p>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -196,7 +241,7 @@ function OperationCosts() {
         <section className="surface-panel space-y-4 p-5">
           <div>
             <h3 className="font-semibold">Cenário financeiro</h3>
-            <p className="text-sm text-muted-foreground">Altere somente hipóteses de planejamento. O preço comercial final continua separado.</p>
+            <p className="text-sm text-muted-foreground">Estas são hipóteses de planejamento. O preço comercial final permanece separado até aprovação.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div><Label>Pagantes</Label><Input value={plan.passengers} onChange={(e) => setPlan((p) => ({ ...p, passengers: e.target.value }))} /></div>
@@ -205,6 +250,56 @@ function OperationCosts() {
             <div><Label>Taxas/impostos (R$)</Label><Input value={plan.taxes} onChange={(e) => setPlan((p) => ({ ...p, taxes: e.target.value }))} /></div>
           </div>
           <Button disabled={savePlan.isPending} onClick={() => savePlan.mutate()}>{savePlan.isPending ? "Salvando..." : "Salvar cenário"}</Button>
+        </section>
+      ) : null}
+
+      {rankedGroups.length > 0 ? (
+        <section className="space-y-4">
+          <div>
+            <h3 className="font-semibold">Top 3 para decisão</h3>
+            <p className="text-sm text-muted-foreground">As três propostas de menor custo em cada categoria. Preço é um critério; validade, cancelamento e logística também devem ser considerados.</p>
+          </div>
+          {rankedGroups.map(({ category, rows }) => {
+            const best = Number(rows[0]?.amount_minor ?? 0);
+            return (
+              <div key={category} className="surface-panel overflow-hidden">
+                <div className="border-b border-border px-4 py-3">
+                  <p className="font-semibold">{CATEGORY_LABELS[category] ?? category}</p>
+                  <p className="text-xs text-muted-foreground">Comparação para {passengers} passageiros pagantes</p>
+                </div>
+                <div className="grid gap-0 lg:grid-cols-3">
+                  {rows.map((row, index) => {
+                    const diff = Number(row.amount_minor) - best;
+                    return (
+                      <div key={row.id} className="space-y-3 border-b border-border p-4 last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">#{index + 1}</p>
+                            <p className="font-semibold">{row.supplier?.name ?? "Fornecedor"}</p>
+                          </div>
+                          {row.status === "selected" || row.status === "contracted" ? (
+                            <span className="rounded-full bg-primary-soft px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary">Selecionada</span>
+                          ) : null}
+                        </div>
+                        <div>
+                          <p className="text-xl font-semibold">{money(row.amount_minor)}</p>
+                          <p className="text-xs text-muted-foreground">{money(Number(row.amount_minor) / passengers)} por passageiro</p>
+                        </div>
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <p>Diferença para a menor: {diff === 0 ? "melhor preço" : `+ ${money(diff)}`}</p>
+                          <p>Validade: {dateBR(row.valid_until)}</p>
+                          <p className="line-clamp-2">Cancelamento: {row.cancellation_terms || "não informado"}</p>
+                        </div>
+                        {canManage && row.status !== "selected" && row.status !== "contracted" ? (
+                          <Button size="sm" variant="outline" disabled={selectQuote.isPending} onClick={() => selectQuote.mutate(row.id)}>Escolher esta</Button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </section>
       ) : null}
 
@@ -225,29 +320,31 @@ function OperationCosts() {
       ) : null}
 
       <section className="space-y-3">
-        <div><h3 className="font-semibold">Propostas</h3><p className="text-sm text-muted-foreground">Apenas a proposta marcada como selecionada entra no custo projetado da categoria.</p></div>
-        {(quotes.data ?? []).length === 0 ? <div className="surface-panel p-5 text-sm text-muted-foreground">Nenhuma cotação cadastrada ainda.</div> : (quotes.data ?? []).map((q: any) => (
+        <div><h3 className="font-semibold">Todas as propostas</h3><p className="text-sm text-muted-foreground">Apenas a proposta selecionada entra no custo projetado de cada categoria.</p></div>
+        {quoteRows.length === 0 ? <div className="surface-panel p-5 text-sm text-muted-foreground">Nenhuma cotação cadastrada ainda.</div> : quoteRows.map((q: any) => (
           <article key={q.id} className="surface-panel space-y-3 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><p className="font-semibold">{q.supplier?.name ?? "Fornecedor"}</p><p className="text-sm text-muted-foreground">{q.category} · {q.description}</p></div>
+              <div><p className="font-semibold">{q.supplier?.name ?? "Fornecedor"}</p><p className="text-sm text-muted-foreground">{CATEGORY_LABELS[q.category] ?? q.category} · {q.description}</p></div>
               <div className="text-right"><p className="text-lg font-semibold">{money(q.amount_minor)}</p><p className="text-xs uppercase tracking-wide text-muted-foreground">{q.status}</p></div>
             </div>
-            <div className="grid gap-2 text-sm sm:grid-cols-3">
-              <div><span className="text-muted-foreground">Validade:</span> {q.valid_until || "—"}</div>
-              <div><span className="text-muted-foreground">Cancelamento:</span> {q.cancellation_terms || "—"}</div>
+            <div className="grid gap-2 text-sm sm:grid-cols-4">
+              <div><span className="text-muted-foreground">Por passageiro:</span> {money(Number(q.amount_minor) / passengers)}</div>
+              <div><span className="text-muted-foreground">Validade:</span> {dateBR(q.valid_until)}</div>
               <div><span className="text-muted-foreground">Parcelas:</span> {(q.quote_payment_schedule ?? []).length}</div>
+              <div><span className="text-muted-foreground">Programado:</span> {money((q.quote_payment_schedule ?? []).reduce((sum: number, p: any) => sum + Number(p.amount_minor ?? 0), 0))}</div>
             </div>
-            {(q.quote_payment_schedule ?? []).length > 0 ? <div className="rounded-lg border border-border p-3"><p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Pagamentos previstos</p><div className="space-y-1 text-sm">{[...(q.quote_payment_schedule ?? [])].sort((a: any,b: any) => a.installment_no-b.installment_no).map((p: any) => <div key={p.id} className="flex justify-between gap-3"><span>{p.installment_no}ª · {p.due_date}</span><span>{money(p.amount_minor)}</span></div>)}</div></div> : null}
-            {canManage && q.status !== "selected" ? <Button variant="outline" disabled={selectQuote.isPending} onClick={() => selectQuote.mutate(q.id)}>Selecionar proposta</Button> : null}
+            {q.cancellation_terms ? <p className="text-sm"><span className="text-muted-foreground">Cancelamento:</span> {q.cancellation_terms}</p> : null}
+            {(q.quote_payment_schedule ?? []).length > 0 ? <div className="rounded-lg border border-border p-3"><p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Pagamentos previstos</p><div className="space-y-1 text-sm">{[...(q.quote_payment_schedule ?? [])].sort((a: any,b: any) => a.installment_no-b.installment_no).map((p: any) => <div key={p.id} className="flex justify-between gap-3"><span>{p.installment_no}ª · {dateBR(p.due_date)} · {p.status}</span><span>{money(p.amount_minor)}</span></div>)}</div></div> : null}
+            {canManage && q.status !== "selected" && q.status !== "contracted" ? <Button variant="outline" disabled={selectQuote.isPending} onClick={() => selectQuote.mutate(q.id)}>Selecionar proposta</Button> : null}
           </article>
         ))}
       </section>
 
-      {canManage && (quotes.data ?? []).length > 0 ? (
+      {canManage && quoteRows.length > 0 ? (
         <section className="surface-panel space-y-4 p-5">
           <div><h3 className="font-semibold">Adicionar vencimento</h3><p className="text-sm text-muted-foreground">Registre sinal, parcelas e saldo do fornecedor.</p></div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div><Label>Cotação</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={installment.quoteId} onChange={(e) => setInstallment((p) => ({ ...p, quoteId: e.target.value }))}><option value="">Selecione</option>{(quotes.data ?? []).map((q: any) => <option key={q.id} value={q.id}>{q.supplier?.name ?? q.description} · {money(q.amount_minor)}</option>)}</select></div>
+            <div><Label>Cotação</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={installment.quoteId} onChange={(e) => setInstallment((p) => ({ ...p, quoteId: e.target.value }))}><option value="">Selecione</option>{quoteRows.map((q: any) => <option key={q.id} value={q.id}>{q.supplier?.name ?? q.description} · {money(q.amount_minor)}</option>)}</select></div>
             <div><Label>Vencimento</Label><Input type="date" value={installment.dueDate} onChange={(e) => setInstallment((p) => ({ ...p, dueDate: e.target.value }))} /></div>
             <div><Label>Valor (R$)</Label><Input value={installment.amount} onChange={(e) => setInstallment((p) => ({ ...p, amount: e.target.value }))} /></div>
             <div><Label>Observação</Label><Input value={installment.notes} onChange={(e) => setInstallment((p) => ({ ...p, notes: e.target.value }))} /></div>
@@ -255,6 +352,34 @@ function OperationCosts() {
           <Button disabled={addInstallment.isPending || !installment.quoteId || !installment.dueDate || toMinor(installment.amount) <= 0} onClick={() => addInstallment.mutate()}>{addInstallment.isPending ? "Adicionando..." : "Adicionar vencimento"}</Button>
         </section>
       ) : null}
+
+      <section className="space-y-3">
+        <div>
+          <h3 className="font-semibold">Calendário de desembolsos</h3>
+          <p className="text-sm text-muted-foreground">Somente pagamentos das propostas selecionadas/contratadas entram nesta visão.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Metric label="Total programado" value={money(scheduledMinor)} />
+          <Metric label="Próximo pagamento" value={nextPayment ? money(nextPayment.amount_minor) : "—"} note={nextPayment ? `${dateBR(nextPayment.due_date)} · ${nextPayment.supplierName}` : "Nenhum vencimento pendente"} />
+          <Metric label="Compromissos" value={`${selectedPayments.length}`} note="parcelas cadastradas" />
+        </div>
+        {selectedPayments.length === 0 ? (
+          <div className="surface-panel p-5 text-sm text-muted-foreground">Selecione uma proposta e cadastre seus vencimentos para montar o fluxo de caixa.</div>
+        ) : (
+          <div className="surface-panel overflow-hidden">
+            <div className="divide-y divide-border">
+              {selectedPayments.map((payment: any) => (
+                <div key={payment.id} className="grid gap-2 px-4 py-3 text-sm sm:grid-cols-[120px_1fr_160px_100px] sm:items-center">
+                  <span className="font-medium">{dateBR(payment.due_date)}</span>
+                  <span>{payment.supplierName} · {CATEGORY_LABELS[payment.category] ?? payment.category}</span>
+                  <span className="font-semibold sm:text-right">{money(payment.amount_minor)}</span>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground sm:text-right">{payment.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
