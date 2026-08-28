@@ -1,0 +1,85 @@
+create table public.suppliers (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  name text not null,
+  category text,
+  document_number text,
+  contact_name text,
+  email text,
+  phone text,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(tenant_id, name)
+);
+
+create table public.operation_quotes (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  operation_id uuid not null references public.operations(id) on delete cascade,
+  supplier_id uuid not null references public.suppliers(id),
+  category text not null,
+  description text not null,
+  amount_minor bigint not null check(amount_minor >= 0),
+  currency_code text not null default 'BRL',
+  status text not null default 'quoted' check(status in ('quoted','shortlisted','selected','rejected','expired','contracted')),
+  valid_until date,
+  cancellation_terms text,
+  notes text,
+  selected_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.quote_payment_schedule (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  quote_id uuid not null references public.operation_quotes(id) on delete cascade,
+  installment_no integer not null check(installment_no > 0),
+  due_date date not null,
+  amount_minor bigint not null check(amount_minor >= 0),
+  status text not null default 'planned' check(status in ('planned','due','paid','cancelled')),
+  paid_at timestamptz,
+  notes text,
+  created_at timestamptz not null default now(),
+  unique(quote_id, installment_no)
+);
+
+create index operation_quotes_operation_idx on public.operation_quotes(operation_id, status, category);
+create index quote_payment_schedule_due_idx on public.quote_payment_schedule(tenant_id, due_date, status);
+
+alter table public.suppliers enable row level security;
+alter table public.operation_quotes enable row level security;
+alter table public.quote_payment_schedule enable row level security;
+
+create policy suppliers_read on public.suppliers for select to authenticated
+using (app_private.has_tenant_role(tenant_id, array['owner','admin','operations_agent']::public.app_role[]));
+create policy suppliers_write on public.suppliers for all to authenticated
+using (app_private.has_tenant_role(tenant_id, array['owner','admin']::public.app_role[]))
+with check (app_private.has_tenant_role(tenant_id, array['owner','admin']::public.app_role[]));
+
+create policy operation_quotes_read on public.operation_quotes for select to authenticated
+using (app_private.has_tenant_role(tenant_id, array['owner','admin','operations_agent']::public.app_role[]));
+create policy operation_quotes_write on public.operation_quotes for all to authenticated
+using (app_private.has_tenant_role(tenant_id, array['owner','admin']::public.app_role[]))
+with check (app_private.has_tenant_role(tenant_id, array['owner','admin']::public.app_role[]));
+
+create policy quote_payment_schedule_read on public.quote_payment_schedule for select to authenticated
+using (app_private.has_tenant_role(tenant_id, array['owner','admin','operations_agent']::public.app_role[]));
+create policy quote_payment_schedule_write on public.quote_payment_schedule for all to authenticated
+using (app_private.has_tenant_role(tenant_id, array['owner','admin']::public.app_role[]))
+with check (app_private.has_tenant_role(tenant_id, array['owner','admin']::public.app_role[]));
+
+create or replace view public.operation_cost_summary with (security_invoker=true) as
+select
+  o.tenant_id,
+  o.id as operation_id,
+  coalesce(sum(q.amount_minor) filter (where q.status in ('selected','contracted')), 0)::bigint as selected_cost_minor,
+  coalesce(sum(q.amount_minor) filter (where q.status in ('quoted','shortlisted')), 0)::bigint as pipeline_quote_minor,
+  count(*) filter (where q.status in ('selected','contracted'))::int as selected_quotes,
+  count(q.id)::int as total_quotes
+from public.operations o
+left join public.operation_quotes q on q.operation_id = o.id and q.tenant_id = o.tenant_id
+group by o.tenant_id, o.id;
+
+grant select on public.operation_cost_summary to authenticated;
