@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, Copy, Loader2, QrCode } from "lucide-react";
 
@@ -21,11 +21,14 @@ export const Route = createFileRoute("/ciosp-2027")({
 });
 
 type PixResult = {
-  charge_id: string;
-  attempt_id: string;
+  charge_id?: string;
+  attempt_id?: string;
   status: string;
+  order_status?: string;
   provider_status?: string | null;
   provider_status_detail?: string | null;
+  reconciled?: boolean;
+  already_paid?: boolean;
   pix?: {
     qr_code?: string | null;
     qr_code_base64?: string | null;
@@ -40,6 +43,7 @@ function CiospCheckout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [checkoutToken, setCheckoutToken] = useState<string | null>(null);
   const [amountMinor, setAmountMinor] = useState<number | null>(null);
   const [pix, setPix] = useState<PixResult | null>(null);
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
@@ -47,6 +51,42 @@ function CiospCheckout() {
   const amountLabel = amountMinor == null
     ? "Valor calculado pelo servidor"
     : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(amountMinor / 100);
+
+  const paymentConfirmed = pix?.status === "approved" || pix?.order_status === "confirmed" || pix?.already_paid === true;
+
+  useEffect(() => {
+    if (!pix || paymentConfirmed || !orderId || !checkoutToken || !email) return;
+
+    let cancelled = false;
+    const timer = window.setInterval(async () => {
+      try {
+        const { data, error: reconcileError } = await supabase.functions.invoke("payments-create-charge", {
+          body: {
+            order_id: orderId,
+            payer_email: email,
+            checkout_token: checkoutToken,
+          },
+        });
+        if (cancelled || reconcileError || !data) return;
+        const next = data as PixResult;
+        if (next.status === "approved" || next.order_status === "confirmed" || next.already_paid === true) {
+          setPix((current) => ({
+            ...(current ?? {}),
+            ...next,
+            status: "approved",
+            pix: next.pix ?? current?.pix,
+          }));
+        }
+      } catch {
+        // Polling is best-effort. The next interval retries without interrupting checkout UX.
+      }
+    }, 4000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [checkoutToken, email, orderId, paymentConfirmed, pix]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -65,6 +105,7 @@ function CiospCheckout() {
       if (checkoutError) throw checkoutError;
       if (!checkout?.order_id || !checkout?.checkout_token) throw new Error("checkout_response_invalid");
       setOrderId(checkout.order_id);
+      setCheckoutToken(checkout.checkout_token);
       setAmountMinor(Number(checkout.grand_total_minor ?? 0));
 
       const { data: payment, error: paymentError } = await supabase.functions.invoke("payments-create-charge", {
@@ -136,6 +177,17 @@ function CiospCheckout() {
               </Button>
               <p className="text-center text-xs text-muted-foreground">Pedido, preço e reserva são criados no W09. O navegador não define o valor.</p>
             </form>
+          ) : paymentConfirmed ? (
+            <div className="space-y-5 text-center">
+              <span className="mx-auto grid size-14 place-items-center rounded-full bg-success/10 text-success"><CheckCircle2 className="size-7" /></span>
+              <div>
+                <h2 className="text-2xl font-semibold">Pagamento confirmado</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Pedido {orderId?.slice(0, 8)} confirmado pelo COBS OS.</p>
+              </div>
+              <div className="rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-left">
+                O pagamento foi reconciliado com o Mercado Pago. Pedido, reserva e participação são confirmados pelo mesmo fluxo comercial.
+              </div>
+            </div>
           ) : (
             <div className="space-y-5">
               <div className="flex items-start gap-3">
@@ -143,6 +195,7 @@ function CiospCheckout() {
                 <div>
                   <h2 className="text-xl font-semibold">Pix gerado</h2>
                   <p className="mt-1 text-sm text-muted-foreground">Pedido {orderId?.slice(0, 8)} · status {pix.status}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">O COBS verifica a aprovação automaticamente.</p>
                 </div>
               </div>
               {pix.pix?.qr_code_base64 && (
