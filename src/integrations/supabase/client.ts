@@ -29,15 +29,18 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-function isCiospCommercialPreview(): boolean {
+function isStagingPreview(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const hostname = window.location.hostname;
   return (
-    typeof window !== "undefined" &&
-    window.location.hostname.includes("cobs-os-qa-git-feat-ciosp-c-")
+    hostname.includes("cobs-os-qa-git-feat-ciosp-c-") ||
+    hostname.includes("cobs-os-qa-git-feat-n8n-com-")
   );
 }
 
 function createSupabaseClient() {
-  const previewUsesStaging = isCiospCommercialPreview();
+  const previewUsesStaging = isStagingPreview();
 
   const SUPABASE_URL = previewUsesStaging
     ? "https://wzukfenbzwlwzhtadlxl.supabase.co"
