@@ -1,0 +1,11 @@
+-- Procurement categories remain text-backed by design so tourism/event verticals can evolve
+-- without destructive enum migrations. The application now recognizes these canonical keys:
+-- hotel, air_transport, road_transport, executive_transport, transfer, vehicle_rental,
+-- transport, food, restaurant, insurance, event, guide, staff, event_production, venue,
+-- audiovisual, stage_structure, visual_communication, gifts_uniforms, photo_video,
+-- entertainment, security, cleaning, accreditation, technology, partner_operator,
+-- fees_licenses, other.
+--
+-- Existing legacy keys remain supported for backward compatibility. No data rewrite is
+-- performed in this migration; environment-specific reclassification is operational data.
+select 1;
