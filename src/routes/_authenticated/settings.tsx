@@ -1,7 +1,15 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BedDouble, Building2, Bus, History, Settings2, UserRound } from "lucide-react";
+import {
+  BedDouble,
+  Building2,
+  Bus,
+  CalendarDays,
+  History,
+  Settings2,
+  UserRound,
+} from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -115,6 +123,34 @@ function Body() {
   const { t, locale } = useI18n();
   const { tenant } = useTenant();
 
+  const connectGoogleCalendar = async () => {
+    if (!tenant) return;
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      feedback.error("Sua sessão expirou. Entre novamente.");
+      return;
+    }
+    const response = await fetch("/api/google-calendar/connect", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({ tenantId: tenant.id }),
+    });
+    const result = (await response.json().catch(() => null)) as {
+      authorizationUrl?: string;
+      error?: string;
+    } | null;
+    if (!response.ok || !result?.authorizationUrl) {
+      feedback.error(
+        result?.error === "google_calendar_not_configured"
+          ? "A integração ainda precisa das credenciais do Google Cloud."
+          : "Não foi possível iniciar a conexão com o Google Agenda.",
+      );
+      return;
+    }
+    window.location.assign(result.authorizationUrl);
+  };
+
   const audit = useQuery({
     queryKey: ["audit", tenant?.id],
     enabled: Boolean(tenant?.id),
@@ -181,6 +217,25 @@ function Body() {
       </section>
 
       <DisplayNameCard />
+
+      <section className="surface-panel animate-rise p-5" style={{ animationDelay: "60ms" }}>
+        <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <CalendarDays className="size-4 text-primary" aria-hidden="true" />
+          Google Agenda
+        </h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Conecte sua agenda para sincronizar operações e consultar horários livres sem expor sua
+          senha Google.
+        </p>
+        <Button
+          type="button"
+          className="mt-4 min-h-11"
+          onClick={() => void connectGoogleCalendar()}
+        >
+          <CalendarDays className="mr-2 size-4" aria-hidden="true" />
+          Conectar Google Agenda
+        </Button>
+      </section>
 
       <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">

@@ -36,6 +36,8 @@ import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
+import { Route as ApiGoogleCalendarCallbackRouteImport } from './routes/api/google-calendar.callback'
+import { Route as ApiGoogleCalendarConnectRouteImport } from './routes/api/google-calendar.connect'
 import { Route as ApiPaymentsAttemptsRouteImport } from './routes/api/payments.attempts'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedMyOperationIdIndexRouteImport } from './routes/_authenticated/my.$operationId.index'
@@ -204,6 +206,18 @@ const AuthenticatedSettingsVenuesRoute =
     path: '/settings/venues',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiGoogleCalendarCallbackRoute =
+  ApiGoogleCalendarCallbackRouteImport.update({
+    id: '/api/google-calendar/callback',
+    path: '/api/google-calendar/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiGoogleCalendarConnectRoute =
+  ApiGoogleCalendarConnectRouteImport.update({
+    id: '/api/google-calendar/connect',
+    path: '/api/google-calendar/connect',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPaymentsAttemptsRoute = ApiPaymentsAttemptsRouteImport.update({
   id: '/api/payments/attempts',
   path: '/api/payments/attempts',
@@ -333,6 +347,8 @@ export interface FileRoutesByFullPath {
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/google-calendar/callback': typeof ApiGoogleCalendarCallbackRoute
+  '/api/google-calendar/connect': typeof ApiGoogleCalendarConnectRoute
   '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blueprints/': typeof AuthenticatedBlueprintsIndexRoute
@@ -376,6 +392,8 @@ export interface FileRoutesByTo {
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/google-calendar/callback': typeof ApiGoogleCalendarCallbackRoute
+  '/api/google-calendar/connect': typeof ApiGoogleCalendarConnectRoute
   '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blueprints': typeof AuthenticatedBlueprintsIndexRoute
@@ -424,6 +442,8 @@ export interface FileRoutesById {
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
+  '/api/google-calendar/callback': typeof ApiGoogleCalendarCallbackRoute
+  '/api/google-calendar/connect': typeof ApiGoogleCalendarConnectRoute
   '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/blueprints/': typeof AuthenticatedBlueprintsIndexRoute
@@ -472,6 +492,8 @@ export interface FileRouteTypes {
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/api/google-calendar/callback'
+    | '/api/google-calendar/connect'
     | '/api/payments/attempts'
     | '/api/public/health'
     | '/blueprints/'
@@ -515,6 +537,8 @@ export interface FileRouteTypes {
     | '/settings/fleet'
     | '/settings/properties'
     | '/settings/venues'
+    | '/api/google-calendar/callback'
+    | '/api/google-calendar/connect'
     | '/api/payments/attempts'
     | '/api/public/health'
     | '/blueprints'
@@ -562,6 +586,8 @@ export interface FileRouteTypes {
     | '/_authenticated/settings_/fleet'
     | '/_authenticated/settings_/properties'
     | '/_authenticated/settings_/venues'
+    | '/api/google-calendar/callback'
+    | '/api/google-calendar/connect'
     | '/api/payments/attempts'
     | '/api/public/health'
     | '/_authenticated/blueprints/'
@@ -592,6 +618,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ClaimAccountMismatchRoute: typeof ClaimAccountMismatchRoute
+  ApiGoogleCalendarCallbackRoute: typeof ApiGoogleCalendarCallbackRoute
+  ApiGoogleCalendarConnectRoute: typeof ApiGoogleCalendarConnectRoute
   ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsMercadopagoRoute: typeof ApiPublicPaymentsMercadopagoRoute
@@ -787,6 +815,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/venues'
       preLoaderRoute: typeof AuthenticatedSettingsVenuesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/google-calendar/callback': {
+      id: '/api/google-calendar/callback'
+      path: '/api/google-calendar/callback'
+      fullPath: '/api/google-calendar/callback'
+      preLoaderRoute: typeof ApiGoogleCalendarCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google-calendar/connect': {
+      id: '/api/google-calendar/connect'
+      path: '/api/google-calendar/connect'
+      fullPath: '/api/google-calendar/connect'
+      preLoaderRoute: typeof ApiGoogleCalendarConnectRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/payments/attempts': {
       id: '/api/payments/attempts'
@@ -1057,6 +1099,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ClaimAccountMismatchRoute: ClaimAccountMismatchRoute,
+  ApiGoogleCalendarCallbackRoute: ApiGoogleCalendarCallbackRoute,
+  ApiGoogleCalendarConnectRoute: ApiGoogleCalendarConnectRoute,
   ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsMercadopagoRoute: ApiPublicPaymentsMercadopagoRoute,
