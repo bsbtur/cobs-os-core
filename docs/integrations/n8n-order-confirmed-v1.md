@@ -24,6 +24,8 @@ The transaction never calls n8n directly.
 
 The dedicated `order.confirmed` route can be configured explicitly with `N8N_ORDER_CONFIRMED_WEBHOOK_URL`; if it is absent, the dispatcher derives `/webhook/cobs-order-confirmed-v1` from the configured n8n commercial origin. It never intentionally sends `order.confirmed` to the lead webhook path.
 
+The dispatcher is deployed, but **an invocation mechanism is still required before release**. Until a scheduler/runner calls it, pending outbox rows remain pending. Choose the simplest low-cost runner after the n8n workflow is proven; do not add polling inside the commerce transaction.
+
 ## Callback integrity
 
 `automation-gateway?action=result` authenticates with the existing callback token and now binds each callback to the stored `automation_events` row before accepting the result.
@@ -72,4 +74,5 @@ Recommended name: `COBS — ORDER CONFIRMED V1`
 4. Prove one failed n8n delivery retries within the configured attempt limit.
 5. Prove n8n accepts the fresh event and returns a metadata-only completed callback.
 6. Match `automation_events`, `automation_results`, and `audit_events` under the same event/tenant/correlation evidence.
-7. Keep `main`, production database, and frozen V1 unchanged until explicit release decision.
+7. Select and validate the minimal dispatcher invocation mechanism for release.
+8. Keep `main`, production database, and frozen V1 unchanged until explicit release decision.
