@@ -4,18 +4,27 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
 const secretKey = SUPABASE_SECRET_KEYS.default;
-const n8nWebhookUrl =
-  Deno.env.get("N8N_ORDER_CONFIRMED_WEBHOOK_URL") ??
-  Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ??
-  "";
+const commercialWebhookUrl = Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ?? "";
+const configuredOrderWebhookUrl = Deno.env.get("N8N_ORDER_CONFIRMED_WEBHOOK_URL") ?? "";
 const n8nWebhookToken = Deno.env.get("N8N_WEBHOOK_TOKEN") ?? "";
-// Prefer a dedicated dispatcher secret when available. During the staging pilot,
-// the existing callback secret is a safe internal fallback so no browser-visible
-// or repository-stored credential is introduced.
 const dispatcherToken =
   Deno.env.get("COBS_AUTOMATION_DISPATCHER_TOKEN") ??
   Deno.env.get("COBS_N8N_CALLBACK_TOKEN") ??
   "";
+
+function resolveOrderWebhookUrl() {
+  if (configuredOrderWebhookUrl) return configuredOrderWebhookUrl;
+  if (!commercialWebhookUrl) return "";
+  try {
+    const url = new URL(commercialWebhookUrl);
+    url.pathname = "/webhook/cobs-order-confirmed-v1";
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -33,6 +42,7 @@ function constantTimeEqual(a: string, b: string) {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+  const n8nWebhookUrl = resolveOrderWebhookUrl();
   if (!SUPABASE_URL || !secretKey || !n8nWebhookUrl || !n8nWebhookToken || !dispatcherToken) {
     return json({ error: "server_not_configured" }, 500);
   }
