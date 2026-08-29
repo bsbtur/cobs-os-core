@@ -22,6 +22,12 @@ const SMOKE_SUPABASE_URL = "https://nktohbqmcpgonlizzcka.supabase.co";
 const SMOKE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yF0oXJtt-_ik8kq_FiGrdQ_2IwM4tzJ";
 const CREATE_CHARGE_URL = `${SMOKE_SUPABASE_URL}/functions/v1/payments-create-charge`;
 
+// Existing CLEAN BUILD QA fixtures intentionally reused for this temporary smoke only.
+// The sellable is an active isolated R$ 1.00 QA item with no operation/capacity impact.
+const SMOKE_TENANT_ID = "bb25410b-4c7a-4d4c-965c-ee43d7084068";
+const SMOKE_BUYER_PERSON_ID = "cac2b2a9-93f4-4ec7-b517-3c2097493e4c";
+const SMOKE_SELLABLE_ID = "dfa38372-147e-4f7a-9c52-112d77087dae";
+
 type ChargeResult = {
   charge_id?: string;
   attempt_id?: string;
@@ -57,7 +63,9 @@ function MercadoPagoProductionSmoke() {
   const [result, setResult] = React.useState<ChargeResult | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [creatingOrder, setCreatingOrder] = React.useState(false);
   const [step, setStep] = React.useState("Pronto para iniciar.");
+  const smokeKeyRef = React.useRef(`mp-prod-smoke-${crypto.randomUUID()}`);
 
   React.useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -65,8 +73,56 @@ function MercadoPagoProductionSmoke() {
     });
   }, []);
 
+  async function createFreshSmokeOrder() {
+    if (creatingOrder || loading) return;
+    setCreatingOrder(true);
+    setError(null);
+    setResult(null);
+    try {
+      setStep("Criando novo Order QA de R$ 1,00 pelos comandos W09…");
+      const key = smokeKeyRef.current;
+      const { data: newOrderId, error: createError } = await supabase.rpc("create_order", {
+        _tenant_id: SMOKE_TENANT_ID,
+        _buyer_person_id: SMOKE_BUYER_PERSON_ID,
+        _currency: "BRL",
+        _operation_id: null,
+        _reference_label: "QA MP PROD SMOKE R$1",
+        _notes: "Temporary isolated Mercado Pago production smoke test. Do not use as commercial sale.",
+        _idempotency_key: `${key}-create`,
+      });
+      if (createError) throw createError;
+      if (!newOrderId) throw new Error("create_order retornou order_id vazio");
+
+      setStep("Adicionando item QA de R$ 1,00…");
+      const { error: itemError } = await supabase.rpc("add_order_item", {
+        _order_id: newOrderId,
+        _sellable_id: SMOKE_SELLABLE_ID,
+        _quantity: 1,
+        _discount_minor: 0,
+        _beneficiary_person_id: null,
+      });
+      if (itemError && !String(itemError.message).includes("duplicate")) throw itemError;
+
+      setStep("Submetendo Order QA e calculando saldo de R$ 1,00…");
+      const { error: submitError } = await supabase.rpc("submit_order", {
+        _order_id: newOrderId,
+        _idempotency_key: `${key}-submit`,
+      });
+      if (submitError) throw submitError;
+
+      setStep("Novo Order QA criado. Abrindo runner…");
+      window.location.assign(`/payments-sandbox/${newOrderId}`);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      setError(message);
+      setStep("Falha controlada ao criar Order QA. Não houve cobrança.");
+    } finally {
+      setCreatingOrder(false);
+    }
+  }
+
   async function createProductionPix() {
-    if (loading) return;
+    if (loading || creatingOrder) return;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -131,8 +187,8 @@ function MercadoPagoProductionSmoke() {
             </div>
             <h1 className="text-xl font-semibold">PIX real · Mercado Pago</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Smoke test controlado no COBS OS CLEAN BUILD. Esta tela chama diretamente a Edge Function de produção,
-              exige sessão autenticada e bloqueia o resultado se o backend não responder environment=production.
+              Smoke test controlado no COBS OS CLEAN BUILD. O runner usa somente comandos W09 autorizados para criar um
+              Order QA isolado e chama a Edge Function de produção com sessão autenticada.
             </p>
             <div className="mt-5 grid gap-4">
               <div className="space-y-1.5">
@@ -153,8 +209,17 @@ function MercadoPagoProductionSmoke() {
               </div>
               <Button
                 type="button"
+                variant="outline"
                 className="min-h-11"
-                disabled={loading || !payerEmail}
+                disabled={loading || creatingOrder}
+                onClick={() => void createFreshSmokeOrder()}
+              >
+                {creatingOrder ? "Criando novo Order QA de R$ 1,00…" : "Criar NOVO Order QA de R$ 1,00"}
+              </Button>
+              <Button
+                type="button"
+                className="min-h-11"
+                disabled={loading || creatingOrder || !payerEmail}
                 onClick={() => void createProductionPix()}
               >
                 {loading ? "Gerando PIX REAL de R$ 1,00…" : "Gerar PIX REAL de R$ 1,00"}
