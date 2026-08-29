@@ -11,12 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/payments-sandbox/$orderId")({
   head: () => ({
     meta: [
-      { title: "Mercado Pago Sandbox E2E — COBS OS" },
+      { title: "Mercado Pago Production Smoke — COBS OS" },
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: MercadoPagoSandboxE2E,
+  component: MercadoPagoProductionSmoke,
 });
+
+const SMOKE_SUPABASE_URL = "https://nktohbqmcpgonlizzcka.supabase.co";
+const SMOKE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yF0oXJtt-_ik8kq_FiGrdQ_2IwM4tzJ";
+const CREATE_CHARGE_URL = `${SMOKE_SUPABASE_URL}/functions/v1/payments-create-charge`;
 
 type ChargeResult = {
   charge_id?: string;
@@ -34,14 +38,26 @@ type ChargeResult = {
     qr_code_base64?: string | null;
     ticket_url?: string | null;
   };
+  error?: string;
+  details?: unknown;
 };
 
-function MercadoPagoSandboxE2E() {
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(`${label}_timeout_${ms}ms`)), ms);
+    }),
+  ]);
+}
+
+function MercadoPagoProductionSmoke() {
   const { orderId } = Route.useParams();
   const [payerEmail, setPayerEmail] = React.useState("");
   const [result, setResult] = React.useState<ChargeResult | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [step, setStep] = React.useState("Pronto para iniciar.");
 
   React.useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -49,57 +65,99 @@ function MercadoPagoSandboxE2E() {
     });
   }, []);
 
-  async function createSandboxPix() {
+  async function createProductionPix() {
+    if (loading) return;
     setLoading(true);
     setError(null);
+    setResult(null);
+
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("payments-create-charge", {
-        body: {
-          order_id: orderId,
-          payer_email: payerEmail,
-        },
-      });
-      if (invokeError) throw invokeError;
-      setResult((data ?? null) as ChargeResult | null);
+      setStep("Lendo sessão autenticada…");
+      const sessionResponse = await withTimeout(supabase.auth.getSession(), 8_000, "session");
+      const accessToken = sessionResponse.data.session?.access_token;
+      if (!accessToken) throw new Error("Sessão autenticada não encontrada. Faça login novamente neste Preview.");
+
+      setStep("Enviando POST autenticado ao CLEAN BUILD…");
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), 20_000);
+      let response: Response;
+      try {
+        response = await fetch(CREATE_CHARGE_URL, {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: SMOKE_SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            order_id: orderId,
+            payer_email: payerEmail,
+          }),
+        });
+      } finally {
+        window.clearTimeout(timer);
+      }
+
+      setStep(`Resposta HTTP ${response.status}. Lendo retorno…`);
+      const payload = (await response.json().catch(() => ({}))) as ChargeResult;
+      if (!response.ok) {
+        const details = payload.details ? ` · ${JSON.stringify(payload.details)}` : "";
+        throw new Error(`${payload.error ?? `HTTP ${response.status}`}${details}`);
+      }
+
+      if (payload.environment !== "production") {
+        throw new Error(`Bloqueado por segurança: backend respondeu environment=${payload.environment ?? "ausente"}.`);
+      }
+
+      setResult(payload);
+      setStep("Cobrança criada/reconciliada em PRODUÇÃO. Confira o valor antes de pagar.");
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause);
       setError(message);
+      setStep("Falha controlada. Nenhum novo clique até revisar o erro.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <AppShell activeId="commerce" title="Mercado Pago Sandbox E2E">
+    <AppShell activeId="commerce" title="Mercado Pago · Production Smoke">
       <RequireTenant>
         <div className="mx-auto w-full max-w-3xl space-y-6">
-          <section className="rounded-xl border border-border bg-card p-5">
-            <h1 className="text-xl font-semibold">PIX Sandbox · Mercado Pago</h1>
+          <section className="rounded-xl border border-amber-500/40 bg-card p-5">
+            <div className="mb-3 inline-flex rounded-full border border-amber-500/40 px-2.5 py-1 text-xs font-medium text-amber-500">
+              TEMPORÁRIO · PRODUÇÃO · R$ 1,00
+            </div>
+            <h1 className="text-xl font-semibold">PIX real · Mercado Pago</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Rota interna de QA. Cria uma cobrança PIX real no ambiente de teste usando a Edge Function
-              ativa do COBS. Não registre pagamentos manualmente nesta tela.
+              Smoke test controlado no COBS OS CLEAN BUILD. Esta tela chama diretamente a Edge Function de produção,
+              exige sessão autenticada e bloqueia o resultado se o backend não responder environment=production.
             </p>
             <div className="mt-5 grid gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="sandbox-order">Order ID</Label>
-                <Input id="sandbox-order" value={orderId} readOnly />
+                <Label htmlFor="smoke-order">Order ID</Label>
+                <Input id="smoke-order" value={orderId} readOnly />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="sandbox-email">Payer email</Label>
+                <Label htmlFor="smoke-email">Payer email</Label>
                 <Input
-                  id="sandbox-email"
+                  id="smoke-email"
                   type="email"
                   value={payerEmail}
                   onChange={(event) => setPayerEmail(event.target.value)}
                 />
               </div>
+              <div className="rounded-md border border-border bg-background/50 p-3 text-xs text-muted-foreground">
+                Etapa: {step}
+              </div>
               <Button
                 type="button"
                 className="min-h-11"
                 disabled={loading || !payerEmail}
-                onClick={() => void createSandboxPix()}
+                onClick={() => void createProductionPix()}
               >
-                {loading ? "Gerando PIX Sandbox…" : "Gerar PIX Mercado Pago (Sandbox)"}
+                {loading ? "Gerando PIX REAL de R$ 1,00…" : "Gerar PIX REAL de R$ 1,00"}
               </Button>
             </div>
             {error ? (
@@ -130,7 +188,7 @@ function MercadoPagoSandboxE2E() {
                 <div className="mt-5">
                   <img
                     src={`data:image/png;base64,${result.pix.qr_code_base64}`}
-                    alt="QR Code PIX Sandbox"
+                    alt="QR Code PIX real de R$ 1,00"
                     className="h-56 w-56 rounded-lg bg-white p-2"
                   />
                 </div>
