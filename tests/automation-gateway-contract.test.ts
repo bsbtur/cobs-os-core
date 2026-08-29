@@ -1,8 +1,33 @@
 import { describe, expect, test } from "bun:test";
-import { validateDispatchInput, validateResultInput } from "../supabase/functions/automation-gateway/contract";
+import {
+  validateDispatchInput,
+  validateResultForEvent,
+  validateResultInput,
+} from "../supabase/functions/automation-gateway/contract";
 
 const tenantId = "869e78d3-5192-42d1-bd1f-97b02d9227a1";
 const eventId = "44444444-4444-4444-8444-444444444444";
+
+const structuredLeadResult = {
+  event_id: eventId,
+  tenant_id: tenantId,
+  outcome: "completed",
+  intent: "price",
+  urgency: "low",
+  summary: "Cliente deseja saber o preço.",
+  suggested_reply: "A equipe comercial apresentará as opções.",
+  provider_metadata: { workflow: "cobs-commercial-lead-v1" },
+};
+
+const orderResult = {
+  event_id: eventId,
+  tenant_id: tenantId,
+  outcome: "completed",
+  provider_metadata: {
+    workflow: "cobs-order-confirmed-v1",
+    action: "onboarding_prepared",
+  },
+};
 
 describe("automation gateway contracts", () => {
   test("accepts lead.created dispatch", () => {
@@ -41,32 +66,23 @@ describe("automation gateway contracts", () => {
   });
 
   test("keeps structured lead completion valid", () => {
-    expect(
-      validateResultInput({
-        event_id: eventId,
-        tenant_id: tenantId,
-        outcome: "completed",
-        intent: "price",
-        urgency: "low",
-        summary: "Cliente deseja saber o preço.",
-        suggested_reply: "A equipe comercial apresentará as opções.",
-        provider_metadata: { workflow: "cobs-commercial-lead-v1" },
-      }),
-    ).toBeNull();
+    expect(validateResultInput(structuredLeadResult)).toBeNull();
+    expect(validateResultForEvent(structuredLeadResult, "lead.created")).toBeNull();
+  });
+
+  test("requires structured fields for completed lead result", () => {
+    expect(validateResultForEvent(orderResult, "lead.created")).toBe("missing_lead_result_fields");
   });
 
   test("accepts metadata-only order completion", () => {
-    expect(
-      validateResultInput({
-        event_id: eventId,
-        tenant_id: tenantId,
-        outcome: "completed",
-        provider_metadata: {
-          workflow: "cobs-order-confirmed-v1",
-          action: "onboarding_prepared",
-        },
-      }),
-    ).toBeNull();
+    expect(validateResultInput(orderResult)).toBeNull();
+    expect(validateResultForEvent(orderResult, "order.confirmed")).toBeNull();
+  });
+
+  test("rejects lead fields on order completion", () => {
+    expect(validateResultForEvent(structuredLeadResult, "order.confirmed")).toBe(
+      "unexpected_lead_result_fields",
+    );
   });
 
   test("rejects malformed provider metadata", () => {
