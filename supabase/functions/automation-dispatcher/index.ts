@@ -6,7 +6,13 @@ const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? 
 const secretKey = SUPABASE_SECRET_KEYS.default;
 const n8nWebhookUrl = Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ?? "";
 const n8nWebhookToken = Deno.env.get("N8N_WEBHOOK_TOKEN") ?? "";
-const dispatcherToken = Deno.env.get("COBS_AUTOMATION_DISPATCHER_TOKEN") ?? "";
+// Prefer a dedicated dispatcher secret when available. During the staging pilot,
+// the existing callback secret is a safe internal fallback so no browser-visible
+// or repository-stored credential is introduced.
+const dispatcherToken =
+  Deno.env.get("COBS_AUTOMATION_DISPATCHER_TOKEN") ??
+  Deno.env.get("COBS_N8N_CALLBACK_TOKEN") ??
+  "";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -41,8 +47,6 @@ Deno.serve(async (req: Request) => {
   const limit = Math.max(1, Math.min(50, Math.trunc(requestedLimit)));
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
 
-  // This RPC is executable only by service_role. It claims rows atomically and
-  // moves them to processing before any network call is attempted.
   const { data: events, error: claimError } = await admin.rpc("claim_automation_outbox", {
     _limit: limit,
   });
