@@ -9,7 +9,7 @@ alter table public.automation_events
   add constraint automation_events_dispatch_status_check
   check (dispatch_status in ('pending', 'processing', 'dispatched', 'completed', 'failed'));
 
-create or replace function app_private.claim_automation_outbox(_limit integer default 10)
+create or replace function public.claim_automation_outbox(_limit integer default 10)
 returns setof public.automation_events
 language plpgsql
 security definer
@@ -41,10 +41,10 @@ begin
 end;
 $$;
 
-revoke all on function app_private.claim_automation_outbox(integer)
+revoke all on function public.claim_automation_outbox(integer)
   from public, anon, authenticated;
-grant execute on function app_private.claim_automation_outbox(integer)
+grant execute on function public.claim_automation_outbox(integer)
   to service_role;
 
-comment on function app_private.claim_automation_outbox(integer) is
+comment on function public.claim_automation_outbox(integer) is
   'Atomically claims pending/failed COBS DB automation events for one dispatcher execution.';
