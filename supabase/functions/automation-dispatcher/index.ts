@@ -4,7 +4,10 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
 const secretKey = SUPABASE_SECRET_KEYS.default;
-const n8nWebhookUrl = Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ?? "";
+const n8nWebhookUrl =
+  Deno.env.get("N8N_ORDER_CONFIRMED_WEBHOOK_URL") ??
+  Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ??
+  "";
 const n8nWebhookToken = Deno.env.get("N8N_WEBHOOK_TOKEN") ?? "";
 // Prefer a dedicated dispatcher secret when available. During the staging pilot,
 // the existing callback secret is a safe internal fallback so no browser-visible
