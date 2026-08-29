@@ -1,4 +1,4 @@
-export const ALLOWED_EVENT_TYPES = new Set(["lead.created"]);
+export const ALLOWED_EVENT_TYPES = new Set(["lead.created", "order.confirmed"]);
 export const ALLOWED_INTENTS = new Set([
   "price",
   "installment",
