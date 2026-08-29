@@ -47,7 +47,8 @@ Deno.serve(async (req: Request) => {
     return json({ error: "server_not_configured" }, 500);
   }
 
-  const supplied = req.headers.get("x-cobs-dispatcher-token") ?? "";
+  const supplied =
+    req.headers.get("x-cobs-dispatcher-token") ?? req.headers.get("x-n8n-callback-token") ?? "";
   if (!constantTimeEqual(supplied, dispatcherToken)) return json({ error: "unauthorized" }, 401);
 
   let requestedLimit = 10;
