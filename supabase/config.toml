@@ -5,3 +5,8 @@ project_id = "kkclthdpnwuamsndtxxq"
 # are not accepted as bearer JWTs by the platform-level verifier.
 [functions.automation-gateway]
 verify_jwt = false
+
+# Internal outbox worker. It validates its own dispatcher token before claiming
+# and delivering database-originated automation events.
+[functions.automation-dispatcher]
+verify_jwt = false
