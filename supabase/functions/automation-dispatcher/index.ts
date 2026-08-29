@@ -6,24 +6,34 @@ const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? 
 const secretKey = SUPABASE_SECRET_KEYS.default;
 const commercialWebhookUrl = Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ?? "";
 const configuredOrderWebhookUrl = Deno.env.get("N8N_ORDER_CONFIRMED_WEBHOOK_URL") ?? "";
+const configuredParticipantWebhookUrl = Deno.env.get("N8N_PARTICIPANT_ADDED_WEBHOOK_URL") ?? "";
 const n8nWebhookToken = Deno.env.get("N8N_WEBHOOK_TOKEN") ?? "";
 const dispatcherToken =
   Deno.env.get("COBS_AUTOMATION_DISPATCHER_TOKEN") ??
   Deno.env.get("COBS_N8N_CALLBACK_TOKEN") ??
   "";
 
-function resolveOrderWebhookUrl() {
-  if (configuredOrderWebhookUrl) return configuredOrderWebhookUrl;
+function deriveWebhookUrl(path: string) {
   if (!commercialWebhookUrl) return "";
   try {
     const url = new URL(commercialWebhookUrl);
-    url.pathname = "/webhook/cobs-order-confirmed-v1";
+    url.pathname = path;
     url.search = "";
     url.hash = "";
     return url.toString();
   } catch {
     return "";
   }
+}
+
+function resolveWebhookUrl(eventType: string) {
+  if (eventType === "order.confirmed") {
+    return configuredOrderWebhookUrl || deriveWebhookUrl("/webhook/cobs-order-confirmed-v1");
+  }
+  if (eventType === "participant.added") {
+    return configuredParticipantWebhookUrl || deriveWebhookUrl("/webhook/cobs-participant-added-v1");
+  }
+  return "";
 }
 
 function json(body: unknown, status = 200) {
@@ -42,8 +52,7 @@ function constantTimeEqual(a: string, b: string) {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
-  const n8nWebhookUrl = resolveOrderWebhookUrl();
-  if (!SUPABASE_URL || !secretKey || !n8nWebhookUrl || !n8nWebhookToken || !dispatcherToken) {
+  if (!SUPABASE_URL || !secretKey || !n8nWebhookToken || !dispatcherToken) {
     return json({ error: "server_not_configured" }, 500);
   }
 
@@ -71,6 +80,23 @@ Deno.serve(async (req: Request) => {
 
   for (const event of events ?? []) {
     summary.claimed++;
+    const n8nWebhookUrl = resolveWebhookUrl(event.event_type);
+    if (!n8nWebhookUrl) {
+      const code = "unsupported_event_route";
+      await admin
+        .from("automation_events")
+        .update({
+          dispatch_status: "failed",
+          last_error_code: code,
+          last_error_message: "No automation route configured for event type",
+        })
+        .eq("id", event.id)
+        .eq("dispatch_status", "processing");
+      summary.failed++;
+      failures.push({ event_id: event.id, code });
+      continue;
+    }
+
     try {
       const response = await fetch(n8nWebhookUrl, {
         method: "POST",
