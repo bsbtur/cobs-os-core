@@ -30,39 +30,18 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 /**
- * V3.1 QA-only backend routing.
+ * TEMPORARY production-payment smoke-test routing.
  *
- * The isolated B6.3 branch is pinned to COBS OS STAGING V3.1 for QA.
- * The frozen V1 production/main continues to use its normal environment variables.
- * This branch-only override MUST be removed before any V3.1 PR is merged to main.
+ * This branch is intentionally pinned to COBS OS CLEAN BUILD so an authenticated
+ * owner can execute a controlled R$ 1 Mercado Pago production smoke test.
+ * Do not merge this branch into main or the regular V3.1 QA branch.
  */
-const V31_QA_SUPABASE_URL = "https://wzukfenbzwlwzhtadlxl.supabase.co";
-const V31_QA_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_jDx7luxp7vohloi1dm8MXQ_g_Zxmsv0";
-
-function isV31Preview(): boolean {
-  if (typeof window !== "undefined") return true;
-  return (process.env["VERCEL_GIT_COMMIT_REF"] ?? "").startsWith("feat/v3.1-");
-}
+const SMOKE_SUPABASE_URL = "https://nktohbqmcpgonlizzcka.supabase.co";
+const SMOKE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yF0oXJtt-_ik8kq_FiGrdQ_2IwM4tzJ";
 
 function createSupabaseClient() {
-  const preview = isV31Preview();
-
-  const SUPABASE_URL = preview
-    ? V31_QA_SUPABASE_URL
-    : import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-  const SUPABASE_PUBLISHABLE_KEY = preview
-    ? V31_QA_SUPABASE_PUBLISHABLE_KEY
-    : import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
-
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
-  }
+  const SUPABASE_URL = SMOKE_SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY = SMOKE_SUPABASE_PUBLISHABLE_KEY;
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
