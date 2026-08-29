@@ -41,6 +41,8 @@ Deno.serve(async (req: Request) => {
   const limit = Math.max(1, Math.min(50, Math.trunc(requestedLimit)));
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
 
+  // This RPC is executable only by service_role. It claims rows atomically and
+  // moves them to processing before any network call is attempted.
   const { data: events, error: claimError } = await admin.rpc("claim_automation_outbox", {
     _limit: limit,
   });
