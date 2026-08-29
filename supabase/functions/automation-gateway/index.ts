@@ -1,6 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { isPlainObject, validateDispatchInput, validateResultInput } from "./contract.ts";
+import {
+  isPlainObject,
+  validateDispatchInput,
+  validateResultForEvent,
+  validateResultInput,
+} from "./contract.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
@@ -58,9 +63,22 @@ Deno.serve(async (req: Request) => {
   if (action === "result") {
     const supplied = req.headers.get("x-n8n-callback-token") ?? "";
     if (!constantTimeEqual(supplied, callbackToken)) return json({ error: "unauthorized" }, 401);
+
     const validationError = validateResultInput(body);
     if (validationError) return json({ error: validationError }, 400);
     if (!isPlainObject(body)) return json({ error: "invalid_body" }, 400);
+
+    const { data: storedEvent, error: eventLookupError } = await admin
+      .from("automation_events")
+      .select("id,tenant_id,event_type")
+      .eq("id", body.event_id)
+      .eq("tenant_id", body.tenant_id)
+      .maybeSingle();
+    if (eventLookupError) return json({ error: "event_lookup_failed" }, 500);
+    if (!storedEvent) return json({ error: "automation_event_not_found" }, 404);
+
+    const eventValidationError = validateResultForEvent(body, storedEvent.event_type);
+    if (eventValidationError) return json({ error: eventValidationError }, 400);
 
     const completed = body.outcome === "completed";
     const resultRow = {
@@ -82,6 +100,7 @@ Deno.serve(async (req: Request) => {
           : null,
       provider_metadata: isPlainObject(body.provider_metadata) ? body.provider_metadata : {},
     };
+
     const { error: insertError } = await admin.from("automation_results").insert(resultRow);
     if (insertError?.code === "23505") return json({ ok: true, duplicate: true });
     if (insertError) return json({ error: "result_insert_failed" }, 500);
