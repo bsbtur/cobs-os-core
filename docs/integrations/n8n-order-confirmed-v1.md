@@ -1,6 +1,6 @@
 # COBS OS → n8n · order.confirmed V1
 
-Status: code foundation only. Do not send production traffic until staging migration, Edge Function deployment, n8n workflow, secrets, and E2E evidence pass the release gate.
+Status: code foundation staged and hardened. Do not send production traffic until the n8n workflow and fresh end-to-end staging evidence pass the release gate.
 
 ## Objective
 
@@ -20,7 +20,18 @@ The transaction never calls n8n directly.
 
 ## Dispatch boundary
 
-`automation-dispatcher` atomically claims pending/failed `cobs_db` events with bounded retries, sends them to the configured n8n webhook, and records dispatch evidence. Concurrent dispatchers must not claim the same row.
+`automation-dispatcher` atomically claims pending/failed `cobs_db` events with bounded retries, sends them to the dedicated n8n webhook, and records dispatch evidence. Concurrent dispatchers cannot claim the same row. Rows left in `processing` after a dispatcher crash are reclaimable after 5 minutes, still bounded to 3 total attempts.
+
+The dedicated `order.confirmed` route can be configured explicitly with `N8N_ORDER_CONFIRMED_WEBHOOK_URL`; if it is absent, the dispatcher derives `/webhook/cobs-order-confirmed-v1` from the configured n8n commercial origin. It never intentionally sends `order.confirmed` to the lead webhook path.
+
+## Callback integrity
+
+`automation-gateway?action=result` authenticates with the existing callback token and now binds each callback to the stored `automation_events` row before accepting the result.
+
+- unknown/mismatched event + tenant is rejected
+- completed `lead.created` requires the structured commercial fields
+- completed `order.confirmed` accepts metadata-only completion and rejects lead-classification fields
+- `automation_results` also enforces a composite event/tenant foreign key and one result per event
 
 ## n8n workflow V1
 
@@ -31,60 +42,7 @@ Recommended name: `COBS — ORDER CONFIRMED V1`
 3. Code/Set node creates a small onboarding context from the payload. Do not fetch or copy full customer history.
 4. V1 performs no order/payment mutation and no automatic WhatsApp/email send.
 5. HTTP callback posts `outcome=completed` to `automation-gateway?action=result` using the existing callback credential.
-6. Callback may be metadata-only, e.g. `provider_metadata.workflow = cobs-order-confirmed-v1` and `provider_metadata.action = onboarding_prepared`.
-
-## Incoming envelope
-
-```json
-{
-  "schema_version": 1,
-  "id": "<automation_event_uuid>",
-  "tenant_id": "<tenant_uuid>",
-  "operation_id": "<operation_uuid|null>",
-  "event_type": "order.confirmed",
-  "idempotency_key": "order.confirmed:<order_uuid>",
-  "correlation_id": "<correlation_uuid>",
-  "payload": {
-    "order_id": "<order_uuid>",
-    "reference_label": "<optional reference>",
-    "grand_total_minor": 100,
-    "currency": "BRL",
-    "confirmed_at": "<timestamp>",
-    "confirmation_mode": "manual|provider",
-    "provider": "<optional provider>"
-  },
-  "created_at": "<timestamp>"
-}
-```
-
-## Successful callback
-
-```json
-{
-  "event_id": "<automation_event_uuid>",
-  "tenant_id": "<tenant_uuid>",
-  "outcome": "completed",
-  "provider_metadata": {
-    "workflow": "cobs-order-confirmed-v1",
-    "action": "onboarding_prepared"
-  }
-}
-```
-
-## Failure callback
-
-```json
-{
-  "event_id": "<automation_event_uuid>",
-  "tenant_id": "<tenant_uuid>",
-  "outcome": "failed",
-  "error_code": "<bounded code>",
-  "error_message": "<bounded operational message>",
-  "provider_metadata": {
-    "workflow": "cobs-order-confirmed-v1"
-  }
-}
-```
+6. Callback is metadata-only, e.g. `provider_metadata.workflow = cobs-order-confirmed-v1` and `provider_metadata.action = onboarding_prepared`.
 
 ## Hard rules
 
@@ -92,18 +50,26 @@ Recommended name: `COBS — ORDER CONFIRMED V1`
 - n8n never creates financial facts.
 - n8n is not used to solve Commerce → Participant materialization.
 - No automatic outbound customer message in V1 before channel credentials, consent/template rules, and audit behavior are separately validated.
-- Do not expose Supabase, n8n, payment, or callback secrets in workflow JSON, browser code, screenshots, logs, or documentation.
+- Do not expose Supabase, n8n, payment, dispatcher, or callback secrets in workflow JSON, browser code, screenshots, logs, or documentation.
 
-## Staging release gate
+## Staging evidence already obtained
 
-1. Migration applies cleanly to the explicit staging project.
-2. Existing `lead.created` behavior remains valid.
-3. Manual `submitted → confirmed` creates exactly one pending `order.confirmed` event.
-4. Provider confirmation creates exactly one pending `order.confirmed` event.
-5. Repeated confirmation/idempotent calls do not create a second event.
-6. Dispatcher rejects wrong internal token.
-7. Dispatcher claims a bounded batch once and moves successful rows to `dispatched`.
-8. Failed n8n delivery is retried within the configured attempt limit.
-9. n8n accepts one fresh event and returns a metadata-only completed callback.
-10. Matching `automation_results` and `audit_events` evidence exists under the correct tenant.
-11. `main`, production database, and frozen V1 remain unchanged until an explicit release decision.
+- migrations apply cleanly on STAGING `wzukfenbzwlwzhtadlxl`
+- manual `submitted → confirmed` rollback test created exactly one pending `order.confirmed`
+- repeated confirmed transitions for the same order produced only one event
+- provider-paid confirmation RPC rollback test created exactly one pending `order.confirmed` with `confirmation_mode=provider` and `provider=mercado_pago`
+- rollback restored the tested order/charge and left zero persisted test events
+- atomic claim moved a pending event to `processing` and incremented attempts
+- stale `processing` recovery reclaimed an event older than 5 minutes and incremented attempts while respecting the 3-attempt cap
+- `automation-gateway` v5 is ACTIVE in STAGING with event-aware callback validation
+- GitHub Quality Gate run #182 passed the hardened callback contract and tests
+
+## Remaining staging release gate
+
+1. Create/publish `COBS — ORDER CONFIRMED V1` in n8n at `/webhook/cobs-order-confirmed-v1` using existing COBS webhook/callback credentials.
+2. Prove dispatcher rejects an incorrect internal token.
+3. Invoke dispatcher against one fresh STAGING `order.confirmed` event and prove successful delivery becomes `dispatched`.
+4. Prove one failed n8n delivery retries within the configured attempt limit.
+5. Prove n8n accepts the fresh event and returns a metadata-only completed callback.
+6. Match `automation_events`, `automation_results`, and `audit_events` under the same event/tenant/correlation evidence.
+7. Keep `main`, production database, and frozen V1 unchanged until explicit release decision.
