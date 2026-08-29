@@ -62,14 +62,16 @@ Deno.serve(async (req: Request) => {
     if (validationError) return json({ error: validationError }, 400);
     if (!isPlainObject(body)) return json({ error: "invalid_body" }, 400);
 
+    const completed = body.outcome === "completed";
     const resultRow = {
       tenant_id: body.tenant_id,
       automation_event_id: body.event_id,
       outcome: body.outcome,
-      intent: body.outcome === "completed" ? body.intent : null,
-      urgency: body.outcome === "completed" ? body.urgency : null,
-      summary: body.outcome === "completed" ? body.summary : null,
-      suggested_reply: body.outcome === "completed" ? body.suggested_reply : null,
+      intent: completed && typeof body.intent === "string" ? body.intent : null,
+      urgency: completed && typeof body.urgency === "string" ? body.urgency : null,
+      summary: completed && typeof body.summary === "string" ? body.summary : null,
+      suggested_reply:
+        completed && typeof body.suggested_reply === "string" ? body.suggested_reply : null,
       error_code:
         body.outcome === "failed" && typeof body.error_code === "string"
           ? body.error_code.slice(0, 120)
@@ -84,7 +86,6 @@ Deno.serve(async (req: Request) => {
     if (insertError?.code === "23505") return json({ ok: true, duplicate: true });
     if (insertError) return json({ error: "result_insert_failed" }, 500);
 
-    const completed = body.outcome === "completed";
     const { error: updateError } = await admin
       .from("automation_events")
       .update({
