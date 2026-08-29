@@ -1,6 +1,6 @@
 -- COBS OS · automation outbox claim
 -- Claims a bounded batch atomically so concurrent dispatchers cannot send the
--- same pending event twice.
+-- same pending event twice. Failed deliveries may be retried up to 3 attempts.
 
 alter table public.automation_events
   drop constraint if exists automation_events_dispatch_status_check;
