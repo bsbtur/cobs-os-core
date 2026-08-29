@@ -1,4 +1,4 @@
-export const ALLOWED_EVENT_TYPES = new Set(["lead.created", "order.confirmed"]);
+export const ALLOWED_EVENT_TYPES = new Set(["lead.created", "order.confirmed", "participant.added"]);
 export const ALLOWED_INTENTS = new Set([
   "price",
   "installment",
@@ -100,7 +100,7 @@ export function validateResultForEvent(value: unknown, eventType: string): strin
       return "invalid_suggested_reply";
   }
 
-  if (eventType === "order.confirmed" && hasLeadFields) {
+  if ((eventType === "order.confirmed" || eventType === "participant.added") && hasLeadFields) {
     return "unexpected_lead_result_fields";
   }
 
