@@ -53,8 +53,6 @@ export function validateResultInput(value: unknown): string | null {
   if (!isUuid(value.event_id) || !isUuid(value.tenant_id)) return "invalid_event_reference";
   if (value.outcome !== "completed" && value.outcome !== "failed") return "invalid_outcome";
   if (value.outcome === "completed") {
-    // Lead classification keeps its structured commercial fields. Other
-    // automation events may complete with provider_metadata only.
     const hasLeadFields =
       value.intent != null ||
       value.urgency != null ||
@@ -74,5 +72,37 @@ export function validateResultInput(value: unknown): string | null {
   if (value.provider_metadata != null && !isPlainObject(value.provider_metadata)) {
     return "invalid_provider_metadata";
   }
+  return null;
+}
+
+export function validateResultForEvent(value: unknown, eventType: string): string | null {
+  const baseError = validateResultInput(value);
+  if (baseError) return baseError;
+  if (!isPlainObject(value)) return "invalid_body";
+  if (!ALLOWED_EVENT_TYPES.has(eventType)) return "unsupported_event_type";
+  if (value.outcome !== "completed") return null;
+
+  const hasLeadFields =
+    value.intent != null ||
+    value.urgency != null ||
+    value.summary != null ||
+    value.suggested_reply != null;
+
+  if (eventType === "lead.created") {
+    if (!hasLeadFields) return "missing_lead_result_fields";
+    if (typeof value.intent !== "string" || !ALLOWED_INTENTS.has(value.intent))
+      return "invalid_intent";
+    if (typeof value.urgency !== "string" || !ALLOWED_URGENCIES.has(value.urgency))
+      return "invalid_urgency";
+    if (typeof value.summary !== "string" || value.summary.length > 500)
+      return "invalid_summary";
+    if (typeof value.suggested_reply !== "string" || value.suggested_reply.length > 600)
+      return "invalid_suggested_reply";
+  }
+
+  if (eventType === "order.confirmed" && hasLeadFields) {
+    return "unexpected_lead_result_fields";
+  }
+
   return null;
 }
