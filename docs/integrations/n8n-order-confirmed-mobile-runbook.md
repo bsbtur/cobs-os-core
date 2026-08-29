@@ -1,6 +1,6 @@
 # COBS OS → n8n · ORDER CONFIRMED V1 · Mobile Runbook
 
-Objetivo: permitir fechar o workflow pelo celular com o mínimo de cliques e sem recriar credenciais.
+Objetivo: fechar o workflow pelo celular com o mínimo de cliques e sem recriar credenciais.
 
 ## Regra de escopo
 
@@ -102,7 +102,7 @@ return [{
 }];
 ```
 
-Não incluir `intent`, `urgency`, `summary` ou `suggested_reply`.
+Não incluir `intent`, `urgency`, `summary` ou `suggested_reply`. O gateway v5 valida o tipo real armazenado do evento e rejeita campos de lead em callbacks de `order.confirmed`.
 
 ## 6. HTTP Request · Callback COBS
 
