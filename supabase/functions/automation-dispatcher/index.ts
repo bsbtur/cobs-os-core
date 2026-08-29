@@ -41,10 +41,9 @@ Deno.serve(async (req: Request) => {
   const limit = Math.max(1, Math.min(50, Math.trunc(requestedLimit)));
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
 
-  const { data: events, error: claimError } = await admin.schema("app_private").rpc(
-    "claim_automation_outbox",
-    { _limit: limit },
-  );
+  const { data: events, error: claimError } = await admin.rpc("claim_automation_outbox", {
+    _limit: limit,
+  });
   if (claimError) return json({ error: "outbox_claim_failed" }, 500);
 
   const summary = { claimed: 0, dispatched: 0, failed: 0 };
