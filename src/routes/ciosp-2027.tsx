@@ -1,10 +1,11 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, GraduationCap, Hotel, MapPin, Plane, ShieldCheck, Users } from "lucide-react";
+import { CheckCircle2, GraduationCap, Hotel, Loader2, MapPin, Plane, ShieldCheck, Users } from "lucide-react";
 
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/ciosp-2027")({
   head: () => ({
@@ -32,13 +33,38 @@ function CiospPrelaunch() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [consentContact, setConsentContact] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    // Pré-lançamento fail-closed: esta página não cria Order, reserva ou cobrança.
-    // A persistência do lead será conectada ao CRM/COBS em uma etapa separada e testada.
-    setSubmitted(true);
+    if (loading || !consentContact) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: captureError } = await supabase.functions.invoke("ciosp-public-lead-capture", {
+        body: {
+          full_name: fullName,
+          email,
+          phone,
+          consent_contact: consentContact,
+          idempotency_key: idempotencyKey,
+          source: "ciosp_2027_prelaunch",
+          campaign: "ciosp-2027-lista-prioritaria",
+        },
+      });
+      if (captureError) throw captureError;
+      if (!data?.id) throw new Error("lead_capture_response_invalid");
+      setSubmitted(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível registrar seu interesse agora.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -120,13 +146,20 @@ function CiospPrelaunch() {
                 <label className="block space-y-1.5 text-sm font-medium">Nome completo<Input required minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" /></label>
                 <label className="block space-y-1.5 text-sm font-medium">WhatsApp<Input required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(61) 99999-9999" autoComplete="tel" /></label>
                 <label className="block space-y-1.5 text-sm font-medium">E-mail<Input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" /></label>
-                <Button type="submit" size="lg" className="w-full">Entrar na lista prioritária</Button>
-                <p className="text-center text-xs text-muted-foreground">Sem pagamento nesta etapa.</p>
+                <label className="flex items-start gap-3 rounded-lg border border-border p-3 text-sm">
+                  <input required type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" />
+                  <span>Autorizo a BSBTUR a entrar em contato comigo sobre a Caravana CIOSP 2027 pelos dados informados. Posso solicitar a interrupção do contato a qualquer momento.</span>
+                </label>
+                {error && <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}
+                <Button type="submit" size="lg" className="w-full" disabled={loading || !consentContact}>
+                  {loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Registrando...</> : "Entrar na lista prioritária"}
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">Sem pagamento e sem reserva nesta etapa.</p>
               </form>
             ) : (
               <div className="space-y-5 text-center">
                 <span className="mx-auto grid size-14 place-items-center rounded-full bg-success/10 text-success"><CheckCircle2 className="size-7" /></span>
-                <div><h2 className="text-2xl font-semibold">Interesse registrado nesta tela</h2><p className="mt-2 text-sm text-muted-foreground">A integração definitiva da lista com o CRM/COBS ainda será validada antes da publicação comercial.</p></div>
+                <div><h2 className="text-2xl font-semibold">Você entrou na lista prioritária</h2><p className="mt-2 text-sm text-muted-foreground">Seu interesse foi registrado no COBS. A BSBTUR poderá entrar em contato quando houver novidades sobre a abertura das reservas.</p></div>
               </div>
             )}
           </div>
