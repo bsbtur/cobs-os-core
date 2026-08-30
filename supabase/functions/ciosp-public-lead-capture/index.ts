@@ -8,7 +8,7 @@ const OPERATION_CODE = "CIOSP-SP-2027";
 
 const cors = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "content-type, x-client-info, apikey",
+  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey",
   "access-control-allow-methods": "POST, OPTIONS",
 };
 
