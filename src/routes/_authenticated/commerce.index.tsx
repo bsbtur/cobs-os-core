@@ -55,9 +55,26 @@ export const Route = createFileRoute("/_authenticated/commerce/")({
 
 type PersonOption = { id: string; full_name: string };
 type OperationOption = { id: string; name: string };
+type CommercialLeadOption = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  status: string;
+  operation_id: string | null;
+  converted_person_id: string | null;
+};
+type LeadConversionResult = {
+  lead_id: string;
+  person_id: string;
+  created: boolean;
+  unchanged: boolean;
+};
 
 function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => void }) {
   const { t, locale } = useI18n();
+  const queryClient = useQueryClient();
+  const [leadId, setLeadId] = React.useState("");
   const [buyer, setBuyer] = React.useState("");
   const [currency, setCurrency] = React.useState("BRL");
   const [operationId, setOperationId] = React.useState("");
@@ -90,6 +107,48 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
     },
   });
 
+  const leads = useQuery({
+    queryKey: ["w09", "commercial-leads", tenantId],
+    queryFn: async () => {
+      // Generated Supabase types lag schema migrations in this branch. Keep this
+      // narrow untyped boundary until types are regenerated; RLS still applies.
+      const client = supabase as any;
+      const { data, error } = await client
+        .from("commercial_leads")
+        .select("id, full_name, email, phone, status, operation_id, converted_person_id")
+        .eq("tenant_id", tenantId)
+        .in("status", ["new", "contacted", "qualified", "converted"])
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as CommercialLeadOption[];
+    },
+  });
+
+  const convertLead = useMutation({
+    mutationFn: async (selectedLeadId: string) => {
+      const client = supabase as any;
+      const { data, error } = await client.rpc("convert_commercial_lead_to_person", {
+        _lead_id: selectedLeadId,
+      });
+      if (error) throw error;
+      return data as LeadConversionResult;
+    },
+    onSuccess: async (result) => {
+      const lead = (leads.data ?? []).find((item) => item.id === result.lead_id);
+      setBuyer(result.person_id);
+      if (lead?.operation_id) setOperationId(lead.operation_id);
+      if (!reference && lead) setReference(`Lead CIOSP · ${lead.full_name}`);
+      if (!notes && lead) setNotes(`Origem: lead comercial ${lead.id}`);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["w09", "people", tenantId] }),
+        queryClient.invalidateQueries({ queryKey: ["w09", "commercial-leads", tenantId] }),
+      ]);
+      feedback.success("Lead convertido em comprador. Revise e crie o pedido.");
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.rpc(
@@ -113,6 +172,8 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  const selectedLead = (leads.data ?? []).find((item) => item.id === leadId);
+
   return (
     <form
       className="mt-4 grid gap-3 sm:grid-cols-2"
@@ -121,6 +182,44 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
         create.mutate();
       }}
     >
+      <div className="space-y-2 rounded-lg border border-border bg-elevated/40 p-3 sm:col-span-2">
+        <div>
+          <Label htmlFor="order-lead">Lead comercial</Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Opcional. Converte um lead existente em comprador sem duplicar cadastro.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <select
+            id="order-lead"
+            className="h-11 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm"
+            value={leadId}
+            onChange={(e) => setLeadId(e.target.value)}
+          >
+            <option value="">Selecionar lead…</option>
+            {(leads.data ?? []).map((lead) => (
+              <option key={lead.id} value={lead.id}>
+                {lead.full_name} · {lead.email} · {lead.status}
+              </option>
+            ))}
+          </select>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            disabled={!leadId || convertLead.isPending}
+            onClick={() => leadId && convertLead.mutate(leadId)}
+          >
+            {convertLead.isPending ? "Convertendo…" : "Iniciar venda"}
+          </Button>
+        </div>
+        {selectedLead?.converted_person_id && (
+          <p className="text-xs text-muted-foreground">
+            Este lead já foi convertido. “Iniciar venda” reutiliza o mesmo comprador.
+          </p>
+        )}
+      </div>
+
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="order-buyer">{t("w09.order.buyer")}</Label>
         <select
