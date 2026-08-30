@@ -31,6 +31,7 @@ alter table public.commercial_leads enable row level security;
 revoke all on table public.commercial_leads from anon;
 revoke all on table public.commercial_leads from authenticated;
 grant select, update on table public.commercial_leads to authenticated;
+grant select, insert on table public.commercial_leads to service_role;
 
 create policy commercial_leads_staff_select on public.commercial_leads
 for select to authenticated
