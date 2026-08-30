@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
@@ -7,8 +8,7 @@ const secretKey = SUPABASE_SECRET_KEYS.default;
 const OPERATION_CODE = "CIOSP-SP-2027";
 
 const cors = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey",
+  ...corsHeaders,
   "access-control-allow-methods": "POST, OPTIONS",
 };
 
