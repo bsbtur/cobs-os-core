@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/commerce/")({
 });
 
 type PersonOption = { id: string; full_name: string };
-type OperationOption = { id: string; name: string };
+type OperationOption = { id: string; name: string; code: string };
 
 function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => void }) {
   const { t, locale } = useI18n();
@@ -82,8 +82,10 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operations")
-        .select("id, name")
+        .select("id, name, code")
         .eq("tenant_id", tenantId)
+        .is("archived_at", null)
+        .in("status", ["planning", "active"])
         .order("name");
       if (error) throw error;
       return (data ?? []) as OperationOption[];
@@ -160,7 +162,7 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
           <option value="">{t("w09.order.operationNone")}</option>
           {(operations.data ?? []).map((o) => (
             <option key={o.id} value={o.id}>
-              {o.name}
+              {o.name} · {o.code}
             </option>
           ))}
         </select>
