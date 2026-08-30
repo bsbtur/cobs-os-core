@@ -278,6 +278,38 @@ function CatalogWorkspace() {
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ["w09"] });
 
+  const activateSellable = useMutation({
+    mutationFn: async (entry: CatalogEntry) => {
+      if (entry.offering_id && entry.offering_status !== "active") {
+        const { error } = await (supabase.rpc as any)("activate_offering", {
+          _offering_id: entry.offering_id,
+        });
+        if (error) throw error;
+      }
+      const { error } = await (supabase.rpc as any)("activate_sellable", {
+        _sellable_id: entry.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success("Item comercial ativado.");
+      refresh();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  const activatePrice = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.rpc as any)("activate_price", { _price_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success("Preço ativado.");
+      refresh();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
   const archiveSellable = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.rpc("archive_sellable", { _sellable_id: id });
@@ -344,7 +376,7 @@ function CatalogWorkspace() {
                     {entry.status === "archived" ? " · —" : ""}
                   </p>
                 </div>
-                {entry.status === "active" && (
+                {entry.status === "active" ? (
                   <Button
                     variant="ghost"
                     className="min-h-11"
@@ -352,6 +384,17 @@ function CatalogWorkspace() {
                     onClick={() => archiveSellable.mutate(entry.id)}
                   >
                     {t("w09.catalog.archive")}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="min-h-11"
+                    disabled={activateSellable.isPending}
+                    onClick={() => activateSellable.mutate(entry)}
+                  >
+                    {entry.offering_id && entry.offering_status !== "active"
+                      ? "Ativar oferta e item"
+                      : "Ativar item"}
                   </Button>
                 )}
               </div>
@@ -381,7 +424,7 @@ function CatalogWorkspace() {
                             : t("w09.prices.open")}
                           {price.is_current ? ` · ${t("w09.prices.current")}` : ""}
                         </span>
-                        {price.status === "active" && (
+                        {price.status === "active" ? (
                           <Button
                             variant="ghost"
                             className="min-h-11"
@@ -390,7 +433,16 @@ function CatalogWorkspace() {
                           >
                             {t("w09.prices.archive")}
                           </Button>
-                        )}
+                        ) : entry.status === "active" ? (
+                          <Button
+                            variant="outline"
+                            className="min-h-11"
+                            disabled={activatePrice.isPending}
+                            onClick={() => activatePrice.mutate(price.id)}
+                          >
+                            Ativar preço
+                          </Button>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
