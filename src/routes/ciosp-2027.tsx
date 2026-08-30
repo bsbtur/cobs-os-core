@@ -29,6 +29,116 @@ const gallery = [
   ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=88", "Conforto para recarregar", "Hospedagem pensada como parte da experiência."],
 ] as const;
 
+const motionCss = `
+  .ciosp-motion { scroll-behavior: smooth; }
+  .ciosp-motion a, .ciosp-motion button, .ciosp-motion article, .ciosp-motion figure { -webkit-tap-highlight-color: transparent; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ciosp-motion header { transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease; }
+    .ciosp-motion header:hover { border-color: rgba(214,181,109,.22); box-shadow: 0 12px 40px rgba(0,0,0,.26); }
+
+    .ciosp-motion a[href="#lista-prioritaria"],
+    .ciosp-motion a[href="#experiencia"],
+    .ciosp-motion button[type="submit"] {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease, border-color .28s ease, filter .28s ease, background-color .28s ease;
+      will-change: transform;
+    }
+    .ciosp-motion a[href="#lista-prioritaria"]::after,
+    .ciosp-motion button[type="submit"]::after {
+      content: "";
+      position: absolute;
+      inset: -80% auto -80% -45%;
+      width: 32%;
+      transform: rotate(18deg);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.36), transparent);
+      transition: left .7s cubic-bezier(.22,1,.36,1);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .ciosp-motion a[href="#lista-prioritaria"]:hover::after,
+    .ciosp-motion button[type="submit"]:hover::after { left: 125%; }
+    .ciosp-motion a[href="#lista-prioritaria"]:hover,
+    .ciosp-motion button[type="submit"]:not(:disabled):hover {
+      transform: translateY(-3px) scale(1.015);
+      box-shadow: 0 18px 52px rgba(214,181,109,.22);
+    }
+    .ciosp-motion a[href="#lista-prioritaria"]:active,
+    .ciosp-motion button[type="submit"]:not(:disabled):active { transform: translateY(0) scale(.985); }
+    .ciosp-motion a[href="#lista-prioritaria"] svg,
+    .ciosp-motion button[type="submit"] svg { transition: transform .28s cubic-bezier(.22,1,.36,1); }
+    .ciosp-motion a[href="#lista-prioritaria"]:hover svg,
+    .ciosp-motion button[type="submit"]:not(:disabled):hover svg { transform: translateX(5px); }
+
+    .ciosp-motion a[href="#experiencia"]:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px rgba(214,181,109,.18), 0 12px 32px rgba(0,0,0,.24); }
+
+    .ciosp-motion main > section:first-child > img {
+      animation: ciospHeroBreath 14s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+    .ciosp-motion main > section:first-child h1 span {
+      background: linear-gradient(105deg,#c79d4e 0%,#f4dfae 44%,#d6b56d 67%,#f1d89e 100%);
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: ciospGoldFlow 7s ease-in-out infinite;
+    }
+
+    .ciosp-motion figure {
+      transition: transform .5s cubic-bezier(.22,1,.36,1), border-color .4s ease, box-shadow .5s ease;
+      will-change: transform;
+    }
+    .ciosp-motion figure:hover {
+      transform: translateY(-6px);
+      border-color: rgba(214,181,109,.34);
+      box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 38px rgba(214,181,109,.07);
+    }
+    .ciosp-motion figure figcaption { transition: transform .45s cubic-bezier(.22,1,.36,1); }
+    .ciosp-motion figure:hover figcaption { transform: translateY(-4px); }
+
+    .ciosp-motion article {
+      transition: transform .36s cubic-bezier(.22,1,.36,1), background-color .36s ease, box-shadow .36s ease;
+    }
+    .ciosp-motion article:hover {
+      transform: translateY(-5px);
+      box-shadow: inset 0 1px 0 rgba(214,181,109,.14), 0 16px 42px rgba(0,0,0,.2);
+      z-index: 2;
+    }
+    .ciosp-motion article > span { transition: transform .36s cubic-bezier(.22,1,.36,1), background-color .36s ease, border-color .36s ease; }
+    .ciosp-motion article:hover > span { transform: translateY(-2px) scale(1.09); background-color: rgba(214,181,109,.12); border-color: rgba(214,181,109,.46); }
+
+    .ciosp-motion input { transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease, transform .25s ease; }
+    .ciosp-motion input:focus { transform: translateY(-1px); border-color: rgba(214,181,109,.55)!important; box-shadow: 0 0 0 3px rgba(214,181,109,.09), 0 10px 30px rgba(0,0,0,.18); background-color: rgba(12,11,8,.72); }
+
+    .ciosp-motion main > section:nth-child(2) > div > div { transition: transform .35s cubic-bezier(.22,1,.36,1), background-color .35s ease; }
+    .ciosp-motion main > section:nth-child(2) > div > div:hover { transform: translateY(-3px); background-color: #0d0c09; }
+
+    @supports (animation-timeline: view()) {
+      .ciosp-motion main > section:not(:first-child) > div {
+        animation: ciospSectionReveal both cubic-bezier(.22,1,.36,1);
+        animation-timeline: view();
+        animation-range: entry 4% cover 28%;
+      }
+    }
+
+    @keyframes ciospHeroBreath {
+      from { transform: scale(1.015) translate3d(0,0,0); }
+      to { transform: scale(1.065) translate3d(-.6%, -.4%, 0); }
+    }
+    @keyframes ciospGoldFlow {
+      0%,100% { background-position: 0% center; }
+      50% { background-position: 100% center; }
+    }
+    @keyframes ciospSectionReveal {
+      from { opacity: .2; transform: translateY(48px) scale(.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+  }
+`;
+
 function BsbTurSignature() {
   return <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full border text-sm font-bold" style={{borderColor:gold,color:gold}}>B</span><span><span className="block text-base font-semibold tracking-[0.18em] text-white">BSBTUR</span><span className="block text-[9px] uppercase tracking-[0.28em] text-white/45">Turismo & Experiências</span></span></div>;
 }
@@ -38,7 +148,8 @@ function CiospPrelaunch() {
   const [consentContact,setConsentContact]=useState(false); const [submitted,setSubmitted]=useState(false); const [loading,setLoading]=useState(false); const [error,setError]=useState<string|null>(null);
   const idempotencyKey=useMemo(()=>crypto.randomUUID(),[]);
   async function submit(event:FormEvent){event.preventDefault();if(loading||!consentContact)return;setLoading(true);setError(null);try{const {data,error:captureError}=await supabase.functions.invoke("ciosp-public-lead-capture",{body:{full_name:fullName,email,phone,consent_contact:consentContact,idempotency_key:idempotencyKey,source:"ciosp_2027_prelaunch",campaign:"ciosp-2027-lista-prioritaria"}});if(captureError)throw captureError;if(!data?.id)throw new Error("lead_capture_response_invalid");setSubmitted(true)}catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível registrar seu interesse agora.")}finally{setLoading(false)}}
-  return <div className="min-h-screen bg-[#070707] text-[#F5F1E8] selection:bg-[#D6B56D] selection:text-black">
+  return <div className="ciosp-motion min-h-screen bg-[#070707] text-[#F5F1E8] selection:bg-[#D6B56D] selection:text-black">
+    <style>{motionCss}</style>
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070707]/88 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"><BsbTurSignature/><a href="#lista-prioritaria" className="inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition hover:bg-[#D6B56D] hover:text-black" style={{borderColor:`${gold}66`,color:gold}}>Entrar na lista <ArrowRight className="ml-2 size-4"/></a></div></header>
     <main>
       <section className="relative isolate overflow-hidden border-b border-white/10">
