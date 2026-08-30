@@ -89,8 +89,19 @@ Deno.serve(async (req: Request) => {
     return json({ ...inserted, duplicate: false, automation: { status: "failed", event_id: automationEvent.id } }, 201);
   }
 
+  let n8nWebhookUrl: URL;
   try {
-    const response = await fetch(N8N_COMMERCIAL_WEBHOOK_URL, {
+    n8nWebhookUrl = new URL(N8N_COMMERCIAL_WEBHOOK_URL.trim());
+    if (n8nWebhookUrl.protocol !== "https:") throw new Error("Commercial webhook must use https");
+  } catch (error) {
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : "Invalid commercial webhook URL";
+    console.error("lead_n8n_url_invalid", detail);
+    await admin.from("automation_events").update({ dispatch_status: "failed", dispatch_attempts: 1, last_error_code: "n8n_invalid_url", last_error_message: detail.slice(0, 500) }).eq("id", automationEvent.id);
+    return json({ ...inserted, duplicate: false, automation: { status: "failed", event_id: automationEvent.id } }, 201);
+  }
+
+  try {
+    const response = await fetch(n8nWebhookUrl.toString(), {
       method: "POST",
       headers: { "content-type": "application/json", "x-cobs-webhook-token": N8N_WEBHOOK_TOKEN },
       body: JSON.stringify({ schema_version: 1, ...automationEvent }),
@@ -104,8 +115,9 @@ Deno.serve(async (req: Request) => {
     await admin.from("audit_events").insert({ tenant_id: op.tenant_id, actor_profile_id: null, action: "automation.dispatch", subject_type: "automation_event", subject_id: automationEvent.id, correlation_id: correlationId, metadata: { event_type: "lead.created", orchestrator: "n8n", source: "ciosp_public" } });
     return json({ ...inserted, duplicate: false, automation: { status: "dispatched", event_id: automationEvent.id } }, 201);
   } catch (error) {
-    console.error("lead_n8n_dispatch_failed", error);
-    await admin.from("automation_events").update({ dispatch_status: "failed", dispatch_attempts: 1, last_error_code: "n8n_network_error", last_error_message: "Unable to reach automation orchestrator" }).eq("id", automationEvent.id);
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : "Unknown network error";
+    console.error("lead_n8n_dispatch_failed", detail);
+    await admin.from("automation_events").update({ dispatch_status: "failed", dispatch_attempts: 1, last_error_code: "n8n_network_error", last_error_message: detail.slice(0, 500) }).eq("id", automationEvent.id);
     return json({ ...inserted, duplicate: false, automation: { status: "failed", event_id: automationEvent.id } }, 201);
   }
 });
