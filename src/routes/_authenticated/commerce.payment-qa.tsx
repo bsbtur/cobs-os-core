@@ -6,7 +6,8 @@ import { RequireTenant } from "@/app/shell/require-tenant";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
-const QA_ORDER_ID = "5db327b6-95f1-43e3-8fcb-d3c42f016a4b";
+const QA_CHARGE_ID = "cc742926-612a-480c-8dc1-7ec7816abb59";
+const QA_ORDER_ID = "9f590714-63eb-4947-888b-1a09ed52cb19";
 const QA_PAYER_EMAIL = "contato.bsbtur@gmail.com";
 
 export const Route = createFileRoute("/_authenticated/commerce/payment-qa")({
@@ -32,7 +33,7 @@ function PaymentQaPage() {
     try {
       const { data, error: invokeError } = await supabase.functions.invoke("payments-create-charge", {
         body: {
-          order_id: QA_ORDER_ID,
+          charge_id: QA_CHARGE_ID,
           payer_email: QA_PAYER_EMAIL,
         },
       });
@@ -51,17 +52,18 @@ function PaymentQaPage() {
       <RequireTenant>
         <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
           <section className="rounded-xl border border-border bg-card p-5">
-            <h1 className="text-xl font-semibold">P0-02 · Mercado Pago Pix QA</h1>
+            <h1 className="text-xl font-semibold">P0 · Entrada CIOSP 2027 · Mercado Pago Pix QA</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Runner temporário e autenticado da branch comercial. Executa somente o pedido QA de R$ 1,00 já submetido no STAGING.
+              Runner temporário e autenticado da branch comercial. Executa somente a cobrança de entrada vinculada ao pedido comercial de QA no STAGING.
             </p>
             <dl className="mt-4 grid gap-2 text-sm">
-              <div><dt className="font-medium">Pedido QA</dt><dd className="break-all text-muted-foreground">{QA_ORDER_ID}</dd></div>
-              <div><dt className="font-medium">Valor esperado</dt><dd className="text-muted-foreground">R$ 1,00</dd></div>
+              <div><dt className="font-medium">Pedido comercial QA</dt><dd className="break-all text-muted-foreground">{QA_ORDER_ID}</dd></div>
+              <div><dt className="font-medium">Cobrança de entrada</dt><dd className="break-all text-muted-foreground">{QA_CHARGE_ID}</dd></div>
+              <div><dt className="font-medium">Valor esperado</dt><dd className="text-muted-foreground">R$ 2.490,00</dd></div>
               <div><dt className="font-medium">Ambiente esperado</dt><dd className="text-muted-foreground">Mercado Pago test</dd></div>
             </dl>
             <Button className="mt-5 min-h-11" onClick={runPaymentQa} disabled={running}>
-              {running ? "Gerando Pix QA…" : "Gerar Pix QA de R$ 1,00"}
+              {running ? "Gerando Pix QA…" : "Gerar Pix QA de R$ 2.490,00"}
             </Button>
           </section>
 
