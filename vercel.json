@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "/ciosp/ciosp-pavilhao.jpg",
-      "destination": "/ciosp/ciosp-bem-vindos.jpg",
-      "permanent": false
-    }
-  ]
-}
