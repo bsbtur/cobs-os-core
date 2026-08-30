@@ -32,152 +32,57 @@ const gallery = [
 const motionCss = `
   .ciosp-motion { scroll-behavior: smooth; }
   .ciosp-motion a, .ciosp-motion button, .ciosp-motion article, .ciosp-motion figure { -webkit-tap-highlight-color: transparent; }
-
   @media (prefers-reduced-motion: no-preference) {
     .ciosp-motion header { transition: background-color .35s ease, border-color .35s ease, box-shadow .35s ease; }
     .ciosp-motion header:hover { border-color: rgba(214,181,109,.22); box-shadow: 0 12px 40px rgba(0,0,0,.26); }
-
-    .ciosp-motion a[href="#lista-prioritaria"],
-    .ciosp-motion a[href="#experiencia"],
-    .ciosp-motion button[type="submit"] {
-      position: relative;
-      overflow: hidden;
-      isolation: isolate;
-      transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease, border-color .28s ease, filter .28s ease, background-color .28s ease;
-      will-change: transform;
-    }
-    .ciosp-motion a[href="#lista-prioritaria"]::after,
-    .ciosp-motion button[type="submit"]::after {
-      content: "";
-      position: absolute;
-      inset: -80% auto -80% -45%;
-      width: 32%;
-      transform: rotate(18deg);
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.36), transparent);
-      transition: left .7s cubic-bezier(.22,1,.36,1);
-      pointer-events: none;
-      z-index: -1;
-    }
-    .ciosp-motion a[href="#lista-prioritaria"]:hover::after,
-    .ciosp-motion button[type="submit"]:hover::after { left: 125%; }
-    .ciosp-motion a[href="#lista-prioritaria"]:hover,
-    .ciosp-motion button[type="submit"]:not(:disabled):hover {
-      transform: translateY(-3px) scale(1.015);
-      box-shadow: 0 18px 52px rgba(214,181,109,.22);
-    }
-    .ciosp-motion a[href="#lista-prioritaria"]:active,
-    .ciosp-motion button[type="submit"]:not(:disabled):active { transform: translateY(0) scale(.985); }
-    .ciosp-motion a[href="#lista-prioritaria"] svg,
-    .ciosp-motion button[type="submit"] svg { transition: transform .28s cubic-bezier(.22,1,.36,1); }
-    .ciosp-motion a[href="#lista-prioritaria"]:hover svg,
-    .ciosp-motion button[type="submit"]:not(:disabled):hover svg { transform: translateX(5px); }
-
-    .ciosp-motion a[href="#experiencia"]:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px rgba(214,181,109,.18), 0 12px 32px rgba(0,0,0,.24); }
-
-    .ciosp-motion main > section:first-child > img {
-      animation: ciospHeroBreath 14s ease-in-out infinite alternate;
-      will-change: transform;
-    }
-    .ciosp-motion main > section:first-child h1 span {
-      background: linear-gradient(105deg,#c79d4e 0%,#f4dfae 44%,#d6b56d 67%,#f1d89e 100%);
-      background-size: 220% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: ciospGoldFlow 7s ease-in-out infinite;
-    }
-
-    .ciosp-motion figure {
-      transition: transform .5s cubic-bezier(.22,1,.36,1), border-color .4s ease, box-shadow .5s ease;
-      will-change: transform;
-    }
-    .ciosp-motion figure:hover {
-      transform: translateY(-6px);
-      border-color: rgba(214,181,109,.34);
-      box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 38px rgba(214,181,109,.07);
-    }
-    .ciosp-motion figure figcaption { transition: transform .45s cubic-bezier(.22,1,.36,1); }
-    .ciosp-motion figure:hover figcaption { transform: translateY(-4px); }
-
-    .ciosp-motion article {
-      transition: transform .36s cubic-bezier(.22,1,.36,1), background-color .36s ease, box-shadow .36s ease;
-    }
-    .ciosp-motion article:hover {
-      transform: translateY(-5px);
-      box-shadow: inset 0 1px 0 rgba(214,181,109,.14), 0 16px 42px rgba(0,0,0,.2);
-      z-index: 2;
-    }
-    .ciosp-motion article > span { transition: transform .36s cubic-bezier(.22,1,.36,1), background-color .36s ease, border-color .36s ease; }
-    .ciosp-motion article:hover > span { transform: translateY(-2px) scale(1.09); background-color: rgba(214,181,109,.12); border-color: rgba(214,181,109,.46); }
-
-    .ciosp-motion input { transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease, transform .25s ease; }
-    .ciosp-motion input:focus { transform: translateY(-1px); border-color: rgba(214,181,109,.55)!important; box-shadow: 0 0 0 3px rgba(214,181,109,.09), 0 10px 30px rgba(0,0,0,.18); background-color: rgba(12,11,8,.72); }
-
-    .ciosp-motion main > section:nth-child(2) > div > div { transition: transform .35s cubic-bezier(.22,1,.36,1), background-color .35s ease; }
-    .ciosp-motion main > section:nth-child(2) > div > div:hover { transform: translateY(-3px); background-color: #0d0c09; }
-
-    @supports (animation-timeline: view()) {
-      .ciosp-motion main > section:not(:first-child) > div {
-        animation: ciospSectionReveal both cubic-bezier(.22,1,.36,1);
-        animation-timeline: view();
-        animation-range: entry 4% cover 28%;
-      }
-    }
-
-    @keyframes ciospHeroBreath {
-      from { transform: scale(1.015) translate3d(0,0,0); }
-      to { transform: scale(1.065) translate3d(-.6%, -.4%, 0); }
-    }
-    @keyframes ciospGoldFlow {
-      0%,100% { background-position: 0% center; }
-      50% { background-position: 100% center; }
-    }
-    @keyframes ciospSectionReveal {
-      from { opacity: .2; transform: translateY(48px) scale(.99); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
+    .ciosp-motion a[href="#lista-prioritaria"], .ciosp-motion a[href="#experiencia"], .ciosp-motion button[type="submit"] { position: relative; overflow: hidden; isolation: isolate; transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease, border-color .28s ease, filter .28s ease, background-color .28s ease; will-change: transform; }
+    .ciosp-motion a[href="#lista-prioritaria"]::after, .ciosp-motion button[type="submit"]::after { content:""; position:absolute; inset:-80% auto -80% -45%; width:32%; transform:rotate(18deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.36),transparent); transition:left .7s cubic-bezier(.22,1,.36,1); pointer-events:none; z-index:-1; }
+    .ciosp-motion a[href="#lista-prioritaria"]:hover::after, .ciosp-motion button[type="submit"]:hover::after { left:125%; }
+    .ciosp-motion a[href="#lista-prioritaria"]:hover, .ciosp-motion button[type="submit"]:not(:disabled):hover { transform:translateY(-3px) scale(1.015); box-shadow:0 18px 52px rgba(214,181,109,.22); }
+    .ciosp-motion a[href="#lista-prioritaria"]:active, .ciosp-motion button[type="submit"]:not(:disabled):active { transform:translateY(0) scale(.985); }
+    .ciosp-motion a[href="#lista-prioritaria"] svg, .ciosp-motion button[type="submit"] svg { transition:transform .28s cubic-bezier(.22,1,.36,1); }
+    .ciosp-motion a[href="#lista-prioritaria"]:hover svg, .ciosp-motion button[type="submit"]:not(:disabled):hover svg { transform:translateX(5px); }
+    .ciosp-motion a[href="#experiencia"]:hover { transform:translateY(-2px); box-shadow:inset 0 0 0 1px rgba(214,181,109,.18),0 12px 32px rgba(0,0,0,.24); }
+    .ciosp-motion main > section:first-child > img { animation:ciospHeroBreath 14s ease-in-out infinite alternate; will-change:transform; }
+    .ciosp-motion main > section:first-child h1 span { background:linear-gradient(105deg,#c79d4e 0%,#f4dfae 44%,#d6b56d 67%,#f1d89e 100%); background-size:220% auto; -webkit-background-clip:text; background-clip:text; color:transparent; animation:ciospGoldFlow 7s ease-in-out infinite; }
+    .ciosp-motion figure { transition:transform .5s cubic-bezier(.22,1,.36,1),border-color .4s ease,box-shadow .5s ease; will-change:transform; }
+    .ciosp-motion figure:hover { transform:translateY(-6px); border-color:rgba(214,181,109,.34); box-shadow:0 24px 70px rgba(0,0,0,.42),0 0 38px rgba(214,181,109,.07); }
+    .ciosp-motion figure figcaption { transition:transform .45s cubic-bezier(.22,1,.36,1); }
+    .ciosp-motion figure:hover figcaption { transform:translateY(-4px); }
+    .ciosp-motion article { transition:transform .36s cubic-bezier(.22,1,.36,1),background-color .36s ease,box-shadow .36s ease; }
+    .ciosp-motion article:hover { transform:translateY(-5px); box-shadow:inset 0 1px 0 rgba(214,181,109,.14),0 16px 42px rgba(0,0,0,.2); z-index:2; }
+    .ciosp-motion article > span { transition:transform .36s cubic-bezier(.22,1,.36,1),background-color .36s ease,border-color .36s ease; }
+    .ciosp-motion article:hover > span { transform:translateY(-2px) scale(1.09); background-color:rgba(214,181,109,.12); border-color:rgba(214,181,109,.46); }
+    .ciosp-motion input { transition:border-color .25s ease,box-shadow .25s ease,background-color .25s ease,transform .25s ease; }
+    .ciosp-motion input:focus { transform:translateY(-1px); border-color:rgba(214,181,109,.55)!important; box-shadow:0 0 0 3px rgba(214,181,109,.09),0 10px 30px rgba(0,0,0,.18); background-color:rgba(12,11,8,.72); }
+    .ciosp-motion main > section:nth-child(2) > div > div { transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .35s ease; }
+    .ciosp-motion main > section:nth-child(2) > div > div:hover { transform:translateY(-3px); background-color:#0d0c09; }
+    @supports (animation-timeline: view()) { .ciosp-motion main > section:not(:first-child) > div { animation:ciospSectionReveal both cubic-bezier(.22,1,.36,1); animation-timeline:view(); animation-range:entry 4% cover 28%; } }
+    @keyframes ciospHeroBreath { from { transform:scale(1.015) translate3d(0,0,0); } to { transform:scale(1.065) translate3d(-.6%,-.4%,0); } }
+    @keyframes ciospGoldFlow { 0%,100% { background-position:0% center; } 50% { background-position:100% center; } }
+    @keyframes ciospSectionReveal { from { opacity:.2; transform:translateY(48px) scale(.99); } to { opacity:1; transform:translateY(0) scale(1); } }
   }
 `;
 
-function BsbTurSignature() {
-  return <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full border text-sm font-bold" style={{borderColor:gold,color:gold}}>B</span><span><span className="block text-base font-semibold tracking-[0.18em] text-white">BSBTUR</span><span className="block text-[9px] uppercase tracking-[0.28em] text-white/45">Turismo & Experiências</span></span></div>;
-}
+function BsbTurSignature(){return <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full border text-sm font-bold" style={{borderColor:gold,color:gold}}>B</span><span><span className="block text-base font-semibold tracking-[0.18em] text-white">BSBTUR</span><span className="block text-[9px] uppercase tracking-[0.28em] text-white/45">Turismo & Experiências</span></span></div>}
 
-function CiospPrelaunch() {
+function CiospPrelaunch(){
   const [fullName,setFullName]=useState(""); const [email,setEmail]=useState(""); const [phone,setPhone]=useState("");
   const [consentContact,setConsentContact]=useState(false); const [submitted,setSubmitted]=useState(false); const [loading,setLoading]=useState(false); const [error,setError]=useState<string|null>(null);
   const idempotencyKey=useMemo(()=>crypto.randomUUID(),[]);
   async function submit(event:FormEvent){event.preventDefault();if(loading||!consentContact)return;setLoading(true);setError(null);try{const {data,error:captureError}=await supabase.functions.invoke("ciosp-public-lead-capture",{body:{full_name:fullName,email,phone,consent_contact:consentContact,idempotency_key:idempotencyKey,source:"ciosp_2027_prelaunch",campaign:"ciosp-2027-lista-prioritaria"}});if(captureError)throw captureError;if(!data?.id)throw new Error("lead_capture_response_invalid");setSubmitted(true)}catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível registrar seu interesse agora.")}finally{setLoading(false)}}
-  return <div className="ciosp-motion min-h-screen bg-[#070707] text-[#F5F1E8] selection:bg-[#D6B56D] selection:text-black">
-    <style>{motionCss}</style>
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070707]/88 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"><BsbTurSignature/><a href="#lista-prioritaria" className="inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition hover:bg-[#D6B56D] hover:text-black" style={{borderColor:`${gold}66`,color:gold}}>Entrar na lista <ArrowRight className="ml-2 size-4"/></a></div></header>
+  return <div className="ciosp-motion min-h-screen bg-[#070707] text-[#F5F1E8] selection:bg-[#D6B56D] selection:text-black"><style>{motionCss}</style>
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070707]/88 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"><BsbTurSignature/><a href="#lista-prioritaria" className="inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition hover:bg-[#D6B56D] hover:text-black" style={{borderColor:`${gold}66`,color:gold}}>Quero acesso prioritário <ArrowRight className="ml-2 size-4"/></a></div></header>
     <main>
-      <section className="relative isolate overflow-hidden border-b border-white/10">
-        <img src={heroImage} alt="Pavilhão do CIOSP" className="absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-60"/>
-        <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(0,0,0,.98)_0%,rgba(0,0,0,.92)_38%,rgba(0,0,0,.56)_68%,rgba(0,0,0,.42)_100%)]"/>
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_76%_45%,rgba(214,181,109,.20),transparent_30%)]"/>
-        <div className="mx-auto grid min-h-[780px] max-w-7xl items-center gap-12 px-5 py-20 lg:grid-cols-[1.12fr_.88fr] lg:px-8 lg:py-28">
-          <div className="max-w-3xl"><div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/40 bg-black/40 px-4 py-2 text-xs font-semibold uppercase tracking-[.2em] text-[#E4CA91] backdrop-blur"><Sparkles className="size-4"/> CIOSP 2027 · Experiência BSBTUR</div>
-          <p className="mt-8 text-sm uppercase tracking-[.24em] text-white/55">25–31 janeiro · Brasília → São Paulo</p><h1 className="mt-4 text-5xl font-semibold leading-[.96] tracking-[-.035em] sm:text-6xl lg:text-7xl">Viva o CIOSP.<br/><span className="text-[#E8D2A0]">Sem carregar o peso da viagem.</span></h1>
-          <p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/72 sm:text-xl">Uma experiência premium para quem quer chegar ao maior palco da Odontologia com viagem, hospedagem, mobilidade e suporte organizados pela BSBTUR.</p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row"><a href="#lista-prioritaria" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold text-black shadow-[0_16px_50px_rgba(214,181,109,.18)] transition hover:-translate-y-0.5 hover:brightness-110" style={{background:`linear-gradient(135deg,#F0D9A3,${gold},#B78B38)`}}>Quero receber prioridade <ArrowRight className="size-4"/></a><a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur transition hover:border-[#D6B56D]/50">Ver como será a experiência</a></div>
-          <p className="mt-4 text-xs text-white/42">Sem pagamento agora · sem compromisso de compra · prioridade de contato</p>
-          <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Users className="mr-2 inline size-4" style={{color:gold}}/>30 vagas planejadas</span><span><Hotel className="mr-2 inline size-4" style={{color:gold}}/>6 diárias</span><span><ShieldCheck className="mr-2 inline size-4" style={{color:gold}}/>Suporte BSBTUR</span></div></div>
-          <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{borderColor:`${gold}66`,boxShadow:`0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)`}}><div className="flex items-center justify-between"><span className="text-sm text-white/45">Pré-lançamento · CIOSP 2027</span><Crown className="size-5" style={{color:gold}}/></div><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Investimento planejado</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 9.990</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada planejada de <strong className="text-white">R$ 2.490</strong> + saldo conforme as condições finais.</p><div className="my-7 h-px bg-[#D6B56D]/20"/><div className="space-y-3 text-sm text-white/72">{["Experiência acadêmica integrada","Viagem com acompanhamento","Comunicação centralizada","Sem cobrança nesta etapa"].map(x=><div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{color:gold}}/>{x}</div>)}</div><a href="#lista-prioritaria" className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91] transition hover:bg-[#D6B56D]/10">Quero estar entre os primeiros</a></div></div>
-        </div>
-      </section>
-
+      <section className="relative isolate overflow-hidden border-b border-white/10"><img src={heroImage} alt="Pavilhão do CIOSP" className="absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-60"/><div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(0,0,0,.98)_0%,rgba(0,0,0,.92)_38%,rgba(0,0,0,.56)_68%,rgba(0,0,0,.42)_100%)]"/><div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_76%_45%,rgba(214,181,109,.20),transparent_30%)]"/><div className="mx-auto grid min-h-[780px] max-w-7xl items-center gap-12 px-5 py-20 lg:grid-cols-[1.12fr_.88fr] lg:px-8 lg:py-28">
+        <div className="max-w-3xl"><div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/40 bg-black/40 px-4 py-2 text-xs font-semibold uppercase tracking-[.2em] text-[#E4CA91] backdrop-blur"><Sparkles className="size-4"/> CIOSP 2027 · Experiência BSBTUR</div><p className="mt-8 text-sm uppercase tracking-[.24em] text-white/55">25–31 janeiro · Brasília → São Paulo</p><h1 className="mt-4 text-5xl font-semibold leading-[.96] tracking-[-.035em] sm:text-6xl lg:text-7xl">Viva o CIOSP.<br/><span className="text-[#E8D2A0]">Sem carregar o peso da viagem.</span></h1><p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/72 sm:text-xl">Uma experiência premium para quem quer chegar ao maior palco da Odontologia com viagem, hospedagem, mobilidade e suporte organizados pela BSBTUR.</p><div className="mt-9 flex flex-col gap-3 sm:flex-row"><a href="#lista-prioritaria" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold text-black shadow-[0_16px_50px_rgba(214,181,109,.18)]" style={{background:`linear-gradient(135deg,#F0D9A3,${gold},#B78B38)`}}>Quero acesso prioritário <ArrowRight className="size-4"/></a><a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur">Conhecer a experiência</a></div><p className="mt-4 text-xs text-white/42">Sem pagamento agora · sem compromisso de compra · acesso antecipado às condições</p><div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Users className="mr-2 inline size-4" style={{color:gold}}/>30 vagas planejadas</span><span><Hotel className="mr-2 inline size-4" style={{color:gold}}/>6 diárias</span><span><ShieldCheck className="mr-2 inline size-4" style={{color:gold}}/>Suporte BSBTUR</span></div></div>
+        <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{borderColor:`${gold}66`,boxShadow:`0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)`}}><div className="flex items-center justify-between"><span className="text-sm text-white/45">Pré-lançamento · CIOSP 2027</span><Crown className="size-5" style={{color:gold}}/></div><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Investimento planejado</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 9.990</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada planejada de <strong className="text-white">R$ 2.490</strong> + saldo conforme as condições finais.</p><div className="my-7 h-px bg-[#D6B56D]/20"/><div className="space-y-3 text-sm text-white/72">{["Experiência acadêmica integrada","Viagem com acompanhamento","Comunicação centralizada","Sem cobrança nesta etapa"].map(x=><div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{color:gold}}/>{x}</div>)}</div><a href="#lista-prioritaria" className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91]">Quero acesso prioritário <ArrowRight className="ml-2 size-4"/></a></div></div>
+      </div></section>
       <section className="border-b border-white/10 bg-black"><div className="mx-auto grid max-w-7xl gap-px bg-white/10 sm:grid-cols-3"><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">01 · Clareza</p><p className="mt-2 text-sm text-white/65">Você sabe o que está organizado antes de embarcar.</p></div><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">02 · Presença</p><p className="mt-2 text-sm text-white/65">Menos logística na cabeça. Mais CIOSP para viver.</p></div><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">03 · Suporte</p><p className="mt-2 text-sm text-white/65">Uma equipe acompanhando a jornada do início ao fim.</p></div></div></section>
-
-      <section id="experiencia" className="bg-[#0B0B0B]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28"><div className="grid items-end gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{color:gold}}>Uma decisão que fica na memória</p><h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Não é só ir a São Paulo.<br/>É viver o CIOSP por inteiro.</h2></div><p className="max-w-2xl text-lg leading-relaxed text-white/52 lg:justify-self-end">A experiência foi pensada para reduzir atrito, incerteza e improviso. Você preserva sua energia para conteúdo, networking, tendências e tudo que pode acelerar a sua trajetória profissional.</p></div>
-      <div className="mt-12 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">{gallery.map(([src,label,copy],i)=><figure key={src} className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-black ${i===0?"min-h-[500px] lg:col-span-7 lg:row-span-2":"min-h-[240px] lg:col-span-5"}`}><img src={src} alt={label} className="absolute inset-0 h-full w-full object-cover opacity-82 transition duration-700 group-hover:scale-[1.035]" loading={i===0?"eager":"lazy"}/><div className="absolute inset-0 bg-gradient-to-t from-black via-black/15 to-transparent"/><figcaption className="absolute bottom-0 p-7"><p className="text-xs uppercase tracking-[.2em]" style={{color:gold}}>{label}</p><p className={`${i===0?"text-2xl":"text-lg"} mt-2 max-w-md font-semibold text-white`}>{copy}</p></figcaption></figure>)}</div><p className="mt-4 text-xs text-white/35">Imagem do CIOSP utilizada como contexto do evento. Demais imagens são ilustrativas; fornecedores e condições definitivas serão informados na contratação.</p></div></section>
-
-      <section className="border-y border-[#D6B56D]/15 bg-[#050505]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"><p className="text-xs font-bold uppercase tracking-[.22em]" style={{color:gold}}>Uma experiência, seis preocupações a menos</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Você cuida do CIOSP.<br/>A BSBTUR cuida do caminho.</h2><div className="mt-12 grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">{inclusions.map(([Icon,title,description])=><article key={title} className="bg-[#090909] p-8 transition hover:bg-[#0D0C09]"><span className="grid size-11 place-items-center rounded-full border border-[#D6B56D]/25 bg-[#D6B56D]/5" style={{color:gold}}><Icon className="size-5"/></span><h3 className="mt-6 text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-white/45">{description}</p></article>)}</div><div className="mt-6 flex gap-3 rounded-2xl border border-[#D6B56D]/15 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><UtensilsCrossed className="size-5 shrink-0" style={{color:gold}}/>Alimentação programada e kit BSBTUR fazem parte do planejamento comercial e serão detalhados nas condições finais.</div></div></section>
-
-      <section className="bg-[#0B0B0B]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"><div className="rounded-[2.25rem] border border-[#D6B56D]/25 bg-[radial-gradient(circle_at_85%_20%,rgba(214,181,109,.12),transparent_35%),#0A0A0A] p-8 sm:p-12 lg:flex lg:items-end lg:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56D]">Valor percebido antes do preço</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Sua energia deveria estar no congresso.<br/>Não em resolver viagem.</h2><p className="mt-5 max-w-2xl text-white/52">A proposta da BSBTUR é transformar várias decisões separadas em uma jornada acompanhada, organizada e centralizada.</p></div><a href="#lista-prioritaria" className="mt-8 inline-flex shrink-0 items-center gap-2 rounded-full bg-[#D6B56D] px-6 py-3 font-semibold text-black transition hover:bg-[#E4CA91] lg:mt-0">Quero prioridade <ArrowRight className="size-4"/></a></div></div></section>
-
-      <section id="lista-prioritaria" className="bg-[#080808]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-28"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{color:gold}}>Acesso antecipado</p><h2 className="mt-4 text-4xl font-semibold sm:text-5xl">Entre primeiro.<br/>Decida depois.</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-white/52">Cadastre seu interesse para receber as condições comerciais antes da abertura ampla. Nesta etapa não há pagamento, reserva de vaga nem compromisso de compra.</p><div className="mt-9 rounded-2xl border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><strong className="text-[#E4CA91]">CIOSP 2027 · BSBTUR</strong><br/>25–31 janeiro · Brasília → São Paulo · 30 vagas planejadas</div></div>
-      <div className="rounded-[2rem] border border-[#D6B56D]/28 bg-[#111]/92 p-6 shadow-2xl sm:p-8">{!submitted?<form onSubmit={submit} className="space-y-4"><div><p className="text-xs uppercase tracking-[.2em]" style={{color:gold}}>Lista prioritária</p><h3 className="mt-2 text-2xl font-semibold">Quero receber as condições primeiro</h3><p className="mt-2 text-sm text-white/45">Leva menos de 1 minuto.</p></div><label className="block space-y-1.5 text-sm">Nome completo<Input required minLength={2} maxLength={120} value={fullName} onChange={e=>setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white"/></label><label className="block space-y-1.5 text-sm">WhatsApp<Input required value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white"/></label><label className="block space-y-1.5 text-sm">E-mail<Input required type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white"/></label><label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required type="checkbox" checked={consentContact} onChange={e=>setConsentContact(e.target.checked)} className="mt-1 size-4"/><span>Autorizo a BSBTUR a entrar em contato comigo sobre a Caravana CIOSP 2027. Posso solicitar a interrupção do contato a qualquer momento.</span></label>{error&&<div className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}<Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading||!consentContact}>{loading?<><Loader2 className="mr-2 size-4 animate-spin"/>Registrando...</>:<>Quero receber prioridade <ArrowRight className="ml-2 size-4"/></>}</Button><p className="text-center text-xs text-white/35">Sem pagamento · sem compromisso · seus dados usados apenas para contato sobre o CIOSP 2027.</p></form>:<div className="py-10 text-center"><CheckCircle2 className="mx-auto size-12" style={{color:gold}}/><p className="mt-5 text-xs uppercase tracking-[.2em] text-[#D6B56D]">Prioridade registrada</p><h3 className="mt-2 text-2xl font-semibold">Você está entre os primeiros.</h3><p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/50">Seu interesse foi registrado com sucesso. A equipe BSBTUR poderá entrar em contato quando houver novidades e condições comerciais disponíveis.</p></div>}</div></div></section>
+      <section id="experiencia" className="bg-[#0B0B0B]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28"><div className="grid items-end gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{color:gold}}>Uma decisão que fica na memória</p><h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Não é só ir a São Paulo.<br/>É viver o CIOSP por inteiro.</h2></div><p className="max-w-2xl text-lg leading-relaxed text-white/52 lg:justify-self-end">A experiência foi pensada para reduzir atrito, incerteza e improviso. Você preserva sua energia para conteúdo, networking, tendências e tudo que pode acelerar a sua trajetória profissional.</p></div><div className="mt-12 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">{gallery.map(([src,label,copy],i)=><figure key={src} className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-black ${i===0?"min-h-[500px] lg:col-span-7 lg:row-span-2":"min-h-[240px] lg:col-span-5"}`}><img src={src} alt={label} className="absolute inset-0 h-full w-full object-cover opacity-82 transition duration-700 group-hover:scale-[1.035]" loading={i===0?"eager":"lazy"}/><div className="absolute inset-0 bg-gradient-to-t from-black via-black/15 to-transparent"/><figcaption className="absolute bottom-0 p-7"><p className="text-xs uppercase tracking-[.2em]" style={{color:gold}}>{label}</p><p className={`${i===0?"text-2xl":"text-lg"} mt-2 max-w-md font-semibold text-white`}>{copy}</p></figcaption></figure>)}</div><p className="mt-4 text-xs text-white/35">Imagem do CIOSP utilizada como contexto do evento. Demais imagens são ilustrativas; fornecedores e condições definitivas serão informados na contratação.</p></div></section>
+      <section className="border-y border-[#D6B56D]/15 bg-[#050505]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"><p className="text-xs font-bold uppercase tracking-[.22em]" style={{color:gold}}>Uma experiência, seis preocupações a menos</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Você cuida do CIOSP.<br/>A BSBTUR cuida do caminho.</h2><div className="mt-12 grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">{inclusions.map(([Icon,title,description])=><article key={title} className="bg-[#090909] p-8"><span className="grid size-11 place-items-center rounded-full border border-[#D6B56D]/25 bg-[#D6B56D]/5" style={{color:gold}}><Icon className="size-5"/></span><h3 className="mt-6 text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-white/45">{description}</p></article>)}</div><div className="mt-6 flex gap-3 rounded-2xl border border-[#D6B56D]/15 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><UtensilsCrossed className="size-5 shrink-0" style={{color:gold}}/>Alimentação programada e kit BSBTUR fazem parte do planejamento comercial e serão detalhados nas condições finais.</div></div></section>
+      <section className="bg-[#0B0B0B]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"><div className="rounded-[2.25rem] border border-[#D6B56D]/25 bg-[radial-gradient(circle_at_85%_20%,rgba(214,181,109,.12),transparent_35%),#0A0A0A] p-8 sm:p-12 lg:flex lg:items-end lg:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.22em] text-[#D6B56D]">Sua experiência começa antes do embarque</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Sua energia deveria estar no congresso.<br/>Não em resolver viagem.</h2><p className="mt-5 max-w-2xl text-white/52">A proposta da BSBTUR é transformar várias decisões separadas em uma jornada acompanhada, organizada e centralizada.</p></div><a href="#lista-prioritaria" className="mt-8 inline-flex shrink-0 items-center gap-2 rounded-full bg-[#D6B56D] px-6 py-3 font-semibold text-black lg:mt-0">Quero acesso prioritário <ArrowRight className="size-4"/></a></div></div></section>
+      <section id="lista-prioritaria" className="bg-[#080808]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-28"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{color:gold}}>Acesso antecipado</p><h2 className="mt-4 text-4xl font-semibold sm:text-5xl">Entre primeiro.<br/>Decida depois.</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-white/52">Cadastre seu interesse para receber as condições comerciais antes da abertura ampla. Nesta etapa não há pagamento, reserva de vaga nem compromisso de compra.</p><div className="mt-9 rounded-2xl border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><strong className="text-[#E4CA91]">CIOSP 2027 · BSBTUR</strong><br/>25–31 janeiro · Brasília → São Paulo · 30 vagas planejadas</div></div><div className="rounded-[2rem] border border-[#D6B56D]/28 bg-[#111]/92 p-6 shadow-2xl sm:p-8">{!submitted?<form onSubmit={submit} className="space-y-4"><div><p className="text-xs uppercase tracking-[.2em]" style={{color:gold}}>Acesso prioritário</p><h3 className="mt-2 text-2xl font-semibold">Quero receber as condições primeiro</h3><p className="mt-2 text-sm text-white/45">Leva menos de 1 minuto.</p></div><label className="block space-y-1.5 text-sm">Nome completo<Input required minLength={2} maxLength={120} value={fullName} onChange={e=>setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white"/></label><label className="block space-y-1.5 text-sm">WhatsApp<Input required value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white"/></label><label className="block space-y-1.5 text-sm">E-mail<Input required type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white"/></label><label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required type="checkbox" checked={consentContact} onChange={e=>setConsentContact(e.target.checked)} className="mt-1 size-4"/><span>Autorizo a BSBTUR a entrar em contato comigo sobre a Caravana CIOSP 2027. Posso solicitar a interrupção do contato a qualquer momento.</span></label>{error&&<div className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}<Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading||!consentContact}>{loading?<><Loader2 className="mr-2 size-4 animate-spin"/>Registrando...</>:<>Quero acesso prioritário <ArrowRight className="ml-2 size-4"/></>}</Button><p className="text-center text-xs text-white/35">Sem pagamento · sem compromisso · seus dados usados apenas para contato sobre o CIOSP 2027.</p></form>:<div className="py-10 text-center"><CheckCircle2 className="mx-auto size-12" style={{color:gold}}/><p className="mt-5 text-xs uppercase tracking-[.2em] text-[#D6B56D]">Acesso registrado</p><h3 className="mt-2 text-2xl font-semibold">Você está entre os primeiros.</h3><p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/50">Seu interesse foi registrado com sucesso. A equipe BSBTUR poderá entrar em contato quando houver novidades e condições comerciais disponíveis.</p></div>}</div></div></section>
     </main><footer className="border-t border-white/10 bg-black"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between lg:px-8"><BsbTurSignature/><span>CIOSP 2027 · Pré-lançamento · Condições sujeitas à contratação final</span></div></footer>
-  </div>;
+  </div>
 }
