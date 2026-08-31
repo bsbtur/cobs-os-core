@@ -1,0 +1,1 @@
+Frontend contract: conversation id, operation id, status/title/timestamps; message id, conversation id, role, status, content, created_at. Internal automation ids/results/metadata are intentionally not mapped into traveler UI.
