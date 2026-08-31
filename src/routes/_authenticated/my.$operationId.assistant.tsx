@@ -8,7 +8,7 @@ import {
   useSubmitAssistantMessage,
 } from "@/lib/assistant-conversations";
 import { useMyOverview } from "@/lib/w10";
-import { PortalShell } from "@/app/portal/portal-shell";
+import { PortalFrame } from "@/app/portal/portal-shell";
 import { PortalCard, PortalQueryGate } from "@/app/portal/portal-states";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,10 +52,9 @@ function PortalAssistant() {
   }
 
   return (
-    <PortalShell
-      operationId={operationId}
+    <PortalFrame
       title={overview.data?.name ?? "Assistente COBS"}
-      active="assistant"
+      back={{ to: `/my/${operationId}`, label: "Voltar para minha viagem" }}
     >
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-foreground">Assistente COBS</h2>
@@ -121,7 +120,7 @@ function PortalAssistant() {
       </PortalQueryGate>
 
       <form
-        className="sticky bottom-20 mt-4 rounded-2xl border border-border bg-background/95 p-3 shadow-sm backdrop-blur lg:bottom-4"
+        className="sticky bottom-4 mt-4 rounded-2xl border border-border bg-background/95 p-3 shadow-sm backdrop-blur"
         onSubmit={(event) => {
           event.preventDefault();
           void send();
@@ -154,6 +153,6 @@ function PortalAssistant() {
           <p className="mt-2 text-xs text-destructive">Não foi possível enviar. Tente novamente.</p>
         ) : null}
       </form>
-    </PortalShell>
+    </PortalFrame>
   );
 }
