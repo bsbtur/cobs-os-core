@@ -21,3 +21,7 @@ Flow:
 ## Release gate
 
 Before merge: build/type/route generation, pure-traveler E2E, cross-operation/cross-tenant denial QA and mobile usability QA.
+
+## Preview recovery checkpoint
+
+Vercel Preview retry triggered after the account build-rate limit was removed by upgrading the QA workspace to Pro. This documentation-only commit does not change application behavior and exists to create a fresh Preview for the current feature branch before authenticated traveler QA.
