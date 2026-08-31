@@ -1,0 +1,11 @@
+-- COBS Assistant Conversations Portal V1
+--
+-- Marker migration only.
+-- The production database foundation (assistant_conversations,
+-- assistant_conversation_messages, assistant_create_conversation,
+-- assistant_submit_message, RLS and automation result bridge) was deployed
+-- and E2E-validated before this frontend branch was created.
+--
+-- This file intentionally performs no DDL. Do not reconstruct or overwrite
+-- the deployed production contract from stale repository state.
+select 1;
