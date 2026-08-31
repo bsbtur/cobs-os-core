@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { Bus, BedDouble, CalendarDays, Megaphone, Ticket } from "lucide-react";
+import { BedDouble, Bot, Bus, CalendarDays, Megaphone, Ticket } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import {
@@ -146,6 +146,13 @@ function PortalHome() {
           )}
 
           <div className="flex flex-col gap-2">
+            <ShortcutRow
+              to="/my/$operationId/assistant"
+              operationId={operationId}
+              icon={Bot}
+              label="Assistente COBS"
+              value="Pergunte sobre informações confirmadas da sua viagem"
+            />
             <ShortcutRow
               to="/my/$operationId/journey"
               operationId={operationId}
