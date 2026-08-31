@@ -3,24 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
 
-const CIOSP_QA_HOST = "cobs-os-qa-git-feat-ciosp-c-ff63d9-contatobsbtur-7062s-projects.vercel.app";
-
-function canonicalizeCiospPreviewHost() {
-  if (typeof window === "undefined") return;
-
-  const { hostname, pathname, search, hash } = window.location;
-  const immutableVercelPreview =
-    hostname.startsWith("cobs-os-") &&
-    !hostname.includes("-git-") &&
-    hostname.endsWith("-contatobsbtur-7062s-projects.vercel.app");
-
-  if (immutableVercelPreview && hostname !== CIOSP_QA_HOST) {
-    window.location.replace(`https://${CIOSP_QA_HOST}${pathname}${search}${hash}`);
-  }
-}
-
-canonicalizeCiospPreviewHost();
-
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
 }
@@ -35,6 +17,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
       new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
+    // New Supabase API keys are opaque strings, not bearer JWTs.
     if (
       isNewSupabaseApiKey(supabaseKey) &&
       headers.get("Authorization") === `Bearer ${supabaseKey}`
@@ -47,27 +30,12 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-function isCiospCommercialPreview(): boolean {
-  if (typeof window === "undefined") return false;
-
-  const hostname = window.location.hostname;
-
-  return (
-    hostname === CIOSP_QA_HOST ||
-    (hostname.startsWith("cobs-os-") && hostname.endsWith("-contatobsbtur-7062s-projects.vercel.app"))
-  );
-}
-
 function createSupabaseClient() {
-  const previewUsesStaging = isCiospCommercialPreview();
-
-  const SUPABASE_URL = previewUsesStaging
-    ? "https://wzukfenbzwlwzhtadlxl.supabase.co"
-    : import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
-
-  const SUPABASE_PUBLISHABLE_KEY = previewUsesStaging
-    ? "sb_publishable_jDx7luxp7vohloi1dm8MXQ_g_Zxmsv0"
-    : import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
+  // Use import.meta.env for client-side (Vite build-time replacement)
+  // Fall back to process.env for SSR (server-side rendering)
+  const SUPABASE_URL = import.meta.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"];
+  const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"];
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
@@ -93,6 +61,8 @@ function createSupabaseClient() {
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 
+// Import the supabase client like this:
+// import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
   get(_, prop, receiver) {
     if (!_supabase) _supabase = createSupabaseClient();
