@@ -147,7 +147,15 @@ function CiospLanding() {
     setCheckoutClosed(false);
     setPix(null);
     try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (sessionError || !accessToken) {
+        setError("Usuário interno não autenticado. Entre no COBS neste navegador para testar o checkout com vendas fechadas.");
+        return;
+      }
+
       const { data: checkout, error: checkoutError } = await supabase.functions.invoke("ciosp-public-checkout", {
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: {
           full_name: fullName,
           email,
@@ -160,6 +168,14 @@ function CiospLanding() {
         const code = await edgeErrorCode(checkoutError);
         if (code === "sales_not_open") {
           setCheckoutClosed(true);
+          return;
+        }
+        if (code === "qa_auth_required" || code === "qa_invalid_session" || code === "qa_auth_invalid") {
+          setError("Sessão do COBS inválida ou expirada. Entre novamente neste navegador para continuar.");
+          return;
+        }
+        if (code === "qa_forbidden") {
+          setError("Seu usuário não tem permissão para testar este checkout. Apenas proprietários, administradores ou agentes de operações podem prosseguir.");
           return;
         }
         throw checkoutError;
