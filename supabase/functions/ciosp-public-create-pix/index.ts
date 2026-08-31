@@ -6,7 +6,7 @@ const secretKey = SUPABASE_SECRET_KEYS.default;
 const MP_ENVIRONMENT = Deno.env.get("MERCADO_PAGO_ENVIRONMENT") ?? "test";
 const MP_TEST_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_TEST_ACCESS_TOKEN");
 const CANONICAL_CIOSP_OPERATION_CODE = "CIOSP-SP-2027";
-const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, x-client-info, apikey", "access-control-allow-methods": "POST, OPTIONS" };
+const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, x-client-info, apikey, authorization", "access-control-allow-methods": "POST, OPTIONS" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
 const hex = (bytes: ArrayBuffer) => Array.from(new Uint8Array(bytes)).map((b) => b.toString(16).padStart(2, "0")).join("");
 async function sha256(value: string) { return hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value))); }
