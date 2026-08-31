@@ -181,14 +181,6 @@ function OperationWorkspace() {
             </Link>
             <Link
               from="/operations/$operationId"
-              to="/operations/$operationId/costs"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              Custos
-            </Link>
-            <Link
-              from="/operations/$operationId"
               to="/operations/$operationId/events"
               className={TAB_CLASS}
               activeProps={{ className: "bg-primary-soft !text-primary" }}
