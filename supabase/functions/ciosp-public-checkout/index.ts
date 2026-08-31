@@ -14,7 +14,7 @@ const CHECKOUTS = {
 
 const cors = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey",
+  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey, x-ciosp-qa",
   "access-control-allow-methods": "POST, OPTIONS",
 };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });

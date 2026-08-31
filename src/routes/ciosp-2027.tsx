@@ -155,7 +155,7 @@ function CiospLanding() {
       }
 
       const { data: checkout, error: checkoutError } = await supabase.functions.invoke("ciosp-public-checkout", {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}`, "x-ciosp-qa": "1" },
         body: {
           full_name: fullName,
           email,
