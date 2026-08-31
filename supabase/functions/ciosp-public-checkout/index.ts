@@ -9,7 +9,7 @@ const secretKey = SUPABASE_SECRET_KEYS.default;
 const MP_ENVIRONMENT = Deno.env.get("MERCADO_PAGO_ENVIRONMENT") ?? "test";
 
 const CHECKOUTS = {
-  commercial: { operationCode: "CIOSP-SP-2027", requiresPublicSales: true },
+  commercial: { operationCode: "CIOSP-SP-2027-COMMERCIAL", requiresPublicSales: true },
 } as const;
 
 const cors = {
