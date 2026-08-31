@@ -48,6 +48,8 @@ type CommercialLeadOption = { id: string; full_name: string; email: string; phon
 type LeadConversionResult = { lead_id: string; person_id: string; created: boolean; unchanged: boolean };
 
 const CLOSED_OPERATION_STATUSES = new Set(["completed", "cancelled", "canceled", "archived"]);
+const CIOSP_COMMERCIAL_OPERATION_ID = "3d0b3b04-f91e-4305-89de-89af18e3e1fa";
+const CIOSP_COMMERCIAL_SELLABLE_ID = "3fb5a457-9f9e-4200-a39f-79b6c8c84968";
 
 function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => void }) {
   const { t, locale } = useI18n();
@@ -58,6 +60,7 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
   const [operationId, setOperationId] = React.useState("");
   const [reference, setReference] = React.useState("");
   const [notes, setNotes] = React.useState("");
+  const [ciospSale, setCiospSale] = React.useState(false);
 
   const people = useQuery({ queryKey: ["w09", "people", tenantId], queryFn: async () => {
     const { data, error } = await supabase.from("people").select("id, full_name").eq("tenant_id", tenantId).order("full_name");
@@ -84,27 +87,34 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
     },
     onSuccess: async (result) => {
       const lead = (leads.data ?? []).find((item) => item.id === result.lead_id);
+      const canonicalCiospOperation = (operations.data ?? []).find((item) => item.id === CIOSP_COMMERCIAL_OPERATION_ID);
       setBuyer(result.person_id);
-      const inheritedOperation = lead?.operation_id ? (operations.data ?? []).find((item) => item.id === lead.operation_id) : undefined;
-      setOperationId(inheritedOperation?.id ?? "");
-      if (lead?.operation_id && !inheritedOperation) feedback.warning("A operação original deste lead está encerrada. Selecione uma operação comercial ativa antes de criar o pedido.");
-      if (!reference && lead) setReference(`Lead CIOSP · ${lead.full_name}`);
-      if (!notes && lead) setNotes(`Origem: lead comercial ${lead.id}`);
+      setCiospSale(Boolean(canonicalCiospOperation));
+      setOperationId(canonicalCiospOperation?.id ?? "");
+      if (!canonicalCiospOperation) feedback.warning("A operação comercial canônica do CIOSP 2027 não está disponível. Selecione uma operação ativa antes de criar o pedido.");
+      if (!reference && lead) setReference(`CIOSP 2027 · ${lead.full_name}`);
+      if (!notes && lead) setNotes(`Origem: lead comercial ${lead.id} · oferta Caravana Completa CIOSP 2027`);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["w09", "people", tenantId] }),
         queryClient.invalidateQueries({ queryKey: ["w09", "commercial-leads", tenantId] }),
       ]);
-      feedback.success("Lead convertido em comprador. Revise e crie o pedido.");
+      feedback.success(canonicalCiospOperation ? "Venda CIOSP preparada. Revise e crie o pedido de R$ 9.990." : "Lead convertido em comprador. Revise e crie o pedido.");
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("create_order", rpcArgs({ _tenant_id: tenantId, _buyer_person_id: buyer, _currency: currency.toUpperCase(), _operation_id: operationId || undefined, _reference_label: reference || undefined, _notes: notes || undefined, _idempotency_key: newIdempotencyKey() }));
+      const { data: orderId, error } = await supabase.rpc("create_order", rpcArgs({ _tenant_id: tenantId, _buyer_person_id: buyer, _currency: currency.toUpperCase(), _operation_id: operationId || undefined, _reference_label: reference || undefined, _notes: notes || undefined, _idempotency_key: newIdempotencyKey() }));
       if (error) throw error;
+      if (!orderId) throw new Error("Pedido criado sem identificador.");
+      if (ciospSale) {
+        const { error: itemError } = await supabase.rpc("add_order_item", rpcArgs({ _order_id: orderId, _sellable_id: CIOSP_COMMERCIAL_SELLABLE_ID, _quantity: 1, _discount_minor: 0, _beneficiary_person_id: buyer }));
+        if (itemError) throw itemError;
+      }
+      return orderId;
     },
-    onSuccess: () => { feedback.success(t("w09.order.created")); onDone(); },
+    onSuccess: () => { feedback.success(ciospSale ? "Pedido CIOSP de R$ 9.990 criado em rascunho. Nenhuma cobrança foi iniciada." : t("w09.order.created")); onDone(); },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
@@ -115,20 +125,21 @@ function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => vo
       <div className="space-y-2 rounded-lg border border-border bg-elevated/40 p-3 sm:col-span-2">
         <div><Label htmlFor="order-lead">Lead comercial</Label><p className="mt-1 text-xs text-muted-foreground">Opcional. Converte um lead existente em comprador sem duplicar cadastro.</p></div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <select id="order-lead" className="h-11 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm" value={leadId} onChange={(e) => setLeadId(e.target.value)}>
+          <select id="order-lead" className="h-11 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm" value={leadId} onChange={(e) => { setLeadId(e.target.value); setCiospSale(false); }}>
             <option value="">Selecionar lead…</option>
             {(leads.data ?? []).map((lead) => <option key={lead.id} value={lead.id}>{lead.full_name} · {lead.email} · {lead.status}</option>)}
           </select>
           <Button type="button" variant="outline" className="min-h-11" disabled={!leadId || convertLead.isPending} onClick={() => leadId && convertLead.mutate(leadId)}>{convertLead.isPending ? "Convertendo…" : "Iniciar venda"}</Button>
         </div>
         {selectedLead?.converted_person_id && <p className="text-xs text-muted-foreground">Este lead já foi convertido. “Iniciar venda” reutiliza o mesmo comprador.</p>}
+        {ciospSale && <p className="text-xs font-medium">CIOSP 2027 Comercial · Caravana Completa · 1 viajante · R$ 9.990 · pedido em rascunho, sem cobrança automática.</p>}
       </div>
       <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="order-buyer">{t("w09.order.buyer")}</Label><select id="order-buyer" required className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm" value={buyer} onChange={(e) => setBuyer(e.target.value)}><option value="">—</option>{(people.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}</select><p className="text-xs text-muted-foreground">{t("w09.order.buyerHint")}</p></div>
       <div className="space-y-1.5"><Label htmlFor="order-currency">{t("w09.order.currency")}</Label><Input id="order-currency" maxLength={3} required value={currency} onChange={(e) => setCurrency(e.target.value.toUpperCase())} /></div>
-      <div className="space-y-1.5"><Label htmlFor="order-operation">{t("w09.order.operation")}</Label><select id="order-operation" className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm" value={operationId} onChange={(e) => setOperationId(e.target.value)}><option value="">{t("w09.order.operationNone")}</option>{(operations.data ?? []).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></div>
+      <div className="space-y-1.5"><Label htmlFor="order-operation">{t("w09.order.operation")}</Label><select id="order-operation" className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm" value={operationId} onChange={(e) => { setOperationId(e.target.value); if (e.target.value !== CIOSP_COMMERCIAL_OPERATION_ID) setCiospSale(false); }}><option value="">{t("w09.order.operationNone")}</option>{(operations.data ?? []).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></div>
       <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="order-ref">{t("w09.order.reference")}</Label><Input id="order-ref" value={reference} onChange={(e) => setReference(e.target.value)} /></div>
       <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="order-notes">{t("w09.order.notes")}</Label><Textarea id="order-notes" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-      <div className="sm:col-span-2"><Button type="submit" className="min-h-11" disabled={create.isPending || !buyer}>{create.isPending ? t("common.saving") : t("w09.order.create")}</Button></div>
+      <div className="sm:col-span-2"><Button type="submit" className="min-h-11" disabled={create.isPending || !buyer || (ciospSale && operationId !== CIOSP_COMMERCIAL_OPERATION_ID)}>{create.isPending ? t("common.saving") : ciospSale ? "Criar pedido CIOSP · R$ 9.990" : t("w09.order.create")}</Button></div>
     </form>
   );
 }
