@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { AssistantSupabaseClient } from "@/integrations/supabase/assistant-types";
 import { toPortalError } from "@/lib/w10";
+
+const assistantSupabase = supabase as unknown as AssistantSupabaseClient;
 
 type Raw = Record<string, unknown>;
 const obj = (value: unknown): Raw => (value && typeof value === "object" ? (value as Raw) : {});
@@ -57,10 +60,7 @@ function mapMessage(value: unknown): AssistantConversationMessage {
 }
 
 async function getOrCreateConversation(operationId: string): Promise<AssistantConversation> {
-  // The deployed assistant schema is newer than the checked-in generated Supabase types.
-  // Keep the exception local until src/integrations/supabase/types.ts is regenerated.
-  // @ts-expect-error assistant_conversations exists in the deployed schema
-  const existing = await supabase
+  const existing = await assistantSupabase
     .from("assistant_conversations")
     .select("id,operation_id,status,title,created_at,updated_at")
     .eq("operation_id", operationId)
@@ -72,18 +72,14 @@ async function getOrCreateConversation(operationId: string): Promise<AssistantCo
   if (existing.error) throw toPortalError(existing.error);
   if (existing.data) return mapConversation(existing.data);
 
-  // The operation-only overload resolves tenant server-side so traveler-only
-  // profiles do not need a tenant membership just to open the assistant.
-  // @ts-expect-error assistant_create_conversation exists in the deployed schema
-  const created = await supabase.rpc("assistant_create_conversation", { _operation_id: operationId });
+  const created = await assistantSupabase.rpc("assistant_create_conversation", { _operation_id: operationId });
   if (created.error) throw toPortalError(created.error);
 
   const createdRaw = obj(created.data);
   const conversationId = req(createdRaw["conversation_id"] ?? created.data);
   if (!conversationId) throw toPortalError(new Error("Assistant conversation unavailable"));
 
-  // @ts-expect-error assistant_conversations exists in the deployed schema
-  const loaded = await supabase
+  const loaded = await assistantSupabase
     .from("assistant_conversations")
     .select("id,operation_id,status,title,created_at,updated_at")
     .eq("id", conversationId)
@@ -93,8 +89,7 @@ async function getOrCreateConversation(operationId: string): Promise<AssistantCo
 }
 
 async function getMessages(conversationId: string): Promise<AssistantConversationMessage[]> {
-  // @ts-expect-error assistant_conversation_messages exists in the deployed schema
-  const { data, error } = await supabase
+  const { data, error } = await assistantSupabase
     .from("assistant_conversation_messages")
     .select("id,conversation_id,role,status,content,created_at")
     .eq("conversation_id", conversationId)
@@ -130,8 +125,7 @@ export function useSubmitAssistantMessage(operationId: string, conversationId: s
   return useMutation({
     mutationFn: async (content: string) => {
       if (!conversationId) throw new Error("Conversation unavailable");
-      // @ts-expect-error assistant_submit_message exists in the deployed schema
-      const { data, error } = await supabase.rpc("assistant_submit_message", {
+      const { data, error } = await assistantSupabase.rpc("assistant_submit_message", {
         _conversation_id: conversationId,
         _message: content,
       });
