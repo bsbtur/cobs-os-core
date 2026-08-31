@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as Ciosp2027RouteImport } from './routes/ciosp-2027'
 import { Route as ClaimAccountMismatchRouteImport } from './routes/claim-account-mismatch'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
@@ -67,6 +68,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Ciosp2027Route = Ciosp2027RouteImport.update({
+  id: '/ciosp-2027',
+  path: '/ciosp-2027',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimAccountMismatchRoute = ClaimAccountMismatchRouteImport.update({
@@ -314,6 +320,7 @@ const ApiPublicPaymentsMercadopagoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/ciosp-2027': typeof Ciosp2027Route
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/ciosp-2027': typeof Ciosp2027Route
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/ciosp-2027': typeof Ciosp2027Route
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
@@ -453,6 +462,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/ciosp-2027'
     | '/claim-account-mismatch'
     | '/app'
     | '/inbox'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/ciosp-2027'
     | '/claim-account-mismatch'
     | '/app'
     | '/inbox'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/ciosp-2027'
     | '/claim-account-mismatch'
     | '/_authenticated/app'
     | '/_authenticated/inbox'
@@ -591,6 +603,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  Ciosp2027Route: typeof Ciosp2027Route
   ClaimAccountMismatchRoute: typeof ClaimAccountMismatchRoute
   ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
@@ -618,6 +631,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ciosp-2027': {
+      id: '/ciosp-2027'
+      path: '/ciosp-2027'
+      fullPath: '/ciosp-2027'
+      preLoaderRoute: typeof Ciosp2027RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim-account-mismatch': {
@@ -1056,6 +1076,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  Ciosp2027Route: Ciosp2027Route,
   ClaimAccountMismatchRoute: ClaimAccountMismatchRoute,
   ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
