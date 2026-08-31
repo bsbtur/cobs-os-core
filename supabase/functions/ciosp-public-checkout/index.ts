@@ -7,7 +7,7 @@ const secretKey = SUPABASE_SECRET_KEYS.default;
 
 const CHECKOUTS = {
   qa: { operationCode: "CIOSP2027-QA-GP", requiresPublicSales: false, qaFixture: true },
-  commercial: { operationCode: "CIOSP-SP-2027", requiresPublicSales: true, qaFixture: false },
+  commercial: { operationCode: "CIOSP-SP-2027-COMMERCIAL", requiresPublicSales: true, qaFixture: false },
 } as const;
 
 const cors = {
