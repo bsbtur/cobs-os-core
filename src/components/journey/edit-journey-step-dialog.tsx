@@ -30,10 +30,10 @@ function toLocalInput(iso: string | null) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function toIsoOrNull(value: string) {
-  if (!value) return null;
+function toIsoOrUndefined(value: string) {
+  if (!value) return undefined;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
 export function EditJourneyStepDialog({
@@ -86,8 +86,8 @@ export function EditJourneyStepDialog({
         _location_label: location,
         _traveler_label: travelerLabel,
         _traveler_facing: travelerFacing,
-        _planned_start: toIsoOrNull(plannedStart),
-        _planned_end: toIsoOrNull(plannedEnd),
+        _planned_start: toIsoOrUndefined(plannedStart),
+        _planned_end: toIsoOrUndefined(plannedEnd),
         _presence_requirement: requirement,
         _presence_population: population,
         _apply_planned: step.plan_origin === "planned",
