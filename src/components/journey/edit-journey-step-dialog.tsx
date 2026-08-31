@@ -79,6 +79,8 @@ export function EditJourneyStepDialog({
   const save = useMutation({
     mutationFn: async () => {
       if (!step) return;
+      const startIso = toIsoOrUndefined(plannedStart);
+      const endIso = toIsoOrUndefined(plannedEnd);
       const { error } = await supabase.rpc("update_journey_step", {
         _journey_step_id: step.id,
         _title: title.trim(),
@@ -86,11 +88,11 @@ export function EditJourneyStepDialog({
         _location_label: location,
         _traveler_label: travelerLabel,
         _traveler_facing: travelerFacing,
-        _planned_start: toIsoOrUndefined(plannedStart),
-        _planned_end: toIsoOrUndefined(plannedEnd),
         _presence_requirement: requirement,
         _presence_population: population,
         _apply_planned: step.plan_origin === "planned",
+        ...(startIso ? { _planned_start: startIso } : {}),
+        ...(endIso ? { _planned_end: endIso } : {}),
       });
       if (error) throw error;
     },
