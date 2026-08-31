@@ -4,7 +4,11 @@ import type { Database } from "./types";
 import type { RuntimeRpcDatabase } from "./runtime-rpc-types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
 
-type AppDatabase = Database & RuntimeRpcDatabase;
+type AppDatabase = Omit<Database, "public"> & {
+  public: Omit<Database["public"], "Functions"> & {
+    Functions: Database["public"]["Functions"] & RuntimeRpcDatabase["public"]["Functions"];
+  };
+};
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
