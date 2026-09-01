@@ -1,0 +1,1 @@
+Next gate after sync: explicit operator UI publication + visual traveler E2E.
