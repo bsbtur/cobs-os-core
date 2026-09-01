@@ -1,0 +1,1 @@
+The existing n8n Assistant Router is intentionally reused unchanged. Reservation truth is assembled server-side before dispatch.
