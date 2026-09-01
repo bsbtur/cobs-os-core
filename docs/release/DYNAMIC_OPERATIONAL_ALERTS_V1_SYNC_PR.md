@@ -1,0 +1,1 @@
+Follow-up PR intent: synchronize auth hardening and QA evidence after PR #95's early merge.
