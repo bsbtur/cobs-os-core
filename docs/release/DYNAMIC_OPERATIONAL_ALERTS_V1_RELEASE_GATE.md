@@ -1,0 +1,1 @@
+Release gate: sync auth hardening to main with green Quality Gate, then implement explicit operator action and run visual/operator→traveler E2E.
