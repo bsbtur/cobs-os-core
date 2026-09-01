@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
+import { formatDateOnlyRange, timeToConfirmLabel } from "@/lib/w10-event-precision";
 import { useTenant } from "@/lib/tenant";
 import { fromLocalInput, toLocalInput } from "@/lib/w02";
 import {
@@ -72,6 +73,34 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/ev
 
 const SELECT_CLASS =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+/** Narrow cast for the date-only precision field that is not yet in generated types. */
+type EventWithPrecision = EventRow & {
+  schedule_precision?: "datetime" | "date_only";
+};
+
+function EventHeaderDate({
+  event,
+  locale,
+  timeZone,
+}: {
+  event: EventRow;
+  locale: string;
+  timeZone: string;
+}) {
+  const precision = (event as EventWithPrecision).schedule_precision;
+  const tz = event.timezone || timeZone;
+  if (precision === "date_only") {
+    return (
+      <>
+        {formatDateOnlyRange(event.planned_start, event.planned_end, tz, locale) ?? "—"}
+        {" · "}
+        {timeToConfirmLabel(locale)}
+      </>
+    );
+  }
+  return formatDateTime(event.planned_start, { locale, timeZone: tz });
+}
 
 function useEventQueries(eventId: string | null) {
   const program = useQuery({
@@ -1547,10 +1576,7 @@ function EventsTab() {
             </div>
             <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               {venues.data?.find((v) => v.id === selected.venue_id)?.name ?? t("w07.venueNone")} ·{" "}
-              {formatDateTime(selected.planned_start, {
-                locale,
-                timeZone: selected.timezone || timeZone,
-              })}
+              <EventHeaderDate event={selected} locale={locale} timeZone={timeZone} />
             </p>
             {selected.external_producer_name ? (
               <p className="text-sm text-muted-foreground">
