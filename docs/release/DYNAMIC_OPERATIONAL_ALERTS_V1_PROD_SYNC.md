@@ -1,0 +1,1 @@
+Production schema is ahead of main only by the additive auth hardening until sync PR merge.
