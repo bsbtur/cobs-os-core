@@ -1,0 +1,1 @@
+REPO SYNC REQUIRED: auth hardening is active in production but was committed after PR #95 merged.
