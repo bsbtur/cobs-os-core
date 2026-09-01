@@ -1,0 +1,1 @@
+Sync PR gate = Quality Gate.
