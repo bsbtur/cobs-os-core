@@ -103,6 +103,7 @@ function PortalHome() {
   const legs = mobility.data ?? [];
   const stays = stay.data ?? [];
   const sessions = (events.data ?? []).reduce((acc, e) => acc + e.sessions.length, 0);
+  const firstEventName = events.data?.[0]?.name;
 
   const historical = overview.data?.historical === true;
 
@@ -193,7 +194,13 @@ function PortalHome() {
               operationId={operationId}
               icon={Ticket}
               label={t("w10.home.program")}
-              value={sessions > 0 ? String(sessions) : t("w10.events.empty")}
+              value={
+                sessions > 0
+                  ? String(sessions)
+                  : firstEventName
+                    ? firstEventName
+                    : t("w10.events.empty")
+              }
             />
             <ShortcutRow
               to="/my/$operationId/messages"
