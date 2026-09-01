@@ -1,0 +1,1 @@
+The sync PR should include only post-PR95 commits and must not duplicate the already-merged initial migration. Main protection and Quality Gate remain required.
