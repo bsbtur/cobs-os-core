@@ -1,0 +1,1 @@
+Do not wire UI until auth hardening is present on main.
