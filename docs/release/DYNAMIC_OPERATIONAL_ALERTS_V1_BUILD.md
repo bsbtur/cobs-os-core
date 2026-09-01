@@ -1,0 +1,1 @@
+No frontend build changes are part of the backend gate. Quality Gate on the sync PR is the repository release check.
