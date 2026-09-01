@@ -1,15 +1,22 @@
 import * as React from "react";
+import { Navigate } from "@tanstack/react-router";
 
 import { SideNav } from "./side-nav";
 import { TopBar } from "./top-bar";
 import { MobileNavDrawer, MobileTabBar } from "./mobile-nav";
 import { CommandPalette, useCommandPalette } from "./command-palette";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { FullPageLoading } from "@/components/feedback/loading";
+import { useTenant } from "@/lib/tenant";
 
 /**
  * Responsive AppShell.
  * Desktop = persistent command center (rail + dense top bar).
  * Mobile = field surface (thumb tab bar + drawer, no persistent chrome).
+ *
+ * Security boundary: authenticated does not imply administrative access.
+ * Only users with an active organization membership may render AppShell.
+ * Grant-only travelers remain on the isolated /my portal.
  */
 export function AppShell({
   activeId,
@@ -22,6 +29,13 @@ export function AppShell({
 }) {
   const { open, setOpen } = useCommandPalette();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const { activeMembership, loading } = useTenant();
+
+  if (loading) return <FullPageLoading />;
+
+  if (!activeMembership) {
+    return <Navigate to="/my" replace />;
+  }
 
   return (
     <TooltipProvider delayDuration={200}>
