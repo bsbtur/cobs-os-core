@@ -10,6 +10,13 @@ type HealthPayload = {
   checked_at: string;
 };
 
+function supabaseRuntimeConfig() {
+  const url = process.env["SUPABASE_URL"] ?? import.meta.env["VITE_SUPABASE_URL"];
+  const key =
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ?? import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+  return url && key ? { url, key } : null;
+}
+
 export const Route = createFileRoute("/api/health")({
   server: {
     handlers: {
@@ -18,15 +25,21 @@ export const Route = createFileRoute("/api/health")({
         let dataApi: ProbeStatus = "down";
 
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const config = supabaseRuntimeConfig();
+          if (config) {
+            const headers = { apikey: config.key };
+            const [authResponse, dataResponse] = await Promise.all([
+              fetch(`${config.url}/auth/v1/settings`, { headers, cache: "no-store" }),
+              fetch(`${config.url}/rest/v1/tenants?select=id&limit=1`, {
+                headers,
+                cache: "no-store",
+              }),
+            ]);
 
-          const [{ error: authError }, { error: dataError }] = await Promise.all([
-            supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 }),
-            supabaseAdmin.from("tenants").select("id").limit(1),
-          ]);
-
-          auth = authError ? "down" : "up";
-          dataApi = dataError ? "down" : "up";
+            auth = authResponse.ok ? "up" : "down";
+            // A 401/403 still proves the Data API is reachable and enforcing access.
+            dataApi = dataResponse.status > 0 && dataResponse.status < 500 ? "up" : "down";
+          }
         } catch {
           auth = "down";
           dataApi = "down";
