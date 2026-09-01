@@ -8,6 +8,19 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      publish_dynamic_operational_alert: {
+        Args: {
+          _operation_id: string;
+          _alert_type: "time_changed" | "location_changed" | "delay";
+          _title: string;
+          _body: string;
+          _source_kind: string;
+          _source_id: string;
+          _idempotency_key: string;
+          _priority?: "normal" | "important" | "urgent";
+        };
+        Returns: Record<string, unknown>;
+      };
       set_event_schedule_precision: {
         Args: {
           _event_id: string;
