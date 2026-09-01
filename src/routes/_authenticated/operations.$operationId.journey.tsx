@@ -1,10 +1,19 @@
 import * as React from "react";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, ListChecks, Plus, Route as RouteIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ListChecks,
+  Pencil,
+  Plus,
+  Route as RouteIcon,
+  Trash2,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { EditJourneyStepDialog } from "@/components/journey/edit-journey-step-dialog";
 import { VisitPointsPanel } from "@/components/journey/visit-points-panel";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
@@ -1124,6 +1133,9 @@ function JourneyPlanPage() {
   const queryClient = useQueryClient();
   const [dialog, setDialog] = React.useState<null | "planned" | "ad_hoc">(null);
   const [forecastStep, setForecastStep] = React.useState<JourneyStepRow | null>(null);
+  const [editingStep, setEditingStep] = React.useState<JourneyStepRow | null>(null);
+  const [archivingStep, setArchivingStep] = React.useState<JourneyStepRow | null>(null);
+  const [archiveReason, setArchiveReason] = React.useState("");
   const [applyOpen, setApplyOpen] = React.useState(false);
   const { role } = useTenant();
 
@@ -1177,6 +1189,7 @@ function JourneyPlanPage() {
           .from("journey_steps")
           .select("*")
           .eq("operation_id", operationId)
+          .is("archived_at", null)
           .order("sequence"),
         supabase
           .from("playbook_items")
@@ -1213,6 +1226,24 @@ function JourneyPlanPage() {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  const archiveStep = useMutation({
+    mutationFn: async () => {
+      if (!archivingStep) return;
+      const { error } = await supabase.rpc("archive_journey_step", {
+        _journey_step_id: archivingStep.id,
+        _reason: archiveReason.trim(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      feedback.success("Etapa removida da jornada");
+      setArchivingStep(null);
+      setArchiveReason("");
+      await queryClient.invalidateQueries({ queryKey: ["journey", operationId] });
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
   if (journey.isLoading) return <PanelSkeleton />;
 
   const operation = journey.data?.operation;
@@ -1241,6 +1272,7 @@ function JourneyPlanPage() {
   const items = journey.data?.items ?? [];
   const roleTypes = journey.data?.roleTypes ?? [];
   const baselineOpen = operation.status === "draft" || operation.status === "planning";
+  const canManageSteps = baselineOpen && canEditBlueprints(role);
 
   const move = (index: number, direction: -1 | 1) => {
     const next = [...steps];
@@ -1394,7 +1426,7 @@ function JourneyPlanPage() {
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center justify-end gap-1">
                   {baselineOpen ? (
                     <>
                       <Button
@@ -1415,6 +1447,34 @@ function JourneyPlanPage() {
                       >
                         <ChevronDown className="size-4" aria-hidden="true" />
                       </Button>
+                    </>
+                  ) : null}
+                  {canManageSteps ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="min-h-9"
+                        onClick={() => setEditingStep(step)}
+                      >
+                        <Pencil className="mr-1.5 size-4" aria-hidden="true" />
+                        Editar
+                      </Button>
+                      {step.source_blueprint_version_id === null &&
+                      step.source_blueprint_step_id === null ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="min-h-9 text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setArchiveReason("");
+                            setArchivingStep(step);
+                          }}
+                        >
+                          <Trash2 className="mr-1.5 size-4" aria-hidden="true" />
+                          Excluir
+                        </Button>
+                      ) : null}
                     </>
                   ) : null}
                   <Button
@@ -1474,6 +1534,63 @@ function JourneyPlanPage() {
         onOpenChange={(open) => setForecastStep(open ? forecastStep : null)}
         operationId={operationId}
       />
+      <EditJourneyStepDialog
+        step={editingStep}
+        operationId={operationId}
+        onOpenChange={(open) => setEditingStep(open ? editingStep : null)}
+      />
+      <Dialog
+        open={Boolean(archivingStep)}
+        onOpenChange={(open) => {
+          if (!open && !archiveStep.isPending) {
+            setArchivingStep(null);
+            setArchiveReason("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir etapa da Jornada</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              A etapa será arquivada, preservando o registro e a trilha de auditoria no banco de dados.
+            </p>
+            <p className="text-sm font-medium">{archivingStep?.title}</p>
+            <div className="space-y-1.5">
+              <Label htmlFor="journey-archive-reason">Motivo da exclusão</Label>
+              <Textarea
+                id="journey-archive-reason"
+                value={archiveReason}
+                onChange={(event) => setArchiveReason(event.target.value)}
+                rows={3}
+                placeholder="Informe o motivo para manter o histórico operacional."
+              />
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row-reverse">
+              <Button
+                variant="destructive"
+                className="min-h-11 sm:flex-1"
+                disabled={!archiveReason.trim() || archiveStep.isPending}
+                onClick={() => archiveStep.mutate()}
+              >
+                {archiveStep.isPending ? "Excluindo..." : "Confirmar exclusão"}
+              </Button>
+              <Button
+                variant="outline"
+                className="min-h-11 sm:flex-1"
+                disabled={archiveStep.isPending}
+                onClick={() => {
+                  setArchivingStep(null);
+                  setArchiveReason("");
+                }}
+              >
+                {t("common.cancel")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
