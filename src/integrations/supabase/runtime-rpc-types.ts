@@ -8,6 +8,14 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      set_event_schedule_precision: {
+        Args: {
+          _event_id: string;
+          _schedule_precision: "datetime" | "date_only";
+          _idempotency_key: string;
+        };
+        Returns: Record<string, unknown>;
+      };
     };
   };
 };
