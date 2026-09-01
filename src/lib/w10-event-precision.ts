@@ -14,14 +14,14 @@ function obj(value: unknown): Raw {
 
 function mapPrecisionPayload(value: unknown): EventSchedulePrecisionMap {
   const root = obj(value);
-  const events = Array.isArray(root.events) ? root.events : [];
+  const events = Array.isArray(root["events"]) ? root["events"] : [];
   const output: EventSchedulePrecisionMap = {};
 
   for (const item of events) {
     const event = obj(item);
-    const eventId = typeof event.event_id === "string" ? event.event_id : "";
+    const eventId = typeof event["event_id"] === "string" ? event["event_id"] : "";
     if (!eventId) continue;
-    output[eventId] = event.schedule_precision === "date_only" ? "date_only" : "datetime";
+    output[eventId] = event["schedule_precision"] === "date_only" ? "date_only" : "datetime";
   }
 
   return output;
