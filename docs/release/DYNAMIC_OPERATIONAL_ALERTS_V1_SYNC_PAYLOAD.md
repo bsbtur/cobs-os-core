@@ -1,0 +1,1 @@
+Sync payload contains auth hardening + evidence.
