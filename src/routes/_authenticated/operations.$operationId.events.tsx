@@ -3,6 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Clapperboard, Plus } from "lucide-react";
 
+import { EventSchedulePrecisionControl } from "@/components/events/event-schedule-precision-control";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -1578,6 +1579,15 @@ function EventsTab() {
               {venues.data?.find((v) => v.id === selected.venue_id)?.name ?? t("w07.venueNone")} ·{" "}
               <EventHeaderDate event={selected} locale={locale} timeZone={timeZone} />
             </p>
+            {canOperate && !isTerminalEvent(selected.status) ? (
+              <div className="pt-1">
+                <EventSchedulePrecisionControl
+                  eventId={selected.id}
+                  precision={(selected as EventWithPrecision).schedule_precision ?? "datetime"}
+                  onChanged={refresh}
+                />
+              </div>
+            ) : null}
             {selected.external_producer_name ? (
               <p className="text-sm text-muted-foreground">
                 {t("w07.producer")}: {selected.external_producer_name}
