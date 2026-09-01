@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
-const financial = readFileSync('supabase/migrations/20260901163200_assistant_financial_amount_semantics_v1.sql','utf8')
-const submit = readFileSync('supabase/migrations/20260901161900_assistant_financial_context_v1.sql','utf8')
+const financial = readFileSync('supabase/migrations/20260901163324_assistant_financial_amount_semantics_v1.sql','utf8')
+const submit = readFileSync('supabase/migrations/20260901162019_assistant_financial_context_v1.sql','utf8')
 
 describe('Assistant Financial Context V1', () => {
   test('is traveler and operation scoped', () => {
