@@ -1,0 +1,1 @@
+Next: clean sync PR → Quality Gate → merge → operator UI branch.
