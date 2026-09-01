@@ -1,0 +1,3 @@
+Production migration version: 20260901184618
+Migration name: dynamic_operational_alerts_auth_hardening_v1
+Canonical executable SQL: supabase/migrations/20260901184618_dynamic_operational_alerts_auth_hardening_v1.sql
