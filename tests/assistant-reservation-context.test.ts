@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
-const sql = readFileSync('supabase/migrations/20260901152500_assistant_reservation_context_v1.sql','utf8')
+const sql = readFileSync('supabase/migrations/20260901152129_assistant_reservation_context_v1.sql','utf8')
 
 describe('Assistant Reservation Context V1', () => {
   test('is traveler scoped and server assembled', () => {
