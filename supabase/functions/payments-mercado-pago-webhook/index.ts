@@ -43,6 +43,10 @@ function mapChargeStatus(status: string) {
   if (["cancelled", "expired", "refunded"].includes(status)) return status;
   return "pending";
 }
+function amountToMinor(value: unknown) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? Math.round(amount * 100) : null;
+}
 async function computeHmac(manifest: string, secret: string) {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return hex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest)));
@@ -85,10 +89,11 @@ Deno.serve(async (req: Request) => {
     if (await validateHmac({ dataId, requestId, ts, v1, secret })) { signatureValid = true; break; }
   }
 
-  // Mercado Pago documents that QR Code notifications cannot be authenticated with
-  // the Webhooks secret signature. For those deliveries we fail closed against the
-  // authoritative provider resource plus a pre-existing local provider_order_id.
-  // No payment state is trusted from the incoming webhook body.
+  if (dataId === "123456" && payload?.action === "order.processed" && payload?.data?.external_reference === "ext_ref_1234") {
+    if (!signatureValid) return json({ error: "simulation_requires_signature" }, 401);
+    return json({ ok: true, simulated: true, signature_valid: true, auth_method: "hmac", environment });
+  }
+
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
   const providerResponse = await fetch(`https://api.mercadopago.com/v1/orders/${encodeURIComponent(dataId)}`, {
     headers: { accept: "application/json", authorization: `Bearer ${accessToken}` },
@@ -105,7 +110,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: attempt, error: attemptError } = await admin.from("payment_attempts")
-    .select("id,tenant_id,charge_id,amount_minor")
+    .select("id,tenant_id,charge_id,amount_minor,method")
     .eq("provider", "mercado_pago").eq("provider_order_id", dataId).maybeSingle();
   if (attemptError) return json({ error: "attempt_lookup_failed", details: attemptError.message }, 500);
   if (!attempt) {
@@ -114,35 +119,49 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: charge, error: chargeError } = await admin.from("payment_charges")
-    .select("id,order_id,tenant_id,amount_minor,external_reference")
+    .select("id,order_id,tenant_id,amount_minor,currency,external_reference")
     .eq("id", attempt.charge_id).maybeSingle();
   if (chargeError || !charge) return json({ error: "charge_lookup_failed", details: chargeError?.message }, 500);
 
+  const payment = mp?.transactions?.payments?.[0] ?? {};
   const providerExternalReference = mp?.external_reference != null ? String(mp.external_reference) : null;
+  const providerAmountMinor = amountToMinor(payment?.amount ?? mp?.total_amount);
+  const providerCurrency = mp?.currency != null ? String(mp.currency).trim().toUpperCase() : null;
+  const providerMethodId = payment?.payment_method?.id != null ? String(payment.payment_method.id).trim().toLowerCase() : null;
+  const providerMethodType = payment?.payment_method?.type != null ? String(payment.payment_method.type).trim().toLowerCase() : null;
+  const providerOrderMatches = mp?.id != null && String(mp.id) === dataId;
   const tenantMatches = attempt.tenant_id === charge.tenant_id;
-  const amountMatches = Number(attempt.amount_minor) === Number(charge.amount_minor);
+  const localAmountMatches = Number(attempt.amount_minor) === Number(charge.amount_minor);
+  const providerAmountMatches = providerAmountMinor != null && providerAmountMinor === Number(charge.amount_minor);
+  const currencyMatches = Boolean(providerCurrency && String(charge.currency).trim().toUpperCase() === providerCurrency);
   const referenceMatches = Boolean(providerExternalReference && charge.external_reference && providerExternalReference === charge.external_reference);
-  const providerVerifiedFallback = !signatureValid && tenantMatches && amountMatches && referenceMatches;
+  const methodMatches = String(attempt.method).toLowerCase() === "pix" && providerMethodId === "pix" && providerMethodType === "bank_transfer";
+  const providerCorrelationValid = providerOrderMatches && tenantMatches && localAmountMatches && providerAmountMatches && currencyMatches && referenceMatches && methodMatches;
 
-  if (!signatureValid && !providerVerifiedFallback) {
-    console.error("mp_webhook_provider_verification_failed", JSON.stringify({ environment, tenant_matches: tenantMatches, amount_matches: amountMatches, reference_matches: referenceMatches, has_provider_reference: Boolean(providerExternalReference) }));
-    return json({ error: "provider_verification_failed", environment }, 401);
+  if (!providerCorrelationValid) {
+    console.error("mp_webhook_provider_verification_failed", JSON.stringify({
+      environment,
+      signature_valid: signatureValid,
+      provider_order_matches: providerOrderMatches,
+      tenant_matches: tenantMatches,
+      local_amount_matches: localAmountMatches,
+      provider_amount_matches: providerAmountMatches,
+      currency_matches: currencyMatches,
+      reference_matches: referenceMatches,
+      method_matches: methodMatches,
+      has_provider_reference: Boolean(providerExternalReference),
+    }));
+    return json({ error: signatureValid ? "provider_correlation_mismatch" : "provider_verification_failed", environment }, signatureValid ? 409 : 401);
   }
 
   const authMethod = signatureValid ? "hmac" : "provider_lookup";
   if (!signatureValid) console.warn("mp_qr_webhook_verified_by_provider_lookup", JSON.stringify({ environment, auth_method: authMethod }));
-
-  if (dataId === "123456" && payload?.action === "order.processed" && payload?.data?.external_reference === "ext_ref_1234") {
-    if (!signatureValid) return json({ error: "simulation_requires_signature" }, 401);
-    return json({ ok: true, simulated: true, signature_valid: true, auth_method: authMethod, environment });
-  }
 
   const eventId = payload?.id != null ? String(payload.id) : `${dataId}:${ts ?? "provider"}`;
   const { data: duplicate } = await admin.from("payment_events").select("id,processed_at")
     .eq("provider", "mercado_pago").eq("provider_event_id", eventId).maybeSingle();
   if (duplicate?.processed_at) return json({ ok: true, duplicate: true, signature_valid: signatureValid, auth_method: authMethod, environment });
 
-  const payment = mp?.transactions?.payments?.[0] ?? {};
   const providerStatus = payment?.status ?? mp?.status ?? null;
   const providerStatusDetail = payment?.status_detail ?? mp?.status_detail ?? null;
   const attemptStatus = mapAttemptStatus(providerStatus, providerStatusDetail);
