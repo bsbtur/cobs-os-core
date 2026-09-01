@@ -1,0 +1,1 @@
+Rebuild branch created from current main SHA 2fb2291729911b2e7e9d8533ca617a5f0420713d. Canonical scope from PR #91 restored without touching operational alerts, Mercado Pago, RBAC, RLS, or traveler routing. Await Quality Gate and authenticated pure-traveler financial E2E before merge.
