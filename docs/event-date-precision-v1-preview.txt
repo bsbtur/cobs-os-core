@@ -1,0 +1,4 @@
+Preview branch: feat/event-date-precision-v1
+Validated SHA before docs-only commits: ce0f1891d2d199b4cae0efa39d05000844de3400
+Vercel deployment: dpl_FM9LFcDz5w8pD5gfY1AqGSm3wVMk
+State: READY
