@@ -2,6 +2,11 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyEventProgram, useMyOverview } from "@/lib/w10";
+import {
+  formatDateOnlyRange,
+  timeToConfirmLabel,
+  useMyEventSchedulePrecision,
+} from "@/lib/w10-event-precision";
 import { PortalShell } from "@/app/portal/portal-shell";
 import { PortalCard, PortalEmpty, PortalQueryGate, PortalTime } from "@/app/portal/portal-states";
 
@@ -22,9 +27,10 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/events")({
 
 function PortalEvents() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/events" });
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const overview = useMyOverview(operationId);
   const events = useMyEventProgram(operationId);
+  const precision = useMyEventSchedulePrecision(operationId);
 
   return (
     <PortalShell
@@ -34,9 +40,12 @@ function PortalEvents() {
     >
       <h2 className="mb-3 text-lg font-semibold text-foreground">{t("w10.events.title")}</h2>
       <PortalQueryGate
-        isLoading={events.isLoading}
-        error={events.error}
-        onRetry={() => void events.refetch()}
+        isLoading={events.isLoading || precision.isLoading}
+        error={events.error ?? precision.error}
+        onRetry={() => {
+          void events.refetch();
+          void precision.refetch();
+        }}
       >
         {(events.data ?? []).length === 0 ? (
           <PortalEmpty body={t("w10.events.empty")} />
@@ -45,6 +54,10 @@ function PortalEvents() {
             {(events.data ?? []).map((ev) => {
               const tz = ev.timezone ?? ev.venue?.timezone ?? overview.data?.timezone ?? null;
               const venue = [ev.venue?.name, ev.venue?.city].filter(Boolean).join(" · ");
+              const dateOnly = precision.data?.[ev.eventId] === "date_only";
+              const dateRange = dateOnly
+                ? formatDateOnlyRange(ev.plannedStart, ev.plannedEnd, tz, locale)
+                : null;
               return (
                 <PortalCard key={ev.eventId}>
                   <h3 className="break-words text-base font-medium text-foreground">
@@ -56,11 +69,17 @@ function PortalEvents() {
                     </p>
                   ) : null}
                   <div className="mt-1">
-                    <PortalTime
-                      planned={ev.plannedStart}
-                      expected={ev.expectedStart}
-                      timeZone={tz}
-                    />
+                    {dateOnly ? (
+                      <p className="text-sm text-muted-foreground">
+                        {dateRange ?? "—"} · {timeToConfirmLabel(locale)}
+                      </p>
+                    ) : (
+                      <PortalTime
+                        planned={ev.plannedStart}
+                        expected={ev.expectedStart}
+                        timeZone={tz}
+                      />
+                    )}
                   </div>
 
                   {ev.sessions.length === 0 ? (
