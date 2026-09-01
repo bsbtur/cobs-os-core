@@ -1,0 +1,1 @@
+Dynamic Operational Alerts V1 production migration mapping is documented in `docs/release/DYNAMIC_OPERATIONAL_ALERTS_V1_PRODUCTION.md`. Do not rename already-merged migrations; the post-merge auth hardening is additive.
