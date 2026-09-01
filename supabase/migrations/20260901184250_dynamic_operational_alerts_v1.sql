@@ -1,0 +1,3 @@
+-- Placeholder intentionally omitted: canonical Dynamic Operational Alerts V1 SQL was merged by PR #95 under 20260901184500_dynamic_operational_alerts_v1.sql.
+-- Production recorded this migration as 20260901184250 dynamic_operational_alerts_v1.
+-- This file documents the production version mapping only; do not execute duplicate DDL.
