@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Plus } from "lucide-react";
+import { Building2, Pencil, Plus } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -124,6 +124,134 @@ function VenueForm({ tenantId, onDone }: { tenantId: string; onDone: () => void 
   );
 }
 
+function EditVenueDialog({
+  venue,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  venue: VenueRow;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const { t, locale } = useI18n();
+  const [name, setName] = React.useState(venue.name);
+  const [city, setCity] = React.useState(venue.city ?? "");
+  const [region, setRegion] = React.useState(venue.region ?? "");
+  const [country, setCountry] = React.useState(venue.country_code ?? "");
+  const [address, setAddress] = React.useState(venue.address_label ?? "");
+  const [contact, setContact] = React.useState(venue.contact_label ?? "");
+
+  React.useEffect(() => {
+    if (!open) return;
+    setName(venue.name);
+    setCity(venue.city ?? "");
+    setRegion(venue.region ?? "");
+    setCountry(venue.country_code ?? "");
+    setAddress(venue.address_label ?? "");
+    setContact(venue.contact_label ?? "");
+  }, [open, venue]);
+
+  const update = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc(
+        "update_venue",
+        rpcArgs({
+          _venue_id: venue.id,
+          _idempotency_key: newIdempotencyKey(),
+          _name: name.trim(),
+          _city: city.trim() || undefined,
+          _region: region.trim() || undefined,
+          _country_code: country.trim() ? country.trim().toUpperCase() : undefined,
+          _address_label: address.trim() || undefined,
+          _contact_label: contact.trim() || undefined,
+        }),
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w07.venues.saved"));
+      onOpenChange(false);
+      onSaved();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar local</DialogTitle>
+        </DialogHeader>
+        <form
+          className="mt-4 grid gap-3 sm:grid-cols-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            update.mutate();
+          }}
+        >
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor={`venue-edit-name-${venue.id}`}>{t("w07.venues.name")}</Label>
+            <Input
+              id={`venue-edit-name-${venue.id}`}
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`venue-edit-city-${venue.id}`}>{t("w07.venues.city")}</Label>
+            <Input
+              id={`venue-edit-city-${venue.id}`}
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`venue-edit-region-${venue.id}`}>{t("w07.venues.region")}</Label>
+            <Input
+              id={`venue-edit-region-${venue.id}`}
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`venue-edit-country-${venue.id}`}>{t("w07.venues.country")}</Label>
+            <Input
+              id={`venue-edit-country-${venue.id}`}
+              maxLength={2}
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`venue-edit-contact-${venue.id}`}>{t("w07.venues.contact")}</Label>
+            <Input
+              id={`venue-edit-contact-${venue.id}`}
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor={`venue-edit-address-${venue.id}`}>{t("w07.venues.address")}</Label>
+            <Input
+              id={`venue-edit-address-${venue.id}`}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Button type="submit" className="min-h-11" disabled={update.isPending || !name.trim()}>
+              {update.isPending ? t("common.saving") : t("common.save")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function SpaceForm({ venueId, onDone }: { venueId: string; onDone: () => void }) {
   const { t, locale } = useI18n();
   const [name, setName] = React.useState("");
@@ -198,6 +326,7 @@ function VenueCard({ venue }: { venue: VenueRow }) {
   const { canManage } = useTenant();
   const queryClient = useQueryClient();
   const [addingSpace, setAddingSpace] = React.useState(false);
+  const [editing, setEditing] = React.useState(false);
 
   const spaces = useQuery({
     queryKey: ["venue-spaces", venue.id],
@@ -238,15 +367,26 @@ function VenueCard({ venue }: { venue: VenueRow }) {
           </span>
         ) : null}
         {canManage ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto min-h-9"
-            disabled={setActive.isPending}
-            onClick={() => setActive.mutate(!venue.is_active)}
-          >
-            {venue.is_active ? t("w07.venues.deactivate") : t("w07.venues.activate")}
-          </Button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-h-9"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="mr-1.5 size-4" aria-hidden="true" />
+              Editar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="min-h-9"
+              disabled={setActive.isPending}
+              onClick={() => setActive.mutate(!venue.is_active)}
+            >
+              {venue.is_active ? t("w07.venues.deactivate") : t("w07.venues.activate")}
+            </Button>
+          </div>
         ) : null}
       </div>
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -299,6 +439,15 @@ function VenueCard({ venue }: { venue: VenueRow }) {
           <p className="mt-3 text-sm text-muted-foreground">{t("w07.spaces.empty")}</p>
         )}
       </div>
+
+      <EditVenueDialog
+        venue={venue}
+        open={editing}
+        onOpenChange={setEditing}
+        onSaved={() => {
+          void queryClient.invalidateQueries({ queryKey: ["venues", venue.tenant_id] });
+        }}
+      />
     </section>
   );
 }
