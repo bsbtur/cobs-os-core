@@ -8,6 +8,7 @@ import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import { useTenant } from "@/lib/tenant";
+import { isOperationTerminal, type OperationStatus } from "@/lib/w02";
 import {
   PARTICIPATION_KINDS,
   PARTICIPATION_STATUSES,
@@ -96,10 +97,6 @@ function Counter({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Add person flow                                                     */
-/* ------------------------------------------------------------------ */
 
 function AddPersonDialog({
   open,
@@ -493,10 +490,6 @@ function AddPersonDialog({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Traveler portal access (W10 invitation — no parallel mechanism)      */
-/* ------------------------------------------------------------------ */
-
 function PortalAccessAction({
   operationId,
   personId,
@@ -576,18 +569,16 @@ function PortalAccessAction({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Roster row                                                          */
-/* ------------------------------------------------------------------ */
-
 function RosterCard({
   row,
   roleTypes,
   operationId,
+  readOnly,
 }: {
   row: RosterRow;
   roleTypes: RoleTypeRow[];
   operationId: string;
+  readOnly: boolean;
 }) {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
@@ -705,7 +696,7 @@ function RosterCard({
             >
               {roleLabel(a.operation_role_types, t)}
               {a.is_primary ? <span className="font-mono text-[9px]">★</span> : null}
-              {expanded ? (
+              {expanded && !readOnly ? (
                 <>
                   {!a.is_primary ? (
                     <button
@@ -737,13 +728,13 @@ function RosterCard({
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
         >
-          {expanded ? t("common.back") : t("roster.roles")}
+          {expanded ? t("common.back") : t("roster.history")}
         </Button>
       </div>
 
       {expanded ? (
         <div className="mt-3 space-y-4 border-t border-border pt-3">
-          {available.length > 0 ? (
+          {!readOnly && available.length > 0 ? (
             <div className="space-y-1.5">
               <Label htmlFor={`assign-${row.id}`}>{t("roster.assignRole")}</Label>
               <select
@@ -764,33 +755,37 @@ function RosterCard({
             </div>
           ) : null}
 
-          <PortalAccessAction
-            operationId={operationId}
-            personId={row.person_id}
-            disabled={row.status === "cancelled"}
-          />
+          {!readOnly ? (
+            <PortalAccessAction
+              operationId={operationId}
+              personId={row.person_id}
+              disabled={row.status === "cancelled"}
+            />
+          ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            {transitions
-              .filter((s) => s !== "cancelled")
-              .map((s) => (
-                <Button
-                  key={s}
-                  variant="outline"
-                  className="min-h-11"
-                  disabled={setStatus.isPending}
-                  onClick={() => setStatus.mutate({ status: s })}
-                >
-                  {s === "confirmed"
-                    ? t("roster.confirm")
-                    : row.status === "cancelled"
-                      ? t("roster.reactivate")
-                      : t("roster.backToExpected")}
-                </Button>
-              ))}
-          </div>
+          {!readOnly ? (
+            <div className="flex flex-wrap gap-2">
+              {transitions
+                .filter((s) => s !== "cancelled")
+                .map((s) => (
+                  <Button
+                    key={s}
+                    variant="outline"
+                    className="min-h-11"
+                    disabled={setStatus.isPending}
+                    onClick={() => setStatus.mutate({ status: s })}
+                  >
+                    {s === "confirmed"
+                      ? t("roster.confirm")
+                      : row.status === "cancelled"
+                        ? t("roster.reactivate")
+                        : t("roster.backToExpected")}
+                  </Button>
+                ))}
+            </div>
+          ) : null}
 
-          {transitions.includes("cancelled") ? (
+          {!readOnly && transitions.includes("cancelled") ? (
             <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
               <div className="space-y-1.5">
                 <Label htmlFor={`cancel-${row.id}`}>{t("roster.cancelReason")}</Label>
@@ -850,10 +845,6 @@ function RosterCard({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Workspace                                                           */
-/* ------------------------------------------------------------------ */
-
 function Roster() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/people" });
   const { t } = useI18n();
@@ -865,11 +856,27 @@ function Roster() {
   const [statusFilter, setStatusFilter] = React.useState<ParticipationStatus | "all">("all");
   const [addOpen, setAddOpen] = React.useState(false);
 
-  const roleTypes = useQuery({
-    queryKey: ["roleTypes", tenant?.id],
+  const operationState = useQuery({
+    queryKey: ["operation-roster-status", operationId],
     enabled: Boolean(tenant?.id) && canOperate,
     queryFn: async () => {
-      // Self-healing provisioning: every W03 surface guarantees the taxonomy exists.
+      const { data, error } = await supabase
+        .from("operations")
+        .select("status")
+        .eq("id", operationId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const terminal = isOperationTerminal(operationState.data?.status as OperationStatus | undefined);
+  const canMutate = canOperate && !terminal;
+
+  const roleTypes = useQuery({
+    queryKey: ["roleTypes", tenant?.id],
+    enabled: Boolean(tenant?.id) && canMutate,
+    queryFn: async () => {
       const { error: rpcError } = await supabase.rpc("ensure_operation_role_types", {
         _tenant_id: tenant!.id,
       });
@@ -907,7 +914,36 @@ function Roster() {
     );
   }
 
-  if (roster.isLoading || roleTypes.isLoading) return <PanelSkeleton rows={4} />;
+  if (operationState.isLoading || roster.isLoading || (canMutate && roleTypes.isLoading)) {
+    return <PanelSkeleton rows={4} />;
+  }
+
+  if (operationState.isError || roster.isError || (canMutate && roleTypes.isError)) {
+    return (
+      <EmptyState
+        icon={Users}
+        title={t("roster.loadError")}
+        body={t("roster.loadErrorBody")}
+        action={
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => {
+              void operationState.refetch();
+              void roster.refetch();
+              if (canMutate) void roleTypes.refetch();
+            }}
+          >
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (!operationState.data) {
+    return <EmptyState icon={Users} title={t("op.notFound")} body={t("op.back")} />;
+  }
 
   const rows = roster.data ?? [];
   const active = rows.filter((r) => r.status !== "cancelled");
@@ -935,21 +971,32 @@ function Roster() {
           <h2 className="text-2xl font-semibold lg:text-3xl">{t("roster.title")}</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("roster.subtitle")}</p>
         </div>
-        <Button className="min-h-11" onClick={() => setAddOpen(true)}>
-          <Plus className="mr-2 size-4" aria-hidden="true" />
-          {t("roster.add")}
-        </Button>
+        {canMutate ? (
+          <Button className="min-h-11" onClick={() => setAddOpen(true)}>
+            <Plus className="mr-2 size-4" aria-hidden="true" />
+            {t("roster.add")}
+          </Button>
+        ) : null}
       </section>
+
+      {terminal ? (
+        <section className="surface-panel border-border p-4">
+          <p className="font-medium">{t("roster.readOnly")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("roster.readOnlyBody")}</p>
+        </section>
+      ) : null}
 
       {rows.length === 0 ? (
         <EmptyState
           icon={Users}
           title={t("roster.empty")}
-          body={t("roster.emptyBody")}
+          body={terminal ? t("roster.readOnlyBody") : t("roster.emptyBody")}
           action={
-            <Button className="mt-2 min-h-11" onClick={() => setAddOpen(true)}>
-              {t("roster.add")}
-            </Button>
+            canMutate ? (
+              <Button className="mt-2 min-h-11" onClick={() => setAddOpen(true)}>
+                {t("roster.add")}
+              </Button>
+            ) : undefined
           }
         />
       ) : (
@@ -1013,6 +1060,7 @@ function Roster() {
                   row={row}
                   roleTypes={roleTypes.data ?? []}
                   operationId={operationId}
+                  readOnly={terminal}
                 />
               ))}
             </ul>
@@ -1022,13 +1070,15 @@ function Roster() {
         </>
       )}
 
-      <AddPersonDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        operationId={operationId}
-        roleTypes={roleTypes.data ?? []}
-        rosterPersonIds={rows.map((r) => r.person_id)}
-      />
+      {canMutate ? (
+        <AddPersonDialog
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          operationId={operationId}
+          roleTypes={roleTypes.data ?? []}
+          rosterPersonIds={rows.map((r) => r.person_id)}
+        />
+      ) : null}
     </div>
   );
 }
