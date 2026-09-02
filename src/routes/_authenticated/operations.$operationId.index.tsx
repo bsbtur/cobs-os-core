@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArchiveRestore, Box } from "lucide-react";
+import { Activity, ArchiveRestore } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
@@ -413,9 +413,14 @@ function WindowsPanel({ op }: { op: OperationRow }) {
           </form>
         ) : null}
 
-        <p className="border-t border-border pt-3 text-xs text-muted-foreground">
-          {t("op.actual")}: {t("op.actualLater")}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+          <p className="text-xs font-medium text-muted-foreground">{t("op.actual")}</p>
+          <Button asChild variant="outline" size="sm" className="min-h-9">
+            <Link to="/operations/$operationId/live" params={{ operationId: op.id }}>
+              {t("w04.tab.live")}
+            </Link>
+          </Button>
+        </div>
       </section>
     </div>
   );
@@ -441,8 +446,34 @@ function OperationDetail() {
   });
 
   if (operation.isLoading) return <PanelSkeleton rows={4} />;
-  if (!operation.data)
-    return <EmptyState icon={Activity} title={t("op.notFound")} body={t("op.back")} />;
+  if (operation.isError) {
+    return (
+      <EmptyState
+        icon={Activity}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void operation.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
+  if (!operation.data) {
+    return (
+      <EmptyState
+        icon={Activity}
+        title={t("op.notFound")}
+        body={t("op.back")}
+        action={
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/operations">{t("op.back")}</Link>
+          </Button>
+        }
+      />
+    );
+  }
 
   const op = operation.data;
   const tz = op.timezone || timeZone;
@@ -498,11 +529,6 @@ function OperationDetail() {
 
       <WindowsPanel op={op} />
       <LifecyclePanel op={op} />
-
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Box className="size-3.5" aria-hidden="true" />
-        {t("op.actualLater")}
-      </p>
     </div>
   );
 }
