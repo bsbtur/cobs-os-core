@@ -111,13 +111,46 @@ function DisplayNameCard() {
   );
 }
 
-function Body() {
+function OperationalResourcesCard() {
+  const { t } = useI18n();
+
+  return (
+    <section className="surface-panel animate-rise p-5" style={{ animationDelay: "40ms" }}>
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <Bus className="size-4 text-primary" aria-hidden="true" />
+        {t("nav.operations")}
+      </h3>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button asChild variant="outline" className="min-h-11">
+          <Link to="/settings/fleet">
+            <Bus className="mr-2 size-4" aria-hidden="true" />
+            {t("w05.fleet.open")}
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="min-h-11">
+          <Link to="/settings/properties">
+            <BedDouble className="mr-2 size-4" aria-hidden="true" />
+            {t("w06.prop.open")}
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="min-h-11">
+          <Link to="/settings/venues">
+            <Building2 className="mr-2 size-4" aria-hidden="true" />
+            {t("w07.venues.open")}
+          </Link>
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function OrganizationGovernance() {
   const { t, locale } = useI18n();
-  const { tenant } = useTenant();
+  const { tenant, canManage } = useTenant();
 
   const audit = useQuery({
     queryKey: ["audit", tenant?.id],
-    enabled: Boolean(tenant?.id),
+    enabled: Boolean(tenant?.id) && canManage,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audit_events")
@@ -129,6 +162,8 @@ function Body() {
       return data;
     },
   });
+
+  if (!canManage) return null;
 
   const rows: Array<[string, string]> = tenant
     ? [
@@ -142,8 +177,8 @@ function Body() {
     : [];
 
   return (
-    <div className="space-y-6">
-      <section className="surface-panel animate-rise p-5">
+    <>
+      <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Settings2 className="size-4 text-primary" aria-hidden="true" />
           {t("settings.org")}
@@ -158,31 +193,9 @@ function Body() {
             </div>
           ))}
         </dl>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="min-h-11">
-            <Link to="/settings/fleet">
-              <Bus className="mr-2 size-4" aria-hidden="true" />
-              {t("w05.fleet.open")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="min-h-11">
-            <Link to="/settings/properties">
-              <BedDouble className="mr-2 size-4" aria-hidden="true" />
-              {t("w06.prop.open")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="min-h-11">
-            <Link to="/settings/venues">
-              <Building2 className="mr-2 size-4" aria-hidden="true" />
-              {t("w07.venues.open")}
-            </Link>
-          </Button>
-        </div>
       </section>
 
-      <DisplayNameCard />
-
-      <section className="surface-panel animate-rise p-5" style={{ animationDelay: "80ms" }}>
+      <section className="surface-panel animate-rise p-5" style={{ animationDelay: "120ms" }}>
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <History className="size-4 text-primary" aria-hidden="true" />
           {t("settings.audit")}
@@ -191,6 +204,8 @@ function Body() {
         <div className="mt-4">
           {audit.isLoading ? (
             <PanelSkeleton rows={3} />
+          ) : audit.isError ? (
+            <EmptyState icon={History} title={t("state.error.title")} body={t("state.error.body")} />
           ) : (audit.data ?? []).length === 0 ? (
             <EmptyState icon={History} title={t("settings.auditEmpty")} />
           ) : (
@@ -206,15 +221,23 @@ function Body() {
                   <span className="rounded-full bg-primary-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary">
                     {event.action}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {event.subject_type}
-                  </span>
+                  <span className="truncate text-xs text-muted-foreground">{event.subject_type}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
       </section>
+    </>
+  );
+}
+
+function Body() {
+  return (
+    <div className="space-y-6">
+      <DisplayNameCard />
+      <OperationalResourcesCard />
+      <OrganizationGovernance />
     </div>
   );
 }
