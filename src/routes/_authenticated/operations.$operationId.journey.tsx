@@ -161,7 +161,6 @@ function StepDialog({
     mutationFn: async () => {
       const startIso = toIsoOrNull(start);
       const endIso = toIsoOrNull(end);
-      // The backend owns the canonical default: send null unless this is a legitimate override.
       const explicitRequirement = requirement === canonicalDefault ? null : requirement;
       const shared = {
         _operation_id: operationId,
@@ -171,7 +170,6 @@ function StepDialog({
         _traveler_facing: travelerFacing,
         ...(explicitRequirement ? { _presence_requirement: explicitRequirement } : {}),
         _presence_population: population,
-
         ...(description.trim() ? { _description: description.trim() } : {}),
         ...(location.trim() ? { _location_label: location.trim() } : {}),
         ...(travelerLabel.trim() ? { _traveler_label: travelerLabel.trim() } : {}),
@@ -370,10 +368,6 @@ function StepDialog({
     </Dialog>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Forecast + checklist editors                                        */
-/* ------------------------------------------------------------------ */
 
 function ForecastDialog({
   step,
@@ -826,10 +820,6 @@ function PlaybookEditor({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Apply a published blueprint                                         */
-/* ------------------------------------------------------------------ */
-
 function ApplyBlueprintDialog({
   open,
   onOpenChange,
@@ -884,11 +874,8 @@ function ApplyBlueprintDialog({
   }, [open]);
 
   const selected = options.find((entry) => entry.version?.id === versionId) ?? null;
-
-  /* Effective anchor: manual override wins, otherwise the operation planned start. */
   const anchor = resolveEffectiveAnchor(anchorInput, plannedStart);
 
-  /* Preview of the selected published version — RLS scopes it to the tenant. */
   const preview = useQuery({
     queryKey: ["blueprint-version-steps", versionId],
     enabled: open && versionId !== "",
@@ -957,6 +944,17 @@ function ApplyBlueprintDialog({
 
         {catalog.isLoading ? (
           <PanelSkeleton rows={2} />
+        ) : catalog.isError ? (
+          <EmptyState
+            icon={RouteIcon}
+            title={t("op.loadError")}
+            body={t("op.loadErrorBody")}
+            action={
+              <Button variant="outline" className="min-h-11" onClick={() => void catalog.refetch()}>
+                {t("op.retry")}
+              </Button>
+            }
+          />
         ) : options.length === 0 ? (
           <EmptyState
             icon={RouteIcon}
@@ -983,7 +981,6 @@ function ApplyBlueprintDialog({
               </select>
             </div>
 
-            {/* Effective anchor */}
             <div className="space-y-1.5">
               {plannedStart ? (
                 <p className="text-sm text-muted-foreground">
@@ -1021,7 +1018,6 @@ function ApplyBlueprintDialog({
               )}
             </div>
 
-            {/* Step preview */}
             {selected?.version ? (
               <div className="space-y-2">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -1122,14 +1118,10 @@ function ApplyBlueprintDialog({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
-
 function JourneyPlanPage() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/journey" });
   const { t, locale } = useI18n();
-  const { tenant } = useTenant();
+  const { tenant, role } = useTenant();
   const queryClient = useQueryClient();
   const [dialog, setDialog] = React.useState<null | "planned" | "ad_hoc">(null);
   const [forecastStep, setForecastStep] = React.useState<JourneyStepRow | null>(null);
@@ -1137,15 +1129,10 @@ function JourneyPlanPage() {
   const [archivingStep, setArchivingStep] = React.useState<JourneyStepRow | null>(null);
   const [archiveReason, setArchiveReason] = React.useState("");
   const [applyOpen, setApplyOpen] = React.useState(false);
-  const { role } = useTenant();
 
-  /**
-   * Provisioning origin: one row joined to its version and blueprint, so the banner and the
-   * per-step chips are served by a single query (never one query per step).
-   */
-  /** W11 visit points + their append-only facts, one query for the whole operation. */
   const visitPoints = useQuery({
     queryKey: ["visit-points", operationId],
+    enabled: Boolean(tenant?.id),
     queryFn: async () => {
       const [points, events] = await Promise.all([
         supabase
@@ -1167,6 +1154,7 @@ function JourneyPlanPage() {
 
   const provisioning = useQuery({
     queryKey: ["journey-provisioning", operationId],
+    enabled: Boolean(tenant?.id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operation_journey_provisionings")
@@ -1182,6 +1170,7 @@ function JourneyPlanPage() {
 
   const journey = useQuery({
     queryKey: ["journey", operationId],
+    enabled: Boolean(tenant?.id),
     queryFn: async () => {
       const [operation, steps, items, roles] = await Promise.all([
         supabase.from("operations").select("*").eq("id", operationId).maybeSingle(),
@@ -1202,6 +1191,7 @@ function JourneyPlanPage() {
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
       if (items.error) throw items.error;
+      if (roles.error) throw roles.error;
       return {
         operation: operation.data,
         steps: steps.data ?? [],
@@ -1244,7 +1234,29 @@ function JourneyPlanPage() {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  if (journey.isLoading) return <PanelSkeleton />;
+  if (journey.isLoading || provisioning.isLoading) return <PanelSkeleton />;
+
+  if (journey.isError || provisioning.isError) {
+    return (
+      <EmptyState
+        icon={RouteIcon}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => {
+              void journey.refetch();
+              void provisioning.refetch();
+            }}
+          >
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
 
   const operation = journey.data?.operation;
   if (!operation) {
@@ -1272,6 +1284,7 @@ function JourneyPlanPage() {
   const items = journey.data?.items ?? [];
   const roleTypes = journey.data?.roleTypes ?? [];
   const baselineOpen = operation.status === "draft" || operation.status === "planning";
+  const terminal = operation.status === "completed" || operation.status === "cancelled";
   const canManageSteps = baselineOpen && canEditBlueprints(role);
 
   const move = (index: number, direction: -1 | 1) => {
@@ -1304,7 +1317,7 @@ function JourneyPlanPage() {
           <Button
             className="min-h-11"
             onClick={() => setDialog(baselineOpen ? "planned" : "ad_hoc")}
-            disabled={operation.status === "completed" || operation.status === "cancelled"}
+            disabled={terminal}
           >
             <Plus className="mr-1.5 size-4" aria-hidden="true" />
             {baselineOpen ? t("w04.journey.addStep") : t("w04.journey.addAdHoc")}
@@ -1316,10 +1329,8 @@ function JourneyPlanPage() {
         <div className="surface-panel px-4 py-3 text-sm">
           <p className="font-medium">{t("bp.origin.title")}</p>
           <p className="mt-1 text-muted-foreground">
-            {t("bp.origin.provisioned")}{" "}
-            <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
-            {t("bp.version")} {t("bp.versionShort")}
-            {journeyOrigin.versionNumber}
+            {t("bp.origin.provisioned")} <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
+            {t("bp.version")} {t("bp.versionShort")}{journeyOrigin.versionNumber}
             {journeyOrigin.stepCount === null
               ? ""
               : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
@@ -1327,8 +1338,7 @@ function JourneyPlanPage() {
             {journeyOrigin.checksumShort ? (
               <span className="font-mono text-xs">{journeyOrigin.checksumShort}</span>
             ) : null}{" "}
-            · {t("bp.journeyOrigin.appliedAt")}{" "}
-            {formatDateTime(journeyOrigin.appliedAt, {
+            · {t("bp.journeyOrigin.appliedAt")} {formatDateTime(journeyOrigin.appliedAt, {
               locale,
               ...(operation.timezone ? { timeZone: operation.timezone } : {}),
             })}
@@ -1477,14 +1487,16 @@ function JourneyPlanPage() {
                       ) : null}
                     </>
                   ) : null}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-h-9"
-                    onClick={() => setForecastStep(step)}
-                  >
-                    {t("w04.expected.change")}
-                  </Button>
+                  {!terminal ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-9"
+                      onClick={() => setForecastStep(step)}
+                    >
+                      {t("w04.expected.change")}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
 
@@ -1505,7 +1517,7 @@ function JourneyPlanPage() {
                 events={(visitPoints.data?.events ?? []).filter(
                   (event) => event.journey_step_id === step.id,
                 )}
-                editable={canEditBlueprints(role)}
+                editable={canEditBlueprints(role) && !terminal}
                 isError={visitPoints.isError}
                 isLoading={visitPoints.isLoading}
                 onRetry={() => void visitPoints.refetch()}
