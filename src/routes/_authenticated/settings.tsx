@@ -1,17 +1,16 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BedDouble, Building2, Bus, History, Settings2, UserRound } from "lucide-react";
+import { BedDouble, Building2, Bus, Settings2, UserRound } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { AdminAuditTrail, type AdminAuditEvent } from "@/components/admin/audit-trail";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
-import { EmptyState } from "@/components/feedback/empty-state";
 import { feedback } from "@/components/feedback/feedback";
-import { PanelSkeleton } from "@/components/feedback/loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -145,7 +144,7 @@ function OperationalResourcesCard() {
 }
 
 function OrganizationGovernance() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { tenant, canManage } = useTenant();
 
   const audit = useQuery({
@@ -154,12 +153,14 @@ function OrganizationGovernance() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("audit_events")
-        .select("id, action, subject_type, subject_id, occurred_at")
+        .select(
+          "id,action,actor_profile_id,correlation_id,occurred_at,subject_id,subject_type",
+        )
         .eq("tenant_id", tenant!.id)
         .order("occurred_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data;
+      return data as AdminAuditEvent[];
     },
   });
 
@@ -195,39 +196,13 @@ function OrganizationGovernance() {
         </dl>
       </section>
 
-      <section className="surface-panel animate-rise p-5" style={{ animationDelay: "120ms" }}>
-        <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <History className="size-4 text-primary" aria-hidden="true" />
-          {t("settings.audit")}
-        </h3>
-        <p className="mt-1 text-xs text-muted-foreground">{t("settings.auditHint")}</p>
-        <div className="mt-4">
-          {audit.isLoading ? (
-            <PanelSkeleton rows={3} />
-          ) : audit.isError ? (
-            <EmptyState icon={History} title={t("state.error.title")} body={t("state.error.body")} />
-          ) : (audit.data ?? []).length === 0 ? (
-            <EmptyState icon={History} title={t("settings.auditEmpty")} />
-          ) : (
-            <ul className="divide-y divide-border/70">
-              {(audit.data ?? []).map((event) => (
-                <li key={event.id} className="flex flex-wrap items-center gap-3 py-2.5">
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    {new Intl.DateTimeFormat(locale, {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    }).format(new Date(event.occurred_at))}
-                  </span>
-                  <span className="rounded-full bg-primary-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary">
-                    {event.action}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground">{event.subject_type}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+      <div className="animate-rise" style={{ animationDelay: "120ms" }}>
+        <AdminAuditTrail
+          events={audit.data ?? []}
+          loading={audit.isLoading}
+          error={audit.isError}
+        />
+      </div>
     </>
   );
 }

@@ -5,25 +5,18 @@ import {
   Building2,
   CheckCircle2,
   Clock3,
-  History,
   Settings2,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
 
+import { AdminAuditTrail, type AdminAuditEvent } from "@/components/admin/audit-trail";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
-
-type AuditRow = {
-  id: string;
-  action: string;
-  subject_type: string;
-  occurred_at: string;
-};
 
 type InvitationStatusRow = {
   id: string;
@@ -32,7 +25,7 @@ type InvitationStatusRow = {
 };
 
 export function AdminOverview() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { tenant, role } = useTenant();
   const tenantId = tenant?.id;
 
@@ -48,7 +41,9 @@ export function AdminOverview() {
           .eq("tenant_id", tenantId!),
         supabase
           .from("audit_events")
-          .select("id,action,subject_type,occurred_at")
+          .select(
+            "id,action,actor_profile_id,correlation_id,occurred_at,subject_id,subject_type",
+          )
           .eq("tenant_id", tenantId!)
           .order("occurred_at", { ascending: false })
           .limit(5),
@@ -67,7 +62,7 @@ export function AdminOverview() {
         expiredPendingInvitations: invitations.filter(
           (item) => item.status === "pending" && new Date(item.expires_at).getTime() < now,
         ).length,
-        audit: (auditResult.data ?? []) as AuditRow[],
+        audit: (auditResult.data ?? []) as AdminAuditEvent[],
       };
     },
   });
@@ -219,35 +214,7 @@ export function AdminOverview() {
           </div>
         </article>
 
-        <article className="surface-panel p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold">
-            <History className="size-4 text-primary" aria-hidden="true" />
-            {t("settings.audit")}
-          </h3>
-          <p className="mt-1 text-xs text-muted-foreground">{t("settings.auditHint")}</p>
-          <div className="mt-4">
-            {(data?.audit ?? []).length === 0 ? (
-              <EmptyState icon={History} title={t("settings.auditEmpty")} />
-            ) : (
-              <ul className="divide-y divide-border/70">
-                {(data?.audit ?? []).map((event) => (
-                  <li key={event.id} className="flex flex-wrap items-center gap-3 py-2.5">
-                    <span className="font-mono text-[11px] text-muted-foreground">
-                      {new Intl.DateTimeFormat(locale, {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      }).format(new Date(event.occurred_at))}
-                    </span>
-                    <span className="rounded-full bg-primary-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary">
-                      {event.action}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">{event.subject_type}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </article>
+        <AdminAuditTrail events={data?.audit ?? []} />
       </section>
     </div>
   );
