@@ -2,21 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { OperatorAttentionBlock } from "@/components/dashboard/operator-attention-block";
+import { OperatorNowBlock } from "@/components/dashboard/operator-now-block";
 import {
-  DashboardHeaderV2,
-  OperationalDashboardV2,
-} from "@/components/dashboard/operational-dashboard-v2";
+  OperatorDashboardHeader,
+  OperatorSecondaryOverview,
+} from "@/components/dashboard/operator-secondary-overview";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
     meta: [
-      { title: "Centro de comando — COBS OS" },
+      { title: "Centro operacional — COBS OS" },
       {
         name: "description",
-        content: "Dashboard executivo e operacional do COBS OS com dados reais da organização.",
+        content: "Centro operacional do COBS OS para acompanhar execução, atenções e contexto das operações.",
       },
-      { property: "og:title", content: "Centro de comando — COBS OS" },
+      { property: "og:title", content: "Centro operacional — COBS OS" },
       { property: "og:type", content: "website" },
       { name: "robots", content: "noindex" },
     ],
@@ -30,10 +32,12 @@ function CommandCenter() {
   return (
     <AppShell activeId="overview" title={t("overview.title")}>
       <div className="mx-auto w-full max-w-7xl space-y-6">
-        <DashboardHeaderV2 />
+        <OperatorDashboardHeader />
         <RequireTenant>
-          <div className="animate-rise" style={{ animationDelay: "80ms" }}>
-            <OperationalDashboardV2 />
+          <div className="animate-rise space-y-6" style={{ animationDelay: "80ms" }}>
+            <OperatorNowBlock />
+            <OperatorAttentionBlock />
+            <OperatorSecondaryOverview />
           </div>
         </RequireTenant>
       </div>
