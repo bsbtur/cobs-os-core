@@ -1314,6 +1314,9 @@ function HospitalityPage() {
           .neq("status", "cancelled"),
       ]);
       if (operation.error) throw operation.error;
+      if (hospitality.error) throw hospitality.error;
+      if (properties.error) throw properties.error;
+      if (participations.error) throw participations.error;
       return {
         operation: operation.data,
         hospitality: (hospitality.data ?? null) as unknown as OperationHospitality | null,
@@ -1346,6 +1349,9 @@ function HospitalityPage() {
           .limit(80),
       ]);
       if (overview.error) throw overview.error;
+      if (rooming.error) throw rooming.error;
+      if (guests.error) throw guests.error;
+      if (events.error) throw events.error;
       return {
         overview: (overview.data ?? null) as unknown as StayOverview | null,
         rooming: (rooming.data ?? null) as unknown as StayRooming | null,
@@ -1384,10 +1390,40 @@ function HospitalityPage() {
   }, [operationId, refresh]);
 
   if (base.isLoading) return <PanelSkeleton />;
+  if (base.isError) {
+    return (
+      <EmptyState
+        icon={BedDouble}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void base.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
 
   const operation = base.data?.operation;
   if (!operation) {
     return <EmptyState icon={BedDouble} title={t("w06.forbidden")} body={t("w06.forbiddenBody")} />;
+  }
+
+  if (selectedStayId && detail.isLoading) return <PanelSkeleton />;
+  if (selectedStayId && detail.isError) {
+    return (
+      <EmptyState
+        icon={BedDouble}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void detail.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
   }
 
   const timeZone = operation.timezone ?? tenant?.timezone ?? undefined;
