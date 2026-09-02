@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
+import { OperatorAttentionBlock } from "@/components/dashboard/operator-attention-block";
 import { OperatorNowBlock } from "@/components/dashboard/operator-now-block";
 import {
   DashboardHeaderV2,
@@ -35,6 +36,7 @@ function CommandCenter() {
         <RequireTenant>
           <div className="animate-rise space-y-6" style={{ animationDelay: "80ms" }}>
             <OperatorNowBlock />
+            <OperatorAttentionBlock />
             <OperationalDashboardV2 />
           </div>
         </RequireTenant>
