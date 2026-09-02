@@ -21,6 +21,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated/people'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthenticatedBlueprintsIndexRouteImport } from './routes/_authenticated/blueprints.index'
 import { Route as AuthenticatedBlueprintsBlueprintIdRouteImport } from './routes/_authenticated/blueprints.$blueprintId'
 import { Route as AuthenticatedCommerceIndexRouteImport } from './routes/_authenticated/commerce.index'
@@ -40,6 +41,7 @@ import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authe
 import { Route as ApiPaymentsAttemptsRouteImport } from './routes/api/payments.attempts'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedMyOperationIdIndexRouteImport } from './routes/_authenticated/my.$operationId.index'
+import { Route as AuthenticatedMyOperationIdAssistantRouteImport } from './routes/_authenticated/my.$operationId.assistant'
 import { Route as AuthenticatedMyOperationIdEventsRouteImport } from './routes/_authenticated/my.$operationId.events'
 import { Route as AuthenticatedMyOperationIdJourneyRouteImport } from './routes/_authenticated/my.$operationId.journey'
 import { Route as AuthenticatedMyOperationIdMessagesRouteImport } from './routes/_authenticated/my.$operationId.messages'
@@ -48,6 +50,7 @@ import { Route as AuthenticatedMyOperationIdStayRouteImport } from './routes/_au
 import { Route as AuthenticatedMyClaimTokenRouteImport } from './routes/_authenticated/my.claim.$token'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
 import { Route as AuthenticatedOperationsOperationIdCommunicationRouteImport } from './routes/_authenticated/operations.$operationId.communication'
+import { Route as AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport } from './routes/_authenticated/operations.$operationId.event-schedule-precision'
 import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './routes/_authenticated/operations.$operationId.events'
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
@@ -114,6 +117,11 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedBlueprintsIndexRoute =
   AuthenticatedBlueprintsIndexRouteImport.update({
@@ -226,6 +234,12 @@ const AuthenticatedMyOperationIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMyOperationIdRoute,
   } as any)
+const AuthenticatedMyOperationIdAssistantRoute =
+  AuthenticatedMyOperationIdAssistantRouteImport.update({
+    id: '/assistant',
+    path: '/assistant',
+    getParentRoute: () => AuthenticatedMyOperationIdRoute,
+  } as any)
 const AuthenticatedMyOperationIdEventsRoute =
   AuthenticatedMyOperationIdEventsRouteImport.update({
     id: '/events',
@@ -272,6 +286,12 @@ const AuthenticatedOperationsOperationIdCommunicationRoute =
   AuthenticatedOperationsOperationIdCommunicationRouteImport.update({
     id: '/communication',
     path: '/communication',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute =
+  AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport.update({
+    id: '/event-schedule-precision',
+    path: '/event-schedule-precision',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
 const AuthenticatedOperationsOperationIdEventsRoute =
@@ -329,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/api/health': typeof ApiHealthRoute
   '/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
@@ -347,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/my/': typeof AuthenticatedMyIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/my/$operationId/assistant': typeof AuthenticatedMyOperationIdAssistantRoute
   '/my/$operationId/events': typeof AuthenticatedMyOperationIdEventsRoute
   '/my/$operationId/journey': typeof AuthenticatedMyOperationIdJourneyRoute
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
@@ -354,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
   '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
@@ -375,6 +398,7 @@ export interface FileRoutesByTo {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/api/health': typeof ApiHealthRoute
   '/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
@@ -391,6 +415,7 @@ export interface FileRoutesByTo {
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/my': typeof AuthenticatedMyIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/my/$operationId/assistant': typeof AuthenticatedMyOperationIdAssistantRoute
   '/my/$operationId/events': typeof AuthenticatedMyOperationIdEventsRoute
   '/my/$operationId/journey': typeof AuthenticatedMyOperationIdJourneyRoute
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
@@ -398,6 +423,7 @@ export interface FileRoutesByTo {
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
   '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
@@ -422,6 +448,7 @@ export interface FileRoutesById {
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/api/health': typeof ApiHealthRoute
   '/_authenticated/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/_authenticated/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
@@ -440,6 +467,7 @@ export interface FileRoutesById {
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/my/': typeof AuthenticatedMyIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/my/$operationId/assistant': typeof AuthenticatedMyOperationIdAssistantRoute
   '/_authenticated/my/$operationId/events': typeof AuthenticatedMyOperationIdEventsRoute
   '/_authenticated/my/$operationId/journey': typeof AuthenticatedMyOperationIdJourneyRoute
   '/_authenticated/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
@@ -447,6 +475,7 @@ export interface FileRoutesById {
   '/_authenticated/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
   '/_authenticated/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/_authenticated/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/_authenticated/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
@@ -471,6 +500,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/api/health'
     | '/blueprints/$blueprintId'
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
@@ -489,6 +519,7 @@ export interface FileRouteTypes {
     | '/experiences/'
     | '/my/'
     | '/operations/'
+    | '/my/$operationId/assistant'
     | '/my/$operationId/events'
     | '/my/$operationId/journey'
     | '/my/$operationId/messages'
@@ -496,6 +527,7 @@ export interface FileRouteTypes {
     | '/my/$operationId/stay'
     | '/my/claim/$token'
     | '/operations/$operationId/communication'
+    | '/operations/$operationId/event-schedule-precision'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
@@ -517,6 +549,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/api/health'
     | '/blueprints/$blueprintId'
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
@@ -533,6 +566,7 @@ export interface FileRouteTypes {
     | '/experiences'
     | '/my'
     | '/operations'
+    | '/my/$operationId/assistant'
     | '/my/$operationId/events'
     | '/my/$operationId/journey'
     | '/my/$operationId/messages'
@@ -540,6 +574,7 @@ export interface FileRouteTypes {
     | '/my/$operationId/stay'
     | '/my/claim/$token'
     | '/operations/$operationId/communication'
+    | '/operations/$operationId/event-schedule-precision'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/journey'
@@ -563,6 +598,7 @@ export interface FileRouteTypes {
     | '/_authenticated/people'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/api/health'
     | '/_authenticated/blueprints/$blueprintId'
     | '/_authenticated/commerce/$orderId'
     | '/_authenticated/experiences/$experienceId'
@@ -581,6 +617,7 @@ export interface FileRouteTypes {
     | '/_authenticated/experiences/'
     | '/_authenticated/my/'
     | '/_authenticated/operations/'
+    | '/_authenticated/my/$operationId/assistant'
     | '/_authenticated/my/$operationId/events'
     | '/_authenticated/my/$operationId/journey'
     | '/_authenticated/my/$operationId/messages'
@@ -588,6 +625,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my/$operationId/stay'
     | '/_authenticated/my/claim/$token'
     | '/_authenticated/operations/$operationId/communication'
+    | '/_authenticated/operations/$operationId/event-schedule-precision'
     | '/_authenticated/operations/$operationId/events'
     | '/_authenticated/operations/$operationId/hospitality'
     | '/_authenticated/operations/$operationId/journey'
@@ -605,6 +643,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   Ciosp2027Route: typeof Ciosp2027Route
   ClaimAccountMismatchRoute: typeof ClaimAccountMismatchRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsMercadopagoRoute: typeof ApiPublicPaymentsMercadopagoRoute
@@ -695,6 +734,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/team'
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/blueprints/': {
       id: '/_authenticated/blueprints/'
@@ -829,6 +875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyOperationIdIndexRouteImport
       parentRoute: typeof AuthenticatedMyOperationIdRoute
     }
+    '/_authenticated/my/$operationId/assistant': {
+      id: '/_authenticated/my/$operationId/assistant'
+      path: '/assistant'
+      fullPath: '/my/$operationId/assistant'
+      preLoaderRoute: typeof AuthenticatedMyOperationIdAssistantRouteImport
+      parentRoute: typeof AuthenticatedMyOperationIdRoute
+    }
     '/_authenticated/my/$operationId/events': {
       id: '/_authenticated/my/$operationId/events'
       path: '/events'
@@ -885,6 +938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdCommunicationRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/event-schedule-precision': {
+      id: '/_authenticated/operations/$operationId/event-schedule-precision'
+      path: '/event-schedule-precision'
+      fullPath: '/operations/$operationId/event-schedule-precision'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
     '/_authenticated/operations/$operationId/events': {
       id: '/_authenticated/operations/$operationId/events'
       path: '/events'
@@ -938,6 +998,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedMyOperationIdRouteChildren {
+  AuthenticatedMyOperationIdAssistantRoute: typeof AuthenticatedMyOperationIdAssistantRoute
   AuthenticatedMyOperationIdEventsRoute: typeof AuthenticatedMyOperationIdEventsRoute
   AuthenticatedMyOperationIdJourneyRoute: typeof AuthenticatedMyOperationIdJourneyRoute
   AuthenticatedMyOperationIdMessagesRoute: typeof AuthenticatedMyOperationIdMessagesRoute
@@ -948,6 +1009,8 @@ interface AuthenticatedMyOperationIdRouteChildren {
 
 const AuthenticatedMyOperationIdRouteChildren: AuthenticatedMyOperationIdRouteChildren =
   {
+    AuthenticatedMyOperationIdAssistantRoute:
+      AuthenticatedMyOperationIdAssistantRoute,
     AuthenticatedMyOperationIdEventsRoute:
       AuthenticatedMyOperationIdEventsRoute,
     AuthenticatedMyOperationIdJourneyRoute:
@@ -983,6 +1046,7 @@ const AuthenticatedMyRouteWithChildren = AuthenticatedMyRoute._addFileChildren(
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
   AuthenticatedOperationsOperationIdCommunicationRoute: typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute: typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   AuthenticatedOperationsOperationIdEventsRoute: typeof AuthenticatedOperationsOperationIdEventsRoute
   AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
   AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
@@ -996,6 +1060,8 @@ const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOp
   {
     AuthenticatedOperationsOperationIdCommunicationRoute:
       AuthenticatedOperationsOperationIdCommunicationRoute,
+    AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute:
+      AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute,
     AuthenticatedOperationsOperationIdEventsRoute:
       AuthenticatedOperationsOperationIdEventsRoute,
     AuthenticatedOperationsOperationIdHospitalityRoute:
@@ -1078,6 +1144,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   Ciosp2027Route: Ciosp2027Route,
   ClaimAccountMismatchRoute: ClaimAccountMismatchRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsMercadopagoRoute: ApiPublicPaymentsMercadopagoRoute,
