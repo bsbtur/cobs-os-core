@@ -1,7 +1,5 @@
 alter table public.messages drop constraint if exists messages_published_ck;
-
-alter table public.messages
-add constraint messages_published_ck check (
+alter table public.messages add constraint messages_published_ck check (
   status <> 'published'::public.message_status
   or (
     published_at is not null
