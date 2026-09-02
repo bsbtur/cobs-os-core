@@ -8,6 +8,12 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      get_operation_intelligence: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Record<string, unknown>;
+      };
       publish_dynamic_operational_alert: {
         Args: {
           _operation_id: string;

@@ -195,6 +195,14 @@ function OperationWorkspace() {
             >
               {t("w08.tab.communication")}
             </Link>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/incidents"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              Incidentes
+            </Link>
           </nav>
 
           {operation.isLoading ? (
