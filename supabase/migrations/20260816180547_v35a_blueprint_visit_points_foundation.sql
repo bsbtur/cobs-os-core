@@ -94,7 +94,7 @@ create or replace function app_private.blueprint_checksum(_version_id uuid) retu
   select s.sequence step_sequence,0 point_sequence,concat_ws('|','STEP',s.sequence::text,btrim(s.title),s.step_kind::text,s.start_offset_minutes::text,coalesce(s.duration_minutes::text,'-'),coalesce(btrim(s.description),''),coalesce(btrim(s.location_label),''),coalesce(btrim(s.traveler_label),''),s.traveler_facing::text,coalesce(s.presence_requirement::text,'default'),s.presence_population::text) line from public.journey_blueprint_steps s where s.version_id=_version_id
   union all
   select s.sequence,p.sequence,concat_ws('|','POINT',s.sequence::text,p.sequence::text,btrim(p.title),coalesce(btrim(p.interpretation),''),coalesce(btrim(p.guide_tip),'')) from public.journey_blueprint_visit_points p join public.journey_blueprint_steps s on s.id=p.blueprint_step_id where p.version_id=_version_id
- ) select md5(coalesce(string_agg(line,E'\\n' order by step_sequence,point_sequence),'')) from canonical
+ ) select md5(coalesce(string_agg(line,E'\n' order by step_sequence,point_sequence),'')) from canonical
 $function$;
 revoke all on function public.add_blueprint_visit_point(uuid,text,text,text,text) from public,anon;
 revoke all on function public.update_blueprint_visit_point(uuid,text,text,text,text) from public,anon;
