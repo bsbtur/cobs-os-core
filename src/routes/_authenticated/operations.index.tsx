@@ -424,11 +424,34 @@ function OperationsWorkspace() {
     },
   });
 
-  const items = (operations.data ?? []).filter((op) => {
-    if (filter === "all") return true;
-    if (op.archived_at) return false;
-    return !["completed", "cancelled"].includes(op.status);
-  });
+  const now = Date.now();
+  const statusPriority: Record<string, number> = {
+    active: 0,
+    ready: 1,
+    planning: 2,
+    draft: 3,
+    completed: 4,
+    cancelled: 5,
+  };
+
+  const items = (operations.data ?? [])
+    .filter((op) => {
+      if (filter === "all") return true;
+      if (op.archived_at) return false;
+      if (op.status === "active") return true;
+      if (!["planning", "ready"].includes(op.status)) return false;
+      return new Date(effectiveWindow(op).start).getTime() >= now;
+    })
+    .sort((a, b) => {
+      const statusDifference =
+        (statusPriority[a.status] ?? Number.MAX_SAFE_INTEGER) -
+        (statusPriority[b.status] ?? Number.MAX_SAFE_INTEGER);
+      if (statusDifference !== 0) return statusDifference;
+      return (
+        new Date(effectiveWindow(a).start).getTime() -
+        new Date(effectiveWindow(b).start).getTime()
+      );
+    });
 
   return (
     <div className="space-y-6">
@@ -457,7 +480,9 @@ function OperationsWorkspace() {
             aria-pressed={filter === value}
             onClick={() => setFilter(value)}
           >
-            {value === "upcoming" ? t("op.upcoming") : t("op.filterAll")}
+            {value === "upcoming"
+              ? `${t("w02.activeOps")} + ${t("w02.upcomingOps")}`
+              : t("op.filterAll")}
           </Button>
         ))}
       </div>
