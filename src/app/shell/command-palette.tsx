@@ -1,8 +1,9 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 
-import { NAV_ITEMS } from "@/lib/navigation";
+import { isNavItemVisible, NAV_ITEMS } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useTenant } from "@/lib/tenant";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Command,
@@ -25,6 +26,7 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useI18n();
+  const { canManage } = useTenant();
   const navigate = useNavigate();
 
   return (
@@ -36,7 +38,7 @@ export function CommandPalette({
           <CommandList>
             <CommandEmpty>{t("command.empty")}</CommandEmpty>
             <CommandGroup heading={t("command.group.navigate")}>
-              {NAV_ITEMS.map((item) => {
+              {NAV_ITEMS.filter((item) => isNavItemVisible(item, canManage)).map((item) => {
                 const Icon = item.icon;
                 return (
                   <CommandItem
