@@ -9,6 +9,11 @@ export const W03_PT: Record<string, string> = {
   "roster.empty": "Nenhuma pessoa nesta operação.",
   "roster.emptyBody":
     "Adicione participantes, equipe e pessoas de apoio para preparar esta operação.",
+  "roster.loadError": "Não foi possível carregar as pessoas da operação.",
+  "roster.loadErrorBody": "A consulta falhou. Isso não significa que a lista esteja vazia.",
+  "roster.readOnly": "Operação encerrada · somente leitura",
+  "roster.readOnlyBody":
+    "Pessoas, responsabilidades e histórico permanecem disponíveis para consulta, sem novas alterações.",
   "roster.add": "Adicionar pessoa",
   "roster.search": "Buscar pessoa",
   "roster.noResults": "Nenhuma pessoa corresponde a esta busca.",
@@ -99,6 +104,11 @@ export const W03_EN: Record<string, string> = {
   "roster.subtitle": "Who is on this operation and what each person is responsible for.",
   "roster.empty": "No people on this operation.",
   "roster.emptyBody": "Add participants, crew and support people to prepare this operation.",
+  "roster.loadError": "The operation roster could not be loaded.",
+  "roster.loadErrorBody": "The query failed. This does not mean the roster is empty.",
+  "roster.readOnly": "Operation closed · read only",
+  "roster.readOnlyBody":
+    "People, responsibilities and history remain available for review without further changes.",
   "roster.add": "Add person",
   "roster.search": "Search person",
   "roster.noResults": "No person matches this search.",
