@@ -12,10 +12,11 @@ import {
   useMyOverview,
   useMyStay,
   type PortalAgendaItem,
+  type PortalOverview,
 } from "@/lib/w10";
 import { PortalShell } from "@/app/portal/portal-shell";
 import { PortalCard, PortalQueryGate, PortalTag } from "@/app/portal/portal-states";
-import { formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/my/$operationId/")({
   head: () => ({
@@ -48,6 +49,32 @@ function AgendaLine({ item, timeZone }: { item: PortalAgendaItem; timeZone: stri
         <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(item.start, ctx)}</p>
       ) : null}
     </div>
+  );
+}
+
+function TripContextCard({ overview }: { overview: PortalOverview }) {
+  const { locale } = useI18n();
+  const ctx = overview.timezone ? { locale, timeZone: overview.timezone } : { locale };
+  const destination = [overview.city, overview.region, overview.country].filter(Boolean).join(" · ");
+  const start = overview.expectedStart ?? overview.plannedStart;
+  const end = overview.expectedEnd ?? overview.plannedEnd;
+  const period = start
+    ? end
+      ? `${formatDate(start, ctx)} – ${formatDate(end, ctx)}`
+      : formatDate(start, ctx)
+    : null;
+
+  return (
+    <PortalCard>
+      <div className="flex flex-col gap-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          Minha viagem
+        </p>
+        <p className="text-lg font-semibold text-foreground">{overview.name}</p>
+        {destination ? <p className="text-sm text-muted-foreground">{destination}</p> : null}
+        {period ? <p className="text-sm text-muted-foreground">{period}</p> : null}
+      </div>
+    </PortalCard>
   );
 }
 
@@ -106,6 +133,8 @@ function PortalHome() {
   const firstEventName = events.data?.[0]?.name;
 
   const historical = overview.data?.historical === true;
+  const plannedStart = overview.data?.expectedStart ?? overview.data?.plannedStart ?? null;
+  const upcoming = plannedStart ? new Date(plannedStart).getTime() > Date.now() : false;
 
   return (
     <PortalShell
@@ -119,6 +148,8 @@ function PortalHome() {
         onRetry={() => void overview.refetch()}
       >
         <div className="flex flex-col gap-4">
+          {overview.data ? <TripContextCard overview={overview.data} /> : null}
+
           {historical ? (
             <PortalCard>
               <div className="flex flex-wrap items-center gap-2">
@@ -132,7 +163,9 @@ function PortalHome() {
                 {now ? (
                   <AgendaLine item={now} timeZone={timeZone} />
                 ) : (
-                  <p className="text-sm text-muted-foreground">{t("w10.home.nothingNow")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {upcoming ? "Sua viagem ainda não começou." : t("w10.home.nothingNow")}
+                  </p>
                 )}
               </PortalCard>
 
@@ -140,20 +173,26 @@ function PortalHome() {
                 {next ? (
                   <AgendaLine item={next} timeZone={timeZone} />
                 ) : (
-                  <p className="text-sm text-muted-foreground">{t("w10.home.nothingNext")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    As próximas etapas aparecerão aqui quando forem confirmadas.
+                  </p>
                 )}
               </PortalCard>
             </>
           )}
 
+          <ShortcutRow
+            to="/my/$operationId/assistant"
+            operationId={operationId}
+            icon={Bot}
+            label="Assistente COBS"
+            value="Pergunte sobre informações confirmadas da sua viagem"
+          />
+
           <div className="flex flex-col gap-2">
-            <ShortcutRow
-              to="/my/$operationId/assistant"
-              operationId={operationId}
-              icon={Bot}
-              label="Assistente COBS"
-              value="Pergunte sobre informações confirmadas da sua viagem"
-            />
+            <p className="px-1 pt-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Minha viagem
+            </p>
             <ShortcutRow
               to="/my/$operationId/journey"
               operationId={operationId}
