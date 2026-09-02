@@ -226,14 +226,14 @@ function CiospLanding() {
       {checkoutClosed && <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><strong>Gate funcionando:</strong> as vendas públicas continuam fechadas. Nenhum pedido, reserva ou Pix foi criado por esta tentativa.</div>}
       {error && <div role="alert" className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
       {pix ? (
-        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
+        <div role="status" aria-live="polite" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
           <p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-300">Pix TEST gerado</p>
           <p className="mt-2 text-2xl font-semibold">R$ {((pix.amount_minor ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
           {pix.qr_code_base64 && <img className="mx-auto mt-4 w-full max-w-[260px] rounded-xl bg-white p-3" src={`data:image/png;base64,${pix.qr_code_base64}`} alt="QR Code Pix de teste" />}
-          {pix.qr_code && <Button type="button" variant="outline" className="mt-4 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.qr_code ?? "")}><Copy className="mr-2 size-4" />Copiar Pix copia e cola</Button>}
+          {pix.qr_code && <Button type="button" variant="outline" className="mt-4 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.qr_code ?? "")}><Copy className="mr-2 size-4" aria-hidden="true" />Copiar Pix copia e cola</Button>}
         </div>
       ) : (
-        <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Validando gate...</> : <>Testar checkout comercial <ArrowRight className="ml-2 size-4" /></>}</Button>
+        <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />Validando gate...</> : <>Testar checkout comercial <ArrowRight className="ml-2 size-4" aria-hidden="true" /></>}</Button>
       )}
       <p className="text-center text-xs text-white/35">Modo QA. `sales_public=false` continua sendo a trava soberana do backend.</p>
     </form>
