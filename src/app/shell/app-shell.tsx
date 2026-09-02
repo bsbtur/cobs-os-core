@@ -9,6 +9,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { FullPageLoading } from "@/components/feedback/loading";
 import { useTenant } from "@/lib/tenant";
 
+const ADMIN_ONLY_ACTIVE_IDS = new Set(["team"]);
+
 /**
  * Responsive AppShell.
  * Desktop = persistent command center (rail + dense top bar).
@@ -17,6 +19,7 @@ import { useTenant } from "@/lib/tenant";
  * Security boundary: authenticated does not imply administrative access.
  * Only users with an active organization membership may render AppShell.
  * Grant-only travelers remain on the isolated /my portal.
+ * Administrative surfaces are restricted to owner/admin memberships.
  */
 export function AppShell({
   activeId,
@@ -29,12 +32,16 @@ export function AppShell({
 }) {
   const { open, setOpen } = useCommandPalette();
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const { activeMembership, loading } = useTenant();
+  const { activeMembership, canManage, loading } = useTenant();
 
   if (loading) return <FullPageLoading />;
 
   if (!activeMembership) {
     return <Navigate to="/my" replace />;
+  }
+
+  if (ADMIN_ONLY_ACTIVE_IDS.has(activeId) && !canManage) {
+    return <Navigate to="/app" replace />;
   }
 
   return (
