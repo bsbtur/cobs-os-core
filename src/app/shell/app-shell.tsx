@@ -7,9 +7,8 @@ import { MobileNavDrawer, MobileTabBar } from "./mobile-nav";
 import { CommandPalette, useCommandPalette } from "./command-palette";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FullPageLoading } from "@/components/feedback/loading";
+import { ADMIN_ONLY_NAV_IDS } from "@/lib/navigation";
 import { useTenant } from "@/lib/tenant";
-
-const ADMIN_ONLY_ACTIVE_IDS = new Set(["team"]);
 
 /**
  * Responsive AppShell.
@@ -40,7 +39,7 @@ export function AppShell({
     return <Navigate to="/my" replace />;
   }
 
-  if (ADMIN_ONLY_ACTIVE_IDS.has(activeId) && !canManage) {
+  if (ADMIN_ONLY_NAV_IDS.has(activeId) && !canManage) {
     return <Navigate to="/app" replace />;
   }
 

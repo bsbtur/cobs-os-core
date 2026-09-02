@@ -2,8 +2,9 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { Command as CommandIcon } from "lucide-react";
 
-import { NAV_SECTIONS, type NavItem } from "@/lib/navigation";
+import { isNavItemVisible, NAV_SECTIONS, type NavItem } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useTenant } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
 import { BrandLockup } from "./brand";
 import { OrgContext } from "./org-context";
@@ -60,6 +61,7 @@ export function SideNav({
   onOpenCommand: () => void;
 }) {
   const { t } = useI18n();
+  const { canManage } = useTenant();
 
   return (
     <nav
@@ -90,9 +92,11 @@ export function SideNav({
             <p className="px-3 pb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40">
               {t(section.labelKey)}
             </p>
-            {section.items.map((item) => (
-              <NavRow key={item.id} item={item} active={item.id === activeId} />
-            ))}
+            {section.items
+              .filter((item) => isNavItemVisible(item, canManage))
+              .map((item) => (
+                <NavRow key={item.id} item={item} active={item.id === activeId} />
+              ))}
           </div>
         ))}
       </div>
