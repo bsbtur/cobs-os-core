@@ -847,8 +847,16 @@ function LiveRuntimePage() {
       ]);
       if (operation.error) throw operation.error;
       if (steps.error) throw steps.error;
+      if (events.error) throw events.error;
       if (resolutionEvents.error) throw resolutionEvents.error;
       if (boardingEvents.error) throw boardingEvents.error;
+      if (presence.error) throw presence.error;
+      if (items.error) throw items.error;
+      if (executions.error) throw executions.error;
+      if (roster.error) throw roster.error;
+      if (state.error) throw state.error;
+      if (visitPoints.error) throw visitPoints.error;
+      if (visitPointEvents.error) throw visitPointEvents.error;
       return {
         operation: operation.data,
         steps: steps.data ?? [],
@@ -906,6 +914,20 @@ function LiveRuntimePage() {
   });
 
   if (live.isLoading) return <PanelSkeleton />;
+  if (live.isError) {
+    return (
+      <EmptyState
+        icon={Radio}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void live.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
 
   const operation = live.data?.operation;
   if (!operation) {
