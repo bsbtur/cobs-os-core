@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 
-import { MOBILE_NAV_ITEMS, NAV_SECTIONS } from "@/lib/navigation";
+import { isNavItemVisible, MOBILE_NAV_ITEMS, NAV_SECTIONS } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useTenant } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { OrgContext } from "./org-context";
@@ -89,6 +90,7 @@ export function MobileNavDrawer({
   activeId: string;
 }) {
   const { t } = useI18n();
+  const { canManage } = useTenant();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -105,30 +107,32 @@ export function MobileNavDrawer({
               <p className="px-3 pb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40">
                 {t(section.labelKey)}
               </p>
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const active = item.id === activeId;
-                return (
-                  <Link
-                    key={item.id}
-                    to={item.to}
-                    onClick={() => onOpenChange(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-sidebar-foreground/75",
-                      active && "bg-sidebar-accent text-sidebar-accent-foreground",
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
-                    {item.status === "planned" ? (
-                      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40">
-                        {item.activatesIn}
-                      </span>
-                    ) : null}
-                  </Link>
-                );
-              })}
+              {section.items
+                .filter((item) => isNavItemVisible(item, canManage))
+                .map((item) => {
+                  const Icon = item.icon;
+                  const active = item.id === activeId;
+                  return (
+                    <Link
+                      key={item.id}
+                      to={item.to}
+                      onClick={() => onOpenChange(false)}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-sidebar-foreground/75",
+                        active && "bg-sidebar-accent text-sidebar-accent-foreground",
+                      )}
+                    >
+                      <Icon className="size-4 shrink-0" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
+                      {item.status === "planned" ? (
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40">
+                          {item.activatesIn}
+                        </span>
+                      ) : null}
+                    </Link>
+                  );
+                })}
             </div>
           ))}
         </div>
