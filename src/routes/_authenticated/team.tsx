@@ -18,6 +18,17 @@ import {
   type InvitationIntent,
 } from "@/lib/invitation-token";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,17 +128,18 @@ function Members() {
     <ul className="space-y-2">
       {(members.data ?? []).map((m) => {
         const self = m.profile_id === user?.id;
+        const memberLabel = m.profiles?.display_name || m.profiles?.email || m.profile_id;
         return (
           <li
             key={m.id}
             className="surface-panel flex flex-wrap items-center gap-3 p-3.5 sm:flex-nowrap"
           >
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft font-semibold text-primary">
-              {(m.profiles?.display_name || m.profiles?.email || "?").slice(0, 1).toUpperCase()}
+              {memberLabel.slice(0, 1).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">
-                {m.profiles?.display_name || m.profiles?.email || m.profile_id}
+                {memberLabel}
                 {self ? (
                   <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                     {t("team.you")}
@@ -158,15 +170,33 @@ function Members() {
               </span>
             )}
             {canManage && !self ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="min-h-11 min-w-11 shrink-0 text-destructive"
-                aria-label={t("team.remove")}
-                onClick={() => removeMember.mutate(m.id)}
-              >
-                <UserMinus className="size-4" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="min-h-11 min-w-11 shrink-0 text-destructive"
+                    aria-label={t("team.remove")}
+                  >
+                    <UserMinus className="size-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("team.remove")}</AlertDialogTitle>
+                    <AlertDialogDescription>{memberLabel}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => removeMember.mutate(m.id)}
+                    >
+                      {t("team.remove")}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             ) : null}
           </li>
         );
@@ -346,13 +376,28 @@ function Invitations() {
                         {t("team.linkLost")}
                       </span>
                     )}
-                    <Button
-                      variant="ghost"
-                      className="min-h-11"
-                      onClick={() => revoke.mutate(inv.id)}
-                    >
-                      {t("team.revoke")}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" className="min-h-11">
+                          {t("team.revoke")}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t("team.revoke")}</AlertDialogTitle>
+                          <AlertDialogDescription>{inv.email}</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => revoke.mutate(inv.id)}
+                          >
+                            {t("team.revoke")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 ) : null}
               </li>
