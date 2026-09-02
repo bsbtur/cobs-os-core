@@ -73,11 +73,18 @@ type MemberRow = {
   profiles: { display_name: string | null; email: string | null } | null;
 };
 
+type PendingRoleChange = {
+  id: string;
+  role: AppRole;
+  memberLabel: string;
+};
+
 function Members() {
   const { t, locale } = useI18n();
   const { tenant, canManage, role: myRole } = useTenant();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [pendingRoleChange, setPendingRoleChange] = React.useState<PendingRoleChange | null>(null);
 
   const members = useQuery({
     queryKey: ["members", tenant?.id],
@@ -122,86 +129,120 @@ function Members() {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  const confirmRoleChange = () => {
+    if (!pendingRoleChange) return;
+    changeRole.mutate({ id: pendingRoleChange.id, role: pendingRoleChange.role });
+    setPendingRoleChange(null);
+  };
+
   if (members.isLoading) return <PanelSkeleton rows={3} />;
 
   return (
-    <ul className="space-y-2">
-      {(members.data ?? []).map((m) => {
-        const self = m.profile_id === user?.id;
-        const memberLabel = m.profiles?.display_name || m.profiles?.email || m.profile_id;
-        return (
-          <li
-            key={m.id}
-            className="surface-panel flex flex-wrap items-center gap-3 p-3.5 sm:flex-nowrap"
-          >
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft font-semibold text-primary">
-              {memberLabel.slice(0, 1).toUpperCase()}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">
-                {memberLabel}
-                {self ? (
-                  <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                    {t("team.you")}
-                  </span>
-                ) : null}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">{m.profiles?.email ?? "—"}</p>
-            </div>
-            {canManage && !self ? (
-              <Select
-                defaultValue={m.role}
-                onValueChange={(value) => changeRole.mutate({ id: m.id, role: value as AppRole })}
-              >
-                <SelectTrigger className="min-h-11 w-[190px] shrink-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLE_ORDER.filter((r) => r !== "owner" || myRole === "owner").map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {t(`role.${r}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                {t(`role.${m.role}`)}
+    <>
+      <ul className="space-y-2">
+        {(members.data ?? []).map((m) => {
+          const self = m.profile_id === user?.id;
+          const memberLabel = m.profiles?.display_name || m.profiles?.email || m.profile_id;
+          return (
+            <li
+              key={m.id}
+              className="surface-panel flex flex-wrap items-center gap-3 p-3.5 sm:flex-nowrap"
+            >
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft font-semibold text-primary">
+                {memberLabel.slice(0, 1).toUpperCase()}
               </span>
-            )}
-            {canManage && !self ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="min-h-11 min-w-11 shrink-0 text-destructive"
-                    aria-label={t("team.remove")}
-                  >
-                    <UserMinus className="size-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("team.remove")}</AlertDialogTitle>
-                    <AlertDialogDescription>{memberLabel}</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={() => removeMember.mutate(m.id)}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">
+                  {memberLabel}
+                  {self ? (
+                    <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                      {t("team.you")}
+                    </span>
+                  ) : null}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">{m.profiles?.email ?? "—"}</p>
+              </div>
+              {canManage && !self ? (
+                <Select
+                  value={m.role}
+                  onValueChange={(value) => {
+                    const nextRole = value as AppRole;
+                    if (nextRole === m.role) return;
+                    setPendingRoleChange({ id: m.id, role: nextRole, memberLabel });
+                  }}
+                >
+                  <SelectTrigger className="min-h-11 w-[190px] shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLE_ORDER.filter((r) => r !== "owner" || myRole === "owner").map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {t(`role.${r}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  {t(`role.${m.role}`)}
+                </span>
+              )}
+              {canManage && !self ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="min-h-11 min-w-11 shrink-0 text-destructive"
+                      aria-label={t("team.remove")}
                     >
-                      {t("team.remove")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : null}
-          </li>
-        );
-      })}
-    </ul>
+                      <UserMinus className="size-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t("team.remove")}</AlertDialogTitle>
+                      <AlertDialogDescription>{memberLabel}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => removeMember.mutate(m.id)}
+                      >
+                        {t("team.remove")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+
+      <AlertDialog
+        open={pendingRoleChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRoleChange(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("team.inviteRole")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRoleChange
+                ? `${pendingRoleChange.memberLabel} · ${t(`role.${pendingRoleChange.role}`)}`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRoleChange}>{t("settings.save")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
