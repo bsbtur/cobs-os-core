@@ -5,6 +5,11 @@ export const W03_ES: Record<string, string> = {
   "roster.subtitle": "Quién participa en esta operación y cuál es la responsabilidad de cada persona.",
   "roster.empty": "No hay personas en esta operación.",
   "roster.emptyBody": "Añade participantes, equipo y personas de apoyo para preparar esta operación.",
+  "roster.loadError": "No se pudieron cargar las personas de la operación.",
+  "roster.loadErrorBody": "La consulta falló. Esto no significa que la lista esté vacía.",
+  "roster.readOnly": "Operación cerrada · solo lectura",
+  "roster.readOnlyBody":
+    "Las personas, responsabilidades y el historial siguen disponibles para consulta, sin nuevos cambios.",
   "roster.add": "Añadir persona",
   "roster.search": "Buscar persona",
   "roster.noResults": "Ninguna persona coincide con esta búsqueda.",
