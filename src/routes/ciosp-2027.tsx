@@ -29,6 +29,18 @@ export const Route = createFileRoute("/ciosp-2027")({
         content:
           "CIOSP 2027 com curadoria BSBTUR: viagem, hospedagem, mobilidade e suporte em uma experiência premium de Brasília para São Paulo.",
       },
+      { property: "og:title", content: "CIOSP 2027 — Experiência Premium BSBTUR" },
+      {
+        property: "og:description",
+        content:
+          "CIOSP 2027 com curadoria BSBTUR: viagem, hospedagem, mobilidade e suporte em uma experiência premium de Brasília para São Paulo.",
+      },
+      { name: "twitter:title", content: "CIOSP 2027 — Experiência Premium BSBTUR" },
+      {
+        name: "twitter:description",
+        content:
+          "CIOSP 2027 com curadoria BSBTUR: viagem, hospedagem, mobilidade e suporte em uma experiência premium de Brasília para São Paulo.",
+      },
     ],
   }),
   component: CiospLanding,
@@ -132,8 +144,8 @@ function CiospLanding() {
       if (captureError) throw captureError;
       if (!data?.id) throw new Error("lead_capture_response_invalid");
       setSubmitted(true);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível registrar seu interesse agora.");
+    } catch {
+      setError("Não foi possível registrar seu interesse agora. Revise seus dados e tente novamente em instantes.");
     } finally {
       setLoading(false);
     }
@@ -192,8 +204,8 @@ function CiospLanding() {
       if (pixError) throw pixError;
       if (!pixData?.pix?.qr_code && !pixData?.pix?.ticket_url) throw new Error("pix_response_invalid");
       setPix({ ...pixData.pix, amount_minor: pixData.amount_minor ?? null });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o checkout agora.");
+    } catch {
+      setError("Não foi possível iniciar o checkout agora. Tente novamente em instantes ou contate o suporte BSBTUR.");
     } finally {
       setLoading(false);
     }
