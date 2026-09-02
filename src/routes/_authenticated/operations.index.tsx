@@ -375,9 +375,10 @@ function CreateOperationWizard({ onDone }: { onDone: () => void }) {
 function OperationCard({ op, index }: { op: OperationRow; index: number }) {
   const { t, locale, timeZone } = useI18n();
   const window = effectiveWindow(op);
+  const opensLive = op.status === "active";
   return (
     <Link
-      to="/operations/$operationId"
+      to={opensLive ? "/operations/$operationId/live" : "/operations/$operationId"}
       params={{ operationId: op.id }}
       className="surface-panel animate-rise flex min-w-0 flex-col gap-2 p-4 transition-colors hover:border-border-strong"
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
@@ -400,6 +401,9 @@ function OperationCard({ op, index }: { op: OperationRow; index: number }) {
         {window.isForecast ? ` · ${t("op.expected")}` : ""}
         {op.archived_at ? ` · ${t("op.archived")}` : ""}
       </p>
+      {opensLive ? (
+        <p className="mt-1 text-xs font-semibold text-primary">{t("w04.tab.live")} →</p>
+      ) : null}
     </Link>
   );
 }
