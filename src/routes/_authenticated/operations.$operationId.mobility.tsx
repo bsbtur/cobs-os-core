@@ -1073,6 +1073,12 @@ function MobilityPage() {
         ]);
       if (operation.error) throw operation.error;
       if (legs.error) throw legs.error;
+      if (vehicles.error) throw vehicles.error;
+      if (drivers.error) throw drivers.error;
+      if (driverCandidates.error) throw driverCandidates.error;
+      if (steps.error) throw steps.error;
+      if (events.error) throw events.error;
+      if (overview.error) throw overview.error;
       return {
         operation: operation.data,
         legs: (legs.data ?? []) as TransportLegRow[],
@@ -1140,6 +1146,10 @@ function MobilityPage() {
           .order("occurred_at", { ascending: false })
           .limit(60),
       ]);
+      if (state.error) throw state.error;
+      if (manifest.error) throw manifest.error;
+      if (candidates.error) throw candidates.error;
+      if (legEvents.error) throw legEvents.error;
       return {
         state: (state.data ?? null) as unknown as LegDispatchState | null,
         manifest: (manifest.data ?? null) as unknown as LegManifest | null,
@@ -1150,10 +1160,40 @@ function MobilityPage() {
   });
 
   if (data.isLoading) return <PanelSkeleton />;
+  if (data.isError) {
+    return (
+      <EmptyState
+        icon={Bus}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void data.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
 
   const operation = data.data?.operation;
   if (!operation) {
     return <EmptyState icon={Bus} title={t("w05.forbidden")} body={t("w05.forbiddenBody")} />;
+  }
+
+  if (selected && detail.isLoading) return <PanelSkeleton />;
+  if (selected && detail.isError) {
+    return (
+      <EmptyState
+        icon={Bus}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void detail.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
   }
 
   const timeZone = operation.timezone;
