@@ -1232,6 +1232,32 @@ function CrewPanel({
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
+  if (people.isLoading || staff.isLoading || speakers.isLoading) {
+    return <PanelSkeleton rows={3} />;
+  }
+  if (people.isError || staff.isError || speakers.isError) {
+    return (
+      <EmptyState
+        icon={Clapperboard}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => {
+              void people.refetch();
+              void staff.refetch();
+              void speakers.refetch();
+            }}
+          >
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
+
   const nameOf = (id: string) => people.data?.find((p) => p.id === id)?.full_name ?? id;
   const sessionTitle = (id: string | null) =>
     sessions.find((s) => s.session_id === id)?.title ?? null;
@@ -1520,7 +1546,49 @@ function EventsTab() {
     };
   }, [selected, refresh]);
 
-  if (events.isLoading) return <PanelSkeleton rows={4} />;
+  const detailLoading = Boolean(
+    selected &&
+      (program.isLoading ||
+        runtime.isLoading ||
+        facts.isLoading ||
+        (Boolean(selected.venue_id) && spaces.isLoading)),
+  );
+  if (events.isLoading || venues.isLoading || detailLoading) return <PanelSkeleton rows={4} />;
+
+  const detailError = Boolean(
+    selected &&
+      (program.isError ||
+        runtime.isError ||
+        facts.isError ||
+        (Boolean(selected.venue_id) && spaces.isError)),
+  );
+  if (events.isError || venues.isError || detailError) {
+    return (
+      <EmptyState
+        icon={Clapperboard}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => {
+              void events.refetch();
+              void venues.refetch();
+              if (selected?.venue_id) void spaces.refetch();
+              if (selected) {
+                void program.refetch();
+                void runtime.refetch();
+                void facts.refetch();
+              }
+            }}
+          >
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div className="space-y-5">
