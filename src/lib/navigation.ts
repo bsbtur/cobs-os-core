@@ -41,6 +41,8 @@ export type NavItem = {
   /** Workflow that activates this domain. */
   activatesIn: string;
   mobile?: boolean;
+  /** Administrative navigation is visible only to owner/admin memberships. */
+  adminOnly?: boolean;
 };
 
 export type NavSection = {
@@ -134,6 +136,7 @@ export const NAV_SECTIONS: NavSection[] = [
         status: "live",
         domain: "identity",
         activatesIn: "W01",
+        adminOnly: true,
       },
     ],
   },
@@ -155,6 +158,14 @@ export const NAV_SECTIONS: NavSection[] = [
 ];
 
 export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items);
+
+export const ADMIN_ONLY_NAV_IDS = new Set(
+  NAV_ITEMS.filter((item) => item.adminOnly).map((item) => item.id),
+);
+
+export function isNavItemVisible(item: NavItem, canManage: boolean): boolean {
+  return !item.adminOnly || canManage;
+}
 
 /**
  * Mobile bottom bar holds AT MOST 3 primary destinations; the 4th slot is always
