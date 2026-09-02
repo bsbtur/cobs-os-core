@@ -555,6 +555,51 @@ function MessageDetail({
     setCancelReason("");
   }, [message.id, message.title, message.body, message.expires_at, message.scheduled_for]);
 
+  const needsRecipients = message.status === "published" || message.status === "cancelled";
+  const detailLoading =
+    selectors.isLoading ||
+    roleTypes.isLoading ||
+    rosterPeople.isLoading ||
+    preview.isLoading ||
+    facts.isLoading ||
+    (needsRecipients && recipients.isLoading);
+
+  if (detailLoading) return <PanelSkeleton />;
+
+  const detailError =
+    selectors.isError ||
+    roleTypes.isError ||
+    rosterPeople.isError ||
+    preview.isError ||
+    facts.isError ||
+    (needsRecipients && recipients.isError);
+
+  if (detailError) {
+    return (
+      <EmptyState
+        icon={MessagesSquare}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => {
+              void selectors.refetch();
+              if (tenant?.id) void roleTypes.refetch();
+              void rosterPeople.refetch();
+              void preview.refetch();
+              if (needsRecipients) void recipients.refetch();
+              void facts.refetch();
+            }}
+          >
+            {t("op.retry")}
+          </Button>
+        }
+      />
+    );
+  }
+
   const summary = preview.data ?? deliverySummary(message.summary);
   const hasAudience = (selectors.data ?? []).length > 0;
   const blockers = publishBlockers(message.status, summary, hasAudience);
@@ -674,17 +719,13 @@ function MessageDetail({
         </section>
       ) : null}
 
-      {selectors.isLoading ? (
-        <PanelSkeleton />
-      ) : (
-        <AudiencePanel
-          message={message}
-          selectors={selectors.data ?? []}
-          roleTypes={roleTypes.data ?? []}
-          people={rosterPeople.data ?? []}
-          onChanged={refresh}
-        />
-      )}
+      <AudiencePanel
+        message={message}
+        selectors={selectors.data ?? []}
+        roleTypes={roleTypes.data ?? []}
+        people={rosterPeople.data ?? []}
+        onChanged={refresh}
+      />
 
       <section className="surface-panel space-y-3 p-4">
         <h3 className="text-sm font-medium">{t("w08.publish")}</h3>
@@ -992,8 +1033,13 @@ function CommunicationTab() {
     return (
       <EmptyState
         icon={MessagesSquare}
-        title={t("w08.forbidden")}
-        body={`${t("w08.forbiddenBody")} — ${humanizeError(feed.error, locale)}`}
+        title={t("op.loadError")}
+        body={t("op.loadErrorBody")}
+        action={
+          <Button variant="outline" className="min-h-11" onClick={() => void feed.refetch()}>
+            {t("op.retry")}
+          </Button>
+        }
       />
     );
   }
