@@ -219,12 +219,12 @@ function CiospLanding() {
         <h3 className="mt-2 text-2xl font-semibold">Prepare sua reserva com entrada Pix</h3>
         <p className="mt-2 text-sm text-white/45">Valor total R$ 9.990 · entrada R$ 2.490 · saldo R$ 7.500.</p>
       </div>
-      <label className="block space-y-1.5 text-sm">Nome completo<Input required minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">WhatsApp<Input value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">E-mail<Input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Confirmo meus dados e autorizo contato da BSBTUR sobre a Caravana CIOSP 2027.</span></label>
-      {checkoutClosed && <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><strong>Gate funcionando:</strong> as vendas públicas continuam fechadas. Nenhum pedido, reserva ou Pix foi criado por esta tentativa.</div>}
-      {error && <div className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
+      <label className="block space-y-1.5 text-sm">Nome completo<Input required name="fullName" minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="block space-y-1.5 text-sm">WhatsApp<Input name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="block space-y-1.5 text-sm">E-mail<Input required name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required name="consentContact" type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Confirmo meus dados e autorizo contato da BSBTUR sobre a Caravana CIOSP 2027.</span></label>
+      {checkoutClosed && <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><strong>Gate funcionando:</strong> as vendas públicas continuam fechadas. Nenhum pedido, reserva ou Pix foi criado por esta tentativa.</div>}
+      {error && <div role="alert" className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
       {pix ? (
         <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
           <p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-300">Pix TEST gerado</p>
