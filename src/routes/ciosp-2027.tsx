@@ -23,11 +23,23 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/ciosp-2027")({
   head: () => ({
     meta: [
-      { title: "CIOSP 2027 — Experiência Premium BSBTUR" },
+      { title: "CIOSP 2027 — Experiência BSBTUR" },
       {
         name: "description",
         content:
-          "CIOSP 2027 com curadoria BSBTUR: viagem, hospedagem, mobilidade e suporte em uma experiência premium de Brasília para São Paulo.",
+          "Pré-lançamento CIOSP 2027 com a BSBTUR. Cadastre seu interesse para receber condições comerciais quando estiverem disponíveis.",
+      },
+      { property: "og:title", content: "CIOSP 2027 — Experiência BSBTUR" },
+      {
+        property: "og:description",
+        content:
+          "Pré-lançamento CIOSP 2027 com a BSBTUR. Cadastre seu interesse para receber condições comerciais quando estiverem disponíveis.",
+      },
+      { name: "twitter:title", content: "CIOSP 2027 — Experiência BSBTUR" },
+      {
+        name: "twitter:description",
+        content:
+          "Pré-lançamento CIOSP 2027 com a BSBTUR. Cadastre seu interesse para receber condições comerciais quando estiverem disponíveis.",
       },
     ],
   }),
@@ -37,18 +49,18 @@ export const Route = createFileRoute("/ciosp-2027")({
 const gold = "#D6B56D";
 const heroImage = "/ciosp/ciosp-pavilhao.jpg";
 
-const inclusions = [
-  [Plane, "Passagem aérea", "Brasília → São Paulo → Brasília, conforme contratação final."],
-  [Hotel, "Hospedagem", "6 diárias em acomodação dupla, com café da manhã."],
-  [MapPin, "Mobilidade em São Paulo", "Transfers e deslocamentos previstos na programação da caravana."],
-  [GraduationCap, "CIOSP 2027", "Participação acadêmica conforme a modalidade contemplada no pacote final."],
-  [ShieldCheck, "Seguro viagem", "Proteção para os viajantes durante o período da operação."],
-  [HeartHandshake, "Equipe BSBTUR", "Acompanhamento e suporte operacional durante toda a experiência."],
+const planningInclusions = [
+  [Plane, "Passagem aérea", "Planejamento interno sujeito à contratação final."],
+  [Hotel, "Hospedagem", "Planejamento interno sujeito à contratação final."],
+  [MapPin, "Mobilidade em São Paulo", "Planejamento interno sujeito à contratação final."],
+  [GraduationCap, "CIOSP 2027", "Planejamento interno sujeito à modalidade final do pacote."],
+  [ShieldCheck, "Seguro viagem", "Planejamento interno sujeito à contratação final."],
+  [HeartHandshake, "Equipe BSBTUR", "Planejamento interno de acompanhamento da experiência."],
 ] as const;
 
 const gallery = [
   [heroImage, "O centro da Odontologia", "Conhecimento, inovação e conexões no ambiente real do CIOSP."],
-  ["/ciosp/ciosp-bem-vindos.jpg", "Você já chega dentro do CIOSP", "O ambiente real do congresso, desde a chegada, reforça a dimensão da experiência."],
+  ["/ciosp/ciosp-bem-vindos.jpg", "Você já chega dentro do CIOSP", "O ambiente real do congresso reforça a dimensão da experiência."],
   ["/ciosp/expo-center-norte.jpg", "O palco da experiência", "Expo Center Norte, em São Paulo, será o centro da jornada CIOSP 2027."],
 ] as const;
 
@@ -132,8 +144,8 @@ function CiospLanding() {
       if (captureError) throw captureError;
       if (!data?.id) throw new Error("lead_capture_response_invalid");
       setSubmitted(true);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível registrar seu interesse agora.");
+    } catch {
+      setError("Não foi possível registrar seu interesse agora. Revise seus dados e tente novamente em instantes.");
     } finally {
       setLoading(false);
     }
@@ -192,8 +204,8 @@ function CiospLanding() {
       if (pixError) throw pixError;
       if (!pixData?.pix?.qr_code && !pixData?.pix?.ticket_url) throw new Error("pix_response_invalid");
       setPix({ ...pixData.pix, amount_minor: pixData.amount_minor ?? null });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível iniciar o checkout agora.");
+    } catch {
+      setError("Não foi possível iniciar o checkout agora. Tente novamente em instantes ou contate o suporte BSBTUR.");
     } finally {
       setLoading(false);
     }
@@ -204,46 +216,53 @@ function CiospLanding() {
       <div>
         <div className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[.18em] text-amber-300">QA interno · vendas fechadas</div>
         <p className="mt-4 text-xs uppercase tracking-[.2em]" style={{ color: gold }}>Reserva CIOSP 2027</p>
-        <h3 className="mt-2 text-2xl font-semibold">Prepare sua reserva com entrada Pix</h3>
-        <p className="mt-2 text-sm text-white/45">Valor total R$ 9.990 · entrada R$ 2.490 · saldo R$ 7.500.</p>
+        <h3 className="mt-2 text-2xl font-semibold">Planejamento de reserva com Pix TEST</h3>
+        <p className="mt-2 text-sm text-white/45">Planejamento QA não publicado · total R$ 9.990 · entrada R$ 2.490 · saldo R$ 7.500.</p>
       </div>
-      <label className="block space-y-1.5 text-sm">Nome completo<Input required minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">WhatsApp<Input value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">E-mail<Input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Confirmo meus dados e autorizo contato da BSBTUR sobre a Caravana CIOSP 2027.</span></label>
-      {checkoutClosed && <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><strong>Gate funcionando:</strong> as vendas públicas continuam fechadas. Nenhum pedido, reserva ou Pix foi criado por esta tentativa.</div>}
-      {error && <div className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
+      <label className="block space-y-1.5 text-sm">Nome completo<Input required name="fullName" minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="block space-y-1.5 text-sm">WhatsApp<Input name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="block space-y-1.5 text-sm">E-mail<Input required name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required name="consentContact" type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Confirmo meus dados e autorizo contato da BSBTUR sobre a Caravana CIOSP 2027.</span></label>
+      {checkoutClosed && <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><strong>Gate funcionando:</strong> as vendas públicas continuam fechadas. Nenhum pedido, reserva ou Pix foi criado por esta tentativa.</div>}
+      {error && <div role="alert" className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
       {pix ? (
-        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
+        <div role="status" aria-live="polite" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
           <p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-300">Pix TEST gerado</p>
           <p className="mt-2 text-2xl font-semibold">R$ {((pix.amount_minor ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
           {pix.qr_code_base64 && <img className="mx-auto mt-4 w-full max-w-[260px] rounded-xl bg-white p-3" src={`data:image/png;base64,${pix.qr_code_base64}`} alt="QR Code Pix de teste" />}
-          {pix.qr_code && <Button type="button" variant="outline" className="mt-4 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.qr_code ?? "")}><Copy className="mr-2 size-4" />Copiar Pix copia e cola</Button>}
+          {pix.qr_code && <Button type="button" variant="outline" className="mt-4 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.qr_code ?? "")}><Copy className="mr-2 size-4" aria-hidden="true" />Copiar Pix copia e cola</Button>}
         </div>
       ) : (
-        <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Validando gate...</> : <>Testar checkout comercial <ArrowRight className="ml-2 size-4" /></>}</Button>
+        <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />Validando gate...</> : <>Testar checkout comercial <ArrowRight className="ml-2 size-4" aria-hidden="true" /></>}</Button>
       )}
-      <p className="text-center text-xs text-white/35">Modo QA. `sales_public=false` continua sendo a trava soberana do backend.</p>
+      <p className="text-center text-xs text-white/35">Modo QA interno. Valores acima são planejamento não publicado. `sales_public=false` continua sendo a trava soberana do backend.</p>
     </form>
   ) : !submitted ? (
     <form onSubmit={submitLead} className="space-y-4">
       <div><p className="text-xs uppercase tracking-[.2em]" style={{ color: gold }}>Acesso prioritário</p><h3 className="mt-2 text-2xl font-semibold">Quero receber as condições primeiro</h3><p className="mt-2 text-sm text-white/45">Leva menos de 1 minuto.</p></div>
-      <label className="block space-y-1.5 text-sm">Nome completo<Input required minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">WhatsApp<Input required value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">E-mail<Input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Autorizo a BSBTUR a entrar em contato comigo sobre a Caravana CIOSP 2027. Posso solicitar a interrupção do contato a qualquer momento.</span></label>
-      {error && <div className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
-      <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" />Registrando...</> : <>Quero acesso prioritário <ArrowRight className="ml-2 size-4" /></>}</Button>
+      <label className="block space-y-1.5 text-sm">Nome completo<Input required name="fullName" minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="block space-y-1.5 text-sm">WhatsApp<Input required name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="block space-y-1.5 text-sm">E-mail<Input required name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
+      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required name="consentContact" type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Autorizo a BSBTUR a entrar em contato comigo sobre a Caravana CIOSP 2027. Posso solicitar a interrupção do contato a qualquer momento.</span></label>
+      <p className="text-xs leading-5 text-white/45">Antes de enviar, consulte o <a href="/privacidade-ciosp-2027" className="font-semibold text-[#E4CA91] underline decoration-[#D6B56D]/50 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D6B56D]">Aviso de Privacidade</a> aplicável a este cadastro.</p>
+      {error && <div role="alert" className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
+      <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />Registrando...</> : <>Quero acesso prioritário <ArrowRight className="ml-2 size-4" aria-hidden="true" /></>}</Button>
       <p className="text-center text-xs text-white/35">Sem pagamento · sem compromisso · seus dados usados apenas para contato sobre o CIOSP 2027.</p>
     </form>
   ) : (
-    <div className="py-10 text-center"><CheckCircle2 className="mx-auto size-12" style={{ color: gold }} /><p className="mt-5 text-xs uppercase tracking-[.2em] text-[#D6B56D]">Acesso registrado</p><h3 className="mt-2 text-2xl font-semibold">Você está entre os primeiros.</h3><p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/50">Seu interesse foi registrado com sucesso. A equipe BSBTUR poderá entrar em contato quando houver novidades e condições comerciais disponíveis.</p></div>
+    <div role="status" aria-live="polite" className="py-10 text-center"><CheckCircle2 className="mx-auto size-12" style={{ color: gold }} aria-hidden="true" /><p className="mt-5 text-xs uppercase tracking-[.2em] text-[#D6B56D]">Acesso registrado</p><h3 className="mt-2 text-2xl font-semibold">Você está entre os primeiros.</h3><p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/50">Seu interesse foi registrado com sucesso. Este registro não é uma reserva, não garante vaga e não representa nenhum pagamento. A equipe BSBTUR poderá entrar em contato quando houver novidades e condições comerciais disponíveis.</p></div>
   );
+
+  const publicHighlights = [
+    "Pré-lançamento em andamento",
+    "Condições comerciais em preparação",
+    "Sem cobrança nesta etapa",
+  ];
 
   return (
     <div className="ciosp-motion min-h-screen bg-[#070707] text-[#F5F1E8] selection:bg-[#D6B56D] selection:text-black">
       <style>{motionCss}</style>
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070707]/88 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"><BsbTurSignature /><a href={`#${targetId}`} className="inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold" style={{ borderColor: `${gold}66`, color: gold }}>{ctaLabel}<ArrowRight className="ml-2 size-4" /></a></div></header>
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070707]/88 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"><BsbTurSignature /><a href={`#${targetId}`} className="inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold" style={{ borderColor: `${gold}66`, color: gold }}>{ctaLabel}<ArrowRight className="ml-2 size-4" aria-hidden="true" /></a></div></header>
       <main>
         <section className="relative isolate overflow-hidden border-b border-white/10">
           <img src={heroImage} alt="Pavilhão do CIOSP" className="absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-60" />
@@ -251,28 +270,32 @@ function CiospLanding() {
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_76%_45%,rgba(214,181,109,.20),transparent_30%)]" />
           <div className="mx-auto grid min-h-[780px] max-w-7xl items-center gap-12 px-5 py-20 lg:grid-cols-[1.12fr_.88fr] lg:px-8 lg:py-28">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/40 bg-black/40 px-4 py-2 text-xs font-semibold uppercase tracking-[.2em] text-[#E4CA91] backdrop-blur"><Sparkles className="size-4" /> CIOSP 2027 · Experiência BSBTUR</div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/40 bg-black/40 px-4 py-2 text-xs font-semibold uppercase tracking-[.2em] text-[#E4CA91] backdrop-blur"><Sparkles className="size-4" aria-hidden="true" /> CIOSP 2027 · Experiência BSBTUR</div>
               <p className="mt-8 text-sm uppercase tracking-[.24em] text-white/55">VIAGEM BSBTUR · 25–31 JAN 2027</p>
               <p className="mt-2 text-xs uppercase tracking-[.2em] text-white/40">CIOSP · 27–30 JAN 2027 · EXPO CENTER NORTE</p>
-              <h1 className="mt-4 text-5xl font-semibold leading-[.96] tracking-[-.035em] sm:text-6xl lg:text-7xl">Viva o CIOSP.<br /><span>Sem carregar o peso da viagem.</span></h1>
-              <p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/72 sm:text-xl">Uma experiência premium para quem quer viver um dos principais encontros da Odontologia mundial com viagem, hospedagem, mobilidade e suporte organizados pela BSBTUR.</p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row"><a href={`#${targetId}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold text-black shadow-[0_16px_50px_rgba(214,181,109,.18)]" style={{ background: `linear-gradient(135deg,#F0D9A3,${gold},#B78B38)` }}>{ctaLabel}<ArrowRight className="size-4" /></a><a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur">Conhecer a experiência</a></div>
+              <h1 className="mt-4 text-5xl font-semibold leading-[.96] tracking-[-.035em] sm:text-6xl lg:text-7xl">Viva o CIOSP.<br /><span>Com uma jornada preparada para você.</span></h1>
+              <p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/72 sm:text-xl">A BSBTUR está preparando a experiência CIOSP 2027. Cadastre seu interesse para receber a composição final, condições comerciais e disponibilidade quando forem aprovadas para publicação.</p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row"><a href={`#${targetId}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold text-black shadow-[0_16px_50px_rgba(214,181,109,.18)]" style={{ background: `linear-gradient(135deg,#F0D9A3,${gold},#B78B38)` }}>{ctaLabel}<ArrowRight className="size-4" aria-hidden="true" /></a><a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur">Conhecer a experiência</a></div>
               <p className="mt-4 text-xs text-white/42">{salesQaMode ? "QA interno · vendas públicas continuam fechadas" : "Sem pagamento agora · sem compromisso de compra · acesso antecipado às condições"}</p>
-              <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Users className="mr-2 inline size-4" style={{ color: gold }} />30 vagas planejadas</span><span><Hotel className="mr-2 inline size-4" style={{ color: gold }} />6 diárias</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} />Suporte BSBTUR</span></div>
+              {salesQaMode ? (
+                <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Users className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />30 vagas planejadas</span><span><Hotel className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />6 diárias planejadas</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />QA · não publicado</span></div>
+              ) : (
+                <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Sparkles className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Pré-lançamento</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Condições em preparação</span><span><Users className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Disponibilidade a confirmar</span></div>
+              )}
             </div>
-            <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{ borderColor: `${gold}66`, boxShadow: "0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)" }}><div className="flex items-center justify-between"><span className="text-sm text-white/45">{salesQaMode ? "QA comercial · CIOSP 2027" : "Pré-lançamento · CIOSP 2027"}</span><Crown className="size-5" style={{ color: gold }} /></div><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Investimento</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 9.990</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada de <strong className="text-white">R$ 2.490</strong> + saldo de <strong className="text-white">R$ 7.500</strong>.</p><div className="my-7 h-px bg-[#D6B56D]/20" /><div className="space-y-3 text-sm text-white/72">{["Experiência acadêmica integrada", "Viagem com acompanhamento", "Comunicação centralizada", salesQaMode ? "Checkout pronto para QA" : "Sem cobrança nesta etapa"].map((x) => <div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{ color: gold }} />{x}</div>)}</div><a href={`#${targetId}`} className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91]">{ctaLabel}<ArrowRight className="ml-2 size-4" /></a></div></div>
+            <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{ borderColor: `${gold}66`, boxShadow: "0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)" }}><div className="flex items-center justify-between"><span className="text-sm text-white/45">{salesQaMode ? "QA comercial · CIOSP 2027" : "Pré-lançamento · CIOSP 2027"}</span><Crown className="size-5" style={{ color: gold }} aria-hidden="true" /></div>{salesQaMode ? <><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Planejamento QA · não publicado</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 9.990</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada planejada de <strong className="text-white">R$ 2.490</strong> + saldo planejado de <strong className="text-white">R$ 7.500</strong>.</p></> : <><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Condições comerciais</p><p className="mt-2 text-4xl font-semibold tracking-tight text-[#F5E7C5]">Em preparação</p><p className="mt-3 text-sm leading-relaxed text-white/58">Preço, forma de pagamento, itens incluídos e disponibilidade serão informados somente após aprovação para publicação.</p></>}<div className="my-7 h-px bg-[#D6B56D]/20" /><div className="space-y-3 text-sm text-white/72">{(salesQaMode ? ["Planejamento interno", "Checkout pronto para QA", "Vendas públicas fechadas"] : publicHighlights).map((x) => <div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{ color: gold }} aria-hidden="true" />{x}</div>)}</div><a href={`#${targetId}`} className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91]">{ctaLabel}<ArrowRight className="ml-2 size-4" aria-hidden="true" /></a></div></div>
           </div>
         </section>
 
-        <section className="border-b border-white/10 bg-black"><div className="mx-auto grid max-w-7xl gap-px bg-white/10 sm:grid-cols-3"><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">01 · Clareza</p><p className="mt-2 text-sm text-white/65">Você sabe o que está organizado antes de embarcar.</p></div><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">02 · Presença</p><p className="mt-2 text-sm text-white/65">Menos logística na cabeça. Mais CIOSP para viver.</p></div><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">03 · Suporte</p><p className="mt-2 text-sm text-white/65">Uma equipe acompanhando a jornada do início ao fim.</p></div></div></section>
+        <section className="border-b border-white/10 bg-black"><div className="mx-auto grid max-w-7xl gap-px bg-white/10 sm:grid-cols-3"><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">01 · Clareza</p><p className="mt-2 text-sm text-white/65">As condições publicadas devem refletir somente informações confirmadas.</p></div><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">02 · Decisão</p><p className="mt-2 text-sm text-white/65">Você poderá analisar a proposta completa antes de decidir comprar.</p></div><div className="bg-[#080808] px-6 py-7"><p className="text-xs uppercase tracking-[.2em] text-[#D6B56D]">03 · Segurança</p><p className="mt-2 text-sm text-white/65">Nesta etapa, cadastro de interesse não é reserva nem pagamento.</p></div></div></section>
 
-        <section id="experiencia" className="bg-[#0B0B0B]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28"><div className="grid items-end gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>Uma decisão que fica na memória</p><h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Não é só ir a São Paulo.<br />É viver o CIOSP por inteiro.</h2></div><p className="max-w-2xl text-lg leading-relaxed text-white/52 lg:justify-self-end">A experiência foi pensada para reduzir atrito, incerteza e improviso. Você preserva sua energia para conteúdo, networking, tendências e tudo que pode acelerar a sua trajetória profissional.</p></div><div className="mt-12 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">{gallery.map(([src, label, copy], i) => <figure key={src} className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-black ${i === 0 ? "min-h-[500px] lg:col-span-7 lg:row-span-2" : "min-h-[240px] lg:col-span-5"}`}><img src={src} alt={label} className="absolute inset-0 h-full w-full object-cover opacity-82 transition duration-700 group-hover:scale-[1.035]" loading={i === 0 ? "eager" : "lazy"} /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/15 to-transparent" /><figcaption className="absolute bottom-0 p-7"><p className="text-xs uppercase tracking-[.2em]" style={{ color: gold }}>{label}</p><p className={`${i === 0 ? "text-2xl" : "text-lg"} mt-2 max-w-md font-semibold text-white`}>{copy}</p></figcaption></figure>)}</div><p className="mt-4 text-xs text-white/35">Imagens reais do CIOSP e do Expo Center Norte utilizadas como contexto do evento. Fornecedores e condições definitivas serão informados na contratação.</p></div></section>
+        <section id="experiencia" className="bg-[#0B0B0B]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28"><div className="grid items-end gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>CIOSP 2027 com a BSBTUR</p><h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Conheça o contexto.<br />Receba a proposta quando estiver pronta.</h2></div><p className="max-w-2xl text-lg leading-relaxed text-white/52 lg:justify-self-end">A experiência comercial está em preparação. A BSBTUR publicará apenas os itens, condições e disponibilidade que estiverem confirmados para contratação.</p></div><div className="mt-12 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">{gallery.map(([src, label, copy], i) => <figure key={src} className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-black ${i === 0 ? "min-h-[500px] lg:col-span-7 lg:row-span-2" : "min-h-[240px] lg:col-span-5"}`}><img src={src} alt={label} className="absolute inset-0 h-full w-full object-cover opacity-82 transition duration-700 group-hover:scale-[1.035]" loading={i === 0 ? "eager" : "lazy"} /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/15 to-transparent" /><figcaption className="absolute bottom-0 p-7"><p className="text-xs uppercase tracking-[.2em]" style={{ color: gold }}>{label}</p><p className={`${i === 0 ? "text-2xl" : "text-lg"} mt-2 max-w-md font-semibold text-white`}>{copy}</p></figcaption></figure>)}</div><p className="mt-4 text-xs text-white/35">Imagens usadas como contexto do evento. Elas não representam confirmação de fornecedores, serviços ou itens do pacote.</p></div></section>
 
-        <section className="border-y border-[#D6B56D]/15 bg-[#050505]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>Uma experiência, seis preocupações a menos</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Você cuida do CIOSP.<br />A BSBTUR cuida do caminho.</h2><div className="mt-12 grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">{inclusions.map(([Icon, title, description]) => <article key={title} className="bg-[#090909] p-8"><span className="grid size-11 place-items-center rounded-full border border-[#D6B56D]/25 bg-[#D6B56D]/5" style={{ color: gold }}><Icon className="size-5" /></span><h3 className="mt-6 text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-white/45">{description}</p></article>)}</div><div className="mt-6 flex gap-3 rounded-2xl border border-[#D6B56D]/15 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><UtensilsCrossed className="size-5 shrink-0" style={{ color: gold }} />Alimentação programada e kit BSBTUR fazem parte do planejamento comercial e serão detalhados nas condições finais.</div></div></section>
+        <section className="border-y border-[#D6B56D]/15 bg-[#050505]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24">{salesQaMode ? <><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>QA interno · composição em planejamento</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Itens abaixo não estão publicados como oferta.</h2><div className="mt-12 grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">{planningInclusions.map(([Icon, title, description]) => <article key={title} className="bg-[#090909] p-8"><span className="grid size-11 place-items-center rounded-full border border-[#D6B56D]/25 bg-[#D6B56D]/5" style={{ color: gold }}><Icon className="size-5" aria-hidden="true" /></span><h3 className="mt-6 text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-white/45">{description}</p></article>)}</div><div className="mt-6 flex gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 text-sm text-white/55"><UtensilsCrossed className="size-5 shrink-0 text-amber-300" aria-hidden="true" />Planejamento QA sujeito a alteração. Não utilizar estes itens como promessa comercial pública.</div></> : <><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>Composição do pacote</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">A confirmar antes da abertura das vendas.</h2><div className="mt-8 rounded-[2rem] border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-7"><p className="text-lg font-semibold text-[#F5E7C5]">Composição final do pacote em preparação.</p><p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/55">Itens incluídos, condições, fornecedores, forma de pagamento e disponibilidade serão confirmados antes da abertura das vendas. Cadastre seu interesse para receber as informações aprovadas quando estiverem disponíveis.</p></div></>}</div></section>
 
-        <section id={targetId} className="bg-[#080808]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-28"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>{salesQaMode ? "QA comercial" : "Acesso antecipado"}</p><h2 className="mt-4 text-4xl font-semibold sm:text-5xl">{salesQaMode ? <>Checkout preparado.<br />Vendas ainda fechadas.</> : <>Entre primeiro.<br />Decida depois.</>}</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-white/52">{salesQaMode ? "Este modo existe para validar a experiência comercial em produção sem abrir o produto ao público. O backend continua fail-closed enquanto sales_public=false." : "Cadastre seu interesse para receber as condições comerciais antes da abertura ampla. Nesta etapa não há pagamento, reserva de vaga nem compromisso de compra."}</p><div className="mt-9 rounded-2xl border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><strong className="text-[#E4CA91]">CIOSP 2027 · BSBTUR</strong><br />Viagem BSBTUR · 25–31 jan 2027 · 30 vagas planejadas</div></div><div className="rounded-[2rem] border border-[#D6B56D]/28 bg-[#111]/92 p-6 shadow-2xl sm:p-8">{form}</div></div></section>
+        <section id={targetId} className="bg-[#080808]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-28"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>{salesQaMode ? "QA comercial" : "Acesso antecipado"}</p><h2 className="mt-4 text-4xl font-semibold sm:text-5xl">{salesQaMode ? <>Checkout preparado.<br />Vendas ainda fechadas.</> : <>Entre primeiro.<br />Decida depois.</>}</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-white/52">{salesQaMode ? "Este modo existe para validar a experiência comercial sem abrir o produto ao público. O backend continua fail-closed enquanto sales_public=false." : "Cadastre seu interesse para receber as condições comerciais antes da abertura ampla. Nesta etapa não há pagamento, reserva de vaga nem compromisso de compra."}</p><div className="mt-9 rounded-2xl border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><strong className="text-[#E4CA91]">CIOSP 2027 · BSBTUR</strong><br />{salesQaMode ? "QA interno · planejamento comercial não publicado" : "Pré-lançamento · condições e disponibilidade a confirmar"}</div></div><div className="rounded-[2rem] border border-[#D6B56D]/28 bg-[#111]/92 p-6 shadow-2xl sm:p-8">{form}</div></div></section>
       </main>
-      <footer className="border-t border-white/10 bg-black"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between lg:px-8"><BsbTurSignature /><span>CIOSP 2027 · {salesQaMode ? "QA comercial · vendas fechadas" : "Pré-lançamento · condições sujeitas à contratação final"}</span></div></footer>
+      <footer className="border-t border-white/10 bg-black"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between lg:px-8"><BsbTurSignature /><span>CIOSP 2027 · {salesQaMode ? "QA comercial · planejamento não publicado · vendas fechadas" : "Pré-lançamento · condições a confirmar"}</span></div></footer>
     </div>
   );
 }
