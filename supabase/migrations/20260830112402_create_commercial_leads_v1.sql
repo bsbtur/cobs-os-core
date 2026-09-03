@@ -17,7 +17,7 @@ create table if not exists public.commercial_leads (
   updated_at timestamptz not null default now(),
   constraint commercial_leads_full_name_check check (char_length(btrim(full_name)) between 2 and 120),
   constraint commercial_leads_email_check check (position('@' in email) > 1),
-  constraint commercial_leads_phone_check check (char_length(regexp_replace(phone, '\\D', '', 'g')) between 10 and 15),
+  constraint commercial_leads_phone_check check (char_length(regexp_replace(phone, '\D', '', 'g')) between 10 and 15),
   constraint commercial_leads_status_check check (status in ('new','contacted','qualified','converted','lost','archived')),
   constraint commercial_leads_idempotency_unique unique (tenant_id, idempotency_key)
 );
