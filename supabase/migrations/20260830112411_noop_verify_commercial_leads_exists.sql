@@ -1,0 +1,1 @@
+do $$ begin if to_regclass('public.commercial_leads') is null then raise exception 'commercial_leads_missing'; end if; end $$;
