@@ -1,0 +1,1 @@
+comment on function public.verify_payment_reconcile_token(text) is 'Internal service_role-only validator for the scheduled Mercado Pago pending-payment reconciler. Token value lives encrypted in Supabase Vault.';
