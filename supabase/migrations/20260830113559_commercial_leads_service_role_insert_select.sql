@@ -1,0 +1,1 @@
+grant select, insert on table public.commercial_leads to service_role;
