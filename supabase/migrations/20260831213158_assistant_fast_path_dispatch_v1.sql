@@ -37,16 +37,16 @@ begin
   return new;
 exception
   when others then
-    -- Best effort only: durable outbox remains pending and pg_cron retries it.
+    -- Best effort only: the durable outbox row remains pending and pg_cron retries it.
     return new;
 end;
 $$;
 
 revoke all on function app_private.assistant_kick_dispatcher() from public;
 
-drop trigger if exists trg_assistant_kick_dispatcher on public.automation_events;
-create trigger trg_assistant_kick_dispatcher
-after insert on public.automation_events
-for each row
-when (new.event_type = 'assistant.request' and new.source = 'cobs_app' and new.dispatch_status = 'pending')
-execute function app_private.assistant_kick_dispatcher();
+DROP TRIGGER IF EXISTS trg_assistant_kick_dispatcher ON public.automation_events;
+CREATE TRIGGER trg_assistant_kick_dispatcher
+AFTER INSERT ON public.automation_events
+FOR EACH ROW
+WHEN (NEW.event_type = 'assistant.request' AND NEW.source = 'cobs_app' AND NEW.dispatch_status = 'pending')
+EXECUTE FUNCTION app_private.assistant_kick_dispatcher();
