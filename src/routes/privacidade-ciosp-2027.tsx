@@ -9,7 +9,7 @@ export const Route = createFileRoute("/privacidade-ciosp-2027")({
         content:
           "Aviso de privacidade aplicável ao cadastro de interesse na Caravana CIOSP 2027 da BSBTUR.",
       },
-      { name: "robots", content: "index,follow" },
+      { name: "robots", content: "noindex,nofollow" },
     ],
   }),
   component: PrivacyNoticePage,
