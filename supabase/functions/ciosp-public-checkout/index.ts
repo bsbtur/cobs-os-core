@@ -6,7 +6,6 @@ const P = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}");
 const S = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
 const publishableKey = P.default;
 const secretKey = S.default;
-const MP_ENVIRONMENT = Deno.env.get("MERCADO_PAGO_ENVIRONMENT") ?? "test";
 const CODE = "CIOSP-SP-2027";
 const COMMERCIAL_TERMS_VERSION = "ciosp-2027-v1";
 const CANCELLATION_POLICY_VERSION = "ciosp-2027-cancellation-v1";
@@ -22,7 +21,6 @@ async function sha256(v: string) { return hex(await crypto.subtle.digest("SHA-25
 function phone(v?: string) { if (!v) return null; const r = v.trim(), d = r.replace(/\D/g, ""); if (!r) return null; if (r.startsWith("+") && d.length >= 8 && d.length <= 15) return `+${d}`; if (d.length === 10 || d.length === 11) return `+55${d}`; return r; }
 function qaRef(req: Request) { const r = req.headers.get("referer"); if (!r) return null; try { return new URL(r); } catch { return null; } }
 function isAuthorizedPreviewQa(req: Request, full: string, email: string) {
-  if (MP_ENVIRONMENT !== "test") return false;
   if (req.headers.get("x-ciosp-qa") !== "1") return false;
   const u = qaRef(req);
   if (!u || u.pathname !== "/ciosp-2027/reserva" || u.searchParams.get("sales_qa") !== "1") return false;
@@ -73,7 +71,6 @@ Deno.serve(async (req: Request) => {
     const refIntent = ref?.searchParams.get("sales_qa") === "1";
     const intent = headerIntent || refIntent;
     if (!intent) return json({ error: "sales_not_open" }, 409);
-    if (MP_ENVIRONMENT !== "test") return json({ error: "qa_checkout_test_only" }, 503);
 
     if (isAuthorizedPreviewQa(req, full, email)) {
       allow = true;
@@ -133,13 +130,17 @@ Deno.serve(async (req: Request) => {
     accepted_at: acceptedAt,
     source: "public_checkout",
   };
-  const orderMetadata = { ...(existingOrder.metadata ?? {}), commercial_acceptance: acceptance };
+  const orderMetadata = {
+    ...(existingOrder.metadata ?? {}),
+    commercial_acceptance: acceptance,
+    ...(allow ? { qa_public_checkout: true, qa_mode_source: qaMode, qa_payment_environment: "test" } : {}),
+  };
   const { error: orderUpdateError } = await admin.from("orders").update({ metadata: orderMetadata }).eq("id", data.order_id).eq("tenant_id", op.tenant_id);
   if (orderUpdateError) return json({ error: "terms_acceptance_order_persist_failed" }, 500);
 
   const { data: reservation } = await admin.from("commercial_reservations").select("id,metadata").eq("order_id", data.order_id).eq("tenant_id", op.tenant_id).limit(1).maybeSingle();
   if (reservation?.id) {
-    const reservationMetadata = { ...(reservation.metadata ?? {}), commercial_acceptance: acceptance };
+    const reservationMetadata = { ...(reservation.metadata ?? {}), commercial_acceptance: acceptance, ...(allow ? { qa_public_checkout: true, qa_payment_environment: "test" } : {}) };
     const { error: reservationUpdateError } = await admin.from("commercial_reservations").update({ metadata: reservationMetadata }).eq("id", reservation.id).eq("tenant_id", op.tenant_id);
     if (reservationUpdateError) return json({ error: "terms_acceptance_reservation_persist_failed" }, 500);
   }
