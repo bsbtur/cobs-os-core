@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
 const MP_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
+const MP_TEST_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_TEST_ACCESS_TOKEN");
 const secretKey = SUPABASE_SECRET_KEYS.default;
 
 function json(body: unknown, status = 200) {
@@ -34,7 +35,7 @@ function minor(value: unknown) {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
-  if (!secretKey || !MP_ACCESS_TOKEN) return json({ error: "server_not_configured" }, 500);
+  if (!secretKey) return json({ error: "server_not_configured" }, 500);
 
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
   const token = req.headers.get("x-cobs-reconcile-token");
@@ -50,7 +51,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: attempts, error: attemptsError } = await admin
     .from("payment_attempts")
-    .select("id,tenant_id,charge_id,amount_minor,provider_order_id,provider_payment_id,status,provider_status,provider_status_detail,updated_at")
+    .select("id,tenant_id,charge_id,amount_minor,provider_order_id,provider_payment_id,status,provider_status,provider_status_detail,metadata,updated_at")
     .eq("provider", "mercado_pago")
     .eq("method", "pix")
     .in("status", ["created", "pending", "processing"])
@@ -67,7 +68,7 @@ Deno.serve(async (req: Request) => {
     try {
       const { data: charge, error: chargeError } = await admin
         .from("payment_charges")
-        .select("id,order_id,tenant_id,amount_minor,status,provider_order_id")
+        .select("id,order_id,tenant_id,amount_minor,status,provider_order_id,metadata")
         .eq("id", attempt.charge_id)
         .maybeSingle();
       if (chargeError || !charge) {
@@ -80,13 +81,21 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
+      const environment = attempt?.metadata?.environment ?? charge?.metadata?.environment ?? "production";
+      const accessToken = environment === "test" ? MP_TEST_ACCESS_TOKEN : MP_ACCESS_TOKEN;
+      if (!accessToken) {
+        summary.provider_errors++;
+        errors.push({ attempt_id: attempt.id, environment, error: "provider_token_not_configured" });
+        continue;
+      }
+
       const providerResponse = await fetch(`https://api.mercadopago.com/v1/orders/${encodeURIComponent(attempt.provider_order_id)}`, {
-        headers: { accept: "application/json", authorization: `Bearer ${MP_ACCESS_TOKEN}` },
+        headers: { accept: "application/json", authorization: `Bearer ${accessToken}` },
       });
       const mp = await providerResponse.json().catch(() => ({}));
       if (!providerResponse.ok) {
         summary.provider_errors++;
-        errors.push({ attempt_id: attempt.id, provider_order_id: attempt.provider_order_id, status: providerResponse.status });
+        errors.push({ attempt_id: attempt.id, provider_order_id: attempt.provider_order_id, environment, status: providerResponse.status });
         continue;
       }
 
@@ -159,5 +168,5 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return json({ ok: true, summary, errors: errors.slice(0, 20) });
+  return json({ ok: true, environment: "per_attempt", summary, errors: errors.slice(0, 20) });
 });
