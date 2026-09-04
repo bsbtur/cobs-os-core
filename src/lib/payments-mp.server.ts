@@ -42,6 +42,9 @@ export type CanonicalProviderEvent = {
   occurredAt: string | null;
 };
 
+export const MP_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
+export const MP_SIGNATURE_FUTURE_SKEW_MS = 60 * 1000;
+
 export const EVENT_TYPE_BY_PROVIDER_STATUS: Record<string, PaymentEventType> = {
   pending: "PAYMENT_PENDING",
   in_process: "PAYMENT_PENDING",
@@ -79,6 +82,19 @@ export function parseSignatureHeader(header: string | null): { ts: string; v1: s
   return { ts, v1 };
 }
 
+export function isMercadoPagoSignatureTimestampFresh(
+  ts: string,
+  nowMs = Date.now(),
+): boolean {
+  if (!/^[0-9]+$/.test(ts)) return false;
+  const timestampSeconds = Number(ts);
+  if (!Number.isSafeInteger(timestampSeconds)) return false;
+  const timestampMs = timestampSeconds * 1000;
+  if (!Number.isSafeInteger(timestampMs)) return false;
+  const ageMs = nowMs - timestampMs;
+  return ageMs <= MP_SIGNATURE_MAX_AGE_MS && ageMs >= -MP_SIGNATURE_FUTURE_SKEW_MS;
+}
+
 export function buildSignatureManifest(input: {
   dataId: string;
   requestId: string | null;
@@ -102,9 +118,11 @@ export function verifyMercadoPagoSignature(input: {
   requestId: string | null;
   dataId: string | null;
   secret: string;
+  nowMs?: number;
 }): boolean {
   const parsed = parseSignatureHeader(input.signatureHeader);
   if (!parsed || !input.dataId) return false;
+  if (!isMercadoPagoSignatureTimestampFresh(parsed.ts, input.nowMs ?? Date.now())) return false;
   const manifest = buildSignatureManifest({
     dataId: input.dataId,
     requestId: input.requestId,
