@@ -75,15 +75,17 @@ async function validateHmac(input: { dataId: string; requestId: string | null; t
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
-  const isTest = MP_ENVIRONMENT === "test";
+  if (!secretKey) return json({ error: "server_not_configured" }, 500);
+
+  let payload: any = {};
+  try { payload = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
+
+  const isTest = payload?.live_mode === false || (payload?.live_mode == null && MP_ENVIRONMENT === "test");
   const environment = isTest ? "test" : "production";
   const accessToken = isTest ? MP_TEST_ACCESS_TOKEN : MP_ACCESS_TOKEN;
   const candidateSecrets = [...new Set((isTest ? [MP_TEST_WEBHOOK_SECRET, MP_WEBHOOK_SECRET] : [MP_WEBHOOK_SECRET])
     .filter((v): v is string => Boolean(v)).map((v) => v.trim()).filter(Boolean))];
-  if (!secretKey || !accessToken) return json({ error: "server_not_configured", environment }, 500);
-
-  let payload: any = {};
-  try { payload = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
+  if (!accessToken) return json({ error: "server_not_configured", environment }, 500);
 
   const url = new URL(req.url);
   const queryDataId = url.searchParams.get("data.id") ?? url.searchParams.get("data_id");
