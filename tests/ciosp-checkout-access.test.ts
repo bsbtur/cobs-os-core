@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import * as policy from "../supabase/functions/_shared/ciosp-payment-policy.ts";
 
 async function handler(file: string, environment: string | undefined, db: unknown) {
-  const source=readFileSync(new URL(`../supabase/functions/${file}/index.ts`,import.meta.url),"utf8").replace(/^import .*;\r?\n/gm,"");
+  const source=readFileSync(new URL(`../supabase/functions/${file}/index.ts`,import.meta.url),"utf8").replace(/^import\s+[\s\S]*?\s+from\s+["'][^"']+["'];?\s*$/gm,"");
   const runtime=globalThis as typeof globalThis & {Bun?: {Transpiler: new (options: {loader: string}) => {transformSync: (source: string) => string}}};
   const javascript=runtime.Bun ? new runtime.Bun.Transpiler({loader:"ts"}).transformSync(source) : (await import("node:module")).stripTypeScriptTypes(source);
   let result: (req: Request) => Promise<Response>;
