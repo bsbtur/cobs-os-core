@@ -5,8 +5,15 @@ security definer
 set search_path to 'pg_catalog','public'
 as $$
 declare
-  _person_id uuid; _order_id uuid; _currency text; _order_total bigint;
-  _paid_total bigint:=0; _refunded_total bigint:=0; _net_paid bigint:=0; _balance bigint:=0; _charges jsonb:='[]'::jsonb;
+  _person_id uuid;
+  _order_id uuid;
+  _currency text;
+  _order_total bigint;
+  _paid_total bigint := 0;
+  _refunded_total bigint := 0;
+  _net_paid bigint := 0;
+  _balance bigint := 0;
+  _charges jsonb := '[]'::jsonb;
 begin
   if not app_private.assistant_has_operation_access(_tenant_id,_operation_id,_profile_id) then raise exception 'operation_access_denied'; end if;
   select g.person_id into _person_id from public.participant_access_grants g where g.tenant_id=_tenant_id and g.operation_id=_operation_id and g.profile_id=_profile_id and g.status::text='active' and g.revoked_at is null order by g.activated_at desc nulls last,g.granted_at desc limit 1;
