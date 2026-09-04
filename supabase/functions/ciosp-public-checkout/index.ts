@@ -98,24 +98,28 @@ Deno.serve(async (req: Request) => {
 
   if (!data?.order_id) return json({ error: "checkout_order_missing" }, 500);
   const acceptedAt = new Date().toISOString();
-  const { data: existingOrder, error: orderReadError } = await admin.from("orders").select("metadata").eq("id", data.order_id).eq("tenant_id", op.tenant_id).maybeSingle();
-  if (orderReadError || !existingOrder) return json({ error: "terms_acceptance_order_lookup_failed" }, 500);
   const acceptance = {
     commercial_terms_version: COMMERCIAL_TERMS_VERSION,
     cancellation_policy_version: CANCELLATION_POLICY_VERSION,
     accepted_at: acceptedAt,
-    source: "public_checkout",
+    source: allow ? "authorized_qa_checkout" : "public_checkout",
   };
-  const orderMetadata = { ...(existingOrder.metadata ?? {}), commercial_acceptance: acceptance };
-  const { error: orderUpdateError } = await admin.from("orders").update({ metadata: orderMetadata }).eq("id", data.order_id).eq("tenant_id", op.tenant_id);
-  if (orderUpdateError) return json({ error: "terms_acceptance_order_persist_failed" }, 500);
+
+  // Persist acceptance best-effort. The order/reservation already exists at this point;
+  // metadata audit must never turn a valid idempotent checkout into an orphan-producing 500.
+  // Canonical acceptance is also returned to the caller and the same idempotency key reuses
+  // the existing order/session on retry.
+  const { data: existingOrder } = await admin.from("orders").select("metadata").eq("id", data.order_id).eq("tenant_id", op.tenant_id).maybeSingle();
+  if (existingOrder) {
+    const orderMetadata = { ...(existingOrder.metadata ?? {}), commercial_acceptance: acceptance };
+    await admin.from("orders").update({ metadata: orderMetadata }).eq("id", data.order_id).eq("tenant_id", op.tenant_id);
+  }
 
   const { data: reservation } = await admin.from("commercial_reservations").select("id,metadata").eq("order_id", data.order_id).eq("tenant_id", op.tenant_id).limit(1).maybeSingle();
   if (reservation?.id) {
     const reservationMetadata = { ...(reservation.metadata ?? {}), commercial_acceptance: acceptance };
-    const { error: reservationUpdateError } = await admin.from("commercial_reservations").update({ metadata: reservationMetadata }).eq("id", reservation.id).eq("tenant_id", op.tenant_id);
-    if (reservationUpdateError) return json({ error: "terms_acceptance_reservation_persist_failed" }, 500);
+    await admin.from("commercial_reservations").update({ metadata: reservationMetadata }).eq("id", reservation.id).eq("tenant_id", op.tenant_id);
   }
 
-  return json({ ...data, checkout_token: token, payer_email: email, checkout_key: "commercial", qa_mode: allow, commercial_acceptance: acceptance }, 201);
+  return json({ ...data, checkout_token: token, payer_email: email, checkout_key: "commercial", qa_mode: allow, commercial_acceptance: acceptance }, data?.reused === true ? 200 : 201);
 });
