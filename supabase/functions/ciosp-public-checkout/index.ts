@@ -20,7 +20,18 @@ const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: 
 const hex = (b: ArrayBuffer) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
 async function sha256(v: string) { return hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v))); }
 function phone(v?: string) { if (!v) return null; const r = v.trim(), d = r.replace(/\D/g, ""); if (!r) return null; if (r.startsWith("+") && d.length >= 8 && d.length <= 15) return `+${d}`; if (d.length === 10 || d.length === 11) return `+55${d}`; return r; }
-function qaRef(req: Request) { const r = req.headers.get("referer"); if (!r) return false; try { const u = new URL(r); return (u.pathname === "/ciosp-2027" || u.pathname === "/ciosp-2027/reserva") && u.searchParams.get("sales_qa") === "1"; } catch { return false; } }
+function qaRef(req: Request) { const r = req.headers.get("referer"); if (!r) return null; try { return new URL(r); } catch { return null; } }
+function isAuthorizedPreviewQa(req: Request, full: string, email: string) {
+  if (MP_ENVIRONMENT !== "test") return false;
+  if (req.headers.get("x-ciosp-qa") !== "1") return false;
+  const u = qaRef(req);
+  if (!u || u.pathname !== "/ciosp-2027/reserva" || u.searchParams.get("sales_qa") !== "1") return false;
+  const host = u.hostname.toLowerCase();
+  if (!(host.startsWith("cobs-os-") && host.endsWith("-contatobsbtur-7062s-projects.vercel.app"))) return false;
+  if (!/\sQA$/i.test(full)) return false;
+  if (!/^[^\s@]+@example\.com\.br$/i.test(email)) return false;
+  return true;
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
@@ -54,21 +65,37 @@ Deno.serve(async (req: Request) => {
 
   const meta = offering.metadata ?? {};
   let allow = false;
+  let qaMode = "none";
   const closed = offering.status !== "active" || meta.sales_public !== true;
   if (closed) {
-    const intent = req.headers.get("x-ciosp-qa") === "1" || qaRef(req);
+    const headerIntent = req.headers.get("x-ciosp-qa") === "1";
+    const ref = qaRef(req);
+    const refIntent = ref?.searchParams.get("sales_qa") === "1";
+    const intent = headerIntent || refIntent;
     if (!intent) return json({ error: "sales_not_open" }, 409);
     if (MP_ENVIRONMENT !== "test") return json({ error: "qa_checkout_test_only" }, 503);
-    if (!publishableKey) return json({ error: "qa_auth_not_configured" }, 500);
-    const ah = req.headers.get("authorization");
-    if (!ah) return json({ error: "qa_auth_required" }, 401);
-    const uc = createClient(SUPABASE_URL, publishableKey, { global: { headers: { Authorization: ah } }, auth: { persistSession: false } });
-    const { data: ad, error: ae } = await uc.auth.getUser();
-    if (ae || !ad.user) return json({ error: "qa_invalid_session" }, 401);
-    const { data: m, error: me } = await admin.from("memberships").select("role,status").eq("tenant_id", op.tenant_id).eq("profile_id", ad.user.id).eq("status", "active").maybeSingle();
-    if (me) return json({ error: "qa_membership_check_failed" }, 500);
-    if (!m || !["owner", "admin", "operations_agent"].includes(m.role)) return json({ error: "qa_forbidden" }, 403);
-    allow = true;
+
+    if (isAuthorizedPreviewQa(req, full, email)) {
+      allow = true;
+      qaMode = "preview_test_identity";
+    } else {
+      if (headerIntent && refIntent && ref?.pathname === "/ciosp-2027/reserva") {
+        const host = ref.hostname.toLowerCase();
+        const previewHost = host.startsWith("cobs-os-") && host.endsWith("-contatobsbtur-7062s-projects.vercel.app");
+        if (previewHost && (!/\sQA$/i.test(full) || !/^[^\s@]+@example\.com\.br$/i.test(email))) return json({ error: "qa_identity_required" }, 400);
+      }
+      if (!publishableKey) return json({ error: "qa_auth_not_configured" }, 500);
+      const ah = req.headers.get("authorization");
+      if (!ah) return json({ error: "qa_preview_not_allowed" }, 403);
+      const uc = createClient(SUPABASE_URL, publishableKey, { global: { headers: { Authorization: ah } }, auth: { persistSession: false } });
+      const { data: ad, error: ae } = await uc.auth.getUser();
+      if (ae || !ad.user) return json({ error: "qa_invalid_session" }, 401);
+      const { data: m, error: me } = await admin.from("memberships").select("role,status").eq("tenant_id", op.tenant_id).eq("profile_id", ad.user.id).eq("status", "active").maybeSingle();
+      if (me) return json({ error: "qa_membership_check_failed" }, 500);
+      if (!m || !["owner", "admin", "operations_agent"].includes(m.role)) return json({ error: "qa_forbidden" }, 403);
+      allow = true;
+      qaMode = "authenticated_staff";
+    }
   }
 
   const { data: sell } = await admin.from("sellables").select("id").eq("tenant_id", op.tenant_id).eq("offering_id", offering.id).eq("status", "active").limit(1).maybeSingle();
@@ -117,5 +144,5 @@ Deno.serve(async (req: Request) => {
     if (reservationUpdateError) return json({ error: "terms_acceptance_reservation_persist_failed" }, 500);
   }
 
-  return json({ ...data, checkout_token: token, payer_email: email, checkout_key: "commercial", qa_mode: allow, commercial_acceptance: acceptance }, 201);
+  return json({ ...data, checkout_token: token, payer_email: email, checkout_key: "commercial", qa_mode: allow, qa_mode_source: qaMode, commercial_acceptance: acceptance }, 201);
 });
