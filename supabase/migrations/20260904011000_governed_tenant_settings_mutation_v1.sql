@@ -68,6 +68,15 @@ begin
     raise exception 'Timezone must be a valid IANA timezone';
   end if;
 
+  -- Serialize the same actor/action/key before consulting the ledger so
+  -- concurrent retries cannot race into the unique idempotency index.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(
+      _uid::text || ':tenant.settings.update:' || _key,
+      0
+    )
+  );
+
   select k.result into _existing
     from public.idempotency_keys k
     where k.actor_profile_id = _uid
@@ -78,6 +87,14 @@ begin
     if (_existing ->> 'tenant_id')::uuid is distinct from _tenant_id then
       raise exception 'Idempotency key already used for another organization';
     end if;
+
+    if (_existing ->> 'country_code') is distinct from _country
+       or (_existing ->> 'default_locale') is distinct from _locale
+       or (_existing ->> 'timezone') is distinct from _tz
+       or (_existing ->> 'currency_code') is distinct from _currency then
+      raise exception 'Idempotency key already used with different settings';
+    end if;
+
     return _existing;
   end if;
 
