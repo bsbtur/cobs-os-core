@@ -4,6 +4,8 @@ import {
   buildSignatureManifest,
   createMercadoPagoProvider,
   mapProviderStatus,
+  MP_SIGNATURE_FUTURE_SKEW_MS,
+  MP_SIGNATURE_MAX_AGE_MS,
   normalizeMercadoPagoOrder,
   normalizeMercadoPagoPayment,
   signManifest,
@@ -12,32 +14,81 @@ import {
 } from "./payments-mp.server";
 
 describe("MP-01 Mercado Pago webhook signature", () => {
-  it("validates the official HMAC manifest", () => {
+  it("validates the official HMAC manifest within the freshness window", () => {
     const secret = "test-secret";
+    const ts = "1704908010";
+    const nowMs = Number(ts) * 1000 + 30_000;
     const manifest = buildSignatureManifest({
       dataId: "999999999",
       requestId: "req-123",
-      ts: "1704908010",
+      ts,
     });
     expect(manifest).toBe("id:999999999;request-id:req-123;ts:1704908010;");
     const v1 = signManifest(manifest, secret);
     expect(
       verifyMercadoPagoSignature({
-        signatureHeader: `ts=1704908010,v1=${v1}`,
+        signatureHeader: `ts=${ts},v1=${v1}`,
         requestId: "req-123",
         dataId: "999999999",
         secret,
+        nowMs,
       }),
     ).toBe(true);
   });
 
   it("rejects a tampered signature", () => {
+    const ts = "1704908010";
     expect(
       verifyMercadoPagoSignature({
-        signatureHeader: `ts=1704908010,v1=${"0".repeat(64)}`,
+        signatureHeader: `ts=${ts},v1=${"0".repeat(64)}`,
         requestId: "req-123",
         dataId: "999999999",
         secret: "test-secret",
+        nowMs: Number(ts) * 1000,
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects an otherwise valid signature older than the replay window", () => {
+    const secret = "test-secret";
+    const ts = "1704908010";
+    const manifest = buildSignatureManifest({ dataId: "999999999", requestId: "req-123", ts });
+    const v1 = signManifest(manifest, secret);
+    expect(
+      verifyMercadoPagoSignature({
+        signatureHeader: `ts=${ts},v1=${v1}`,
+        requestId: "req-123",
+        dataId: "999999999",
+        secret,
+        nowMs: Number(ts) * 1000 + MP_SIGNATURE_MAX_AGE_MS + 1,
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts small future clock skew but rejects timestamps beyond tolerance", () => {
+    const secret = "test-secret";
+    const ts = "1704908010";
+    const manifest = buildSignatureManifest({ dataId: "999999999", requestId: "req-123", ts });
+    const v1 = signManifest(manifest, secret);
+    const timestampMs = Number(ts) * 1000;
+
+    expect(
+      verifyMercadoPagoSignature({
+        signatureHeader: `ts=${ts},v1=${v1}`,
+        requestId: "req-123",
+        dataId: "999999999",
+        secret,
+        nowMs: timestampMs - MP_SIGNATURE_FUTURE_SKEW_MS,
+      }),
+    ).toBe(true);
+
+    expect(
+      verifyMercadoPagoSignature({
+        signatureHeader: `ts=${ts},v1=${v1}`,
+        requestId: "req-123",
+        dataId: "999999999",
+        secret,
+        nowMs: timestampMs - MP_SIGNATURE_FUTURE_SKEW_MS - 1,
       }),
     ).toBe(false);
   });

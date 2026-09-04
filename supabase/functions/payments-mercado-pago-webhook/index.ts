@@ -8,6 +8,8 @@ const MP_TEST_ACCESS_TOKEN = Deno.env.get("MERCADO_PAGO_TEST_ACCESS_TOKEN");
 const MP_ENVIRONMENT = (Deno.env.get("MERCADO_PAGO_ENVIRONMENT") ?? "production").trim().toLowerCase();
 const MP_WEBHOOK_SECRET = Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET")?.trim();
 const MP_TEST_WEBHOOK_SECRET = Deno.env.get("MERCADO_PAGO_TEST_WEBHOOK_SECRET")?.trim();
+const MP_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
+const MP_SIGNATURE_FUTURE_SKEW_MS = 60 * 1000;
 const secretKey = SUPABASE_SECRET_KEYS.default;
 
 function json(body: unknown, status = 200) {
@@ -25,6 +27,15 @@ function constantTimeEqual(a: string, b: string) {
 function parseSignature(value: string | null) {
   const parts = Object.fromEntries((value ?? "").split(",").map((x) => x.trim().split("=", 2)));
   return { ts: parts.ts, v1: parts.v1 };
+}
+function isSignatureTimestampFresh(ts?: string, nowMs = Date.now()) {
+  if (!ts || !/^[0-9]+$/.test(ts)) return false;
+  const timestampSeconds = Number(ts);
+  if (!Number.isSafeInteger(timestampSeconds)) return false;
+  const timestampMs = timestampSeconds * 1000;
+  if (!Number.isSafeInteger(timestampMs)) return false;
+  const ageMs = nowMs - timestampMs;
+  return ageMs <= MP_SIGNATURE_MAX_AGE_MS && ageMs >= -MP_SIGNATURE_FUTURE_SKEW_MS;
 }
 function mapAttemptStatus(status?: string, detail?: string) {
   if (status === "approved" || (status === "processed" && detail === "accredited")) return "approved";
@@ -52,7 +63,7 @@ async function computeHmac(manifest: string, secret: string) {
   return hex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest)));
 }
 async function validateHmac(input: { dataId: string; requestId: string | null; ts?: string; v1?: string; secret: string }) {
-  if (!input.ts || !input.v1) return false;
+  if (!input.ts || !input.v1 || !isSignatureTimestampFresh(input.ts)) return false;
   const ids = [...new Set([input.dataId, /[a-zA-Z]/.test(input.dataId) ? input.dataId.toLowerCase() : input.dataId])];
   for (const id of ids) {
     const manifest = `id:${id};${input.requestId ? `request-id:${input.requestId};` : ""}ts:${input.ts};`;
