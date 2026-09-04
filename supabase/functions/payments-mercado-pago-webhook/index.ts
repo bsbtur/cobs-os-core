@@ -30,9 +30,9 @@ function parseSignature(value: string | null) {
 }
 function isSignatureTimestampFresh(ts?: string, nowMs = Date.now()) {
   if (!ts || !/^[0-9]+$/.test(ts)) return false;
-  const timestampSeconds = Number(ts);
-  if (!Number.isSafeInteger(timestampSeconds)) return false;
-  const timestampMs = timestampSeconds * 1000;
+  const timestampValue = Number(ts);
+  if (!Number.isSafeInteger(timestampValue)) return false;
+  const timestampMs = timestampValue >= 1_000_000_000_000 ? timestampValue : timestampValue * 1000;
   if (!Number.isSafeInteger(timestampMs)) return false;
   const ageMs = nowMs - timestampMs;
   return ageMs <= MP_SIGNATURE_MAX_AGE_MS && ageMs >= -MP_SIGNATURE_FUTURE_SKEW_MS;
