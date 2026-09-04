@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRight,
   CheckCircle2,
-  Copy,
   Crown,
   GraduationCap,
   HeartHandshake,
@@ -97,17 +96,6 @@ function BsbTurSignature() {
   );
 }
 
-async function edgeErrorCode(error: unknown) {
-  const context = (error as { context?: Response } | null)?.context;
-  if (!context) return null;
-  try {
-    const payload = await context.clone().json();
-    return typeof payload?.error === "string" ? payload.error : null;
-  } catch {
-    return null;
-  }
-}
-
 function CiospLanding() {
   const salesQaMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sales_qa") === "1";
   const targetId = salesQaMode ? "reserva" : "lista-prioritaria";
@@ -120,8 +108,6 @@ function CiospLanding() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkoutClosed, setCheckoutClosed] = useState(false);
-  const [pix, setPix] = useState<{ qr_code?: string | null; qr_code_base64?: string | null; ticket_url?: string | null; amount_minor?: number | null } | null>(null);
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
   async function submitLead(event: FormEvent) {
@@ -151,93 +137,9 @@ function CiospLanding() {
     }
   }
 
-  async function submitCheckout(event: FormEvent) {
-    event.preventDefault();
-    if (loading || !consentContact) return;
-    setLoading(true);
-    setError(null);
-    setCheckoutClosed(false);
-    setPix(null);
-    try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (sessionError || !accessToken) {
-        setError("Usuário interno não autenticado. Entre no COBS neste navegador para testar o checkout com vendas fechadas.");
-        return;
-      }
+  if (salesQaMode) return <main className="min-h-screen bg-[#070707] p-8 text-white"><h1 className="text-2xl font-semibold">Validação da reserva CIOSP 2027</h1><p className="mt-4">O teste usa o mesmo checkout da reserva e exige uma conta interna autorizada.</p><a className="mt-6 inline-block min-h-11 text-[#E4CA91] underline" href="/ciosp-2027/reserva?sales_qa=1">Abrir checkout de validação</a></main>;
 
-      const { data: checkout, error: checkoutError } = await supabase.functions.invoke("ciosp-public-checkout", {
-        headers: { Authorization: `Bearer ${accessToken}`, "x-ciosp-qa": "1" },
-        body: {
-          full_name: fullName,
-          email,
-          phone,
-          idempotency_key: idempotencyKey,
-          checkout_key: "commercial",
-        },
-      });
-      if (checkoutError) {
-        const code = await edgeErrorCode(checkoutError);
-        if (code === "sales_not_open") {
-          setCheckoutClosed(true);
-          return;
-        }
-        if (code === "qa_auth_required" || code === "qa_invalid_session" || code === "qa_auth_invalid") {
-          setError("Sessão do COBS inválida ou expirada. Entre novamente neste navegador para continuar.");
-          return;
-        }
-        if (code === "qa_forbidden") {
-          setError("Seu usuário não tem permissão para testar este checkout. Apenas proprietários, administradores ou agentes de operações podem prosseguir.");
-          return;
-        }
-        throw checkoutError;
-      }
-      if (!checkout?.order_id || !checkout?.checkout_token || !checkout?.payer_email) throw new Error("checkout_response_invalid");
-
-      const { data: pixData, error: pixError } = await supabase.functions.invoke("ciosp-public-create-pix", {
-        body: {
-          order_id: checkout.order_id,
-          checkout_token: checkout.checkout_token,
-          payer_email: checkout.payer_email,
-        },
-      });
-      if (pixError) throw pixError;
-      if (!pixData?.pix?.qr_code && !pixData?.pix?.ticket_url) throw new Error("pix_response_invalid");
-      setPix({ ...pixData.pix, amount_minor: pixData.amount_minor ?? null });
-    } catch {
-      setError("Não foi possível iniciar o checkout agora. Tente novamente em instantes ou contate o suporte BSBTUR.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const form = salesQaMode ? (
-    <form onSubmit={submitCheckout} className="space-y-4">
-      <div>
-        <div className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[.18em] text-amber-300">QA interno · vendas fechadas</div>
-        <p className="mt-4 text-xs uppercase tracking-[.2em]" style={{ color: gold }}>Reserva CIOSP 2027</p>
-        <h3 className="mt-2 text-2xl font-semibold">Planejamento de reserva com Pix TEST</h3>
-        <p className="mt-2 text-sm text-white/45">Planejamento QA não publicado · total R$ 9.990 · entrada R$ 2.490 · saldo R$ 7.500.</p>
-      </div>
-      <label className="block space-y-1.5 text-sm">Nome completo<Input required name="fullName" minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">WhatsApp<Input name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="block space-y-1.5 text-sm">E-mail<Input required name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="border-white/15 bg-black/40 text-white" /></label>
-      <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/60"><input required name="consentContact" type="checkbox" checked={consentContact} onChange={(e) => setConsentContact(e.target.checked)} className="mt-1 size-4" /><span>Confirmo meus dados e autorizo contato da BSBTUR sobre a Caravana CIOSP 2027.</span></label>
-      {checkoutClosed && <div role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"><strong>Gate funcionando:</strong> as vendas públicas continuam fechadas. Nenhum pedido, reserva ou Pix foi criado por esta tentativa.</div>}
-      {error && <div role="alert" className="rounded-lg border border-red-900/50 bg-red-950/20 p-3 text-sm text-red-300">{error}</div>}
-      {pix ? (
-        <div role="status" aria-live="polite" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
-          <p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-300">Pix TEST gerado</p>
-          <p className="mt-2 text-2xl font-semibold">R$ {((pix.amount_minor ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-          {pix.qr_code_base64 && <img className="mx-auto mt-4 w-full max-w-[260px] rounded-xl bg-white p-3" src={`data:image/png;base64,${pix.qr_code_base64}`} alt="QR Code Pix de teste" />}
-          {pix.qr_code && <Button type="button" variant="outline" className="mt-4 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.qr_code ?? "")}><Copy className="mr-2 size-4" aria-hidden="true" />Copiar Pix copia e cola</Button>}
-        </div>
-      ) : (
-        <Button type="submit" size="lg" className="w-full bg-[#D6B56D] text-black hover:bg-[#E4CA91]" disabled={loading || !consentContact}>{loading ? <><Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />Validando gate...</> : <>Testar checkout comercial <ArrowRight className="ml-2 size-4" aria-hidden="true" /></>}</Button>
-      )}
-      <p className="text-center text-xs text-white/35">Modo QA interno. Valores acima são planejamento não publicado. `sales_public=false` continua sendo a trava soberana do backend.</p>
-    </form>
-  ) : !submitted ? (
+  const form = !submitted ? (
     <form onSubmit={submitLead} className="space-y-4">
       <div><p className="text-xs uppercase tracking-[.2em]" style={{ color: gold }}>Acesso prioritário</p><h3 className="mt-2 text-2xl font-semibold">Quero receber as condições primeiro</h3><p className="mt-2 text-sm text-white/45">Leva menos de 1 minuto.</p></div>
       <label className="block space-y-1.5 text-sm">Nome completo<Input required name="fullName" minLength={2} maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className="border-white/15 bg-black/40 text-white" /></label>
@@ -283,7 +185,7 @@ function CiospLanding() {
                 <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Sparkles className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Pré-lançamento</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Condições em preparação</span><span><Users className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Disponibilidade a confirmar</span></div>
               )}
             </div>
-            <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{ borderColor: `${gold}66`, boxShadow: "0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)" }}><div className="flex items-center justify-between"><span className="text-sm text-white/45">{salesQaMode ? "QA comercial · CIOSP 2027" : "Pré-lançamento · CIOSP 2027"}</span><Crown className="size-5" style={{ color: gold }} aria-hidden="true" /></div>{salesQaMode ? <><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Planejamento QA · não publicado</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 9.990</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada planejada de <strong className="text-white">R$ 2.490</strong> + saldo planejado de <strong className="text-white">R$ 7.500</strong>.</p></> : <><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Condições comerciais</p><p className="mt-2 text-4xl font-semibold tracking-tight text-[#F5E7C5]">Em preparação</p><p className="mt-3 text-sm leading-relaxed text-white/58">Preço, forma de pagamento, itens incluídos e disponibilidade serão informados somente após aprovação para publicação.</p></>}<div className="my-7 h-px bg-[#D6B56D]/20" /><div className="space-y-3 text-sm text-white/72">{(salesQaMode ? ["Planejamento interno", "Checkout pronto para QA", "Vendas públicas fechadas"] : publicHighlights).map((x) => <div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{ color: gold }} aria-hidden="true" />{x}</div>)}</div><a href={`#${targetId}`} className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91]">{ctaLabel}<ArrowRight className="ml-2 size-4" aria-hidden="true" /></a></div></div>
+            <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{ borderColor: `${gold}66`, boxShadow: "0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)" }}><div className="flex items-center justify-between"><span className="text-sm text-white/45">{salesQaMode ? "QA comercial · CIOSP 2027" : "Pré-lançamento · CIOSP 2027"}</span><Crown className="size-5" style={{ color: gold }} aria-hidden="true" /></div>{salesQaMode ? <><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Planejamento QA · não publicado</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 12.490</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada planejada de <strong className="text-white">R$ 3.490</strong> + saldo planejado de <strong className="text-white">R$ 9.000</strong>.</p></> : <><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Condições comerciais</p><p className="mt-2 text-4xl font-semibold tracking-tight text-[#F5E7C5]">Em preparação</p><p className="mt-3 text-sm leading-relaxed text-white/58">Preço, forma de pagamento, itens incluídos e disponibilidade serão informados somente após aprovação para publicação.</p></>}<div className="my-7 h-px bg-[#D6B56D]/20" /><div className="space-y-3 text-sm text-white/72">{(salesQaMode ? ["Planejamento interno", "Checkout pronto para QA", "Vendas públicas fechadas"] : publicHighlights).map((x) => <div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{ color: gold }} aria-hidden="true" />{x}</div>)}</div><a href={`#${targetId}`} className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91]">{ctaLabel}<ArrowRight className="ml-2 size-4" aria-hidden="true" /></a></div></div>
           </div>
         </section>
 
@@ -299,3 +201,4 @@ function CiospLanding() {
     </div>
   );
 }
+

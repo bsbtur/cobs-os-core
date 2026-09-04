@@ -87,6 +87,7 @@ export function AdminOverview() {
 
   return (
     <div className="space-y-6">
+      <Button asChild variant="outline"><Link to="/commerce">Consultar pedidos, reservas e pagamentos</Link></Button>
       <section className="animate-rise flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
@@ -219,3 +220,4 @@ export function AdminOverview() {
     </div>
   );
 }
+
