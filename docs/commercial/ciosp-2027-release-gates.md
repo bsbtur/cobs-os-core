@@ -1,39 +1,60 @@
-# CIOSP 2027 — Commercial release gates
+# CIOSP 2027 — release gates
 
-Scope: **COBS OS — COMERCIAL / CLIENTE**.
+Updated 2026-09-04. This is a release ledger, not permission to open sales.
 
-Status recorded on 2026-09-02. This document records evidence and release blockers; it does not authorize public sales.
+## Architecture review for this candidate
 
-## Golden Path
+This branch reuses PR #149 and preserves the authenticated staff QA boundary instead of the unauthenticated preview bypass proposed in #148. No changes to RLS, auth providers, schema, historical migrations, commercial amounts or sales_public are included. A new service-backed status endpoint is limited to a valid checkout capability for reads, or the authenticated profile already linked to the buyer for renewal. Test-order renewal requires active staff membership in the order tenant. An e-mail address, Referer, UUID or replay key alone grants no access. The endpoint does not grant traveler access or link identities automatically.
 
-| Gate | Status | Evidence / condition |
-| --- | --- | --- |
-| Public landing route | PASS | `/ciosp-2027` exists and preview/build validation passed. |
-| Lead capture backend | PASS | Controlled QA call to `ciosp-public-lead-capture` returned HTTP 201 and created a lead linked to canonical operation `CIOSP-SP-2027`. |
-| `lead.created` event | PASS | Event `2239bac3-8563-46be-9b5e-cf4f4bec4d06` was created. |
-| n8n dispatch | **P0 FAIL** | Current event failed with `n8n_http_403`. Tracked in #119. |
-| Automation result/callback | BLOCKED | Require n8n dispatch PASS first, then exactly one `automation_results` record. |
-| Public sales | CLOSED | Canonical sellable remains `sales_public=false`; do not open as part of QA. |
-| Checkout/Pix | QA ONLY | Existing protected QA path must remain authenticated/authorized while sales are closed. |
-| Traveler handoff | NOT YET RELEASE-GATED | Validate only after trustworthy payment/reservation confirmation; traveler UI belongs to its own front. |
+New checkout orders persist an explicit payment environment and a copy of the accepted schedule. Legacy/unclassified orders fail closed in the new Pix path; they require an audited compatibility decision, not automatic relabeling. Payment mutations remain restricted to existing service-role paths. The frontend retains a short-lived checkout capability in tab-scoped sessionStorage, never a URL or log. Renewal requires authentication. Existing traveler invitation/profile linking remains a prerequisite after guest checkout.
 
-## Commercial-data integrity
+## Evidence collected read-only
 
-The canonical offering currently confirms the basic commercial structure (offering, capacity, BRL and planning metadata), but the public route contains detailed package inclusion claims that are not backed by a canonical package-component source.
+- Main observed: d5a0e22e2eb840b91ce7f046a9394ef9e4caa7e7; its Quality Gate passed.
+- PR #149 head: 26d844387ec3c613ab690b1eac910bd3184f6317. This candidate builds on that commit without rewriting history.
+- PR #148 failure: TS2379 because `headers: undefined` violates exactOptionalPropertyTypes. This candidate sends a headers object and does not import the preview bypass.
+- Canonical database `nktohbqmcpgonlizzcka`, COBS OS CLEAN BUILD: healthy; migrations 20260904030335 and 20260904030353 installed; offering sales_public=false and approved four-item schedule observed.
+- Repository supabase/config.toml points at a DIFFERENT project (`kkclthdpnwuamsndtxxq`). No CLI deployment may assume that target. Resolve project mapping explicitly before deployment; this branch does not silently change infrastructure configuration.
+- Actual orders indexes do not include uniqueness on public_checkout_idempotency_key. Charges have unique (tenant_id, external_reference); attempts have unique (tenant_id,idempotency_key). Deterministic new charge/attempt references reduce same-obligation collisions, but do not make the whole checkout atomic.
 
-Tracked in #121. Until an approved source exists, public pre-launch copy must not promise specific hotel nights, flights, transfers, insurance, registration or other package components.
+## Implemented in candidate; not production evidence
 
-## Privacy / consent gap
+- Explicit test/production environment, QA-order isolation and fail-closed legacy handling.
+- Charge/attempt reuse rejects mismatched environments; payer resolved from buyer record.
+- Accepted schedule copied into order metadata and read there by Pix/status; Brasília business-date calculations and allocation tests.
+- Provider retry preserves its idempotency key after ambiguous failures; local payment/confirmation writes checked.
+- Explicit QA header, authenticated staff checks even when the offering flag is true in test mode.
+- Replay key alone cannot rotate a session or overwrite original commercial acceptance.
+- Status polling, tab reload recovery and authenticated buyer-profile session renewal; same order used for later payments.
+- Old landing QA form replaced by a link to the canonical checkout; public lead capture remains closed-sales behavior.
+- ADMIN shortcut to existing Commerce rather than a second sales ledger/dashboard.
 
-The lead form captures name, email, phone and explicit contact consent. A repository search on 2026-09-02 did not locate a reusable public Privacy Policy / Terms route or document.
+## Outstanding gates — do not mark the application ready
 
-Before a public commercial launch, provide a customer-visible privacy notice/policy appropriate to the data capture and link it from the form. This is a launch requirement, not permission to invent legal text or silently change shared governance.
+| Gate | Required evidence |
+|---|---|
+| Candidate validation | CI on final commit, browser/mobile QA and Deno checks for Edge Functions; root tsc does not cover functions |
+| Atomic checkout / acceptance | Transactional creation, unique replay key and atomic persistence of environment/snapshot/acceptance; concurrent requests and crash recovery. Current post-RPC metadata write remains a gap |
+| Concurrent obligations | Test actual simultaneous provider calls, changing amount across midnight, pending old QR, terminal/rejected attempts and partial DB failures. Deterministic keys alone are insufficient |
+| Legacy compatibility | Classify historical orders/attempts/facts without mixing QA with real money; no blind metadata backfill |
+| Frozen confirmation rules | Pix/status use the snapshot; existing confirm_paid_provider_order still reads offering entry_minor. Audit compatibility before future price changes |
+| Provider environment | Verify deployed creator/webhook/reconciler agree on environment and do not ingest another environment's events |
+| Customer access | Prove guest buyer → verified profile link/invitation → /my, including wrong-account and cross-tenant negatives; do not infer from participation materialization |
+| Operational acceptance | Same paid test order in Commerce, confirmed reservation, passenger list, communication and QR/check-in according to existing rules |
+| Offer and privacy | Approved inclusions/exclusions, specific support/cancellation channel, privacy coverage for contracting and versioned acceptance. Existing prelaunch notice is not sufficient evidence |
+| Deployment | Resolve project-ID discrepancy, deploy exact SHA/functions to confirmed target; new ciosp-checkout-status requires gateway configuration permitting the app-level token/JWT checks |
+| Live release | Authorized controlled payment, webhook/reconciliation, four obligations, capacity and rollback; no real payment or sales opening occurred here |
 
-## Release rule
+Do not retry a terminal Pix by silently creating an unrelated order. Preserve the order ID and use authorized recovery. A restored session is not proof of payment. A confirmed reservation is not full settlement.
 
-Do **not** mark the commercial Golden Path PASS and do **not** open public sales until:
+## n8n and historical issues
 
-1. #119 is resolved and a fresh controlled lead proves `dispatch_status=completed` plus one automation result;
-2. #121 is resolved or the detailed package composition is supported by an approved authoritative source;
-3. the public lead form has an approved privacy notice/policy path;
-4. the current branch is compatible with current `main`, Quality Gate is green, and preview is validated.
+Issue #119 records lead persistence and a manual follow-up fallback when n8n is quota-blocked. Automation is P1 while that fallback is workable; do not make lead storage depend on n8n. Issue #121 was completed by removing unapproved public claims, not by approving the package composition. PR #103 reconciled historical migration provenance; do not repeat it.
+
+## Publication order
+
+1. Approve the reviewed candidate and finish all P0 gates above.
+2. Deploy only to the verified project, including the shared helper used by all three functions. Keep sales closed.
+3. Validate authorized TEST data separately from real production data; preview frontend does not imply isolated database.
+4. Define restricted live validation and rollback before opening sales. Do not remove authentication or rely on an undisclosed URL.
+5. Only after explicit release authorization and complete evidence, open the canonical offering and public CTA. Stop new sales on failure without deleting orders or disabling reconciliation of payments already in flight.
