@@ -157,6 +157,17 @@ Deno.serve(async (req: Request) => {
           errors.push({ attempt_id: attempt.id, error: "financial_fact_failed", details: factError.message });
           continue;
         }
+
+        const { error: confirmationError } = await admin.rpc("confirm_paid_provider_order", {
+          _order_id: charge.order_id,
+          _charge_id: charge.id,
+          _provider_reference: reference,
+        });
+        if (confirmationError) {
+          summary.db_errors++;
+          errors.push({ attempt_id: attempt.id, error: "provider_order_confirmation_failed", details: confirmationError.message });
+          continue;
+        }
         summary.paid++;
       }
 
