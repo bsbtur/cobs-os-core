@@ -1,11 +1,14 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 
 const encoder = new TextEncoder();
+const webhookSource = readFileSync(
+  "supabase/functions/payments-mercado-pago-webhook/index.ts",
+  "utf8",
+);
 
 function hex(bytes: ArrayBuffer) {
-  return [...new Uint8Array(bytes)]
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+  return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function constantTimeEqual(a: string, b: string) {
@@ -52,6 +55,15 @@ async function validateSignature(input: {
 }
 
 describe("Mercado Pago webhook signature", () => {
+  test("rejects an invalid signed simulation before requiring provider credentials", () => {
+    const invalidSignatureRejection = webhookSource.indexOf("simulation_requires_signature");
+    const providerCredentialGuard = webhookSource.indexOf("if (!accessToken)");
+
+    expect(invalidSignatureRejection).toBeGreaterThan(-1);
+    expect(providerCredentialGuard).toBeGreaterThan(invalidSignatureRejection);
+    expect(webhookSource).toContain('return json({ error: "simulation_requires_signature" }, 401)');
+  });
+
   test("accepts an uppercase ORDTST id when Mercado Pago signs the lowercase manifest", async () => {
     const dataId = "ORDTST01M1CNG2CVKPANVK5D0QGW1MGC";
     const requestId = "request-qa-001";
