@@ -25,6 +25,7 @@ describe("CIOSP payment boundaries", () => {
     expect(checkout).not.toContain("isAuthorizedPreviewQa");
     expect(checkout).not.toContain("example\\.com\\.br");
     expect(checkout).toContain("auth.getUser()");
-    expect(checkout).toContain(".from(\"memberships\")");\n    expect(checkout).toContain('.select("role,status")');
+    expect(checkout).toContain('.from("memberships")');
+    expect(checkout).toContain('.select("role,status")');
   });
 });
