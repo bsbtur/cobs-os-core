@@ -38,9 +38,43 @@ const REACTIONS: Array<{ id: WallReaction; emoji: string }> = [
   { id: "wow", emoji: "😍" },
 ];
 
+const COPY = {
+  "pt-BR": {
+    title: "Mural",
+    subtitle: "Interaja com a organização e com os viajantes da sua experiência.",
+    empty: "Ainda não há publicações. Os próximos avisos, perguntas e enquetes aparecerão aqui.",
+    vote: "voto",
+    votes: "votos",
+    you: "Você",
+    commentPlaceholder: "Escreva um comentário…",
+    send: "Enviar",
+  },
+  "en-US": {
+    title: "Wall",
+    subtitle: "Interact with the organizers and travelers in your experience.",
+    empty: "No posts yet. New questions, polls and updates will appear here.",
+    vote: "vote",
+    votes: "votes",
+    you: "You",
+    commentPlaceholder: "Write a comment…",
+    send: "Send",
+  },
+  "es-ES": {
+    title: "Mural",
+    subtitle: "Interactúa con la organización y con los viajeros de tu experiencia.",
+    empty: "Todavía no hay publicaciones. Las preguntas, encuestas y novedades aparecerán aquí.",
+    vote: "voto",
+    votes: "votos",
+    you: "Tú",
+    commentPlaceholder: "Escribe un comentario…",
+    send: "Enviar",
+  },
+} as const;
+
 function PortalWall() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/wall" });
   const { t, locale } = useI18n();
+  const copy = COPY[locale];
   const overview = useMyOverview(operationId);
   const wall = useMyOperationWall(operationId);
   const tz = overview.data?.timezone ?? undefined;
@@ -52,13 +86,13 @@ function PortalWall() {
       active="wall"
     >
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{t("w10.wall.title")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("w10.wall.subtitle")}</p>
+        <h2 className="text-lg font-semibold text-foreground">{copy.title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p>
       </div>
 
       <PortalQueryGate isLoading={wall.isLoading} error={wall.error} onRetry={() => void wall.refetch()}>
         {(wall.data ?? []).length === 0 ? (
-          <PortalEmpty body={t("w10.wall.empty")} />
+          <PortalEmpty body={copy.empty} />
         ) : (
           <div className="flex flex-col gap-4">
             {(wall.data ?? []).map((post) => (
@@ -88,10 +122,10 @@ function WallPostCard({
   post: WallPost;
   operationId: string;
   readOnly: boolean;
-  locale: string;
+  locale: keyof typeof COPY;
   timeZone?: string;
 }) {
-  const { t } = useI18n();
+  const copy = COPY[locale];
   const queryClient = useQueryClient();
   const [comment, setComment] = React.useState("");
   const invalidate = () => queryClient.invalidateQueries({ queryKey: wallKeys.scoped(operationId) });
@@ -114,15 +148,13 @@ function WallPostCard({
 
   return (
     <PortalCard>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-foreground">{post.authorLabel}</p>
-          {post.publishedAt ? (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {formatDateTime(post.publishedAt, timeZone ? { locale, timeZone } : { locale })}
-            </p>
-          ) : null}
-        </div>
+      <div>
+        <p className="text-sm font-semibold text-foreground">{post.authorLabel}</p>
+        {post.publishedAt ? (
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {formatDateTime(post.publishedAt, timeZone ? { locale, timeZone } : { locale })}
+          </p>
+        ) : null}
       </div>
 
       <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-foreground">{post.body}</p>
@@ -154,7 +186,7 @@ function WallPostCard({
             );
           })}
           <p className="text-xs text-muted-foreground">
-            {totalVotes} {totalVotes === 1 ? t("w10.wall.vote") : t("w10.wall.votes")}
+            {totalVotes} {totalVotes === 1 ? copy.vote : copy.votes}
           </p>
         </div>
       ) : null}
@@ -186,7 +218,7 @@ function WallPostCard({
         <div className="mt-3 flex flex-col gap-2 rounded-lg bg-muted/40 p-3">
           {post.comments.map((item) => (
             <div key={item.commentId} className="text-sm">
-              <span className="font-medium text-foreground">{item.mine ? t("w10.wall.you") : item.authorName}</span>{" "}
+              <span className="font-medium text-foreground">{item.mine ? copy.you : item.authorName}</span>{" "}
               <span className="break-words text-foreground">{item.body}</span>
             </div>
           ))}
@@ -206,12 +238,12 @@ function WallPostCard({
           <Input
             value={comment}
             onChange={(event) => setComment(event.target.value.slice(0, 500))}
-            placeholder={t("w10.wall.commentPlaceholder")}
-            aria-label={t("w10.wall.commentPlaceholder")}
+            placeholder={copy.commentPlaceholder}
+            aria-label={copy.commentPlaceholder}
             className="min-h-11"
           />
           <Button type="submit" disabled={!comment.trim() || commentMutation.isPending} className="min-h-11">
-            {t("w10.wall.send")}
+            {copy.send}
           </Button>
         </form>
       ) : null}
