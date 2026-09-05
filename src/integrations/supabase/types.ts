@@ -5881,6 +5881,16 @@ export type Database = {
         }
         Returns: Json
       }
+      list_orders_by_environment: {
+        Args: {
+          _environment?: string
+          _limit?: number
+          _operation_id?: string
+          _status?: Database["public"]["Enums"]["order_status"]
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       list_participant_access_grants: {
         Args: { _operation_id?: string; _tenant_id: string }
         Returns: Json

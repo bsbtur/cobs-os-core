@@ -279,7 +279,11 @@ export function CiospCommercialDashboard({ tenantId }: { tenantId: string }) {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Button asChild variant="outline" size="sm">
-                            <Link to="/commerce/$orderId" params={{ orderId: order.id }}>
+                            <Link
+                              to="/commerce/$orderId"
+                              params={{ orderId: order.id }}
+                              search={{ environment }}
+                            >
                               Abrir
                               <ArrowUpRight className="ml-1 size-4" aria-hidden="true" />
                             </Link>
