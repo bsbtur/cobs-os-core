@@ -20,6 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatMoney } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
+import { formatOrderStatus } from "./ciosp-commercial-dashboard-status";
+
 type DashboardEnvironment = "production" | "qa";
 
 type PaymentScheduleItem = {
@@ -240,7 +242,7 @@ export function CiospCommercialDashboard({ tenantId }: { tenantId: string }) {
                         </td>
                         <td className="px-4 py-3">
                           <span className="rounded-full border border-border px-2 py-1 text-xs">
-                            {order.awaiting_pix ? "Aguardando Pix" : order.status}
+                            {formatOrderStatus(order.status, order.awaiting_pix)}
                           </span>
                         </td>
                         <td className="px-4 py-3 tabular-nums">
