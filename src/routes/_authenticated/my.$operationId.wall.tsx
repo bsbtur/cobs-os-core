@@ -123,7 +123,7 @@ function WallPostCard({
   operationId: string;
   readOnly: boolean;
   locale: keyof typeof COPY;
-  timeZone?: string;
+  timeZone?: string | undefined;
 }) {
   const copy = COPY[locale];
   const queryClient = useQueryClient();
