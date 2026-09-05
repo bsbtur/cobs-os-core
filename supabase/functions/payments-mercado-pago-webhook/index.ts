@@ -230,6 +230,11 @@ Deno.serve(async (req: Request) => {
       _provider_reference: reference,
     });
     if (confirmError) return json({ error: "order_confirmation_failed", details: confirmError.message }, 500);
+    const { error: sessionError } = await admin.from("public_checkout_sessions")
+      .update({ status: "consumed", updated_at: now })
+      .eq("order_id", charge.order_id)
+      .eq("status", "active");
+    if (sessionError) return json({ error: "checkout_session_consume_failed", details: sessionError.message }, 500);
   }
 
   await admin.from("payment_events").update({ processed_at: now, processing_error: null })
