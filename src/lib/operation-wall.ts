@@ -13,6 +13,7 @@ const bool = (value: unknown): boolean => value === true;
 
 export const WALL_REACTIONS = ["heart", "clap", "fire", "wow"] as const;
 export type WallReaction = (typeof WALL_REACTIONS)[number];
+export type WallPostKind = "post" | "poll";
 
 export type WallComment = {
   commentId: string;
@@ -32,7 +33,7 @@ export type WallPollOption = {
 
 export type WallPost = {
   postId: string;
-  kind: "post" | "poll";
+  kind: WallPostKind;
   body: string;
   publishedAt: string | null;
   authorLabel: string;
@@ -100,6 +101,20 @@ async function command(fn: string, args: Record<string, unknown>) {
   const { data, error } = await rpc(fn, args);
   if (error) throw toPortalError(error);
   return data;
+}
+
+export function createWallPost(
+  operationId: string,
+  body: string,
+  kind: WallPostKind,
+  pollOptions: string[] = [],
+) {
+  return command("create_operation_wall_post", {
+    _operation_id: operationId,
+    _body: body,
+    _kind: kind,
+    _poll_options: pollOptions,
+  });
 }
 
 export function addWallComment(postId: string, body: string) {
