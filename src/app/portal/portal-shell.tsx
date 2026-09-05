@@ -6,6 +6,7 @@ import {
   BedDouble,
   Home,
   Megaphone,
+  MessageCircleHeart,
   MoreHorizontal,
   Ticket,
   Globe,
@@ -28,36 +29,20 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-/**
- * COBS OS · W10 — PortalShell.
- *
- * A participant surface, deliberately NOT the operator AppShell:
- * no rail, no command palette, no tenant switcher, no admin destinations.
- * Mobile-first; on desktop it stays a centered reading surface.
- */
-
-type TabId = "home" | "journey" | "mobility" | "stay" | "events" | "messages";
+/** Participant surface: mobile-first, no operator/admin destinations. */
+type TabId = "home" | "journey" | "mobility" | "stay" | "events" | "messages" | "wall";
 
 const PRIMARY: Array<{ id: TabId; icon: typeof Home; labelKey: string; to: string }> = [
   { id: "home", icon: Home, labelKey: "w10.nav.home", to: "/my/$operationId" },
-  {
-    id: "journey",
-    icon: CalendarDays,
-    labelKey: "w10.nav.journey",
-    to: "/my/$operationId/journey",
-  },
+  { id: "journey", icon: CalendarDays, labelKey: "w10.nav.journey", to: "/my/$operationId/journey" },
   { id: "mobility", icon: Bus, labelKey: "w10.nav.mobility", to: "/my/$operationId/mobility" },
   { id: "stay", icon: BedDouble, labelKey: "w10.nav.stay", to: "/my/$operationId/stay" },
 ];
 
 const SECONDARY: Array<{ id: TabId; icon: typeof Home; labelKey: string; to: string }> = [
+  { id: "wall", icon: MessageCircleHeart, labelKey: "w10.nav.wall", to: "/my/$operationId/wall" },
   { id: "events", icon: Ticket, labelKey: "w10.nav.events", to: "/my/$operationId/events" },
-  {
-    id: "messages",
-    icon: Megaphone,
-    labelKey: "w10.nav.messages",
-    to: "/my/$operationId/messages",
-  },
+  { id: "messages", icon: Megaphone, labelKey: "w10.nav.messages", to: "/my/$operationId/messages" },
 ];
 
 function AccountMenu() {
@@ -69,12 +54,7 @@ function AccountMenu() {
     <div className="flex shrink-0 items-center gap-1">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-11"
-            aria-label={t("w10.nav.language")}
-          >
+          <Button variant="ghost" size="icon" className="size-11" aria-label={t("w10.nav.language")}>
             <Globe className="size-5" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
@@ -94,46 +74,24 @@ function AccountMenu() {
         aria-label={t("w10.nav.theme")}
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       >
-        {theme === "dark" ? (
-          <Sun className="size-5" aria-hidden="true" />
-        ) : (
-          <Moon className="size-5" aria-hidden="true" />
-        )}
+        {theme === "dark" ? <Sun className="size-5" aria-hidden="true" /> : <Moon className="size-5" aria-hidden="true" />}
       </Button>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-11"
-        aria-label={t("w10.nav.signOut")}
-        onClick={() => void signOut()}
-      >
+      <Button variant="ghost" size="icon" className="size-11" aria-label={t("w10.nav.signOut")} onClick={() => void signOut()}>
         <LogOut className="size-5" aria-hidden="true" />
       </Button>
     </div>
   );
 }
 
-export function PortalFrame({
-  title,
-  back,
-  children,
-}: {
-  title: string;
-  back?: { to: string; label: string };
-  children: React.ReactNode;
-}) {
+export function PortalFrame({ title, back, children }: { title: string; back?: { to: string; label: string }; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto grid w-full max-w-3xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2">
           <div className="flex min-w-0 items-center gap-2">
             {back ? (
-              <Link
-                to={back.to}
-                aria-label={back.label}
-                className="grid size-11 shrink-0 place-items-center rounded-lg text-muted-foreground hover:text-foreground"
-              >
+              <Link to={back.to} aria-label={back.label} className="grid size-11 shrink-0 place-items-center rounded-lg text-muted-foreground hover:text-foreground">
                 <ChevronLeft className="size-5" aria-hidden="true" />
               </Link>
             ) : null}
@@ -147,20 +105,12 @@ export function PortalFrame({
   );
 }
 
-export function PortalShell({
-  operationId,
-  title,
-  active,
-  children,
-}: {
-  operationId: string;
-  title: string;
-  active: TabId;
-  children: React.ReactNode;
-}) {
-  const { t } = useI18n();
+export function PortalShell({ operationId, title, active, children }: { operationId: string; title: string; active: TabId; children: React.ReactNode }) {
+  const { t, locale } = useI18n();
   const [moreOpen, setMoreOpen] = React.useState(false);
   const navigate = useNavigate();
+  const wallLabel = locale === "en-US" ? "Wall" : "Mural";
+  const label = (tab: (typeof SECONDARY)[number] | (typeof PRIMARY)[number]) => tab.id === "wall" ? wallLabel : t(tab.labelKey);
 
   const tabClass = (isActive: boolean) =>
     cn(
@@ -173,11 +123,7 @@ export function PortalShell({
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto grid w-full max-w-3xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2">
           <div className="flex min-w-0 items-center gap-2">
-            <Link
-              to="/my"
-              aria-label={t("w10.portal.back")}
-              className="grid size-11 shrink-0 place-items-center rounded-lg text-muted-foreground hover:text-foreground"
-            >
+            <Link to="/my" aria-label={t("w10.portal.back")} className="grid size-11 shrink-0 place-items-center rounded-lg text-muted-foreground hover:text-foreground">
               <ChevronLeft className="size-5" aria-hidden="true" />
             </Link>
             <h1 className="truncate text-base font-semibold text-foreground">{title}</h1>
@@ -185,7 +131,6 @@ export function PortalShell({
           <AccountMenu />
         </div>
 
-        {/* Desktop: inline tabs instead of a bottom bar. No admin destinations. */}
         <nav className="mx-auto hidden w-full max-w-3xl gap-1 px-4 pb-2 lg:flex">
           {[...PRIMARY, ...SECONDARY].map((tab) => (
             <Link
@@ -194,12 +139,10 @@ export function PortalShell({
               params={{ operationId }}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm",
-                active === tab.id
-                  ? "bg-primary-soft text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                active === tab.id ? "bg-primary-soft text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {t(tab.labelKey)}
+              {label(tab)}
             </Link>
           ))}
         </nav>
@@ -207,31 +150,18 @@ export function PortalShell({
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-4 lg:pb-12">{children}</main>
 
-      {/* Mobile: 4 primary destinations + Mais. Never the operator tab bar. */}
-      <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
-        aria-label={t("w10.portal.brand")}
-      >
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label={t("w10.portal.brand")}>
         <div className="mx-auto flex w-full max-w-3xl items-stretch gap-0.5 px-1 py-1">
           {PRIMARY.map((tab) => {
             const Icon = tab.icon;
             return (
-              <Link
-                key={tab.id}
-                to={tab.to}
-                params={{ operationId }}
-                className={tabClass(active === tab.id)}
-              >
+              <Link key={tab.id} to={tab.to} params={{ operationId }} className={tabClass(active === tab.id)}>
                 <Icon className="size-5 shrink-0" aria-hidden="true" />
-                <span className="w-full truncate text-center">{t(tab.labelKey)}</span>
+                <span className="w-full truncate text-center">{label(tab)}</span>
               </Link>
             );
           })}
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            className={tabClass(active === "events" || active === "messages")}
-          >
+          <button type="button" onClick={() => setMoreOpen(true)} className={tabClass(SECONDARY.some((tab) => tab.id === active))}>
             <MoreHorizontal className="size-5 shrink-0" aria-hidden="true" />
             <span className="w-full truncate text-center">{t("w10.nav.more")}</span>
           </button>
@@ -257,7 +187,7 @@ export function PortalShell({
                   }}
                 >
                   <Icon className="size-5 shrink-0" aria-hidden="true" />
-                  <span className="min-w-0 truncate">{t(tab.labelKey)}</span>
+                  <span className="min-w-0 truncate">{label(tab)}</span>
                 </button>
               );
             })}
