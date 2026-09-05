@@ -85,7 +85,6 @@ Deno.serve(async (req: Request) => {
   const accessToken = isTest ? MP_TEST_ACCESS_TOKEN : MP_ACCESS_TOKEN;
   const candidateSecrets = [...new Set((isTest ? [MP_TEST_WEBHOOK_SECRET, MP_WEBHOOK_SECRET] : [MP_WEBHOOK_SECRET])
     .filter((v): v is string => Boolean(v)).map((v) => v.trim()).filter(Boolean))];
-  if (!accessToken) return json({ error: "server_not_configured", environment }, 500);
 
   const url = new URL(req.url);
   const queryDataId = url.searchParams.get("data.id") ?? url.searchParams.get("data_id");
@@ -106,6 +105,8 @@ Deno.serve(async (req: Request) => {
     if (!signatureValid) return json({ error: "simulation_requires_signature" }, 401);
     return json({ ok: true, simulated: true, signature_valid: true, auth_method: "hmac", environment });
   }
+
+  if (!accessToken) return json({ error: "server_not_configured", environment }, 500);
 
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
   const providerResponse = await fetch(`https://api.mercadopago.com/v1/orders/${encodeURIComponent(dataId)}`, {
