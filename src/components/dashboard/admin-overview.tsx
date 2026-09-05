@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { AdminAuditTrail, type AdminAuditEvent } from "@/components/admin/audit-trail";
+import { CiospCommercialDashboard } from "@/components/dashboard/ciosp-commercial-dashboard";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PanelSkeleton } from "@/components/feedback/loading";
@@ -163,6 +164,8 @@ export function AdminOverview() {
           </div>
         )}
       </section>
+
+      {tenantId ? <CiospCommercialDashboard tenantId={tenantId} /> : null}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <article className="surface-panel p-5">
