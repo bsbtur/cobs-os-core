@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as Ciosp2027RouteImport } from './routes/ciosp-2027'
 import { Route as ClaimAccountMismatchRouteImport } from './routes/claim-account-mismatch'
+import { Route as PrivacidadeCiosp2027RouteImport } from './routes/privacidade-ciosp-2027'
+import { Route as TermosCiosp2027RouteImport } from './routes/termos-ciosp-2027'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedMyRouteImport } from './routes/_authenticated/my'
@@ -21,6 +23,8 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated/people'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as Ciosp2027ReservaRouteImport } from './routes/ciosp-2027_.reserva'
 import { Route as AuthenticatedBlueprintsIndexRouteImport } from './routes/_authenticated/blueprints.index'
 import { Route as AuthenticatedBlueprintsBlueprintIdRouteImport } from './routes/_authenticated/blueprints.$blueprintId'
 import { Route as AuthenticatedCommerceIndexRouteImport } from './routes/_authenticated/commerce.index'
@@ -40,6 +44,7 @@ import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authe
 import { Route as ApiPaymentsAttemptsRouteImport } from './routes/api/payments.attempts'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedMyOperationIdIndexRouteImport } from './routes/_authenticated/my.$operationId.index'
+import { Route as AuthenticatedMyOperationIdAssistantRouteImport } from './routes/_authenticated/my.$operationId.assistant'
 import { Route as AuthenticatedMyOperationIdEventsRouteImport } from './routes/_authenticated/my.$operationId.events'
 import { Route as AuthenticatedMyOperationIdJourneyRouteImport } from './routes/_authenticated/my.$operationId.journey'
 import { Route as AuthenticatedMyOperationIdMessagesRouteImport } from './routes/_authenticated/my.$operationId.messages'
@@ -48,8 +53,10 @@ import { Route as AuthenticatedMyOperationIdStayRouteImport } from './routes/_au
 import { Route as AuthenticatedMyClaimTokenRouteImport } from './routes/_authenticated/my.claim.$token'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
 import { Route as AuthenticatedOperationsOperationIdCommunicationRouteImport } from './routes/_authenticated/operations.$operationId.communication'
+import { Route as AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport } from './routes/_authenticated/operations.$operationId.event-schedule-precision'
 import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './routes/_authenticated/operations.$operationId.events'
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
+import { Route as AuthenticatedOperationsOperationIdIncidentsRouteImport } from './routes/_authenticated/operations.$operationId.incidents'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
 import { Route as AuthenticatedOperationsOperationIdMobilityRouteImport } from './routes/_authenticated/operations.$operationId.mobility'
@@ -78,6 +85,16 @@ const Ciosp2027Route = Ciosp2027RouteImport.update({
 const ClaimAccountMismatchRoute = ClaimAccountMismatchRouteImport.update({
   id: '/claim-account-mismatch',
   path: '/claim-account-mismatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeCiosp2027Route = PrivacidadeCiosp2027RouteImport.update({
+  id: '/privacidade-ciosp-2027',
+  path: '/privacidade-ciosp-2027',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosCiosp2027Route = TermosCiosp2027RouteImport.update({
+  id: '/termos-ciosp-2027',
+  path: '/termos-ciosp-2027',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -114,6 +131,16 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Ciosp2027ReservaRoute = Ciosp2027ReservaRouteImport.update({
+  id: '/ciosp-2027_/reserva',
+  path: '/ciosp-2027/reserva',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedBlueprintsIndexRoute =
   AuthenticatedBlueprintsIndexRouteImport.update({
@@ -226,6 +253,12 @@ const AuthenticatedMyOperationIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMyOperationIdRoute,
   } as any)
+const AuthenticatedMyOperationIdAssistantRoute =
+  AuthenticatedMyOperationIdAssistantRouteImport.update({
+    id: '/assistant',
+    path: '/assistant',
+    getParentRoute: () => AuthenticatedMyOperationIdRoute,
+  } as any)
 const AuthenticatedMyOperationIdEventsRoute =
   AuthenticatedMyOperationIdEventsRouteImport.update({
     id: '/events',
@@ -274,6 +307,12 @@ const AuthenticatedOperationsOperationIdCommunicationRoute =
     path: '/communication',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute =
+  AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport.update({
+    id: '/event-schedule-precision',
+    path: '/event-schedule-precision',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdEventsRoute =
   AuthenticatedOperationsOperationIdEventsRouteImport.update({
     id: '/events',
@@ -284,6 +323,12 @@ const AuthenticatedOperationsOperationIdHospitalityRoute =
   AuthenticatedOperationsOperationIdHospitalityRouteImport.update({
     id: '/hospitality',
     path: '/hospitality',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdIncidentsRoute =
+  AuthenticatedOperationsOperationIdIncidentsRouteImport.update({
+    id: '/incidents',
+    path: '/incidents',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
 const AuthenticatedOperationsOperationIdJourneyRoute =
@@ -322,6 +367,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/ciosp-2027': typeof Ciosp2027Route
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
+  '/privacidade-ciosp-2027': typeof PrivacidadeCiosp2027Route
+  '/termos-ciosp-2027': typeof TermosCiosp2027Route
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/my': typeof AuthenticatedMyRouteWithChildren
@@ -329,6 +376,8 @@ export interface FileRoutesByFullPath {
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/api/health': typeof ApiHealthRoute
+  '/ciosp-2027/reserva': typeof Ciosp2027ReservaRoute
   '/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
@@ -347,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/my/': typeof AuthenticatedMyIndexRoute
   '/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/my/$operationId/assistant': typeof AuthenticatedMyOperationIdAssistantRoute
   '/my/$operationId/events': typeof AuthenticatedMyOperationIdEventsRoute
   '/my/$operationId/journey': typeof AuthenticatedMyOperationIdJourneyRoute
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
@@ -354,8 +404,10 @@ export interface FileRoutesByFullPath {
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
   '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
+  '/operations/$operationId/incidents': typeof AuthenticatedOperationsOperationIdIncidentsRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -369,12 +421,16 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/ciosp-2027': typeof Ciosp2027Route
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
+  '/privacidade-ciosp-2027': typeof PrivacidadeCiosp2027Route
+  '/termos-ciosp-2027': typeof TermosCiosp2027Route
   '/app': typeof AuthenticatedAppRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/api/health': typeof ApiHealthRoute
+  '/ciosp-2027/reserva': typeof Ciosp2027ReservaRoute
   '/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
@@ -391,6 +447,7 @@ export interface FileRoutesByTo {
   '/experiences': typeof AuthenticatedExperiencesIndexRoute
   '/my': typeof AuthenticatedMyIndexRoute
   '/operations': typeof AuthenticatedOperationsIndexRoute
+  '/my/$operationId/assistant': typeof AuthenticatedMyOperationIdAssistantRoute
   '/my/$operationId/events': typeof AuthenticatedMyOperationIdEventsRoute
   '/my/$operationId/journey': typeof AuthenticatedMyOperationIdJourneyRoute
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
@@ -398,8 +455,10 @@ export interface FileRoutesByTo {
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
   '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
+  '/operations/$operationId/incidents': typeof AuthenticatedOperationsOperationIdIncidentsRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -415,6 +474,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/ciosp-2027': typeof Ciosp2027Route
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
+  '/privacidade-ciosp-2027': typeof PrivacidadeCiosp2027Route
+  '/termos-ciosp-2027': typeof TermosCiosp2027Route
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/my': typeof AuthenticatedMyRouteWithChildren
@@ -422,6 +483,8 @@ export interface FileRoutesById {
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/api/health': typeof ApiHealthRoute
+  '/ciosp-2027_/reserva': typeof Ciosp2027ReservaRoute
   '/_authenticated/blueprints/$blueprintId': typeof AuthenticatedBlueprintsBlueprintIdRoute
   '/_authenticated/commerce/$orderId': typeof AuthenticatedCommerceOrderIdRoute
   '/_authenticated/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
@@ -440,6 +503,7 @@ export interface FileRoutesById {
   '/_authenticated/experiences/': typeof AuthenticatedExperiencesIndexRoute
   '/_authenticated/my/': typeof AuthenticatedMyIndexRoute
   '/_authenticated/operations/': typeof AuthenticatedOperationsIndexRoute
+  '/_authenticated/my/$operationId/assistant': typeof AuthenticatedMyOperationIdAssistantRoute
   '/_authenticated/my/$operationId/events': typeof AuthenticatedMyOperationIdEventsRoute
   '/_authenticated/my/$operationId/journey': typeof AuthenticatedMyOperationIdJourneyRoute
   '/_authenticated/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
@@ -447,8 +511,10 @@ export interface FileRoutesById {
   '/_authenticated/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
   '/_authenticated/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/_authenticated/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/_authenticated/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
+  '/_authenticated/operations/$operationId/incidents': typeof AuthenticatedOperationsOperationIdIncidentsRoute
   '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/_authenticated/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -464,6 +530,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/ciosp-2027'
     | '/claim-account-mismatch'
+    | '/privacidade-ciosp-2027'
+    | '/termos-ciosp-2027'
     | '/app'
     | '/inbox'
     | '/my'
@@ -471,6 +539,8 @@ export interface FileRouteTypes {
     | '/people'
     | '/settings'
     | '/team'
+    | '/api/health'
+    | '/ciosp-2027/reserva'
     | '/blueprints/$blueprintId'
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
@@ -489,6 +559,7 @@ export interface FileRouteTypes {
     | '/experiences/'
     | '/my/'
     | '/operations/'
+    | '/my/$operationId/assistant'
     | '/my/$operationId/events'
     | '/my/$operationId/journey'
     | '/my/$operationId/messages'
@@ -496,8 +567,10 @@ export interface FileRouteTypes {
     | '/my/$operationId/stay'
     | '/my/claim/$token'
     | '/operations/$operationId/communication'
+    | '/operations/$operationId/event-schedule-precision'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
+    | '/operations/$operationId/incidents'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
@@ -511,12 +584,16 @@ export interface FileRouteTypes {
     | '/auth'
     | '/ciosp-2027'
     | '/claim-account-mismatch'
+    | '/privacidade-ciosp-2027'
+    | '/termos-ciosp-2027'
     | '/app'
     | '/inbox'
     | '/onboarding'
     | '/people'
     | '/settings'
     | '/team'
+    | '/api/health'
+    | '/ciosp-2027/reserva'
     | '/blueprints/$blueprintId'
     | '/commerce/$orderId'
     | '/experiences/$experienceId'
@@ -533,6 +610,7 @@ export interface FileRouteTypes {
     | '/experiences'
     | '/my'
     | '/operations'
+    | '/my/$operationId/assistant'
     | '/my/$operationId/events'
     | '/my/$operationId/journey'
     | '/my/$operationId/messages'
@@ -540,8 +618,10 @@ export interface FileRouteTypes {
     | '/my/$operationId/stay'
     | '/my/claim/$token'
     | '/operations/$operationId/communication'
+    | '/operations/$operationId/event-schedule-precision'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
+    | '/operations/$operationId/incidents'
     | '/operations/$operationId/journey'
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
@@ -556,6 +636,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/ciosp-2027'
     | '/claim-account-mismatch'
+    | '/privacidade-ciosp-2027'
+    | '/termos-ciosp-2027'
     | '/_authenticated/app'
     | '/_authenticated/inbox'
     | '/_authenticated/my'
@@ -563,6 +645,8 @@ export interface FileRouteTypes {
     | '/_authenticated/people'
     | '/_authenticated/settings'
     | '/_authenticated/team'
+    | '/api/health'
+    | '/ciosp-2027_/reserva'
     | '/_authenticated/blueprints/$blueprintId'
     | '/_authenticated/commerce/$orderId'
     | '/_authenticated/experiences/$experienceId'
@@ -581,6 +665,7 @@ export interface FileRouteTypes {
     | '/_authenticated/experiences/'
     | '/_authenticated/my/'
     | '/_authenticated/operations/'
+    | '/_authenticated/my/$operationId/assistant'
     | '/_authenticated/my/$operationId/events'
     | '/_authenticated/my/$operationId/journey'
     | '/_authenticated/my/$operationId/messages'
@@ -588,8 +673,10 @@ export interface FileRouteTypes {
     | '/_authenticated/my/$operationId/stay'
     | '/_authenticated/my/claim/$token'
     | '/_authenticated/operations/$operationId/communication'
+    | '/_authenticated/operations/$operationId/event-schedule-precision'
     | '/_authenticated/operations/$operationId/events'
     | '/_authenticated/operations/$operationId/hospitality'
+    | '/_authenticated/operations/$operationId/incidents'
     | '/_authenticated/operations/$operationId/journey'
     | '/_authenticated/operations/$operationId/live'
     | '/_authenticated/operations/$operationId/mobility'
@@ -605,6 +692,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   Ciosp2027Route: typeof Ciosp2027Route
   ClaimAccountMismatchRoute: typeof ClaimAccountMismatchRoute
+  PrivacidadeCiosp2027Route: typeof PrivacidadeCiosp2027Route
+  TermosCiosp2027Route: typeof TermosCiosp2027Route
+  ApiHealthRoute: typeof ApiHealthRoute
+  Ciosp2027ReservaRoute: typeof Ciosp2027ReservaRoute
   ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsMercadopagoRoute: typeof ApiPublicPaymentsMercadopagoRoute
@@ -645,6 +736,20 @@ declare module '@tanstack/react-router' {
       path: '/claim-account-mismatch'
       fullPath: '/claim-account-mismatch'
       preLoaderRoute: typeof ClaimAccountMismatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade-ciosp-2027': {
+      id: '/privacidade-ciosp-2027'
+      path: '/privacidade-ciosp-2027'
+      fullPath: '/privacidade-ciosp-2027'
+      preLoaderRoute: typeof PrivacidadeCiosp2027RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos-ciosp-2027': {
+      id: '/termos-ciosp-2027'
+      path: '/termos-ciosp-2027'
+      fullPath: '/termos-ciosp-2027'
+      preLoaderRoute: typeof TermosCiosp2027RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -695,6 +800,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/team'
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ciosp-2027_/reserva': {
+      id: '/ciosp-2027_/reserva'
+      path: '/ciosp-2027/reserva'
+      fullPath: '/ciosp-2027/reserva'
+      preLoaderRoute: typeof Ciosp2027ReservaRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/blueprints/': {
       id: '/_authenticated/blueprints/'
@@ -829,6 +948,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyOperationIdIndexRouteImport
       parentRoute: typeof AuthenticatedMyOperationIdRoute
     }
+    '/_authenticated/my/$operationId/assistant': {
+      id: '/_authenticated/my/$operationId/assistant'
+      path: '/assistant'
+      fullPath: '/my/$operationId/assistant'
+      preLoaderRoute: typeof AuthenticatedMyOperationIdAssistantRouteImport
+      parentRoute: typeof AuthenticatedMyOperationIdRoute
+    }
     '/_authenticated/my/$operationId/events': {
       id: '/_authenticated/my/$operationId/events'
       path: '/events'
@@ -885,6 +1011,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdCommunicationRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/event-schedule-precision': {
+      id: '/_authenticated/operations/$operationId/event-schedule-precision'
+      path: '/event-schedule-precision'
+      fullPath: '/operations/$operationId/event-schedule-precision'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
     '/_authenticated/operations/$operationId/events': {
       id: '/_authenticated/operations/$operationId/events'
       path: '/events'
@@ -897,6 +1030,13 @@ declare module '@tanstack/react-router' {
       path: '/hospitality'
       fullPath: '/operations/$operationId/hospitality'
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdHospitalityRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/incidents': {
+      id: '/_authenticated/operations/$operationId/incidents'
+      path: '/incidents'
+      fullPath: '/operations/$operationId/incidents'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdIncidentsRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
     '/_authenticated/operations/$operationId/journey': {
@@ -938,6 +1078,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedMyOperationIdRouteChildren {
+  AuthenticatedMyOperationIdAssistantRoute: typeof AuthenticatedMyOperationIdAssistantRoute
   AuthenticatedMyOperationIdEventsRoute: typeof AuthenticatedMyOperationIdEventsRoute
   AuthenticatedMyOperationIdJourneyRoute: typeof AuthenticatedMyOperationIdJourneyRoute
   AuthenticatedMyOperationIdMessagesRoute: typeof AuthenticatedMyOperationIdMessagesRoute
@@ -948,6 +1089,8 @@ interface AuthenticatedMyOperationIdRouteChildren {
 
 const AuthenticatedMyOperationIdRouteChildren: AuthenticatedMyOperationIdRouteChildren =
   {
+    AuthenticatedMyOperationIdAssistantRoute:
+      AuthenticatedMyOperationIdAssistantRoute,
     AuthenticatedMyOperationIdEventsRoute:
       AuthenticatedMyOperationIdEventsRoute,
     AuthenticatedMyOperationIdJourneyRoute:
@@ -983,8 +1126,10 @@ const AuthenticatedMyRouteWithChildren = AuthenticatedMyRoute._addFileChildren(
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
   AuthenticatedOperationsOperationIdCommunicationRoute: typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute: typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   AuthenticatedOperationsOperationIdEventsRoute: typeof AuthenticatedOperationsOperationIdEventsRoute
   AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
+  AuthenticatedOperationsOperationIdIncidentsRoute: typeof AuthenticatedOperationsOperationIdIncidentsRoute
   AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
   AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
   AuthenticatedOperationsOperationIdMobilityRoute: typeof AuthenticatedOperationsOperationIdMobilityRoute
@@ -996,10 +1141,14 @@ const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOp
   {
     AuthenticatedOperationsOperationIdCommunicationRoute:
       AuthenticatedOperationsOperationIdCommunicationRoute,
+    AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute:
+      AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute,
     AuthenticatedOperationsOperationIdEventsRoute:
       AuthenticatedOperationsOperationIdEventsRoute,
     AuthenticatedOperationsOperationIdHospitalityRoute:
       AuthenticatedOperationsOperationIdHospitalityRoute,
+    AuthenticatedOperationsOperationIdIncidentsRoute:
+      AuthenticatedOperationsOperationIdIncidentsRoute,
     AuthenticatedOperationsOperationIdJourneyRoute:
       AuthenticatedOperationsOperationIdJourneyRoute,
     AuthenticatedOperationsOperationIdLiveRoute:
@@ -1078,6 +1227,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   Ciosp2027Route: Ciosp2027Route,
   ClaimAccountMismatchRoute: ClaimAccountMismatchRoute,
+  PrivacidadeCiosp2027Route: PrivacidadeCiosp2027Route,
+  TermosCiosp2027Route: TermosCiosp2027Route,
+  ApiHealthRoute: ApiHealthRoute,
+  Ciosp2027ReservaRoute: Ciosp2027ReservaRoute,
   ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsMercadopagoRoute: ApiPublicPaymentsMercadopagoRoute,

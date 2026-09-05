@@ -40,6 +40,9 @@ import { feedback } from "@/components/feedback/feedback";
  * Financial values are DERIVED from an append-only fact stream; nothing is editable.
  */
 export const Route = createFileRoute("/_authenticated/commerce/$orderId")({
+  validateSearch: (search: Record<string, unknown>): { environment: "production" | "qa" } => ({
+    environment: search["environment"] === "qa" ? "qa" : "production",
+  }),
   head: () => ({
     meta: [
       { title: "Order detail — items, holds and verified payments in COBS OS" },
@@ -424,7 +427,13 @@ function FactRow({ fact, onDone }: { fact: OrderDetailFact; onDone: () => void }
   );
 }
 
-function OrderWorkspace({ orderId }: { orderId: string }) {
+function OrderWorkspace({
+  orderId,
+  environment,
+}: {
+  orderId: string;
+  environment: "production" | "qa";
+}) {
   const { t, locale } = useI18n();
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
@@ -522,7 +531,7 @@ function OrderWorkspace({ orderId }: { orderId: string }) {
     <div className="space-y-6">
       <div>
         <Button asChild variant="ghost" className="min-h-11 px-2">
-          <Link to="/commerce">
+          <Link to="/commerce" search={{ environment }}>
             <ArrowLeft className="mr-2 size-4" aria-hidden />
             {t("w09.order.back")}
           </Link>
@@ -813,10 +822,11 @@ function OrderWorkspace({ orderId }: { orderId: string }) {
 function OrderDetailPage() {
   const { t } = useI18n();
   const { orderId } = Route.useParams();
+  const { environment } = Route.useSearch();
   return (
     <AppShell activeId="commerce" title={t("w09.order")}>
       <RequireTenant>
-        <OrderWorkspace orderId={orderId} />
+        <OrderWorkspace orderId={orderId} environment={environment} />
       </RequireTenant>
     </AppShell>
   );

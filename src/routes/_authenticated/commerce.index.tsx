@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Receipt, ShoppingBag } from "lucide-react";
 
@@ -32,6 +32,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
  * ORDER != PAYMENT. COBS records manually verified money; it never processes it.
  */
 export const Route = createFileRoute("/_authenticated/commerce/")({
+  validateSearch: (search: Record<string, unknown>): { environment: CommerceEnvironment } => ({
+    environment: search["environment"] === "qa" ? "qa" : "production",
+  }),
   head: () => ({
     meta: [
       { title: "Commerce — orders and manual payment records in COBS OS" },
@@ -55,6 +58,7 @@ export const Route = createFileRoute("/_authenticated/commerce/")({
 
 type PersonOption = { id: string; full_name: string };
 type OperationOption = { id: string; name: string; code: string };
+type CommerceEnvironment = "production" | "qa";
 
 function NewOrderForm({ tenantId, onDone }: { tenantId: string; onDone: () => void }) {
   const { t, locale } = useI18n();
@@ -188,17 +192,23 @@ function CommerceWorkspace() {
   const { t, locale } = useI18n();
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { environment } = Route.useSearch();
   const [status, setStatus] = React.useState<OrderStatus | "">("");
   const [open, setOpen] = React.useState(false);
 
   const tenantId = tenant!.id;
 
   const orders = useQuery({
-    queryKey: ["w09", "orders", tenantId, status],
+    queryKey: ["w09", "orders", tenantId, environment, status],
     queryFn: async () => {
       const { data, error } = await supabase.rpc(
-        "list_orders",
-        rpcArgs({ _tenant_id: tenantId, _status: status || undefined }),
+        "list_orders_by_environment",
+        rpcArgs({
+          _tenant_id: tenantId,
+          _environment: environment,
+          _status: status || undefined,
+        }),
       );
       if (error) throw error;
       return (data ?? []) as unknown as OrderListRow[];
@@ -226,6 +236,39 @@ function CommerceWorkspace() {
         <p className="text-xs text-muted-foreground">{t("w09.boundary")}</p>
       </header>
 
+      <div className="rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <Label htmlFor="commerce-environment">Ambiente obrigatório</Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Produção e QA nunca são exibidos na mesma lista.
+            </p>
+          </div>
+          <select
+            id="commerce-environment"
+            className="h-11 rounded-md border border-border bg-background px-3 text-sm font-medium"
+            value={environment}
+            onChange={(event) => {
+              const nextEnvironment = event.target.value as CommerceEnvironment;
+              void navigate({
+                to: "/commerce",
+                search: { environment: nextEnvironment },
+                replace: true,
+              });
+            }}
+          >
+            <option value="production">Produção</option>
+            <option value="qa">QA / testes</option>
+          </select>
+        </div>
+        {environment === "qa" ? (
+          <p className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+            Ambiente QA: pedidos, valores e vagas desta lista não entram nos indicadores de
+            produção.
+          </p>
+        ) : null}
+      </div>
+
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="order-filter">{t("w09.orders.filter")}</Label>
@@ -243,7 +286,7 @@ function CommerceWorkspace() {
             ))}
           </select>
         </div>
-        <Button className="min-h-11" onClick={() => setOpen(true)}>
+        <Button className="min-h-11" disabled={environment === "qa"} onClick={() => setOpen(true)}>
           <Plus className="mr-2 size-4" aria-hidden />
           {t("w09.orders.new")}
         </Button>
@@ -261,6 +304,7 @@ function CommerceWorkspace() {
               <Link
                 to="/commerce/$orderId"
                 params={{ orderId: o.id }}
+                search={{ environment }}
                 className="block min-w-0 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-elevated"
               >
                 <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
