@@ -197,6 +197,14 @@ function OperationWorkspace() {
             </Link>
             <Link
               from="/operations/$operationId"
+              to="/operations/$operationId/wall"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              Mural
+            </Link>
+            <Link
+              from="/operations/$operationId"
               to="/operations/$operationId/incidents"
               className={TAB_CLASS}
               activeProps={{ className: "bg-primary-soft !text-primary" }}
