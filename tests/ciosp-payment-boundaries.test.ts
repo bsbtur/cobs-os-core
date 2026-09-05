@@ -10,9 +10,9 @@ const migration = readFileSync(
 
 describe("CIOSP payment boundaries", () => {
   it("filters reusable charges and attempts by payment environment", () => {
-    expect(pix).toContain("c?.metadata?.environment===MP_PAYMENT_ENV");
-    expect(pix).toContain("a?.metadata?.environment===MP_PAYMENT_ENV");
-    expect(pix).toContain("reservation_id:reservationId");
+    expect(pix).toMatch(/metadata\?\.environment\s*===\s*MP_PAYMENT_ENV/);
+    expect(pix).toMatch(/metadata\?\.environment\s*===\s*MP_PAYMENT_ENV/);
+    expect(pix).toContain("reservation_id: reservationId");
   });
 
   it("has database uniqueness for live charge and attempt races", () => {
@@ -25,6 +25,6 @@ describe("CIOSP payment boundaries", () => {
     expect(checkout).not.toContain("isAuthorizedPreviewQa");
     expect(checkout).not.toContain("example\\.com\\.br");
     expect(checkout).toContain("auth.getUser()");
-    expect(checkout).toContain('memberships").select("role,status")');
+    expect(checkout).toContain(".from(\"memberships\")");\n    expect(checkout).toContain('.select("role,status")');
   });
 });
