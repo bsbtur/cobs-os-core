@@ -81,8 +81,7 @@ Deno.serve(async (req: Request) => {
     if (!operation) return json({ error: "operation_not_found" }, 409);
     if (!items?.length) return json({ error: "order_items_required" }, 409);
     if (!template) return json({ error: "active_template_not_found" }, 409);
-    if (!template.legal_reviewed_at || !template.provider_template_id)
-      return json({ error: "template_not_ready" }, 409);
+    if (!template.legal_reviewed_at) return json({ error: "template_not_ready" }, 409);
 
     const { data: existing, error: existingError } = await admin
       .from("customer_contracts")
@@ -177,6 +176,19 @@ Deno.serve(async (req: Request) => {
       })
       .select("id,status,template_key,template_version")
       .single();
+    if (createError?.code === "23505") {
+      const { data: raced, error: racedError } = await admin
+        .from("customer_contracts")
+        .select("id,status,template_key,template_version")
+        .eq("tenant_id", order.tenant_id)
+        .eq("order_id", order.id)
+        .eq("template_key", template.template_key)
+        .eq("template_version", template.version)
+        .in("status", ["draft", "sent", "viewed", "signed"])
+        .maybeSingle();
+      if (racedError || !raced) return json({ error: "contract_create_conflict" }, 409);
+      return json({ ok: true, idempotent: true, contract_id: raced.id, status: raced.status, template_key: raced.template_key, template_version: raced.template_version });
+    }
     if (createError || !contract) return json({ error: "contract_create_failed" }, 500);
 
     const { error: eventError } = await admin.from("contract_events").insert({
