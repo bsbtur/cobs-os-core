@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId")(
 });
 
 const TAB_CLASS =
-  "inline-flex min-h-11 items-center rounded-lg px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground";
+  "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground";
 
 function TerminalLiveRecord({
   operationId,
@@ -149,6 +149,14 @@ function OperationWorkspace() {
             </Link>
             <Link
               from="/operations/$operationId"
+              to="/operations/$operationId/wall"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
+              Mural
+            </Link>
+            <Link
+              from="/operations/$operationId"
               to="/operations/$operationId/journey"
               className={TAB_CLASS}
               activeProps={{ className: "bg-primary-soft !text-primary" }}
@@ -194,14 +202,6 @@ function OperationWorkspace() {
               activeProps={{ className: "bg-primary-soft !text-primary" }}
             >
               {t("w08.tab.communication")}
-            </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/wall"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              Mural
             </Link>
             <Link
               from="/operations/$operationId"
