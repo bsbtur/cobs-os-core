@@ -1,10 +1,16 @@
 import { createFileRoute, Link, Outlet, useLocation, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, MoreHorizontal } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PanelSkeleton } from "@/components/feedback/loading";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/lib/format";
@@ -45,7 +51,6 @@ function TerminalLiveRecord({
   });
 
   if (events.isLoading) return <PanelSkeleton />;
-
   const completed = status === "completed";
 
   return (
@@ -113,7 +118,20 @@ function OperationWorkspace() {
   const status = operation.data?.status as OperationStatus | undefined;
   const terminal = isOperationTerminal(status);
   const isOverview = location.pathname === `/operations/${operationId}`;
+  const isPeople = location.pathname === `/operations/${operationId}/people`;
+  const isWall = location.pathname === `/operations/${operationId}/wall`;
   const isLive = location.pathname === `/operations/${operationId}/live`;
+  const isMoreActive = !isOverview && !isPeople && !isWall;
+
+  const secondaryLinks = [
+    { to: "/operations/$operationId/journey" as const, label: t("w04.tab.journey") },
+    { to: "/operations/$operationId/live" as const, label: t("w04.tab.live") },
+    { to: "/operations/$operationId/mobility" as const, label: t("w05.tab.mobility") },
+    { to: "/operations/$operationId/hospitality" as const, label: t("w06.tab.hospitality") },
+    { to: "/operations/$operationId/events" as const, label: t("w07.tab.events") },
+    { to: "/operations/$operationId/communication" as const, label: t("w08.tab.communication") },
+    { to: "/operations/$operationId/incidents" as const, label: "Incidentes" },
+  ];
 
   return (
     <AppShell activeId="operations" title={t("op.title")}>
@@ -128,13 +146,13 @@ function OperationWorkspace() {
 
           <nav
             aria-label={t("op.title")}
-            className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1"
+            className="grid grid-cols-4 gap-1 rounded-xl border border-border bg-elevated/50 p-1 md:hidden"
           >
             <Link
               from="/operations/$operationId"
               to="/operations/$operationId"
               activeOptions={{ exact: true }}
-              className={TAB_CLASS}
+              className={`${TAB_CLASS} justify-center px-2`}
               activeProps={{ className: "bg-primary-soft !text-primary" }}
             >
               {t("roster.tab.overview")}
@@ -142,7 +160,7 @@ function OperationWorkspace() {
             <Link
               from="/operations/$operationId"
               to="/operations/$operationId/people"
-              className={TAB_CLASS}
+              className={`${TAB_CLASS} justify-center px-2`}
               activeProps={{ className: "bg-primary-soft !text-primary" }}
             >
               {t("roster.tab.people")}
@@ -150,67 +168,52 @@ function OperationWorkspace() {
             <Link
               from="/operations/$operationId"
               to="/operations/$operationId/wall"
-              className={TAB_CLASS}
+              className={`${TAB_CLASS} justify-center px-2`}
               activeProps={{ className: "bg-primary-soft !text-primary" }}
             >
               Mural
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/journey"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              {t("w04.tab.journey")}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={`${TAB_CLASS} justify-center gap-1 px-2 ${isMoreActive ? "bg-primary-soft !text-primary" : ""}`}
+                  aria-label="Mais áreas da operação"
+                >
+                  <MoreHorizontal className="size-4" aria-hidden="true" />
+                  <span>Mais</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {secondaryLinks.map((item) => (
+                  <DropdownMenuItem key={item.to} asChild>
+                    <Link from="/operations/$operationId" to={item.to}>
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+
+          <nav
+            aria-label={t("op.title")}
+            className="hidden gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1 md:flex"
+          >
+            <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+              {t("roster.tab.overview")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/live"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              {t("w04.tab.live")}
+            <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+              {t("roster.tab.people")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/mobility"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              {t("w05.tab.mobility")}
+            <Link from="/operations/$operationId" to="/operations/$operationId/wall" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+              Mural
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/hospitality"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              {t("w06.tab.hospitality")}
-            </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/events"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              {t("w07.tab.events")}
-            </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/communication"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              {t("w08.tab.communication")}
-            </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/incidents"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
-              Incidentes
-            </Link>
+            {secondaryLinks.map((item) => (
+              <Link key={item.to} from="/operations/$operationId" to={item.to} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           {operation.isLoading ? (
