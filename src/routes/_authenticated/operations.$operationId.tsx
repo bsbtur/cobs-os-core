@@ -173,7 +173,7 @@ function OperationWorkspace() {
             >
               Mural
             </Link>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
@@ -200,17 +200,39 @@ function OperationWorkspace() {
             aria-label={t("op.title")}
             className="hidden gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1 md:flex"
           >
-            <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId"
+              activeOptions={{ exact: true }}
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
               {t("roster.tab.overview")}
             </Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/people"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
               {t("roster.tab.people")}
             </Link>
-            <Link from="/operations/$operationId" to="/operations/$operationId/wall" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+            <Link
+              from="/operations/$operationId"
+              to="/operations/$operationId/wall"
+              className={TAB_CLASS}
+              activeProps={{ className: "bg-primary-soft !text-primary" }}
+            >
               Mural
             </Link>
             {secondaryLinks.map((item) => (
-              <Link key={item.to} from="/operations/$operationId" to={item.to} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
+              <Link
+                key={item.to}
+                from="/operations/$operationId"
+                to={item.to}
+                className={TAB_CLASS}
+                activeProps={{ className: "bg-primary-soft !text-primary" }}
+              >
                 {item.label}
               </Link>
             ))}
