@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
     if (!TOKEN) return json({ error: "clicksign_not_configured" }, 503);
 
     const meta = { ...(c.metadata ?? {}) } as Record<string, any>;
-    const uncertain = ["envelope", "document", "signer", "qualification", "auth_requirement", "activation", "notification"].find((s) => meta[`clicksign_${s}_attempted_at`] && !meta[`clicksign_${s}_done`] && !(s === "envelope" && c.provider_envelope_id) && !(s === "document" && meta.clicksign_document_id) && !(s === "signer" && meta.clicksign_signer_id));
+    const uncertain = ["envelope", "document", "signer", "qualification", "auth_requirement", "activation"].find((s) => meta[`clicksign_${s}_attempted_at`] && !meta[`clicksign_${s}_done`] && !(s === "envelope" && c.provider_envelope_id) && !(s === "document" && meta.clicksign_document_id) && !(s === "signer" && meta.clicksign_signer_id));
     if (uncertain) return json({ error: "provider_recovery_required", stage: uncertain }, 409);
 
     const { data: p } = await admin.from("people").select("full_name,email").eq("id", c.customer_person_id).maybeSingle(); if (!p?.email) return json({ error: "customer_email_required" }, 409);
@@ -54,7 +54,6 @@ Deno.serve(async (req: Request) => {
       if (!meta.clicksign_qualification_done) { await attempt("qualification"); await cs(`/envelopes/${encodeURIComponent(envelopeId!)}/requirements`, "POST", { data: { type: "requirements", attributes: { action: "agree", role: "sign" }, relationships: rel } }); await done("qualification"); }
       if (!meta.clicksign_auth_requirement_done) { await attempt("auth_requirement"); await cs(`/envelopes/${encodeURIComponent(envelopeId!)}/requirements`, "POST", { data: { type: "requirements", attributes: { action: "provide_evidence", auth: "email" }, relationships: rel } }); await done("auth_requirement"); }
       if (!meta.clicksign_activation_done) { await attempt("activation"); await cs(`/envelopes/${encodeURIComponent(envelopeId!)}`, "PATCH", { data: { id: envelopeId, type: "envelopes", attributes: { status: "running" } } }); await done("activation"); }
-      if (!meta.clicksign_notification_done) { await attempt("notification"); await cs(`/envelopes/${encodeURIComponent(envelopeId!)}/notifications`, "POST", { data: { type: "notifications", attributes: {} } }); await done("notification"); }
       const sentAt = c.sent_at ?? new Date().toISOString();
       const { data: updated, error: updateError } = await admin.from("customer_contracts").update({ status: "sent", sent_at: sentAt, metadata: { ...meta, clicksign_send_error: null, clicksign_send_error_stage: null } }).eq("id", c.id).eq("status", "draft").select("id,status").maybeSingle();
       if (updateError) throw new Error("db_mark_sent_failed"); if (!updated) return json({ error: "contract_changed_during_send" }, 409);
