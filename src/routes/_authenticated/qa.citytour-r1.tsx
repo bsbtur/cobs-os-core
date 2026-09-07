@@ -83,15 +83,6 @@ function CityTourQaDashboard() {
         .map((order) => order.buyer_person_id)
         .filter((id): id is string => Boolean(id));
 
-      const charges = orderIds.length
-        ? await supabase
-            .from("payment_charges")
-            .select("order_id,status,amount_minor,metadata")
-            .eq("tenant_id", tenant!.id)
-            .in("order_id", orderIds)
-        : { data: [], error: null };
-      if (charges.error) throw charges.error;
-
       const facts = orderIds.length
         ? await supabase
             .from("financial_facts")
@@ -147,12 +138,6 @@ function CityTourQaDashboard() {
       if (memberships.error) throw memberships.error;
 
       const slots: Slot[] = (orders ?? []).slice(0, 2).map((order) => {
-        const fixtureCharges = (charges.data ?? []).filter(
-          (charge) =>
-            charge.order_id === order.id &&
-            (charge.metadata as Record<string, unknown> | null)?.environment === "test" &&
-            (charge.metadata as Record<string, unknown> | null)?.qa_fixture_key === FIXTURE_KEY,
-        );
         const receivedMinor = (facts.data ?? [])
           .filter((fact) => fact.order_id === order.id)
           .reduce((sum, fact) => {
@@ -180,9 +165,7 @@ function CityTourQaDashboard() {
           orderId: order.id,
           traveler: order.buyer_name_snapshot || "Viajante QA",
           orderStatus: order.status,
-          paid:
-            receivedMinor >= Number(order.grand_total_minor ?? 100) ||
-            fixtureCharges.some((charge) => charge.status === "paid"),
+          paid: receivedMinor >= Number(order.grand_total_minor ?? 100),
           receivedMinor: Math.max(receivedMinor, 0),
           participationConfirmed: participation?.status === "confirmed",
           invitationIssued: Boolean(invitation),
