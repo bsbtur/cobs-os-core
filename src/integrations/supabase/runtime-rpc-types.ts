@@ -8,11 +8,50 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      contract_operation_quote: {
+        Args: {
+          _quote_id: string;
+          _contract_reference?: string | null;
+          _contract_notes?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      create_operation_quote: {
+        Args: {
+          _operation_id: string;
+          _supplier_name: string;
+          _category: string;
+          _description: string;
+          _amount_minor: number;
+          _valid_until?: string | null;
+          _cancellation_terms?: string | null;
+          _notes?: string | null;
+        };
+        Returns: string;
+      };
       get_operation_intelligence: {
         Args: {
           _operation_id: string;
         };
         Returns: Record<string, unknown>;
+      };
+      get_operation_procurement_quotes: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Array<{
+          id: string;
+          supplier_id: string;
+          supplier_name: string;
+          category: string;
+          description: string;
+          amount_minor: number;
+          currency_code: string;
+          status: string;
+          valid_until: string | null;
+          contract_reference: string | null;
+          created_at: string;
+        }>;
       };
       publish_dynamic_operational_alert: {
         Args: {
@@ -24,6 +63,12 @@ export type RuntimeRpcDatabase = {
           _source_id: string;
           _idempotency_key: string;
           _priority?: "normal" | "important" | "urgent";
+        };
+        Returns: Record<string, unknown>;
+      };
+      select_operation_quote: {
+        Args: {
+          _quote_id: string;
         };
         Returns: Record<string, unknown>;
       };
