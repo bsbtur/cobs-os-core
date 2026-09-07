@@ -8,7 +8,7 @@ const route = readFileSync(
 
 describe("contract readiness supplier wording", () => {
   test("distinguishes selected, contracted and legally complete suppliers", () => {
-    expect(route).toContain('status", "in", ["selected", "contracted"]');
+    expect(route).toContain('supabase.rpc("get_operation_procurement_quotes"');
     expect(route).toContain('quote.status === "selected"');
     expect(route).toContain('quote.status === "contracted"');
     expect(route).toContain("selecionada(s)");
