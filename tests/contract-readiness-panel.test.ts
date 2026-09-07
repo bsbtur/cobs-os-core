@@ -5,6 +5,7 @@ const migration = readFileSync("supabase/migrations/20260907035000_contract_read
 const route = readFileSync("src/routes/_authenticated/operations.$operationId.contract-readiness.tsx", "utf8");
 const workspace = readFileSync("src/routes/_authenticated/operations.$operationId.tsx", "utf8");
 const runtimeTypes = readFileSync("src/integrations/supabase/runtime-rpc-types.ts", "utf8");
+const normalizedRoute = route.replace(/\s+/g, " ");
 
 describe("contract readiness panel", () => {
   test("uses a role-gated read-only RPC", () => {
@@ -20,7 +21,7 @@ describe("contract readiness panel", () => {
     expect(migration).not.toContain("update public.contract_templates");
     expect(migration).not.toContain("update public.privacy_policy_versions");
     expect(migration).not.toContain("insert into public.customer_contracts");
-    expect(migration).not.toContain("status='contracted'");
+    expect(migration).not.toMatch(/update\s+public\.operation_quotes/i);
     expect(route).not.toContain("contracts-clicksign-send");
     expect(route).not.toContain("contracts-generate");
   });
@@ -38,6 +39,6 @@ describe("contract readiness panel", () => {
     expect(workspace).toContain('to: "/operations/$operationId/contract-readiness"');
     expect(route).toContain('to="/operations/$operationId/procurement"');
     expect(route).toContain('to="/settings/privacy"');
-    expect(route).toContain("nenhuma pendência deve ser preenchida automaticamente");
+    expect(normalizedRoute).toContain("nenhuma pendência deve ser preenchida automaticamente");
   });
 });
