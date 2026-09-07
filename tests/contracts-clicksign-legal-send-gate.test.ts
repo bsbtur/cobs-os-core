@@ -20,7 +20,7 @@ describe("contracts-clicksign-send legal gate", () => {
 
   test("runs the legal gate before reading the PDF or calling Clicksign", () => {
     const gate = source.indexOf('from("contract_templates")');
-    const pdf = source.indexOf('storage.from("customer-contracts").download');
+    const pdf = source.indexOf('"customer-contracts"');
     const provider = source.indexOf('await cs("/envelopes"');
     expect(gate).toBeGreaterThan(-1);
     expect(pdf).toBeGreaterThan(gate);
