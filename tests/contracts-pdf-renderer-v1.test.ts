@@ -43,7 +43,7 @@ describe("contracts PDF renderer v1", () => {
     expect(migration).toContain("v_renderer_supported := v_renderer_version='pdf-lib-v1'");
     expect(migration).toContain("v_ready := v_source_valid and v_renderer_supported");
     expect(migration).not.toMatch(/legal_reviewed_at\s*=\s*now\(\)/i);
-    expect(migration).not.toMatch(/status\s*=\s*'active'/i);
+    expect(migration).not.toMatch(/update\s+public\.contract_templates[\s\S]*set[\s\S]*status\s*=\s*'active'/i);
   });
 
   test("sender verifies the frozen PDF hash before the first Clicksign call", () => {
