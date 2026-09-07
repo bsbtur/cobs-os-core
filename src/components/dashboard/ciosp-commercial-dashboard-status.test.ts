@@ -5,7 +5,6 @@ import { formatOrderStatus } from "./ciosp-commercial-dashboard-status";
 describe("formatOrderStatus", () => {
   it.each([
     ["draft", "Rascunho"],
-    ["submitted", "Enviado"],
     ["confirmed", "Confirmado"],
     ["cancelled", "Cancelado"],
     ["completed", "Concluído"],
@@ -15,6 +14,10 @@ describe("formatOrderStatus", () => {
 
   it("prioriza o estado financeiro aguardando Pix", () => {
     expect(formatOrderStatus("submitted", true)).toBe("Aguardando Pix");
+  });
+
+  it("sinaliza pedido enviado sem Pix ativo para acompanhamento", () => {
+    expect(formatOrderStatus("submitted", false)).toBe("Pix requer nova tentativa");
   });
 
   it("preserva um status futuro ainda não mapeado", () => {
