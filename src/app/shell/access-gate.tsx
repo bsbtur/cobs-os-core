@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
-import { claimTokenFromInviteInput } from "@/lib/claim-intent";
+import { claimTokenFromInviteInput, savePendingClaim } from "@/lib/claim-intent";
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,20 +44,24 @@ function useEffectivePortalAccess(enabled: boolean) {
 /**
  * DEF-PILOT-017B — portable claim recovery.
  *
- * The pending claim intent lives in the browser that first opened the link.
- * A traveler who authenticates in another context (e-mail confirmation in a
- * different browser, later manual sign-in) arrives here with no intent. This
- * form only extracts the token from a pasted invitation link and hands it to
- * the existing claim route: no claim logic, no grant, no profile, no storage.
+ * The pending claim intent can be lost when e-mail confirmation happens in a
+ * different browser/tab. When the traveler pastes the invitation while already
+ * authenticated, consume the claim here instead of relying on a second router
+ * transition. This keeps the one-time token in memory only for the duration of
+ * the request and removes the failure mode where navigation reaches /my before
+ * the invitation RPC has actually run.
  */
 function InviteRecovery() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [value, setValue] = React.useState("");
+  const [claiming, setClaiming] = React.useState(false);
   const [error, setError] = React.useState<"none" | "empty" | "invalid">("none");
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (claiming) return;
     if (value.trim().length === 0) {
       setError("empty");
       return;
@@ -67,13 +71,39 @@ function InviteRecovery() {
       setError("invalid");
       return;
     }
+
+    setClaiming(true);
     setError("none");
-    setValue(""); // never keep the token in component state
-    void navigate({ to: "/my/claim/$token", params: { token }, replace: true });
+    setValue(""); // never keep the token in component state after extraction
+
+    try {
+      const { data, error: claimError } = await supabase.rpc(
+        "accept_participant_access_invitation",
+        { _token: token },
+      );
+      if (claimError) {
+        setError("invalid");
+        return;
+      }
+
+      const payload = (data ?? {}) as Record<string, unknown>;
+      if (payload["claim_error"] === "wrong_account") {
+        savePendingClaim(token);
+        await navigate({ to: "/claim-account-mismatch", replace: true });
+        return;
+      }
+
+      // The grant and Person/Profile binding now exist. Force both access
+      // posture and traveler queries to refetch before showing /my.
+      await queryClient.invalidateQueries();
+      window.location.replace("/my");
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
-    <form onSubmit={submit} className="mt-6 border-t border-border pt-4">
+    <form onSubmit={(event) => void submit(event)} className="mt-6 border-t border-border pt-4">
       <h2 className="text-sm font-semibold">{t("access.recover.title")}</h2>
       <label
         htmlFor="invite-link"
@@ -91,14 +121,19 @@ function InviteRecovery() {
         className="mt-2 min-h-11"
         placeholder={t("access.recover.placeholder")}
         value={value}
+        disabled={claiming}
         onChange={(event) => {
           setValue(event.target.value);
           if (error !== "none") setError("none");
         }}
       />
-      <Button type="submit" variant="outline" className="mt-3 min-h-11">
-        <LinkIcon className="mr-2 size-4" aria-hidden="true" />
-        {t("access.recover.cta")}
+      <Button type="submit" variant="outline" className="mt-3 min-h-11" disabled={claiming}>
+        {claiming ? (
+          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <LinkIcon className="mr-2 size-4" aria-hidden="true" />
+        )}
+        {claiming ? t("access.none.checking") : t("access.recover.cta")}
       </Button>
       <p role="status" aria-live="polite" className="mt-2 text-sm text-destructive">
         {error === "empty"
