@@ -76,6 +76,19 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      register_privacy_policy_draft: {
+        Args: {
+          _tenant_id: string;
+          _policy_key: string;
+          _version: string;
+          _title: string;
+          _effective_at: string;
+          _content_snapshot: string;
+          _public_url?: string | null;
+          _scope?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
       select_operation_quote: {
         Args: {
           _quote_id: string;
