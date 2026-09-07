@@ -56,16 +56,14 @@ function ContractReadinessPage() {
             _operation_id: operationId,
             _template_key: "CIOSP-2027",
           }),
-          supabase
-            .from("operation_quotes")
-            .select("status")
-            .eq("operation_id", operationId)
-            .in("status", ["selected", "contracted"]),
+          supabase.rpc("get_operation_procurement_quotes", {
+            _operation_id: operationId,
+          }),
         ]);
       if (error) throw error;
       if (documentError) throw documentError;
       if (quoteError) throw quoteError;
-      const quotes = (quoteData ?? []) as QuoteStatus[];
+      const quotes = (Array.isArray(quoteData) ? quoteData : []) as unknown as QuoteStatus[];
       return {
         readiness: data as Readiness,
         documentPipeline: documentData as DocumentPipelineReadiness,
