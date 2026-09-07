@@ -8,6 +8,7 @@ const migration = readFileSync(
   "supabase/migrations/20260907061500_contract_document_source_admin_read_v1.sql",
   "utf8",
 );
+const normalizedRoute = route.replace(/\s+/g, " ");
 
 describe("contract document source admin UI", () => {
   test("uses owner/admin read and registration RPCs only", () => {
@@ -32,10 +33,10 @@ describe("contract document source admin UI", () => {
     expect(route).toContain('const TEMPLATE_KEY = "CIOSP-2027"');
     expect(route).toContain('const TEMPLATE_VERSION = "V3.1"');
     expect(route).toContain('const RENDERER_VERSION = "pdf-lib-v1"');
-    expect(route).toContain("não ativa o template");
-    expect(route).toContain("não registra revisão jurídica");
-    expect(route).toContain("não gera PDF");
-    expect(route).toContain("não chama Clicksign");
+    expect(normalizedRoute).toContain("não ativa o template");
+    expect(normalizedRoute).toContain("não registra revisão jurídica");
+    expect(normalizedRoute).toContain("não gera PDF");
+    expect(normalizedRoute).toContain("não chama Clicksign");
     expect(route).not.toContain("legal_reviewed_at: new Date");
   });
 
