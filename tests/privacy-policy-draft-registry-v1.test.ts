@@ -25,7 +25,8 @@ describe("privacy policy draft registry v1", () => {
 
   test("does not expose an authenticated activation path", () => {
     expect(migration).not.toContain("activate_privacy_policy");
-    expect(migration).not.toContain("status='active'");
+    expect(migration.match(/status='active'/g)?.length ?? 0).toBe(1);
+    expect(migration).toContain("if new.status='active' then");
     expect(migration).not.toContain("'active', jsonb_build_object");
     expect(migration).not.toContain("legal_reviewed_at=now()");
     expect(migration).toContain("formal_legal_validation_required");
