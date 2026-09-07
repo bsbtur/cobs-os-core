@@ -131,6 +131,7 @@ function OperationWorkspace() {
     { to: "/operations/$operationId/events" as const, label: t("w07.tab.events") },
     { to: "/operations/$operationId/communication" as const, label: t("w08.tab.communication") },
     { to: "/operations/$operationId/procurement" as const, label: "Fornecedores" },
+    { to: "/operations/$operationId/contract-readiness" as const, label: "Prontidão contratual" },
     { to: "/operations/$operationId/incidents" as const, label: "Incidentes" },
   ];
 
@@ -149,38 +150,18 @@ function OperationWorkspace() {
             aria-label={t("op.title")}
             className="grid grid-cols-4 gap-1 rounded-xl border border-border bg-elevated/50 p-1 md:hidden"
           >
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId"
-              activeOptions={{ exact: true }}
-              className={`${TAB_CLASS} justify-center px-2`}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={`${TAB_CLASS} justify-center px-2`} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("roster.tab.overview")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/people"
-              className={`${TAB_CLASS} justify-center px-2`}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/people" className={`${TAB_CLASS} justify-center px-2`} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("roster.tab.people")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/wall"
-              className={`${TAB_CLASS} justify-center px-2`}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/wall" className={`${TAB_CLASS} justify-center px-2`} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               Mural
             </Link>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={`${TAB_CLASS} justify-center gap-1 px-2 ${isMoreActive ? "bg-primary-soft !text-primary" : ""}`}
-                  aria-label="Mais áreas da operação"
-                >
+                <button type="button" className={`${TAB_CLASS} justify-center gap-1 px-2 ${isMoreActive ? "bg-primary-soft !text-primary" : ""}`} aria-label="Mais áreas da operação">
                   <MoreHorizontal className="size-4" aria-hidden="true" />
                   <span>Mais</span>
                 </button>
@@ -188,77 +169,32 @@ function OperationWorkspace() {
               <DropdownMenuContent align="end" className="w-56">
                 {secondaryLinks.map((item) => (
                   <DropdownMenuItem key={item.to} asChild>
-                    <Link from="/operations/$operationId" to={item.to}>
-                      {item.label}
-                    </Link>
+                    <Link from="/operations/$operationId" to={item.to}>{item.label}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>
 
-          <nav
-            aria-label={t("op.title")}
-            className="hidden gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1 md:flex"
-          >
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId"
-              activeOptions={{ exact: true }}
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+          <nav aria-label={t("op.title")} className="hidden gap-1 overflow-x-auto rounded-xl border border-border bg-elevated/50 p-1 md:flex">
+            <Link from="/operations/$operationId" to="/operations/$operationId" activeOptions={{ exact: true }} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("roster.tab.overview")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/people"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/people" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               {t("roster.tab.people")}
             </Link>
-            <Link
-              from="/operations/$operationId"
-              to="/operations/$operationId/wall"
-              className={TAB_CLASS}
-              activeProps={{ className: "bg-primary-soft !text-primary" }}
-            >
+            <Link from="/operations/$operationId" to="/operations/$operationId/wall" className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
               Mural
             </Link>
             {secondaryLinks.map((item) => (
-              <Link
-                key={item.to}
-                from="/operations/$operationId"
-                to={item.to}
-                className={TAB_CLASS}
-                activeProps={{ className: "bg-primary-soft !text-primary" }}
-              >
+              <Link key={item.to} from="/operations/$operationId" to={item.to} className={TAB_CLASS} activeProps={{ className: "bg-primary-soft !text-primary" }}>
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          {operation.isLoading ? (
-            <PanelSkeleton />
-          ) : terminal && isLive && status ? (
-            <TerminalLiveRecord
-              operationId={operationId}
-              status={status}
-              timezone={operation.data?.timezone ?? "America/Sao_Paulo"}
-            />
-          ) : terminal && !isOverview ? (
-            <>
-              <div className="surface-panel border-success/40 px-4 py-3 text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">
-                  {status === "completed" ? "Operação concluída." : "Operação cancelada."}
-                </span>{" "}
-                Este registro histórico está disponível somente para consulta.
-              </div>
-              <fieldset disabled className="min-w-0 border-0 p-0 disabled:cursor-not-allowed">
-                <Outlet />
-              </fieldset>
-            </>
+          {terminal && isLive && status ? (
+            <TerminalLiveRecord operationId={operationId} status={status} timezone={operation.data?.timezone ?? "America/Sao_Paulo"} />
           ) : (
             <Outlet />
           )}
