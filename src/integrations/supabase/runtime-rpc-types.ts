@@ -29,6 +29,27 @@ export type RuntimeRpcDatabase = {
         };
         Returns: string;
       };
+      get_operation_contract_readiness: {
+        Args: {
+          _operation_id: string;
+          _template_key?: string | null;
+        };
+        Returns: {
+          operation_id: string;
+          template_key: string;
+          technical_ready: boolean;
+          legal_ready: boolean;
+          provider_send_ready: boolean;
+          checks: Array<{
+            key: string;
+            label: string;
+            status: "ready" | "blocked";
+            kind: "technical" | "legal";
+            detail: string;
+          }>;
+          note: string;
+        };
+      };
       get_operation_intelligence: {
         Args: {
           _operation_id: string;
