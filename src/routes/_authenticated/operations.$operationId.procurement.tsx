@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, FileCheck2, Plus } from "lucide-react";
+import { CheckCircle2, FileCheck2, Plus, ShieldCheck, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +11,10 @@ import { PanelSkeleton } from "@/components/feedback/loading";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  SupplierLegalProfileDialog,
+  type SupplierLegalProfile,
+} from "@/components/procurement/supplier-legal-profile-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -20,10 +24,8 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/pr
   component: ProcurementPage,
 });
 
-type QuoteRow = {
+type QuoteRow = SupplierLegalProfile & {
   id: string;
-  supplier_id: string;
-  supplier_name: string;
   category: string;
   description: string;
   amount_minor: number;
@@ -185,7 +187,12 @@ function ContractQuoteDialog({ quote, onDone }: { quote: QuoteRow; onDone: () =>
 
   return (
     <>
-      <Button size="sm" className="min-h-10" onClick={() => setOpen(true)}>
+      <Button
+        size="sm"
+        className="min-h-10"
+        disabled={!quote.supplier_legal_evidence_complete}
+        onClick={() => setOpen(true)}
+      >
         <FileCheck2 className="mr-2 size-4" aria-hidden="true" />
         Formalizar contratação
       </Button>
@@ -275,6 +282,22 @@ function ProcurementPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-semibold">{quote.supplier_name}</h2>
                     <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">{statusLabel(quote.status)}</span>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${
+                        quote.supplier_legal_evidence_complete
+                          ? "border-success/40 text-success"
+                          : "border-warning/40 text-warning"
+                      }`}
+                    >
+                      {quote.supplier_legal_evidence_complete ? (
+                        <ShieldCheck className="size-3" aria-hidden="true" />
+                      ) : (
+                        <ShieldAlert className="size-3" aria-hidden="true" />
+                      )}
+                      {quote.supplier_legal_evidence_complete
+                        ? "Cadastro jurídico completo"
+                        : "Cadastro jurídico pendente"}
+                    </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{quote.category} · {quote.description}</p>
                   <p className="mt-2 text-lg font-semibold tabular-nums">{money(quote.amount_minor, quote.currency_code)}</p>
@@ -284,6 +307,7 @@ function ProcurementPage() {
 
                 {canManage ? (
                   <div className="flex shrink-0 flex-wrap gap-2">
+                    <SupplierLegalProfileDialog supplier={quote} onDone={refresh} />
                     {["quoted", "shortlisted"].includes(quote.status) ? (
                       <Button variant="outline" size="sm" className="min-h-10" disabled={selectQuote.isPending} onClick={() => selectQuote.mutate(quote.id)}>
                         <CheckCircle2 className="mr-2 size-4" aria-hidden="true" />

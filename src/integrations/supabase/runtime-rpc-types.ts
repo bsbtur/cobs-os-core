@@ -43,6 +43,16 @@ export type RuntimeRpcDatabase = {
           id: string;
           supplier_id: string;
           supplier_name: string;
+          supplier_legal_name: string | null;
+          supplier_document_number: string | null;
+          supplier_address_line1: string | null;
+          supplier_address_line2: string | null;
+          supplier_district: string | null;
+          supplier_city: string | null;
+          supplier_state_region: string | null;
+          supplier_postal_code: string | null;
+          supplier_country_code: string | null;
+          supplier_legal_evidence_complete: boolean;
           category: string;
           description: string;
           amount_minor: number;
@@ -77,6 +87,21 @@ export type RuntimeRpcDatabase = {
           _event_id: string;
           _schedule_precision: "datetime" | "date_only";
           _idempotency_key: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      update_supplier_contract_legal_profile: {
+        Args: {
+          _supplier_id: string;
+          _legal_name: string;
+          _document_number: string;
+          _address_line1: string;
+          _address_line2?: string | null;
+          _district?: string | null;
+          _city?: string | null;
+          _state_region?: string | null;
+          _postal_code?: string | null;
+          _country_code?: string | null;
         };
         Returns: Record<string, unknown>;
       };
