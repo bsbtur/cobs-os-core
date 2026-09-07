@@ -12,9 +12,10 @@ describe("contracts-clicksign-send legal gate", () => {
     expect(source).toContain('reason: "formal_legal_validation_required"');
   });
 
-  test("requires the generated snapshot to explicitly allow provider send", () => {
-    expect(source).toContain("ready_for_provider_send");
-    expect(source).toContain('reason: "contract_snapshot_not_sendable"');
+  test("matches the contract template version recorded on the contract", () => {
+    expect(source).toContain("template_key,template_version");
+    expect(source).toContain('.eq("template_key", c.template_key)');
+    expect(source).toContain('.eq("version", c.template_version)');
   });
 
   test("runs the legal gate before reading the PDF or calling Clicksign", () => {
