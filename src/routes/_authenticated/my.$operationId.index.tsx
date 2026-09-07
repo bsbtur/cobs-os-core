@@ -1,5 +1,13 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { BedDouble, Bot, Bus, CalendarDays, Megaphone, Ticket } from "lucide-react";
+import {
+  ArrowRight,
+  BedDouble,
+  Bot,
+  Bus,
+  CalendarDays,
+  Megaphone,
+  Ticket,
+} from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import {
@@ -41,12 +49,14 @@ function AgendaLine({ item, timeZone }: { item: PortalAgendaItem; timeZone: stri
   const ctx = timeZone ? { locale, timeZone } : { locale };
   return (
     <div className="min-w-0">
-      <p className="break-words text-base font-medium text-foreground">{item.title}</p>
-      {item.detail ? (
-        <p className="mt-0.5 break-words text-sm text-muted-foreground">{item.detail}</p>
-      ) : null}
       {item.start ? (
-        <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(item.start, ctx)}</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+          {formatDateTime(item.start, ctx)}
+        </p>
+      ) : null}
+      <p className="break-words text-lg font-semibold text-foreground">{item.title}</p>
+      {item.detail ? (
+        <p className="mt-1 break-words text-sm leading-relaxed text-muted-foreground">{item.detail}</p>
       ) : null}
     </div>
   );
@@ -65,16 +75,22 @@ function TripContextCard({ overview }: { overview: PortalOverview }) {
     : null;
 
   return (
-    <PortalCard>
-      <div className="flex flex-col gap-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Minha viagem
-        </p>
-        <p className="text-lg font-semibold text-foreground">{overview.name}</p>
-        {destination ? <p className="text-sm text-muted-foreground">{destination}</p> : null}
-        {period ? <p className="text-sm text-muted-foreground">{period}</p> : null}
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-surface px-5 py-5 shadow-[var(--shadow-soft)] sm:px-6 sm:py-6">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent"
+        aria-hidden="true"
+      />
+      <div className="relative flex flex-col gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Minha viagem</p>
+        <h1 className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          {overview.name}
+        </h1>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          {destination ? <span>{destination}</span> : null}
+          {period ? <span>{period}</span> : null}
+        </div>
       </div>
-    </PortalCard>
+    </div>
   );
 }
 
@@ -95,15 +111,19 @@ function ShortcutRow({
     <Link
       to={to}
       params={{ operationId }}
-      className="flex min-h-[56px] items-center gap-3 rounded-xl border border-border bg-elevated/60 px-4 py-3"
+      className="group flex min-h-[64px] items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3.5 transition-colors hover:border-border-strong hover:bg-elevated focus-ring"
     >
-      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
         <Icon className="size-4" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-foreground">{label}</span>
-        <span className="block truncate text-xs text-muted-foreground">{value}</span>
+        <span className="block text-sm font-semibold text-foreground">{label}</span>
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{value}</span>
       </span>
+      <ArrowRight
+        className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+        aria-hidden="true"
+      />
     </Link>
   );
 }
@@ -147,7 +167,7 @@ function PortalHome() {
         error={overview.error}
         onRetry={() => void overview.refetch()}
       >
-        <div className="flex flex-col gap-4">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6">
           {overview.data ? <TripContextCard overview={overview.data} /> : null}
 
           {historical ? (
@@ -158,103 +178,119 @@ function PortalHome() {
               <p className="mt-2 text-sm text-muted-foreground">{t("w10.home.historicalBody")}</p>
             </PortalCard>
           ) : (
-            <>
+            <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+              <section className="rounded-2xl border border-primary/25 bg-surface p-5 shadow-[var(--shadow-soft)] sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                  Próximo passo
+                </p>
+                <div className="mt-3">
+                  {next ? (
+                    <AgendaLine item={next} timeZone={timeZone} />
+                  ) : (
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {upcoming
+                        ? "As próximas etapas aparecerão aqui quando forem confirmadas."
+                        : t("w10.home.nothingNow")}
+                    </p>
+                  )}
+                </div>
+              </section>
+
               <PortalCard title={t("w10.home.now")}>
                 {now ? (
                   <AgendaLine item={now} timeZone={timeZone} />
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {upcoming ? "Sua viagem ainda não começou." : t("w10.home.nothingNow")}
                   </p>
                 )}
               </PortalCard>
-
-              <PortalCard title={t("w10.home.next")}>
-                {next ? (
-                  <AgendaLine item={next} timeZone={timeZone} />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    As próximas etapas aparecerão aqui quando forem confirmadas.
-                  </p>
-                )}
-              </PortalCard>
-            </>
+            </div>
           )}
 
-          <ShortcutRow
-            to="/my/$operationId/assistant"
-            operationId={operationId}
-            icon={Bot}
-            label="Assistente COBS"
-            value="Pergunte sobre informações confirmadas da sua viagem"
-          />
+          <section className="flex flex-col gap-3">
+            <div className="flex items-end justify-between gap-3 px-1">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Sua jornada
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Acompanhe programação, deslocamentos, hospedagem e avisos confirmados.
+                </p>
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="px-1 pt-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Minha viagem
-            </p>
-            <ShortcutRow
-              to="/my/$operationId/journey"
-              operationId={operationId}
-              icon={CalendarDays}
-              label={t("w10.journey.title")}
-              value={
-                (journey.data ?? []).length > 0
-                  ? String((journey.data ?? []).length)
-                  : t("w10.journey.empty")
-              }
-            />
-            <ShortcutRow
-              to="/my/$operationId/mobility"
-              operationId={operationId}
-              icon={Bus}
-              label={t("w10.home.transport")}
-              value={
-                legs.length > 0
-                  ? legs[0]?.mySeat?.seatLabel
-                    ? `${t("w10.mobility.seat")} ${legs[0].mySeat.seatLabel}`
-                    : (legs[0]?.title ?? "")
-                  : t("w10.mobility.empty")
-              }
-            />
-            <ShortcutRow
-              to="/my/$operationId/stay"
-              operationId={operationId}
-              icon={BedDouble}
-              label={t("w10.home.stay")}
-              value={
-                stays.length > 0
-                  ? (stays[0]?.property?.name ?? stays[0]?.name ?? "")
-                  : t("w10.stay.empty")
-              }
-            />
-            <ShortcutRow
-              to="/my/$operationId/events"
-              operationId={operationId}
-              icon={Ticket}
-              label={t("w10.home.program")}
-              value={
-                sessions > 0
-                  ? String(sessions)
-                  : firstEventName
-                    ? firstEventName
-                    : t("w10.events.empty")
-              }
-            />
-            <ShortcutRow
-              to="/my/$operationId/messages"
-              operationId={operationId}
-              icon={Megaphone}
-              label={t("w10.home.messages")}
-              value={
-                (messages.data ?? []).length > 0
-                  ? unread > 0
-                    ? `${unread}`
-                    : ((messages.data ?? [])[0]?.title ?? "")
-                  : t("w10.messages.empty")
-              }
-            />
-          </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <ShortcutRow
+                to="/my/$operationId/journey"
+                operationId={operationId}
+                icon={CalendarDays}
+                label={t("w10.journey.title")}
+                value={
+                  (journey.data ?? []).length > 0
+                    ? String((journey.data ?? []).length)
+                    : t("w10.journey.empty")
+                }
+              />
+              <ShortcutRow
+                to="/my/$operationId/mobility"
+                operationId={operationId}
+                icon={Bus}
+                label={t("w10.home.transport")}
+                value={
+                  legs.length > 0
+                    ? legs[0]?.mySeat?.seatLabel
+                      ? `${t("w10.mobility.seat")} ${legs[0].mySeat.seatLabel}`
+                      : (legs[0]?.title ?? "")
+                    : t("w10.mobility.empty")
+                }
+              />
+              <ShortcutRow
+                to="/my/$operationId/stay"
+                operationId={operationId}
+                icon={BedDouble}
+                label={t("w10.home.stay")}
+                value={
+                  stays.length > 0
+                    ? (stays[0]?.property?.name ?? stays[0]?.name ?? "")
+                    : t("w10.stay.empty")
+                }
+              />
+              <ShortcutRow
+                to="/my/$operationId/events"
+                operationId={operationId}
+                icon={Ticket}
+                label={t("w10.home.program")}
+                value={
+                  sessions > 0
+                    ? String(sessions)
+                    : firstEventName
+                      ? firstEventName
+                      : t("w10.events.empty")
+                }
+              />
+              <ShortcutRow
+                to="/my/$operationId/messages"
+                operationId={operationId}
+                icon={Megaphone}
+                label={t("w10.home.messages")}
+                value={
+                  (messages.data ?? []).length > 0
+                    ? unread > 0
+                      ? `${unread}`
+                      : ((messages.data ?? [])[0]?.title ?? "")
+                    : t("w10.messages.empty")
+                }
+              />
+              <ShortcutRow
+                to="/my/$operationId/assistant"
+                operationId={operationId}
+                icon={Bot}
+                label="Assistente COBS"
+                value="Pergunte sobre informações confirmadas da sua viagem"
+              />
+            </div>
+          </section>
         </div>
       </PortalQueryGate>
     </PortalShell>
