@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { AdminOverview } from "@/components/dashboard/admin-overview";
+import { CityTourR1QaEntry } from "@/components/dashboard/citytour-r1-qa-entry";
 import { OperatorAttentionBlock } from "@/components/dashboard/operator-attention-block";
 import { OperatorNowBlock } from "@/components/dashboard/operator-now-block";
 import {
@@ -37,7 +38,10 @@ function CommandCenter() {
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <RequireTenant>
           {canManage ? (
-            <AdminOverview />
+            <>
+              <CityTourR1QaEntry />
+              <AdminOverview />
+            </>
           ) : (
             <>
               <OperatorDashboardHeader />
