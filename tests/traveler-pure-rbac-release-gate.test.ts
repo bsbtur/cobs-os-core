@@ -12,7 +12,7 @@ describe("pure traveler RBAC release gate", () => {
     expect(compact).toContain('const UNGATED_PREFIXES = ["/my", "/invite", "/onboarding"]');
     expect(authenticatedRoute).toContain("<RequireOperatorAccess>");
     for (const adminPrefix of ["/app", "/operations", "/team", "/settings", "/commerce"]) {
-      expect(authenticatedRoute).not.toContain(`\"${adminPrefix}\"`);
+      expect(authenticatedRoute).not.toContain(`"${adminPrefix}"`);
     }
   });
 
