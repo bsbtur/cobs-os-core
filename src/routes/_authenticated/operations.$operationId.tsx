@@ -130,6 +130,7 @@ function OperationWorkspace() {
     { to: "/operations/$operationId/hospitality" as const, label: t("w06.tab.hospitality") },
     { to: "/operations/$operationId/events" as const, label: t("w07.tab.events") },
     { to: "/operations/$operationId/communication" as const, label: t("w08.tab.communication") },
+    { to: "/operations/$operationId/procurement" as const, label: "Fornecedores" },
     { to: "/operations/$operationId/incidents" as const, label: "Incidentes" },
   ];
 
