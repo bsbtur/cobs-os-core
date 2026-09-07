@@ -35,6 +35,8 @@ type DocumentPipelineReadiness = {
   note?: string;
 };
 
+type QuoteStatus = { status: string };
+
 export const Route = createFileRoute("/_authenticated/operations/$operationId/contract-readiness")({
   component: ContractReadinessPage,
 });
@@ -44,21 +46,33 @@ function ContractReadinessPage() {
   const readiness = useQuery({
     queryKey: ["contract-readiness", operationId],
     queryFn: async () => {
-      const [{ data, error }, { data: documentData, error: documentError }] = await Promise.all([
-        supabase.rpc("get_operation_contract_readiness", {
-          _operation_id: operationId,
-          _template_key: "CIOSP-2027",
-        }),
-        supabase.rpc("get_contract_document_pipeline_readiness", {
-          _operation_id: operationId,
-          _template_key: "CIOSP-2027",
-        }),
-      ]);
+      const [{ data, error }, { data: documentData, error: documentError }, { data: quoteData, error: quoteError }] =
+        await Promise.all([
+          supabase.rpc("get_operation_contract_readiness", {
+            _operation_id: operationId,
+            _template_key: "CIOSP-2027",
+          }),
+          supabase.rpc("get_contract_document_pipeline_readiness", {
+            _operation_id: operationId,
+            _template_key: "CIOSP-2027",
+          }),
+          supabase
+            .from("operation_quotes")
+            .select("status")
+            .eq("operation_id", operationId)
+            .in("status", ["selected", "contracted"]),
+        ]);
       if (error) throw error;
       if (documentError) throw documentError;
+      if (quoteError) throw quoteError;
+      const quotes = (quoteData ?? []) as QuoteStatus[];
       return {
         readiness: data as Readiness,
         documentPipeline: documentData as DocumentPipelineReadiness,
+        supplierCounts: {
+          selected: quotes.filter((quote) => quote.status === "selected").length,
+          contracted: quotes.filter((quote) => quote.status === "contracted").length,
+        },
       };
     },
   });
@@ -74,6 +88,7 @@ function ContractReadinessPage() {
 
   const data = readiness.data.readiness;
   const documentPipeline = readiness.data.documentPipeline;
+  const supplierCounts = readiness.data.supplierCounts;
   const commercialTermsCheck = data.checks.find((check) => check.key === "commercial_terms");
   const noProductionOrders = commercialTermsCheck?.detail.startsWith("0/0") ?? false;
   const checks: ReadinessCheck[] = [
@@ -86,7 +101,14 @@ function ContractReadinessPage() {
         ? "Nenhum pedido de produção com reserva ativa foi encontrado."
         : "Existe ao menos um pedido de produção contratável para esta operação.",
     },
-    ...data.checks,
+    ...data.checks.map((check) => {
+      if (check.key !== "contracted_suppliers") return check;
+      const legallyComplete = Number.parseInt(check.detail.split("/")[0] ?? "0", 10) || 0;
+      return {
+        ...check,
+        detail: `${supplierCounts.selected} selecionada(s) · ${supplierCounts.contracted} contratada(s) · ${legallyComplete} com evidência jurídica completa`,
+      };
+    }),
     {
       key: "document_pipeline",
       label: "Pipeline de geração do documento contratual",
