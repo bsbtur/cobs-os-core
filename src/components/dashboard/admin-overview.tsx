@@ -92,13 +92,13 @@ export function AdminOverview() {
       <section className="animate-rise flex flex-col gap-5 rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-soft)] lg:flex-row lg:items-end lg:justify-between lg:p-6">
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-            Centro de comando
+            {t("overview.title")}
           </p>
           <h2 className="mt-2 truncate text-2xl font-semibold lg:text-3xl">
             {tenant?.name ?? t("settings.title")}
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Veja primeiro o que exige atenção. Indicadores e contexto administrativo vêm depois.
+            {t("admin.attention.subtitle")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -108,7 +108,7 @@ export function AdminOverview() {
           </div>
           <Button asChild variant="outline" className="min-h-11">
             <Link to="/operations">
-              Operações
+              {t("nav.operations")}
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </Button>
@@ -122,7 +122,7 @@ export function AdminOverview() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <p className={`font-mono text-[10px] font-semibold uppercase tracking-[0.16em] ${attentionCount > 0 ? "text-warning" : "text-primary"}`}>
-              {attentionCount > 0 ? "Requer atenção" : "Tudo em ordem"}
+              {attentionCount > 0 ? t("admin.attention.title") : t("admin.attention.clearTitle")}
             </p>
             <h3 className="mt-2 flex items-center gap-2 text-lg font-semibold">
               {attentionCount > 0 ? (
@@ -131,7 +131,7 @@ export function AdminOverview() {
                 <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
               )}
               {attentionCount > 0
-                ? `${attentionCount} ${attentionCount === 1 ? "item precisa" : "itens precisam"} de decisão`
+                ? `${attentionCount} · ${t("admin.attention.title")}`
                 : t("admin.attention.clearTitle")}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -139,7 +139,7 @@ export function AdminOverview() {
             </p>
           </div>
           <span className="rounded-full border border-border bg-elevated/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            {attentionCount} {attentionCount === 1 ? "pendência" : "pendências"}
+            {attentionCount}
           </span>
         </div>
 
@@ -184,10 +184,10 @@ export function AdminOverview() {
         <div className="mb-3 flex items-end justify-between gap-3 px-1">
           <div>
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Contexto
+              {t("settings.title")}
             </p>
             <h3 id="command-context-title" className="mt-1 text-lg font-semibold">
-              Estrutura administrativa
+              {t("settings.subtitle")}
             </h3>
           </div>
         </div>
@@ -223,7 +223,7 @@ export function AdminOverview() {
             {t("settings.title")}
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Contexto do tenant usado pelas operações e pela equipe.
+            {t("settings.subtitle")}
           </p>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {configurationItems.map(([label, value]) => (
