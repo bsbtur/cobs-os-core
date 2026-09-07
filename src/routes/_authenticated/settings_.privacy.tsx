@@ -59,14 +59,12 @@ function PrivacyRegistry() {
     queryKey: ["privacy-policy-versions", tenant?.id, CIOSP_TRAVELER_POLICY_KEY],
     enabled: Boolean(tenant?.id) && canManage,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("privacy_policy_versions")
-        .select("id,policy_key,version,title,effective_at,content_hash,status,created_at")
-        .eq("tenant_id", tenant!.id)
-        .eq("policy_key", CIOSP_TRAVELER_POLICY_KEY)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_privacy_policy_versions_for_admin", {
+        _tenant_id: tenant!.id,
+        _policy_key: CIOSP_TRAVELER_POLICY_KEY,
+      });
       if (error) throw error;
-      return data as PolicyRow[];
+      return (data ?? []) as PolicyRow[];
     },
   });
 
