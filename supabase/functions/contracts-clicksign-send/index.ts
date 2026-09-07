@@ -9,6 +9,7 @@ const BASE = (Deno.env.get("CLICKSIGN_BASE_URL") ?? "https://sandbox.clicksign.c
 const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "authorization, apikey, content-type, x-client-info", "access-control-allow-methods": "POST, OPTIONS" };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, "content-type": "application/json; charset=utf-8" } });
 function b64(bytes: Uint8Array) { let out = ""; for (let i = 0; i < bytes.length; i += 0x8000) out += String.fromCharCode(...bytes.subarray(i, Math.min(i + 0x8000, bytes.length))); return btoa(out); }
+async function sha256Bytes(bytes: Uint8Array) { const digest = await crypto.subtle.digest("SHA-256", bytes); return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join(""); }
 type M = "POST" | "PATCH";
 async function cs(path: string, method: M, body: unknown) { const r = await fetch(`${BASE}${path}`, { method, headers: { authorization: TOKEN, accept: "application/vnd.api+json", "content-type": "application/vnd.api+json" }, body: JSON.stringify(body) }); const text = await r.text(); let data: any = {}; try { data = text ? JSON.parse(text) : {}; } catch { data = {}; } if (!r.ok) throw new Error(`clicksign_${r.status}`); return data; }
 
@@ -23,7 +24,7 @@ Deno.serve(async (req: Request) => {
     let input: { contract_id?: string }; try { input = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
     const contractId = input.contract_id?.trim(); if (!contractId) return json({ error: "contract_id_required" }, 400);
     const admin = createClient(SUPABASE_URL, SEC, { auth: { persistSession: false } });
-    const { data: c, error: ce } = await admin.from("customer_contracts").select("id,tenant_id,customer_person_id,status,template_key,template_version,original_document_path,provider_envelope_id,signer_name,signer_document,expires_at,metadata,sent_at").eq("id", contractId).eq("provider", "clicksign").maybeSingle();
+    const { data: c, error: ce } = await admin.from("customer_contracts").select("id,tenant_id,customer_person_id,status,template_key,template_version,original_document_path,document_hash,provider_envelope_id,signer_name,signer_document,expires_at,metadata,sent_at").eq("id", contractId).eq("provider", "clicksign").maybeSingle();
     if (ce) return json({ error: "contract_lookup_failed" }, 500); if (!c) return json({ error: "contract_not_found" }, 404);
     const { data: m } = await admin.from("memberships").select("role").eq("tenant_id", c.tenant_id).eq("profile_id", ud.user.id).eq("status", "active").maybeSingle();
     if (!m || !["owner", "admin", "operations_agent"].includes(m.role)) return json({ error: "forbidden" }, 403);
@@ -43,6 +44,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: "contract_provider_send_locked", reason: "formal_legal_validation_required" }, 423);
 
     if (!c.original_document_path) return json({ error: "original_document_missing" }, 409);
+    if (!c.document_hash) return json({ error: "contract_document_hash_missing" }, 409);
     if (!TOKEN) return json({ error: "clicksign_not_configured" }, 503);
 
     const meta = { ...(c.metadata ?? {}) } as Record<string, any>;
@@ -52,6 +54,7 @@ Deno.serve(async (req: Request) => {
     const { data: p } = await admin.from("people").select("full_name,email").eq("id", c.customer_person_id).maybeSingle(); if (!p?.email) return json({ error: "customer_email_required" }, 409);
     const { data: file, error: de } = await admin.storage.from("customer-contracts").download(c.original_document_path); if (de || !file) return json({ error: "contract_pdf_download_failed" }, 500);
     const bytes = new Uint8Array(await file.arrayBuffer()); if (bytes.length < 5 || new TextDecoder().decode(bytes.subarray(0, 5)) !== "%PDF-") return json({ error: "contract_pdf_invalid" }, 422);
+    const actualDocumentHash = await sha256Bytes(bytes); if (actualDocumentHash !== String(c.document_hash).trim().toLowerCase()) return json({ error: "contract_pdf_hash_mismatch" }, 409);
     let envelopeId = c.provider_envelope_id as string | null;
     const checkpoint = async (patch: Record<string, unknown>) => { Object.assign(meta, patch); const { error } = await admin.from("customer_contracts").update({ metadata: meta }).eq("id", c.id).eq("status", "draft"); if (error) throw new Error("checkpoint_failed"); };
     const attempt = async (stage: string) => checkpoint({ [`clicksign_${stage}_attempted_at`]: new Date().toISOString() });
