@@ -74,7 +74,18 @@ function ContractReadinessPage() {
 
   const data = readiness.data.readiness;
   const documentPipeline = readiness.data.documentPipeline;
+  const commercialTermsCheck = data.checks.find((check) => check.key === "commercial_terms");
+  const noProductionOrders = commercialTermsCheck?.detail.startsWith("0/0") ?? false;
   const checks: ReadinessCheck[] = [
+    {
+      key: "production_order",
+      label: "Pedido de produção contratável",
+      status: noProductionOrders ? "blocked" : "ready",
+      kind: "technical",
+      detail: noProductionOrders
+        ? "Nenhum pedido de produção com reserva ativa foi encontrado."
+        : "Existe ao menos um pedido de produção contratável para esta operação.",
+    },
     ...data.checks,
     {
       key: "document_pipeline",
