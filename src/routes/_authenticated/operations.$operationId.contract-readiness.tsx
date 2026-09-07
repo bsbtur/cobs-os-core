@@ -24,6 +24,17 @@ type Readiness = {
   note: string;
 };
 
+type DocumentPipelineReadiness = {
+  ready: boolean;
+  status: "ready" | "blocked";
+  mode: string;
+  template_version?: string;
+  renderer_version?: string | null;
+  provider_template_configured?: boolean;
+  detail: string;
+  note?: string;
+};
+
 export const Route = createFileRoute("/_authenticated/operations/$operationId/contract-readiness")({
   component: ContractReadinessPage,
 });
@@ -33,12 +44,22 @@ function ContractReadinessPage() {
   const readiness = useQuery({
     queryKey: ["contract-readiness", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_operation_contract_readiness", {
-        _operation_id: operationId,
-        _template_key: "CIOSP-2027",
-      });
+      const [{ data, error }, { data: documentData, error: documentError }] = await Promise.all([
+        supabase.rpc("get_operation_contract_readiness", {
+          _operation_id: operationId,
+          _template_key: "CIOSP-2027",
+        }),
+        supabase.rpc("get_contract_document_pipeline_readiness", {
+          _operation_id: operationId,
+          _template_key: "CIOSP-2027",
+        }),
+      ]);
       if (error) throw error;
-      return data as Readiness;
+      if (documentError) throw documentError;
+      return {
+        readiness: data as Readiness,
+        documentPipeline: documentData as DocumentPipelineReadiness,
+      };
     },
   });
 
@@ -51,8 +72,22 @@ function ContractReadinessPage() {
     );
   }
 
-  const data = readiness.data;
-  const blocked = data.checks.filter((check) => check.status === "blocked").length;
+  const data = readiness.data.readiness;
+  const documentPipeline = readiness.data.documentPipeline;
+  const checks: ReadinessCheck[] = [
+    ...data.checks,
+    {
+      key: "document_pipeline",
+      label: "Pipeline de geração do documento contratual",
+      status: documentPipeline.ready ? "ready" : "blocked",
+      kind: "technical",
+      detail: documentPipeline.ready
+        ? `Configurado (${documentPipeline.mode}${documentPipeline.renderer_version ? ` · ${documentPipeline.renderer_version}` : ""})`
+        : documentPipeline.detail,
+    },
+  ];
+  const technicalReady = data.technical_ready && documentPipeline.ready;
+  const blocked = checks.filter((check) => check.status === "blocked").length;
 
   return (
     <div className="space-y-5">
@@ -67,7 +102,7 @@ function ContractReadinessPage() {
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="surface-panel p-4">
           <p className="text-xs text-muted-foreground">Técnico</p>
-          <p className="mt-1 font-semibold">{data.technical_ready ? "PRONTO" : "PENDENTE"}</p>
+          <p className="mt-1 font-semibold">{technicalReady ? "PRONTO" : "PENDENTE"}</p>
         </div>
         <div className="surface-panel p-4">
           <p className="text-xs text-muted-foreground">Jurídico</p>
@@ -92,7 +127,7 @@ function ContractReadinessPage() {
       </section>
 
       <section className="surface-panel divide-y divide-border/70">
-        {data.checks.map((check) => {
+        {checks.map((check) => {
           const Icon = check.status === "ready" ? CheckCircle2 : CircleAlert;
           return (
             <div key={check.key} className="flex items-start gap-3 p-4">
