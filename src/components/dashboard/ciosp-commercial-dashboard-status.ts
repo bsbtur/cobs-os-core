@@ -8,5 +8,6 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 
 export function formatOrderStatus(status: string, awaitingPix: boolean) {
   if (awaitingPix) return "Aguardando Pix";
+  if (status === "submitted") return "Pix requer nova tentativa";
   return ORDER_STATUS_LABELS[status] ?? status;
 }
