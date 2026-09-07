@@ -194,11 +194,17 @@ function OrganizationGovernance() {
             </div>
           ))}
         </dl>
-        <div className="mt-4 border-t border-border/70 pt-4">
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-border/70 pt-4">
           <Button asChild variant="outline" className="min-h-11">
             <Link to="/settings/privacy">
               <FileLock2 className="mr-2 size-4" aria-hidden="true" />
               Política de Privacidade Contratual
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/settings/contracts">
+              <FileLock2 className="mr-2 size-4" aria-hidden="true" />
+              Fonte Documental do Contrato
             </Link>
           </Button>
         </div>
