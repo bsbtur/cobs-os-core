@@ -120,6 +120,11 @@ function ContractReadinessPage() {
             <p className="mt-1 text-sm text-muted-foreground">Resolva somente evidências reais; nenhuma pendência deve ser preenchida automaticamente.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button asChild variant="outline" size="sm">
+                <Link from="/operations/$operationId/contract-readiness" to="/operations/$operationId/contract-parties">
+                  Dados do viajante
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
                 <Link from="/operations/$operationId/contract-readiness" to="/operations/$operationId/procurement">
                   Fornecedores
                 </Link>
