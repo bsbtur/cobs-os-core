@@ -132,6 +132,7 @@ function OperationWorkspace() {
     { to: "/operations/$operationId/communication" as const, label: t("w08.tab.communication") },
     { to: "/operations/$operationId/procurement" as const, label: "Fornecedores" },
     { to: "/operations/$operationId/contract-readiness" as const, label: "Prontidão contratual" },
+    { to: "/operations/$operationId/contracts" as const, label: "Contratos" },
     { to: "/operations/$operationId/incidents" as const, label: "Incidentes" },
   ];
 
