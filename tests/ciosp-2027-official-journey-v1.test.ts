@@ -29,4 +29,17 @@ describe("CIOSP 2027 official Journey v1", () => {
     expect(sql).toContain("official_date");
     expect(sql).toContain("if not exists");
   });
+
+  test("resolves the environment-local operation instead of hardcoding UUIDs", () => {
+    expect(sql).toContain("o.code = 'CIOSP-SP-2027'");
+    expect(sql).toContain("v_operation.tenant_id");
+    expect(sql).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i,
+    );
+  });
+
+  test("appends official days after existing Journey sequence values", () => {
+    expect(sql).toContain("coalesce(max(js.sequence), 0) + 10");
+    expect(sql).not.toContain("('2027-01-27'::date,20)");
+  });
 });
