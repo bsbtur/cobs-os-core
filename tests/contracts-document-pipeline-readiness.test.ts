@@ -10,6 +10,7 @@ const route = readFileSync(
   "utf8",
 );
 const runtimeTypes = readFileSync("src/integrations/supabase/runtime-rpc-types.ts", "utf8");
+const normalizedRoute = route.replace(/\s+/g, " ");
 
 describe("contract document pipeline readiness", () => {
   test("is read-only and role-gated", () => {
@@ -37,6 +38,6 @@ describe("contract document pipeline readiness", () => {
   test("never presents pipeline readiness as provider-send release", () => {
     expect(route).toContain("Envio ao provedor");
     expect(route).toContain("BLOQUEADO");
-    expect(route).toContain("não gera contrato e não chama Clicksign");
+    expect(normalizedRoute).toContain("não gera contrato e não chama Clicksign");
   });
 });
