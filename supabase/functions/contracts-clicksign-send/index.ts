@@ -23,12 +23,25 @@ Deno.serve(async (req: Request) => {
     let input: { contract_id?: string }; try { input = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
     const contractId = input.contract_id?.trim(); if (!contractId) return json({ error: "contract_id_required" }, 400);
     const admin = createClient(SUPABASE_URL, SEC, { auth: { persistSession: false } });
-    const { data: c, error: ce } = await admin.from("customer_contracts").select("id,tenant_id,customer_person_id,status,original_document_path,provider_envelope_id,signer_name,signer_document,expires_at,metadata,sent_at").eq("id", contractId).eq("provider", "clicksign").maybeSingle();
+    const { data: c, error: ce } = await admin.from("customer_contracts").select("id,tenant_id,customer_person_id,status,template_key,template_version,original_document_path,provider_envelope_id,signer_name,signer_document,expires_at,metadata,sent_at").eq("id", contractId).eq("provider", "clicksign").maybeSingle();
     if (ce) return json({ error: "contract_lookup_failed" }, 500); if (!c) return json({ error: "contract_not_found" }, 404);
     const { data: m } = await admin.from("memberships").select("role").eq("tenant_id", c.tenant_id).eq("profile_id", ud.user.id).eq("status", "active").maybeSingle();
     if (!m || !["owner", "admin", "operations_agent"].includes(m.role)) return json({ error: "forbidden" }, 403);
     if (c.status === "sent" && c.provider_envelope_id) return json({ ok: true, idempotent: true, contract_id: c.id, status: "sent", provider_envelope_id: c.provider_envelope_id });
     if (c.status !== "draft") return json({ error: "contract_not_draft", status: c.status }, 409);
+
+    const { data: template, error: templateError } = await admin
+      .from("contract_templates")
+      .select("id,status,legal_reviewed_at")
+      .eq("tenant_id", c.tenant_id)
+      .eq("template_key", c.template_key)
+      .eq("version", c.template_version)
+      .eq("status", "active")
+      .maybeSingle();
+    if (templateError) return json({ error: "contract_template_lookup_failed" }, 500);
+    if (!template?.legal_reviewed_at)
+      return json({ error: "contract_provider_send_locked", reason: "formal_legal_validation_required" }, 423);
+
     if (!c.original_document_path) return json({ error: "original_document_missing" }, 409);
     if (!TOKEN) return json({ error: "clicksign_not_configured" }, 503);
 
