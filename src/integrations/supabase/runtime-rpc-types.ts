@@ -63,6 +63,22 @@ export type RuntimeRpcDatabase = {
           created_at: string;
         }>;
       };
+      get_privacy_policy_versions_for_admin: {
+        Args: {
+          _tenant_id: string;
+          _policy_key: string;
+        };
+        Returns: Array<{
+          id: string;
+          policy_key: string;
+          version: string;
+          title: string;
+          effective_at: string;
+          content_hash: string;
+          status: string;
+          created_at: string;
+        }>;
+      };
       publish_dynamic_operational_alert: {
         Args: {
           _operation_id: string;
