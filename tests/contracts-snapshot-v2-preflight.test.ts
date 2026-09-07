@@ -28,7 +28,7 @@ describe("contracts-generate snapshot v2 preflight", () => {
 
   test("fails closed when evidence is incomplete", () => {
     expect(source).toContain('error: "contracted_suppliers_required"');
-    expect(source).toContain('error: "active_privacy_policy_required"');
+    expect(source).toContain('error: "configured_privacy_policy_not_active"');
     expect(source).toContain('error: "commercial_terms_version_required"');
     expect(source).toContain('error: "program_snapshot_required"');
     expect(source).not.toContain('error: "program_version_required"');

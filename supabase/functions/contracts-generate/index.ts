@@ -212,6 +212,10 @@ Deno.serve(async (req: Request) => {
     if (!template) return json({ error: "active_template_not_found" }, 409);
     if (!template.legal_reviewed_at) return json({ error: "template_not_ready" }, 409);
 
+    const templateMetadata = isRecord(template.metadata) ? template.metadata : {};
+    const configuredPrivacyKey = asNonEmptyString(templateMetadata.privacy_policy_key);
+    if (!configuredPrivacyKey) return json({ error: "configured_privacy_policy_required" }, 409);
+
     const { data: existing, error: existingError } = await admin
       .from("customer_contracts")
       .select("id,status,template_key,template_version")
@@ -231,12 +235,21 @@ Deno.serve(async (req: Request) => {
     const [
       { data: offering, error: offeringError },
       { data: quotes, error: quotesError },
-      { data: privacyRows, error: privacyError },
+      { data: privacy, error: privacyError },
       { data: journeyRows, error: journeyError },
     ] = await Promise.all([
       admin.from("offerings").select("id,name,slug,status,currency_code,metadata,updated_at").eq("id", reservation.offering_id).eq("tenant_id", order.tenant_id).maybeSingle(),
       admin.from("operation_quotes").select("id,supplier_id,category,description,contract_reference,contracted_at,status").eq("tenant_id", order.tenant_id).eq("operation_id", order.operation_id).eq("status", "contracted").order("category", { ascending: true }),
-      admin.from("privacy_policy_versions").select("id,policy_key,version,title,effective_at,content_hash,public_url,metadata").eq("tenant_id", order.tenant_id).eq("status", "active").lte("effective_at", generatedAt).order("effective_at", { ascending: false }).limit(2),
+      admin
+        .from("privacy_policy_versions")
+        .select("id,policy_key,version,title,effective_at,content_hash,public_url,metadata")
+        .eq("tenant_id", order.tenant_id)
+        .eq("policy_key", configuredPrivacyKey)
+        .eq("status", "active")
+        .lte("effective_at", generatedAt)
+        .order("effective_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
       admin
         .from("journey_steps")
         .select("id,sequence,title,description,step_kind,planned_start,planned_end,location_label,traveler_label,updated_at")
@@ -250,18 +263,8 @@ Deno.serve(async (req: Request) => {
       return json({ error: "contract_evidence_lookup_failed" }, 500);
     if (!offering) return json({ error: "offering_snapshot_required" }, 409);
     if (!quotes?.length) return json({ error: "contracted_suppliers_required" }, 409);
-    if (!privacyRows?.length) return json({ error: "active_privacy_policy_required" }, 409);
+    if (!privacy) return json({ error: "configured_privacy_policy_not_active" }, 409);
     if (!journeyRows?.length) return json({ error: "program_snapshot_required" }, 409);
-
-    const templateMetadata = isRecord(template.metadata) ? template.metadata : {};
-    const configuredPrivacyKey = asNonEmptyString(templateMetadata.privacy_policy_key);
-    const matchingPrivacy = configuredPrivacyKey
-      ? privacyRows.filter((row) => row.policy_key === configuredPrivacyKey)
-      : privacyRows;
-    if (!matchingPrivacy.length) return json({ error: "configured_privacy_policy_not_active" }, 409);
-    if (!configuredPrivacyKey && matchingPrivacy.length > 1)
-      return json({ error: "privacy_policy_ambiguous", active_policy_count: matchingPrivacy.length }, 409);
-    const privacy = matchingPrivacy[0];
 
     const supplierIds = [...new Set(quotes.map((quote) => quote.supplier_id).filter(Boolean))];
     if (!supplierIds.length) return json({ error: "contracted_suppliers_required" }, 409);
