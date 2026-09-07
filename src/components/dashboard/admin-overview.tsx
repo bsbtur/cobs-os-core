@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   CheckCircle2,
   Clock3,
@@ -88,107 +89,131 @@ export function AdminOverview() {
 
   return (
     <div className="space-y-6">
-      <section className="animate-rise flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
-            {t("settings.title")}
+      <section className="animate-rise flex flex-col gap-5 rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow-soft)] lg:flex-row lg:items-end lg:justify-between lg:p-6">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+            {t("overview.title")}
           </p>
-          <h2 className="mt-1 text-2xl font-semibold lg:text-3xl">
+          <h2 className="mt-2 truncate text-2xl font-semibold lg:text-3xl">
             {tenant?.name ?? t("settings.title")}
           </h2>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{t("settings.subtitle")}</p>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            {t("admin.attention.subtitle")}
+          </p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs text-muted-foreground">
-          <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
-          {role ? t(`role.${role}`) : "—"}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-h-11 items-center gap-2 rounded-xl border border-border bg-elevated/60 px-3 text-xs text-muted-foreground">
+            <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+            {role ? t(`role.${role}`) : "—"}
+          </div>
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/operations">
+              {t("nav.operations")}
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </Button>
         </div>
       </section>
 
-      <section className="surface-panel p-5">
+      <section
+        className={`surface-panel p-5 lg:p-6 ${attentionCount > 0 ? "border-warning/35" : "border-primary/25"}`}
+        aria-label={t("admin.attention.title")}
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <div className="max-w-2xl">
+            <p className={`font-mono text-[10px] font-semibold uppercase tracking-[0.16em] ${attentionCount > 0 ? "text-warning" : "text-primary"}`}>
+              {attentionCount > 0 ? t("admin.attention.title") : t("admin.attention.clearTitle")}
+            </p>
+            <h3 className="mt-2 flex items-center gap-2 text-lg font-semibold">
               {attentionCount > 0 ? (
-                <AlertTriangle className="size-4 text-amber-500" aria-hidden="true" />
+                <AlertTriangle className="size-5 text-warning" aria-hidden="true" />
               ) : (
-                <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+                <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
               )}
-              {t("admin.attention.title")}
+              {attentionCount > 0
+                ? `${attentionCount} · ${t("admin.attention.title")}`
+                : t("admin.attention.clearTitle")}
             </h3>
-            <p className="mt-1 text-xs text-muted-foreground">{t("admin.attention.subtitle")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {attentionCount > 0 ? t("admin.attention.subtitle") : t("admin.attention.clearBody")}
+            </p>
           </div>
-          <span className="rounded-full border border-border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          <span className="rounded-full border border-border bg-elevated/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
             {attentionCount}
           </span>
         </div>
 
-        {attentionCount === 0 ? (
-          <div className="mt-4 rounded-lg border border-border/70 p-4">
-            <p className="flex items-center gap-2 text-sm font-medium">
-              <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
-              {t("admin.attention.clearTitle")}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">{t("admin.attention.clearBody")}</p>
-          </div>
-        ) : (
-          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {attentionCount > 0 ? (
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
             {missingConfiguration.length > 0 ? (
-              <article className="rounded-lg border border-border/70 p-4">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                  <Settings2 className="size-4 text-amber-500" aria-hidden="true" />
+              <article className="rounded-xl border border-warning/25 bg-elevated/45 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Settings2 className="size-4 text-warning" aria-hidden="true" />
                   {t("admin.attention.configurationTitle")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
                   {t("admin.attention.configurationBody")} {missingConfiguration.map(([label]) => label).join(", ")}.
                 </p>
-                <Button asChild variant="outline" className="mt-3 min-h-11">
+                <Button asChild variant="outline" className="mt-4 min-h-11 w-full sm:w-auto">
                   <Link to="/settings">{t("admin.attention.reviewSettings")}</Link>
                 </Button>
               </article>
             ) : null}
 
             {(data?.expiredPendingInvitations ?? 0) > 0 ? (
-              <article className="rounded-lg border border-border/70 p-4">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                  <Clock3 className="size-4 text-amber-500" aria-hidden="true" />
+              <article className="rounded-xl border border-warning/25 bg-elevated/45 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Clock3 className="size-4 text-warning" aria-hidden="true" />
                   {t("admin.attention.expiredInvitesTitle")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
                   {data?.expiredPendingInvitations ?? 0} {t("admin.attention.expiredInvitesBody")}
                 </p>
-                <Button asChild variant="outline" className="mt-3 min-h-11">
+                <Button asChild variant="outline" className="mt-4 min-h-11 w-full sm:w-auto">
                   <Link to="/team">{t("admin.attention.reviewTeam")}</Link>
                 </Button>
               </article>
             ) : null}
           </div>
-        )}
+        ) : null}
       </section>
 
       {tenantId ? <CiospCommercialDashboard tenantId={tenantId} /> : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <article className="surface-panel p-5">
-          <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <UsersRound className="size-4" aria-hidden="true" />
-            {t("team.members")}
-          </p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">{data?.activeMembers ?? 0}</p>
-        </article>
-        <article className="surface-panel p-5">
-          <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <ShieldCheck className="size-4" aria-hidden="true" />
-            {t("team.invitations")}
-          </p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">{data?.pendingInvitations ?? 0}</p>
-        </article>
-        <article className="surface-panel p-5">
-          <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <Settings2 className="size-4" aria-hidden="true" />
-            {t("team.inviteRole")}
-          </p>
-          <p className="mt-3 text-lg font-semibold">{role ? t(`role.${role}`) : "—"}</p>
-        </article>
+      <section aria-labelledby="command-context-title">
+        <div className="mb-3 flex items-end justify-between gap-3 px-1">
+          <div>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              {t("settings.title")}
+            </p>
+            <h3 id="command-context-title" className="mt-1 text-lg font-semibold">
+              {t("settings.subtitle")}
+            </h3>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <article className="surface-panel p-5">
+            <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <UsersRound className="size-4" aria-hidden="true" />
+              {t("team.members")}
+            </p>
+            <p className="mt-3 text-3xl font-semibold tabular-nums">{data?.activeMembers ?? 0}</p>
+          </article>
+          <article className="surface-panel p-5">
+            <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <ShieldCheck className="size-4" aria-hidden="true" />
+              {t("team.invitations")}
+            </p>
+            <p className="mt-3 text-3xl font-semibold tabular-nums">{data?.pendingInvitations ?? 0}</p>
+          </article>
+          <article className="surface-panel p-5 sm:col-span-2 lg:col-span-1">
+            <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <Settings2 className="size-4" aria-hidden="true" />
+              {t("team.inviteRole")}
+            </p>
+            <p className="mt-3 text-lg font-semibold">{role ? t(`role.${role}`) : "—"}</p>
+          </article>
+        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
@@ -197,9 +222,12 @@ export function AdminOverview() {
             <Building2 className="size-4 text-primary" aria-hidden="true" />
             {t("settings.title")}
           </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("settings.subtitle")}
+          </p>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {configurationItems.map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-border/70 p-3">
+              <div key={label} className="rounded-lg border border-border/70 bg-elevated/35 p-3">
                 <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   {label}
                 </dt>
@@ -207,7 +235,7 @@ export function AdminOverview() {
               </div>
             ))}
           </dl>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button asChild className="min-h-11">
               <Link to="/team">{t("nav.team")}</Link>
             </Button>

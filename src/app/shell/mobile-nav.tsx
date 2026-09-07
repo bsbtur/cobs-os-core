@@ -10,7 +10,7 @@ import { OrgContext } from "./org-context";
 import { BrandLockup } from "./brand";
 
 const CELL_CLASS =
-  "flex min-h-14 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] transition-colors";
+  "group flex min-h-14 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[11px] font-medium transition-colors";
 
 /**
  * Field-first bottom navigation: 3 primary destinations + a "More" trigger.
@@ -32,49 +32,61 @@ export function MobileTabBar({
       aria-label={t("nav.section.domains")}
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
     >
-      <ul className="grid grid-cols-4">
-        {MOBILE_NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const active = item.id === activeId;
-          return (
-            <li key={item.id} className="min-w-0">
-              <Link
-                to={item.to}
-                aria-current={active ? "page" : undefined}
-                className={cn(CELL_CLASS, active ? "text-primary" : "text-muted-foreground")}
-              >
-                <span
+      <div className="mx-auto w-full max-w-xl px-2 py-1.5">
+        <ul className="grid grid-cols-4 gap-1">
+          {MOBILE_NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const active = item.id === activeId;
+            return (
+              <li key={item.id} className="min-w-0">
+                <Link
+                  to={item.to}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
-                    "grid size-8 shrink-0 place-items-center rounded-full transition-all duration-300",
-                    active ? "bg-primary-soft" : "bg-transparent",
+                    CELL_CLASS,
+                    active
+                      ? "bg-primary-soft text-primary"
+                      : "text-muted-foreground hover:bg-elevated/60 hover:text-foreground",
                   )}
                 >
-                  <Icon className="size-[18px]" aria-hidden="true" />
-                </span>
-                <span className="max-w-full truncate">{t(item.labelKey)}</span>
-              </Link>
-            </li>
-          );
-        })}
-        <li className="min-w-0">
-          <button
-            type="button"
-            onClick={onOpenMenu}
-            aria-haspopup="dialog"
-            className={cn(CELL_CLASS, moreActive ? "text-primary" : "text-muted-foreground")}
-          >
-            <span
+                  <span
+                    className={cn(
+                      "grid size-8 shrink-0 place-items-center rounded-full transition-transform duration-200",
+                      active && "scale-105",
+                    )}
+                  >
+                    <Icon className="size-[18px]" aria-hidden="true" />
+                  </span>
+                  <span className="max-w-full truncate">{t(item.labelKey)}</span>
+                </Link>
+              </li>
+            );
+          })}
+          <li className="min-w-0">
+            <button
+              type="button"
+              onClick={onOpenMenu}
+              aria-haspopup="dialog"
               className={cn(
-                "grid size-8 shrink-0 place-items-center rounded-full transition-all duration-300",
-                moreActive ? "bg-primary-soft" : "bg-transparent",
+                CELL_CLASS,
+                moreActive
+                  ? "bg-primary-soft text-primary"
+                  : "text-muted-foreground hover:bg-elevated/60 hover:text-foreground",
               )}
             >
-              <MoreHorizontal className="size-[18px]" aria-hidden="true" />
-            </span>
-            <span className="max-w-full truncate">{t("nav.more")}</span>
-          </button>
-        </li>
-      </ul>
+              <span
+                className={cn(
+                  "grid size-8 shrink-0 place-items-center rounded-full transition-transform duration-200",
+                  moreActive && "scale-105",
+                )}
+              >
+                <MoreHorizontal className="size-[18px]" aria-hidden="true" />
+              </span>
+              <span className="max-w-full truncate">{t("nav.more")}</span>
+            </button>
+          </li>
+        </ul>
+      </div>
     </nav>
   );
 }
@@ -94,13 +106,16 @@ export function MobileNavDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-[300px] border-sidebar-border bg-sidebar p-0">
-        <SheetHeader className="px-4 pt-4 text-left">
+      <SheetContent
+        side="left"
+        className="w-[min(320px,calc(100vw-24px))] border-sidebar-border bg-sidebar p-0"
+      >
+        <SheetHeader className="border-b border-sidebar-border px-4 pb-4 pt-4 text-left">
           <SheetTitle className="text-sidebar-foreground">
             <BrandLockup />
           </SheetTitle>
         </SheetHeader>
-        <div className="space-y-5 px-3 pb-6 pt-4">
+        <div className="space-y-5 overflow-y-auto px-3 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-4">
           <OrgContext />
           {NAV_SECTIONS.map((section) => (
             <div key={section.id} className="space-y-1">
@@ -119,11 +134,26 @@ export function MobileNavDrawer({
                       onClick={() => onOpenChange(false)}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-sidebar-foreground/75",
+                        "relative flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm text-sidebar-foreground/75 transition-colors",
+                        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         active && "bg-sidebar-accent text-sidebar-accent-foreground",
                       )}
                     >
-                      <Icon className="size-4 shrink-0" aria-hidden="true" />
+                      <span
+                        className={cn(
+                          "absolute left-0 top-1/2 h-0 w-[2px] -translate-y-1/2 rounded-full bg-sidebar-primary transition-all duration-200",
+                          active && "h-5",
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span
+                        className={cn(
+                          "grid size-8 shrink-0 place-items-center rounded-lg",
+                          active ? "bg-sidebar-primary/15 text-sidebar-primary" : "bg-transparent",
+                        )}
+                      >
+                        <Icon className="size-4" aria-hidden="true" />
+                      </span>
                       <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
                       {item.status === "planned" ? (
                         <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40">
