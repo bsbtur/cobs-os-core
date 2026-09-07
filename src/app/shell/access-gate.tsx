@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
-import { claimTokenFromInviteInput } from "@/lib/claim-intent";
+import { claimTokenFromInviteInput, savePendingClaim } from "@/lib/claim-intent";
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,17 +47,21 @@ function useEffectivePortalAccess(enabled: boolean) {
  * The pending claim intent lives in the browser that first opened the link.
  * A traveler who authenticates in another context (e-mail confirmation in a
  * different browser, later manual sign-in) arrives here with no intent. This
- * form only extracts the token from a pasted invitation link and hands it to
- * the existing claim route: no claim logic, no grant, no profile, no storage.
+ * form consumes the invitation directly for the already-authenticated traveler
+ * so the claim cannot be lost in a route redirect. No grant is created by the
+ * client; the canonical acceptance RPC remains the only writer.
  */
 function InviteRecovery() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [value, setValue] = React.useState("");
-  const [error, setError] = React.useState<"none" | "empty" | "invalid">("none");
+  const [error, setError] = React.useState<"none" | "empty" | "invalid" | "claim">("none");
+  const [claiming, setClaiming] = React.useState(false);
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (claiming) return;
     if (value.trim().length === 0) {
       setError("empty");
       return;
@@ -67,13 +71,35 @@ function InviteRecovery() {
       setError("invalid");
       return;
     }
+
     setError("none");
     setValue(""); // never keep the token in component state
-    void navigate({ to: "/my/claim/$token", params: { token }, replace: true });
+    setClaiming(true);
+    try {
+      const { data, error: claimError } = await supabase.rpc("accept_participant_access_invitation", {
+        _token: token,
+      });
+      if (claimError) throw claimError;
+
+      const payload = (data ?? {}) as Record<string, unknown>;
+      if (payload["claim_error"] === "wrong_account") {
+        savePendingClaim(token);
+        await navigate({ to: "/my/claim/$token", params: { token }, replace: true });
+        return;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["access-posture"] });
+      await queryClient.invalidateQueries({ queryKey: ["my-trips"] });
+      window.location.assign("/my");
+    } catch {
+      setError("claim");
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
-    <form onSubmit={submit} className="mt-6 border-t border-border pt-4">
+    <form onSubmit={(event) => void submit(event)} className="mt-6 border-t border-border pt-4">
       <h2 className="text-sm font-semibold">{t("access.recover.title")}</h2>
       <label
         htmlFor="invite-link"
@@ -91,21 +117,28 @@ function InviteRecovery() {
         className="mt-2 min-h-11"
         placeholder={t("access.recover.placeholder")}
         value={value}
+        disabled={claiming}
         onChange={(event) => {
           setValue(event.target.value);
           if (error !== "none") setError("none");
         }}
       />
-      <Button type="submit" variant="outline" className="mt-3 min-h-11">
-        <LinkIcon className="mr-2 size-4" aria-hidden="true" />
-        {t("access.recover.cta")}
+      <Button type="submit" variant="outline" className="mt-3 min-h-11" disabled={claiming}>
+        {claiming ? (
+          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <LinkIcon className="mr-2 size-4" aria-hidden="true" />
+        )}
+        {claiming ? t("common.saving") : t("access.recover.cta")}
       </Button>
       <p role="status" aria-live="polite" className="mt-2 text-sm text-destructive">
         {error === "empty"
           ? t("access.recover.empty")
           : error === "invalid"
             ? t("access.recover.invalid")
-            : ""}
+            : error === "claim"
+              ? t("access.none.error")
+              : ""}
       </p>
     </form>
   );
