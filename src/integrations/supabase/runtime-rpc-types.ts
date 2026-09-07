@@ -29,6 +29,28 @@ export type RuntimeRpcDatabase = {
         };
         Returns: string;
       };
+      get_operation_contract_parties: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Array<{
+          order_id: string;
+          buyer_person_id: string;
+          buyer_name: string;
+          order_status: string;
+          reservation_status: string;
+          document_type: "cpf" | "passport" | "other" | null;
+          document_number: string | null;
+          address_line1: string | null;
+          address_line2: string | null;
+          district: string | null;
+          city: string | null;
+          state_region: string | null;
+          postal_code: string | null;
+          country_code: string | null;
+          contract_party_profile_complete: boolean;
+        }>;
+      };
       get_operation_contract_readiness: {
         Args: {
           _operation_id: string;
@@ -144,6 +166,21 @@ export type RuntimeRpcDatabase = {
         Args: {
           _supplier_id: string;
           _legal_name: string;
+          _document_number: string;
+          _address_line1: string;
+          _address_line2?: string | null;
+          _district?: string | null;
+          _city?: string | null;
+          _state_region?: string | null;
+          _postal_code?: string | null;
+          _country_code?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      upsert_order_contract_party_profile: {
+        Args: {
+          _order_id: string;
+          _document_type: "cpf" | "passport" | "other";
           _document_number: string;
           _address_line1: string;
           _address_line2?: string | null;
