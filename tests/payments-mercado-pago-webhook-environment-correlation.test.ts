@@ -20,8 +20,8 @@ describe("Mercado Pago webhook environment correlation", () => {
 
   test("checks environment before financial/provider correlation updates", () => {
     const environmentGuard = source.indexOf("payment_environment_mismatch");
-    const attemptUpdate = source.indexOf('.from("payment_attempts").update');
-    const chargeUpdate = source.indexOf('.from("payment_charges").update');
+    const attemptUpdate = source.indexOf("update(attemptPatch)");
+    const chargeUpdate = source.indexOf("update(chargePatch)");
     const recordPayment = source.indexOf('admin.rpc("record_provider_payment"');
 
     expect(environmentGuard).toBeGreaterThan(-1);
