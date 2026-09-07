@@ -271,15 +271,26 @@ Deno.serve(async (req: Request) => {
     })
     .eq("id", charge.id);
 
+  let confirmation: unknown = null;
   if (chargeStatus === "paid") {
+    const providerReference = `mercado_pago:${payment?.id ?? provider?.id}`;
     const recorded = await db.rpc("record_provider_payment", {
       _order_id: order.id,
       _amount_minor: 100,
-      _reference: `mercado_pago:${payment?.id ?? provider?.id}`,
+      _reference: providerReference,
       _reason: "City Tour R$1 Golden Path TEST approved",
       _occurred_at: payment?.date_approved ?? provider?.last_updated_date ?? completedAt,
     });
     if (recorded.error) return json({ error: "financial_fact_failed", details: recorded.error.message }, 500);
+
+    const confirmed = await db.rpc("confirm_paid_provider_order", {
+      _order_id: order.id,
+      _charge_id: charge.id,
+      _provider_reference: providerReference,
+    });
+    if (confirmed.error) return json({ error: "provider_confirmation_failed", details: confirmed.error.message }, 500);
+    confirmation = confirmed.data;
+
     await db.from("public_checkout_sessions").update({ status: "consumed", updated_at: completedAt }).eq("id", session.id);
   }
 
@@ -290,6 +301,7 @@ Deno.serve(async (req: Request) => {
       attempt_id: attempt.id,
       amount_minor: 100,
       status: attemptStatus,
+      confirmation,
       pix: { qr_code: method?.qr_code ?? null, qr_code_base64: method?.qr_code_base64 ?? null, ticket_url: method?.ticket_url ?? null },
       reused: false,
       environment: "test",

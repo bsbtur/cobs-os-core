@@ -7,6 +7,7 @@ const migration = readFileSync(
 );
 const checkout = readFileSync("supabase/functions/citytour-test-checkout/index.ts", "utf8");
 const pix = readFileSync("supabase/functions/citytour-test-create-pix/index.ts", "utf8");
+const status = readFileSync("supabase/functions/citytour-test-order-status/index.ts", "utf8");
 const landing = readFileSync("src/routes/city-tour-validacao.tsx", "utf8");
 
 describe("City Tour R$1 TEST Golden Path", () => {
@@ -33,18 +34,41 @@ describe("City Tour R$1 TEST Golden Path", () => {
     expect(pix).toContain('total_amount: "1.00"');
   });
 
-  it("pins checkout and payment to the canonical QA operation and fixture", () => {
-    for (const source of [checkout, pix]) {
+  it("confirms an immediately approved TEST payment through the canonical bridge", () => {
+    expect(pix).toContain('db.rpc("record_provider_payment"');
+    expect(pix).toContain('db.rpc("confirm_paid_provider_order"');
+    expect(pix.indexOf('db.rpc("record_provider_payment"')).toBeLessThan(
+      pix.indexOf('db.rpc("confirm_paid_provider_order"'),
+    );
+    expect(pix).toContain('status: "consumed"');
+  });
+
+  it("pins checkout, payment and resume status to the canonical QA fixture", () => {
+    for (const source of [checkout, pix, status]) {
       expect(source).toContain("CITYTO-QA-CLEAN-20260828-01");
       expect(source).toContain("citytour-r1-contract-gates-v1");
     }
   });
 
-  it("connects the landing only to TEST-specific functions", () => {
+  it("keeps resume status read-only, TEST-only and usable after payment consumption", () => {
+    expect(status).toContain('["active", "consumed"].includes(session.status)');
+    expect(status).toContain('payment_environment: "test"');
+    expect(status).toContain("participation_ready: participationReady");
+    expect(status).not.toContain("pix_qr_code");
+    expect(status).not.toContain("buyer_name_snapshot");
+    expect(status).not.toContain("email");
+    expect(status).not.toContain("MERCADO_PAGO_ACCESS_TOKEN");
+    expect(status).not.toContain("ciosp-public-order-status");
+  });
+
+  it("connects the landing only to City Tour TEST-specific functions", () => {
     expect(landing).toMatch(/functions\.invoke\(\s*"citytour-test-checkout"/);
     expect(landing).toMatch(/functions\.invoke\(\s*"citytour-test-create-pix"/);
+    expect(landing).toMatch(/functions\.invoke\(\s*"citytour-test-order-status"/);
     expect(landing).not.toContain("ciosp-public-create-pix");
+    expect(landing).not.toContain("ciosp-public-order-status");
     expect(landing).toContain('checkout?.environment !== "test"');
     expect(landing).toContain('pixData?.environment !== "test"');
+    expect(landing).toContain('data?.payment_environment !== "test"');
   });
 });

@@ -8,6 +8,7 @@ import {
   Landmark,
   Loader2,
   MapPinned,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   Users,
@@ -49,6 +50,8 @@ type PixState = {
   amount_minor?: number;
   status?: string;
   environment?: string;
+  checkout_token?: string;
+  confirmation?: unknown;
   pix?: {
     qr_code?: string | null;
     qr_code_base64?: string | null;
@@ -56,15 +59,31 @@ type PixState = {
   };
 };
 
+type OrderStatus = {
+  order_id?: string;
+  order_status?: string;
+  payment_status?: string;
+  payment_environment?: string;
+  received_minor?: number;
+  balance_minor?: number;
+  participation_ready?: boolean;
+  session_state?: string;
+};
+
 function Brand() {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid size-10 place-items-center rounded-full border text-sm font-bold" style={{ borderColor: gold, color: gold }}>
+      <span
+        className="grid size-10 place-items-center rounded-full border text-sm font-bold"
+        style={{ borderColor: gold, color: gold }}
+      >
         B
       </span>
       <span>
         <span className="block text-base font-semibold tracking-[0.18em] text-white">BSBTUR</span>
-        <span className="block text-[9px] uppercase tracking-[0.28em] text-white/45">Turismo & Experiências</span>
+        <span className="block text-[9px] uppercase tracking-[0.28em] text-white/45">
+          Turismo & Experiências
+        </span>
       </span>
     </div>
   );
@@ -87,9 +106,28 @@ function CityTourValidationLanding() {
   const [phone, setPhone] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pix, setPix] = useState<PixState | null>(null);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
+
+  async function loadOrderStatus(orderId: string, checkoutToken: string) {
+    setStatusLoading(true);
+    try {
+      const { data, error: statusError } = await supabase.functions.invoke(
+        "citytour-test-order-status",
+        { body: { order_id: orderId, checkout_token: checkoutToken } },
+      );
+      if (statusError) throw statusError;
+      if (data?.payment_environment !== "test") throw new Error("status_environment_invalid");
+      setOrderStatus(data as OrderStatus);
+    } catch {
+      setError("Não foi possível atualizar o status TEST agora. Tente novamente.");
+    } finally {
+      setStatusLoading(false);
+    }
+  }
 
   async function submitCheckout(event: FormEvent) {
     event.preventDefault();
@@ -97,17 +135,21 @@ function CityTourValidationLanding() {
     setLoading(true);
     setError(null);
     setPix(null);
+    setOrderStatus(null);
 
     try {
-      const { data: checkout, error: checkoutError } = await supabase.functions.invoke("citytour-test-checkout", {
-        body: {
-          full_name: fullName,
-          email,
-          phone,
-          idempotency_key: idempotencyKey,
-          qa_terms_accepted: true,
+      const { data: checkout, error: checkoutError } = await supabase.functions.invoke(
+        "citytour-test-checkout",
+        {
+          body: {
+            full_name: fullName,
+            email,
+            phone,
+            idempotency_key: idempotencyKey,
+            qa_terms_accepted: true,
+          },
         },
-      });
+      );
       if (checkoutError) {
         const code = await edgeErrorCode(checkoutError);
         if (code === "qa_capacity_reached") {
@@ -120,21 +162,31 @@ function CityTourValidationLanding() {
         throw new Error("checkout_response_invalid");
       }
 
-      const { data: pixData, error: pixError } = await supabase.functions.invoke("citytour-test-create-pix", {
-        body: { order_id: checkout.order_id, checkout_token: checkout.checkout_token },
-      });
+      const { data: pixData, error: pixError } = await supabase.functions.invoke(
+        "citytour-test-create-pix",
+        {
+          body: { order_id: checkout.order_id, checkout_token: checkout.checkout_token },
+        },
+      );
       if (pixError) throw pixError;
       if (pixData?.environment !== "test") throw new Error("pix_environment_invalid");
       if (!pixData?.pix?.qr_code && !pixData?.pix?.ticket_url && pixData?.status !== "approved") {
         throw new Error("pix_response_invalid");
       }
-      setPix(pixData as PixState);
+
+      setPix({ ...(pixData as PixState), checkout_token: checkout.checkout_token });
+      await loadOrderStatus(checkout.order_id, checkout.checkout_token);
     } catch {
-      setError("Não foi possível concluir o checkout TEST agora. Nenhuma cobrança de produção foi iniciada.");
+      setError(
+        "Não foi possível concluir o checkout TEST agora. Nenhuma cobrança de produção foi iniciada.",
+      );
     } finally {
       setLoading(false);
     }
   }
+
+  const paid = orderStatus?.payment_status === "paid";
+  const confirmed = orderStatus?.order_status === "confirmed";
 
   return (
     <div className="min-h-screen bg-[#070707] text-white">
@@ -174,7 +226,9 @@ function CityTourValidationLanding() {
             </div>
 
             <aside className="rounded-[2rem] border border-white/10 bg-white/[.04] p-7 shadow-2xl shadow-black/30">
-              <p className="text-xs font-semibold uppercase tracking-[.22em]" style={{ color: gold }}>Oferta de validação</p>
+              <p className="text-xs font-semibold uppercase tracking-[.22em]" style={{ color: gold }}>
+                Oferta de validação
+              </p>
               <p className="mt-4 text-5xl font-semibold">R$ 1,00</p>
               <p className="mt-1 text-sm text-white/45">por viajante · somente TEST</p>
               <div className="mt-7 space-y-3 text-sm text-white/65">
@@ -191,8 +245,12 @@ function CityTourValidationLanding() {
 
         <section className="mx-auto max-w-6xl px-5 py-20">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[.22em]" style={{ color: gold }}>O que estamos validando</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-.03em] md:text-5xl">Uma venda pequena para testar uma operação grande.</h2>
+            <p className="text-xs font-semibold uppercase tracking-[.22em]" style={{ color: gold }}>
+              O que estamos validando
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-.03em] md:text-5xl">
+              Uma venda pequena para testar uma operação grande.
+            </h2>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             {inclusions.map(([Icon, title, description]) => (
@@ -219,28 +277,81 @@ function CityTourValidationLanding() {
               {pix ? (
                 <div role="status" aria-live="polite" className="py-3 text-center">
                   <CheckCircle2 className="mx-auto size-10" style={{ color: gold }} />
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-emerald-300">Checkout TEST criado</p>
-                  <h3 className="mt-2 text-3xl font-semibold">R$ {((pix.amount_minor ?? 100) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</h3>
-                  <p className="mt-2 text-sm text-white/45">Pedido {pix.order_id} · ambiente {pix.environment}</p>
-                  {pix.pix?.qr_code_base64 && (
-                    <img className="mx-auto mt-5 w-full max-w-[260px] rounded-xl bg-white p-3" src={`data:image/png;base64,${pix.pix.qr_code_base64}`} alt="QR Code Pix TEST" />
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-emerald-300">
+                    {confirmed ? "Pedido TEST confirmado" : paid ? "Pagamento TEST recebido" : "Checkout TEST criado"}
+                  </p>
+                  <h3 className="mt-2 text-3xl font-semibold">
+                    R$ {((pix.amount_minor ?? 100) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </h3>
+                  <p className="mt-2 text-sm text-white/45">
+                    Pedido {pix.order_id} · ambiente {pix.environment}
+                  </p>
+
+                  {orderStatus && (
+                    <div className="mt-5 grid gap-2 rounded-2xl border border-white/10 bg-white/[.03] p-4 text-left text-sm text-white/60">
+                      <p>Pagamento: <strong className="text-white">{orderStatus.payment_status}</strong></p>
+                      <p>Pedido: <strong className="text-white">{orderStatus.order_status}</strong></p>
+                      <p>Participação: <strong className="text-white">{orderStatus.participation_ready ? "confirmada" : "aguardando confirmação"}</strong></p>
+                      <p>Saldo TEST: <strong className="text-white">R$ {((orderStatus.balance_minor ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong></p>
+                    </div>
                   )}
-                  {pix.pix?.qr_code && (
-                    <Button type="button" variant="outline" className="mt-5 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.pix?.qr_code ?? "")}>
+
+                  {pix.pix?.qr_code_base64 && !paid && (
+                    <img
+                      className="mx-auto mt-5 w-full max-w-[260px] rounded-xl bg-white p-3"
+                      src={`data:image/png;base64,${pix.pix.qr_code_base64}`}
+                      alt="QR Code Pix TEST"
+                    />
+                  )}
+                  {pix.pix?.qr_code && !paid && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-5 w-full border-white/15 bg-black/40"
+                      onClick={() => navigator.clipboard.writeText(pix.pix?.qr_code ?? "")}
+                    >
                       <Copy className="mr-2 size-4" /> Copiar Pix TEST
                     </Button>
                   )}
-                  {pix.pix?.ticket_url && (
-                    <a href={pix.pix.ticket_url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm underline" style={{ color: gold }}>
+                  {pix.pix?.ticket_url && !paid && (
+                    <a
+                      href={pix.pix.ticket_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-4 inline-block text-sm underline"
+                      style={{ color: gold }}
+                    >
                       Abrir página TEST do pagamento
                     </a>
                   )}
-                  <p className="mt-5 text-xs leading-5 text-white/35">Nenhuma credencial ou cobrança de produção é usada neste fluxo.</p>
+
+                  {pix.order_id && pix.checkout_token && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={statusLoading}
+                      className="mt-5 w-full border-white/15 bg-black/40"
+                      onClick={() => loadOrderStatus(pix.order_id!, pix.checkout_token!)}
+                    >
+                      {statusLoading ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="mr-2 size-4" />
+                      )}
+                      Atualizar status TEST
+                    </Button>
+                  )}
+
+                  <p className="mt-5 text-xs leading-5 text-white/35">
+                    Nenhuma credencial ou cobrança de produção é usada neste fluxo.
+                  </p>
                 </div>
               ) : (
                 <form onSubmit={submitCheckout} className="space-y-4">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[.2em]" style={{ color: gold }}>Comprar por R$ 1,00</p>
+                    <p className="text-xs font-semibold uppercase tracking-[.2em]" style={{ color: gold }}>
+                      Comprar por R$ 1,00
+                    </p>
                     <h3 className="mt-2 text-2xl font-semibold">Dados do viajante</h3>
                   </div>
                   <label className="block space-y-1.5 text-sm text-white/65">
@@ -257,13 +368,25 @@ function CityTourValidationLanding() {
                   </label>
                   <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[.025] p-4 text-sm text-white/55">
                     <input required type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1 size-4" />
-                    <span>Confirmo que esta compra de R$ 1,00 é uma validação técnica em ambiente TEST e não representa um contrato juridicamente revisado.</span>
+                    <span>
+                      Confirmo que esta compra de R$ 1,00 é uma validação técnica em ambiente TEST e não representa um contrato juridicamente revisado.
+                    </span>
                   </label>
-                  {error && <div role="alert" className="rounded-xl border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300">{error}</div>}
+                  {error && (
+                    <div role="alert" className="rounded-xl border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300">
+                      {error}
+                    </div>
+                  )}
                   <Button disabled={loading || !termsAccepted} type="submit" className="h-12 w-full rounded-full text-black" style={{ backgroundColor: gold }}>
-                    {loading ? <><Loader2 className="mr-2 size-4 animate-spin" /> Criando Pix TEST...</> : <>Continuar com Pix TEST <ArrowRight className="ml-2 size-4" /></>}
+                    {loading ? (
+                      <><Loader2 className="mr-2 size-4 animate-spin" /> Criando Pix TEST...</>
+                    ) : (
+                      <>Continuar com Pix TEST <ArrowRight className="ml-2 size-4" /></>
+                    )}
                   </Button>
-                  <p className="text-center text-xs leading-5 text-white/35">STAGING · TEST · valor fixo R$ 1,00 · máximo 2 pedidos ativos.</p>
+                  <p className="text-center text-xs leading-5 text-white/35">
+                    STAGING · TEST · valor fixo R$ 1,00 · máximo 2 pedidos ativos.
+                  </p>
                 </form>
               )}
             </div>
