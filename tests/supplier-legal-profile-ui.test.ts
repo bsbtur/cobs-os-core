@@ -33,7 +33,9 @@ describe("supplier legal profile UI", () => {
   test("requires real complete fields in the UI and does not auto-fill legal identity", () => {
     expect(dialog).toContain('supabase.rpc("update_supplier_contract_legal_profile"');
     expect(dialog).toContain("Informe somente dados reais do fornecedor");
-    expect(dialog).toContain("não consulta nem completa dados jurídicos automaticamente");
+    expect(dialog.replace(/\s+/g, " ")).toContain(
+      "não consulta nem completa dados jurídicos automaticamente",
+    );
     expect(dialog).toContain("documentNumber.trim()");
     expect(dialog).toContain("addressLine1.trim()");
     expect(dialog).toContain("postalCode.trim()");
