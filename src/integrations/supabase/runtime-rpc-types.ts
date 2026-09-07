@@ -45,6 +45,25 @@ export type RuntimeRpcDatabase = {
           note?: string;
         };
       };
+      get_contract_document_source_for_admin: {
+        Args: {
+          _template_key: string;
+          _version: string;
+        };
+        Returns: {
+          template_id: string;
+          template_key: string;
+          template_version: string;
+          name: string;
+          status: string;
+          legal_reviewed_at: string | null;
+          document_source_registered: boolean;
+          document_source_hash: string | null;
+          document_renderer_version: string | null;
+          provider_document_mode: string | null;
+          can_register_source: boolean;
+        };
+      };
       get_operation_contract_parties: {
         Args: {
           _operation_id: string;
@@ -148,6 +167,14 @@ export type RuntimeRpcDatabase = {
           _source_id: string;
           _idempotency_key: string;
           _priority?: "normal" | "important" | "urgent";
+        };
+        Returns: Record<string, unknown>;
+      };
+      register_contract_document_source_draft: {
+        Args: {
+          _template_id: string;
+          _document_source_snapshot: string;
+          _renderer_version: string;
         };
         Returns: Record<string, unknown>;
       };
