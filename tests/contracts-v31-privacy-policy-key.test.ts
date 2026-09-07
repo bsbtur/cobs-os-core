@@ -28,9 +28,17 @@ describe("CIOSP-2027/V3.1 privacy policy identity", () => {
     expect(migration).not.toMatch(/update\s+public\.privacy_policy_versions/i);
   });
 
-  test("generator already fails closed when the configured policy key is not active", () => {
+  test("generator queries only the configured active policy key", () => {
+    const compact = generator.replace(/\s+/g, " ");
     expect(generator).toContain("templateMetadata.privacy_policy_key");
-    expect(generator).toContain('row.policy_key === configuredPrivacyKey');
+    expect(generator).toContain('configured_privacy_policy_required');
+    expect(compact).toContain('.from("privacy_policy_versions")');
+    expect(compact).toContain('.eq("policy_key", configuredPrivacyKey)');
+    expect(compact).toContain('.eq("status", "active")');
+    expect(compact).toContain('.limit(1) .maybeSingle()');
     expect(generator).toContain('configured_privacy_policy_not_active');
+    expect(generator).not.toContain('privacy_policy_ambiguous');
+    expect(generator).not.toContain('row.policy_key === configuredPrivacyKey');
+    expect(generator).not.toContain('.limit(2)');
   });
 });
