@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
-import { claimTokenFromInviteInput, rememberPendingClaim } from "@/lib/claim-intent";
+import { claimTokenFromInviteInput, savePendingClaim } from "@/lib/claim-intent";
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,8 +82,8 @@ function InviteRecovery() {
       if (claimError) throw claimError;
 
       const payload = (data ?? {}) as Record<string, unknown>;
-      if (payload["outcome"] === "wrong_account") {
-        rememberPendingClaim(token);
+      if (payload["claim_error"] === "wrong_account") {
+        savePendingClaim(token);
         await navigate({ to: "/my/claim/$token", params: { token }, replace: true });
         return;
       }
