@@ -33,21 +33,23 @@ as $$
       )
       and (
         o.status='confirmed'
-        or exists(
-          select 1
+        or (
+          select coalesce(sum(case
+            when ff.fact_type='PAYMENT_RECORDED' then ff.amount_minor
+            when ff.fact_type in ('PAYMENT_REVERSED','REFUND_RECORDED') then -ff.amount_minor
+            else 0
+          end),0)
           from public.financial_facts ff
           where ff.tenant_id=o.tenant_id
             and ff.order_id=o.id
-            and ff.fact_type='payment_received'
-            and ff.amount_minor>0
-        )
+        )>0
       )
   ),false);
 $$;
 
 revoke all on function app_private.order_is_contractable_production(uuid,uuid) from public;
 comment on function app_private.order_is_contractable_production(uuid,uuid) is
-  'Contract eligibility: production-classified order plus a live reservation and either confirmed order or positive payment_received fact. Expired unpaid checkouts are excluded without mutating history.';
+  'Contract eligibility: production-classified order plus a live reservation and either confirmed order or positive net financial facts. Expired unpaid or fully reversed/refunded checkouts are excluded without mutating history.';
 
 create or replace function app_private.guard_customer_contract_production_environment()
 returns trigger
