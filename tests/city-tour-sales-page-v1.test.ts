@@ -11,11 +11,12 @@ describe("City Tour QA sales page v1", () => {
     expect(page).toContain("Primeiro ciclo: dois viajantes");
   });
 
-  it("does not create payment, order, contract or provider calls in v1", () => {
-    expect(page).not.toContain("supabase.functions.invoke");
+  it("uses only the dedicated TEST checkout/payment path", () => {
+    expect(page).toContain("citytour-test-checkout");
+    expect(page).toContain("citytour-test-create-pix");
     expect(page).not.toContain("ciosp-public-create-pix");
     expect(page).not.toContain("contracts-clicksign-send");
     expect(page).not.toContain("payments-create-charge");
-    expect(page).toContain("Nenhum Pix ou pedido é criado por este formulário");
+    expect(page).toContain("Nenhuma credencial ou cobrança de produção é usada neste fluxo");
   });
 });

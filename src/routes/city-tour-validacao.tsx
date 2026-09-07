@@ -1,10 +1,12 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRight,
   BadgeCheck,
   CheckCircle2,
+  Copy,
   Landmark,
+  Loader2,
   MapPinned,
   ShieldCheck,
   Sparkles,
@@ -12,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/city-tour-validacao")({
   head: () => ({
@@ -37,9 +40,21 @@ const gold = "#D6B56D";
 const inclusions = [
   [Landmark, "Brasília monumental", "Uma experiência curta para representar um produto turístico real."],
   [MapPinned, "Operação City Tour QA", "Produto conectado à operação de validação já cadastrada no STAGING."],
-  [ShieldCheck, "Ambiente TEST", "Nenhuma cobrança Mercado Pago de produção é iniciada nesta página."],
+  [ShieldCheck, "Ambiente TEST", "O checkout usa exclusivamente o caminho Mercado Pago TEST."],
   [BadgeCheck, "Golden Path", "Base para validar pedido, reserva, pagamento TEST, viajante e contrato."],
 ] as const;
+
+type PixState = {
+  order_id?: string;
+  amount_minor?: number;
+  status?: string;
+  environment?: string;
+  pix?: {
+    qr_code?: string | null;
+    qr_code_base64?: string | null;
+    ticket_url?: string | null;
+  };
+};
 
 function Brand() {
   return (
@@ -55,15 +70,70 @@ function Brand() {
   );
 }
 
+async function edgeErrorCode(error: unknown) {
+  const context = (error as { context?: Response } | null)?.context;
+  if (!context) return null;
+  try {
+    const payload = await context.clone().json();
+    return typeof payload?.error === "string" ? payload.error : null;
+  } catch {
+    return null;
+  }
+}
+
 function CityTourValidationLanding() {
-  const [submitted, setSubmitted] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pix, setPix] = useState<PixState | null>(null);
+  const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
-  function submitInterest(event: FormEvent) {
+  async function submitCheckout(event: FormEvent) {
     event.preventDefault();
-    setSubmitted(true);
+    if (loading || !termsAccepted) return;
+    setLoading(true);
+    setError(null);
+    setPix(null);
+
+    try {
+      const { data: checkout, error: checkoutError } = await supabase.functions.invoke("citytour-test-checkout", {
+        body: {
+          full_name: fullName,
+          email,
+          phone,
+          idempotency_key: idempotencyKey,
+          qa_terms_accepted: true,
+        },
+      });
+      if (checkoutError) {
+        const code = await edgeErrorCode(checkoutError);
+        if (code === "qa_capacity_reached") {
+          setError("As duas vagas do primeiro ciclo de validação já foram utilizadas.");
+          return;
+        }
+        throw checkoutError;
+      }
+      if (!checkout?.order_id || !checkout?.checkout_token || checkout?.environment !== "test") {
+        throw new Error("checkout_response_invalid");
+      }
+
+      const { data: pixData, error: pixError } = await supabase.functions.invoke("citytour-test-create-pix", {
+        body: { order_id: checkout.order_id, checkout_token: checkout.checkout_token },
+      });
+      if (pixError) throw pixError;
+      if (pixData?.environment !== "test") throw new Error("pix_environment_invalid");
+      if (!pixData?.pix?.qr_code && !pixData?.pix?.ticket_url && pixData?.status !== "approved") {
+        throw new Error("pix_response_invalid");
+      }
+      setPix(pixData as PixState);
+    } catch {
+      setError("Não foi possível concluir o checkout TEST agora. Nenhuma cobrança de produção foi iniciada.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -89,16 +159,16 @@ function CityTourValidationLanding() {
                 Viva um City Tour em Brasília e ajude a validar a experiência digital da BSBTUR.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-white/55">
-                Esta é uma oferta controlada de teste. O produto está cadastrado no STAGING por <strong className="text-white">R$ 1,00 por viajante</strong> para validarmos o fluxo do interesse ao contrato sem tocar em cobranças de produção.
+                Oferta controlada de QA por <strong className="text-white">R$ 1,00 por viajante</strong>. O objetivo é validar pedido, reserva, Pix TEST, financeiro, acesso do viajante e contrato sem tocar em Mercado Pago production.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="#validacao">
                   <Button className="h-12 rounded-full px-6 text-black" style={{ backgroundColor: gold }}>
-                    Quero participar da validação <ArrowRight className="ml-2 size-4" />
+                    Comprar por R$ 1,00 <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </a>
                 <span className="inline-flex h-12 items-center rounded-full border border-white/10 px-5 text-sm text-white/55">
-                  Produto TEST · R$ 1,00
+                  Produto TEST · 2 vagas de validação
                 </span>
               </div>
             </div>
@@ -108,7 +178,7 @@ function CityTourValidationLanding() {
               <p className="mt-4 text-5xl font-semibold">R$ 1,00</p>
               <p className="mt-1 text-sm text-white/45">por viajante · somente TEST</p>
               <div className="mt-7 space-y-3 text-sm text-white/65">
-                {["Produto turístico real de QA", "Até 2 viajantes para o primeiro ciclo", "Fluxo preparado para contrato", "Sem Mercado Pago production"].map((item) => (
+                {["Produto turístico real de QA", "Até 2 viajantes no primeiro ciclo", "Pedido + reserva + Pix TEST", "Sem credencial Mercado Pago production"].map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0" style={{ color: gold }} />
                     <span>{item}</span>
@@ -141,41 +211,59 @@ function CityTourValidationLanding() {
               <Users className="size-8" style={{ color: gold }} />
               <h2 className="mt-5 text-4xl font-semibold tracking-[-.03em]">Primeiro ciclo: dois viajantes.</h2>
               <p className="mt-4 leading-7 text-white/50">
-                Nesta etapa, o formulário registra apenas a intenção local na interface. O checkout TEST será conectado ao Golden Path depois do gate técnico do endpoint genérico. Nenhum Pix ou pedido é criado por este formulário.
+                Cada envio cria um pedido QA de R$ 1,00 e uma reserva no STAGING. O Pix usa somente a credencial de teste. O aceite abaixo é exclusivamente para a validação técnica e não representa revisão jurídica ou contrato real.
               </p>
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-black/40 p-6 md:p-8">
-              {submitted ? (
-                <div role="status" className="py-8 text-center">
+              {pix ? (
+                <div role="status" aria-live="polite" className="py-3 text-center">
                   <CheckCircle2 className="mx-auto size-10" style={{ color: gold }} />
-                  <h3 className="mt-4 text-2xl font-semibold">Pronto para o próximo gate.</h3>
-                  <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/50">
-                    Dados preenchidos na página de vendas. Nenhuma transação foi criada. A próxima etapa é conectar este CTA ao checkout TEST do City Tour.
-                  </p>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-emerald-300">Checkout TEST criado</p>
+                  <h3 className="mt-2 text-3xl font-semibold">R$ {((pix.amount_minor ?? 100) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</h3>
+                  <p className="mt-2 text-sm text-white/45">Pedido {pix.order_id} · ambiente {pix.environment}</p>
+                  {pix.pix?.qr_code_base64 && (
+                    <img className="mx-auto mt-5 w-full max-w-[260px] rounded-xl bg-white p-3" src={`data:image/png;base64,${pix.pix.qr_code_base64}`} alt="QR Code Pix TEST" />
+                  )}
+                  {pix.pix?.qr_code && (
+                    <Button type="button" variant="outline" className="mt-5 w-full border-white/15 bg-black/40" onClick={() => navigator.clipboard.writeText(pix.pix?.qr_code ?? "")}>
+                      <Copy className="mr-2 size-4" /> Copiar Pix TEST
+                    </Button>
+                  )}
+                  {pix.pix?.ticket_url && (
+                    <a href={pix.pix.ticket_url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm underline" style={{ color: gold }}>
+                      Abrir página TEST do pagamento
+                    </a>
+                  )}
+                  <p className="mt-5 text-xs leading-5 text-white/35">Nenhuma credencial ou cobrança de produção é usada neste fluxo.</p>
                 </div>
               ) : (
-                <form onSubmit={submitInterest} className="space-y-4">
+                <form onSubmit={submitCheckout} className="space-y-4">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[.2em]" style={{ color: gold }}>Participar por R$ 1,00</p>
+                    <p className="text-xs font-semibold uppercase tracking-[.2em]" style={{ color: gold }}>Comprar por R$ 1,00</p>
                     <h3 className="mt-2 text-2xl font-semibold">Dados do viajante</h3>
                   </div>
                   <label className="block space-y-1.5 text-sm text-white/65">
                     Nome completo
-                    <Input required minLength={2} maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} className="border-white/15 bg-black/50 text-white" />
+                    <Input required minLength={2} maxLength={120} value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" className="border-white/15 bg-black/50 text-white" />
                   </label>
                   <label className="block space-y-1.5 text-sm text-white/65">
                     E-mail
-                    <Input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="border-white/15 bg-black/50 text-white" />
+                    <Input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" className="border-white/15 bg-black/50 text-white" />
                   </label>
                   <label className="block space-y-1.5 text-sm text-white/65">
                     WhatsApp
-                    <Input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="(61) 99999-9999" className="border-white/15 bg-black/50 text-white" />
+                    <Input value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" placeholder="(61) 99999-9999" className="border-white/15 bg-black/50 text-white" />
                   </label>
-                  <Button type="submit" className="h-12 w-full rounded-full text-black" style={{ backgroundColor: gold }}>
-                    Continuar validação <ArrowRight className="ml-2 size-4" />
+                  <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[.025] p-4 text-sm text-white/55">
+                    <input required type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} className="mt-1 size-4" />
+                    <span>Confirmo que esta compra de R$ 1,00 é uma validação técnica em ambiente TEST e não representa um contrato juridicamente revisado.</span>
+                  </label>
+                  {error && <div role="alert" className="rounded-xl border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300">{error}</div>}
+                  <Button disabled={loading || !termsAccepted} type="submit" className="h-12 w-full rounded-full text-black" style={{ backgroundColor: gold }}>
+                    {loading ? <><Loader2 className="mr-2 size-4 animate-spin" /> Criando Pix TEST...</> : <>Continuar com Pix TEST <ArrowRight className="ml-2 size-4" /></>}
                   </Button>
-                  <p className="text-center text-xs leading-5 text-white/35">Ambiente TEST. Esta versão da página não cria pedido, cobrança ou contrato.</p>
+                  <p className="text-center text-xs leading-5 text-white/35">STAGING · TEST · valor fixo R$ 1,00 · máximo 2 pedidos ativos.</p>
                 </form>
               )}
             </div>
@@ -185,7 +273,7 @@ function CityTourValidationLanding() {
 
       <footer className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 text-xs text-white/35 md:flex-row md:items-center md:justify-between">
         <Brand />
-        <p>BSBTUR · City Tour Brasília · Página de validação COBS</p>
+        <p>BSBTUR · City Tour Brasília · Golden Path QA</p>
       </footer>
     </div>
   );
