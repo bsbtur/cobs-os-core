@@ -32,8 +32,6 @@ type PolicyRow = {
   effective_at: string;
   content_hash: string;
   status: string;
-  legal_reviewed_at: string | null;
-  legal_review_reference: string | null;
   created_at: string;
 };
 
@@ -63,9 +61,7 @@ function PrivacyRegistry() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("privacy_policy_versions")
-        .select(
-          "id,policy_key,version,title,effective_at,content_hash,status,legal_reviewed_at,legal_review_reference,created_at",
-        )
+        .select("id,policy_key,version,title,effective_at,content_hash,status,created_at")
         .eq("tenant_id", tenant!.id)
         .eq("policy_key", CIOSP_TRAVELER_POLICY_KEY)
         .order("created_at", { ascending: false });
@@ -217,10 +213,7 @@ function PrivacyRegistry() {
                 <span className="rounded-full border border-border px-2.5 py-1 text-xs font-semibold uppercase">{policy.status}</span>
               </div>
               <p className="mt-3 break-all font-mono text-[11px] text-muted-foreground">SHA-256 {policy.content_hash}</p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Revisão jurídica: {policy.legal_reviewed_at ? "registrada" : "pendente"}
-                {policy.legal_review_reference ? ` · ${policy.legal_review_reference}` : ""}
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground">Revisão jurídica e ativação permanecem fora desta interface.</p>
             </div>
           ))}
         </div>
