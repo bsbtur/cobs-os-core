@@ -23,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/pr
 type QuoteRow = {
   id: string;
   supplier_id: string;
+  supplier_name: string;
   category: string;
   description: string;
   amount_minor: number;
@@ -30,7 +31,7 @@ type QuoteRow = {
   status: string;
   valid_until: string | null;
   contract_reference: string | null;
-  suppliers: { name: string } | null;
+  created_at: string;
 };
 
 function money(amountMinor: number, currency = "BRL") {
@@ -224,11 +225,9 @@ function ProcurementPage() {
   const quotes = useQuery({
     queryKey: ["operation-procurement", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("operation_quotes")
-        .select("id,supplier_id,category,description,amount_minor,currency_code,status,valid_until,contract_reference,suppliers(name)")
-        .eq("operation_id", operationId)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_operation_procurement_quotes", {
+        _operation_id: operationId,
+      });
       if (error) throw error;
       return (data ?? []) as QuoteRow[];
     },
@@ -266,7 +265,7 @@ function ProcurementPage() {
       {quotes.isError ? (
         <div className="surface-panel border-destructive/40 p-4 text-sm text-destructive">Não foi possível carregar as cotações.</div>
       ) : (quotes.data ?? []).length === 0 ? (
-        <EmptyState title="Nenhuma cotação registrada" description="Cadastre uma proposta real de fornecedor para iniciar o comparativo da operação." />
+        <EmptyState title="Nenhuma cotação registrada" body="Cadastre uma proposta real de fornecedor para iniciar o comparativo da operação." />
       ) : (
         <div className="space-y-3">
           {(quotes.data ?? []).map((quote) => (
@@ -274,7 +273,7 @@ function ProcurementPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-semibold">{quote.suppliers?.name ?? "Fornecedor"}</h2>
+                    <h2 className="font-semibold">{quote.supplier_name}</h2>
                     <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">{statusLabel(quote.status)}</span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{quote.category} · {quote.description}</p>
