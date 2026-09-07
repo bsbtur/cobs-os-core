@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: attempt, error: attemptError } = await admin.from("payment_attempts")
-    .select("id,tenant_id,charge_id,amount_minor,method")
+    .select("id,tenant_id,charge_id,amount_minor,method,metadata")
     .eq("provider", "mercado_pago").eq("provider_order_id", dataId).maybeSingle();
   if (attemptError) return json({ error: "attempt_lookup_failed", details: attemptError.message }, 500);
   if (!attempt) {
@@ -133,9 +133,24 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: charge, error: chargeError } = await admin.from("payment_charges")
-    .select("id,order_id,tenant_id,amount_minor,currency,external_reference")
+    .select("id,order_id,tenant_id,amount_minor,currency,external_reference,metadata")
     .eq("id", attempt.charge_id).maybeSingle();
   if (chargeError || !charge) return json({ error: "charge_lookup_failed", details: chargeError?.message }, 500);
+
+  const attemptEnvironment = attempt?.metadata?.environment ?? null;
+  const chargeEnvironment = charge?.metadata?.environment ?? null;
+  const attemptEnvironmentMatches = attemptEnvironment === environment;
+  const chargeEnvironmentMatches = chargeEnvironment === environment;
+  if (!attemptEnvironmentMatches || !chargeEnvironmentMatches) {
+    console.error("mp_webhook_environment_mismatch", JSON.stringify({
+      environment,
+      attempt_environment: attemptEnvironment,
+      charge_environment: chargeEnvironment,
+      attempt_environment_matches: attemptEnvironmentMatches,
+      charge_environment_matches: chargeEnvironmentMatches,
+    }));
+    return json({ error: "payment_environment_mismatch", environment }, 409);
+  }
 
   const payment = mp?.transactions?.payments?.[0] ?? {};
   const providerExternalReference = mp?.external_reference != null ? String(mp.external_reference) : null;
