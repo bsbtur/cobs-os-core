@@ -132,6 +132,12 @@ const missingRequiredVariables = (required: unknown, variables: Record<string, u
   });
 };
 
+const sha256Hex = async (value: unknown) => {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -222,15 +228,30 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, idempotent: true, contract_id: existing.id, status: existing.status, template_key: existing.template_key, template_version: existing.template_version });
 
     const generatedAt = new Date().toISOString();
-    const [{ data: offering, error: offeringError }, { data: quotes, error: quotesError }, { data: privacyRows, error: privacyError }] = await Promise.all([
+    const [
+      { data: offering, error: offeringError },
+      { data: quotes, error: quotesError },
+      { data: privacyRows, error: privacyError },
+      { data: journeyRows, error: journeyError },
+    ] = await Promise.all([
       admin.from("offerings").select("id,name,slug,status,currency_code,metadata,updated_at").eq("id", reservation.offering_id).eq("tenant_id", order.tenant_id).maybeSingle(),
       admin.from("operation_quotes").select("id,supplier_id,category,description,contract_reference,contracted_at,status").eq("tenant_id", order.tenant_id).eq("operation_id", order.operation_id).eq("status", "contracted").order("category", { ascending: true }),
       admin.from("privacy_policy_versions").select("id,policy_key,version,title,effective_at,content_hash,public_url,metadata").eq("tenant_id", order.tenant_id).eq("status", "active").lte("effective_at", generatedAt).order("effective_at", { ascending: false }).limit(2),
+      admin
+        .from("journey_steps")
+        .select("id,sequence,title,description,step_kind,planned_start,planned_end,location_label,traveler_label,updated_at")
+        .eq("tenant_id", order.tenant_id)
+        .eq("operation_id", order.operation_id)
+        .eq("traveler_facing", true)
+        .is("archived_at", null)
+        .order("sequence", { ascending: true }),
     ]);
-    if (offeringError || quotesError || privacyError) return json({ error: "contract_evidence_lookup_failed" }, 500);
+    if (offeringError || quotesError || privacyError || journeyError)
+      return json({ error: "contract_evidence_lookup_failed" }, 500);
     if (!offering) return json({ error: "offering_snapshot_required" }, 409);
     if (!quotes?.length) return json({ error: "contracted_suppliers_required" }, 409);
     if (!privacyRows?.length) return json({ error: "active_privacy_policy_required" }, 409);
+    if (!journeyRows?.length) return json({ error: "program_snapshot_required" }, 409);
 
     const templateMetadata = isRecord(template.metadata) ? template.metadata : {};
     const configuredPrivacyKey = asNonEmptyString(templateMetadata.privacy_policy_key);
@@ -289,11 +310,20 @@ Deno.serve(async (req: Request) => {
     const offeringMetadata = isRecord(offering.metadata) ? offering.metadata : {};
     const commercialTermsVersion = asNonEmptyString(offeringMetadata.commercial_terms_version);
     if (!commercialTermsVersion) return json({ error: "commercial_terms_version_required" }, 409);
-    const programVersion =
-      asNonEmptyString(offeringMetadata.program_version) ??
-      (isRecord(operation.metadata) ? asNonEmptyString(operation.metadata.program_version) : null) ??
-      (isRecord(order.metadata) ? asNonEmptyString(order.metadata.program_version) : null);
-    if (!programVersion) return json({ error: "program_version_required" }, 409);
+
+    const programSteps = journeyRows.map((step) => ({
+      id: step.id,
+      sequence: step.sequence,
+      title: step.title,
+      description: step.description,
+      step_kind: step.step_kind,
+      planned_start: step.planned_start,
+      planned_end: step.planned_end,
+      location_label: step.location_label,
+      traveler_label: step.traveler_label,
+      source_updated_at: step.updated_at,
+    }));
+    const programHash = await sha256Hex(programSteps);
 
     let paymentPlan: ReturnType<typeof paymentPlanFromMetadata>;
     try {
@@ -343,6 +373,8 @@ Deno.serve(async (req: Request) => {
       contracted_suppliers: contractedSuppliers,
       privacy_policy_version: privacy.version,
       privacy_policy_effective_at: privacy.effective_at,
+      program_snapshot: programSteps,
+      program_hash: programHash,
     };
     const variableSchema = isRecord(template.variable_schema) ? template.variable_schema : {};
     const missingVariables = missingRequiredVariables(variableSchema.required, variables);
@@ -380,7 +412,6 @@ Deno.serve(async (req: Request) => {
         planned_end: operation.planned_end,
         experience_name: operation.source_experience_name,
         offering_name: operation.source_offering_name,
-        program_version: programVersion,
         source_updated_at: operation.updated_at,
       },
       order: {
@@ -403,10 +434,18 @@ Deno.serve(async (req: Request) => {
         status: offering.status,
         currency_code: offering.currency_code,
         commercial_terms_version: commercialTermsVersion,
-        program_version: programVersion,
         payment_schedule_v1: paymentPlan.schedule,
         payment_plan_display: paymentPlan.display,
         source_updated_at: offering.updated_at,
+      },
+      program: {
+        source: "journey_steps",
+        traveler_facing_only: true,
+        active_only: true,
+        ordered_by: "sequence",
+        step_count: programSteps.length,
+        content_hash: programHash,
+        steps: programSteps,
       },
       suppliers: contractedSuppliers,
       privacy_policy: {
@@ -434,7 +473,7 @@ Deno.serve(async (req: Request) => {
         payment_schedule_matches_order_total: true,
         privacy_policy_frozen: true,
         offer_version_frozen: true,
-        program_version_frozen: true,
+        program_snapshot_frozen: true,
         placeholders_complete: true,
       },
     };
@@ -491,7 +530,8 @@ Deno.serve(async (req: Request) => {
         template_version: template.version,
         snapshot_schema: "contract-snapshot-v2",
         commercial_terms_version: commercialTermsVersion,
-        program_version: programVersion,
+        program_hash: programHash,
+        program_step_count: programSteps.length,
         privacy_policy_version: privacy.version,
       },
       created_by: userData.user.id,
