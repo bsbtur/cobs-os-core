@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BedDouble, Building2, Bus, Settings2, UserRound } from "lucide-react";
+import { BedDouble, Building2, Bus, FileLock2, Settings2, UserRound } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
@@ -194,6 +194,14 @@ function OrganizationGovernance() {
             </div>
           ))}
         </dl>
+        <div className="mt-4 border-t border-border/70 pt-4">
+          <Button asChild variant="outline" className="min-h-11">
+            <Link to="/settings/privacy">
+              <FileLock2 className="mr-2 size-4" aria-hidden="true" />
+              Política de Privacidade Contratual
+            </Link>
+          </Button>
+        </div>
       </section>
 
       <div className="animate-rise" style={{ animationDelay: "120ms" }}>

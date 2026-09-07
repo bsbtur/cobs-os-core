@@ -63,6 +63,22 @@ export type RuntimeRpcDatabase = {
           created_at: string;
         }>;
       };
+      get_privacy_policy_versions_for_admin: {
+        Args: {
+          _tenant_id: string;
+          _policy_key: string;
+        };
+        Returns: Array<{
+          id: string;
+          policy_key: string;
+          version: string;
+          title: string;
+          effective_at: string;
+          content_hash: string;
+          status: string;
+          created_at: string;
+        }>;
+      };
       publish_dynamic_operational_alert: {
         Args: {
           _operation_id: string;
@@ -73,6 +89,19 @@ export type RuntimeRpcDatabase = {
           _source_id: string;
           _idempotency_key: string;
           _priority?: "normal" | "important" | "urgent";
+        };
+        Returns: Record<string, unknown>;
+      };
+      register_privacy_policy_draft: {
+        Args: {
+          _tenant_id: string;
+          _policy_key: string;
+          _version: string;
+          _title: string;
+          _effective_at: string;
+          _content_snapshot: string;
+          _public_url?: string | null;
+          _scope?: string | null;
         };
         Returns: Record<string, unknown>;
       };
