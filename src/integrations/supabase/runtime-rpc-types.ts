@@ -107,6 +107,28 @@ export type RuntimeRpcDatabase = {
           note: string;
         };
       };
+      get_operation_contract_workflow: {
+        Args: {
+          _operation_id: string;
+          _template_key?: string | null;
+        };
+        Returns: Array<{
+          order_id: string;
+          buyer_person_id: string;
+          buyer_name: string;
+          order_status: string;
+          reservation_status: string;
+          party_profile_complete: boolean;
+          contract_id: string | null;
+          contract_status: string | null;
+          template_version: string | null;
+          ready_for_render: boolean;
+          document_rendered: boolean;
+          document_hash: string | null;
+          provider_envelope_present: boolean;
+          provider_send_exposed: boolean;
+        }>;
+      };
       get_operation_intelligence: {
         Args: {
           _operation_id: string;
