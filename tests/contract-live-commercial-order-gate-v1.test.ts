@@ -12,8 +12,11 @@ describe("contract live commercial order gate v1", () => {
     expect(migration).toContain("order_matches_commerce_environment");
     expect(migration).toContain("cr.status='confirmed'");
     expect(migration).toContain("cr.expires_at>now()");
-    expect(migration).toContain("ff.fact_type='payment_received'");
-    expect(migration).toContain("ff.amount_minor>0");
+    expect(migration).toContain("ff.fact_type='PAYMENT_RECORDED'");
+    expect(migration).toContain("PAYMENT_REVERSED");
+    expect(migration).toContain("REFUND_RECORDED");
+    expect(migration).toContain(")>0");
+    expect(migration).not.toContain("payment_received");
   });
 
   test("uses the stricter helper for contract writes and party projection", () => {
