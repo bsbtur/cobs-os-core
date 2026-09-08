@@ -11,6 +11,8 @@ import { useTenant } from "@/lib/tenant";
 import type { Database } from "@/integrations/supabase/types";
 
 type PriceBasis = Database["public"]["Enums"]["price_basis"];
+type SellableArgs = Database["public"]["Functions"]["create_sellable"]["Args"];
+type PriceArgs = Database["public"]["Functions"]["create_price"]["Args"];
 
 type CommerceDraft = {
   tenant_id: string;
@@ -142,11 +144,10 @@ function ReviewCommerceDraft() {
       if (existingSellables?.[0]?.id) {
         sellableId = existingSellables[0].id;
       } else {
-        const { data: sellableData, error: sellableError } = await supabase.rpc("create_sellable", {
+        const sellableArgs: SellableArgs = {
           _tenant_id: draft.tenant_id,
           _sellable_kind: "offering",
           _offering_id: offeringId,
-          _description: draft.sellable.description?.trim() || undefined,
           _metadata: {
             ...(draft.sellable.metadata ?? {}),
             qa: true,
@@ -154,7 +155,9 @@ function ReviewCommerceDraft() {
             source: "chat_assisted_commerce",
             operation_id: draft.operation_id,
           },
-        });
+        };
+        if (draft.sellable.description?.trim()) sellableArgs._description = draft.sellable.description.trim();
+        const { data: sellableData, error: sellableError } = await supabase.rpc("create_sellable", sellableArgs);
         if (sellableError) throw sellableError;
         sellableId = String(sellableData ?? "");
         if (!isUuid(sellableId)) throw new Error("O Sellable foi criado sem um identificador válido.");
@@ -175,13 +178,14 @@ function ReviewCommerceDraft() {
       if (existingPrices?.[0]?.id) {
         priceId = existingPrices[0].id;
       } else {
-        const { data: priceData, error: priceError } = await supabase.rpc("create_price", {
+        const priceArgs: PriceArgs = {
           _sellable_id: sellableId,
           _currency: draft.price.currency.toUpperCase(),
           _unit_amount_minor: draft.price.unit_amount_minor,
           _price_basis: draft.price.price_basis,
-          _description: draft.price.description?.trim() || undefined,
-        });
+        };
+        if (draft.price.description?.trim()) priceArgs._description = draft.price.description.trim();
+        const { data: priceData, error: priceError } = await supabase.rpc("create_price", priceArgs);
         if (priceError) throw priceError;
         priceId = String(priceData ?? "");
         if (!isUuid(priceId)) throw new Error("O preço foi criado sem um identificador válido.");
