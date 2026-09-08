@@ -1,9 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 
-import { isNavItemVisible, NAV_ITEMS, NAV_SECTIONS, type NavItem } from "@/lib/navigation";
+import {
+  isNavItemVisible,
+  MOBILE_NAV_ITEMS,
+  NAV_ITEMS,
+  NAV_SECTIONS,
+  type NavItem,
+} from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
-import { useTenant } from "@/lib/tenant";
+import { useTenant, type AppRole } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { OrgContext } from "./org-context";
@@ -15,17 +21,23 @@ const CELL_CLASS =
 const MANAGER_PRIMARY_IDS = ["overview", "operations", "commerce"] as const;
 const OPERATOR_PRIMARY_IDS = ["operations", "people", "inbox"] as const;
 
-function primaryItemsForRole(canManage: boolean): NavItem[] {
-  const ids = canManage ? MANAGER_PRIMARY_IDS : OPERATOR_PRIMARY_IDS;
+function itemsById(ids: readonly string[]): NavItem[] {
   return ids
     .map((id) => NAV_ITEMS.find((item) => item.id === id))
     .filter((item): item is NavItem => Boolean(item));
 }
 
+function primaryItemsForRole(role: AppRole | null, canManage: boolean): NavItem[] {
+  if (canManage) return itemsById(MANAGER_PRIMARY_IDS);
+  if (role === "operations_agent") return itemsById(OPERATOR_PRIMARY_IDS);
+  return MOBILE_NAV_ITEMS;
+}
+
 /**
- * Role-focused bottom navigation: managers see command/operations/commerce,
- * while field roles see operations/people/inbox. This changes emphasis only;
- * the full drawer preserves every destination already allowed by the existing RBAC.
+ * Role-focused bottom navigation: owner/admin memberships see command/operations/commerce,
+ * operations_agent sees operations/people/inbox, and other memberships preserve the neutral
+ * V1 defaults. This changes emphasis only; the full drawer preserves every destination already
+ * allowed by the existing RBAC.
  */
 export function MobileTabBar({
   activeId,
@@ -35,8 +47,8 @@ export function MobileTabBar({
   onOpenMenu: () => void;
 }) {
   const { t } = useI18n();
-  const { canManage } = useTenant();
-  const primaryItems = primaryItemsForRole(canManage);
+  const { canManage, role } = useTenant();
+  const primaryItems = primaryItemsForRole(role, canManage);
   const primaryIds = primaryItems.map((item) => item.id);
   const moreActive = !primaryIds.includes(activeId);
 
