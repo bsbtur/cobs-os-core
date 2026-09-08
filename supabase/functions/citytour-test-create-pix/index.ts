@@ -138,6 +138,15 @@ Deno.serve(async (req: Request) => {
     .limit(20);
   if (chargeLookupError) return json({ error: "charge_lookup_failed" }, 500);
   let charge = (openCharges ?? []).find((candidate: any) => candidate?.metadata?.environment === "test" && candidate?.metadata?.qa_fixture_key === FIXTURE_KEY) ?? null;
+  if (charge && String(charge.external_reference ?? "").length > 64) {
+    const retired = await db
+      .from("payment_charges")
+      .update({ status: "cancelled" })
+      .eq("id", charge.id)
+      .eq("status", "draft");
+    if (retired.error) return json({ error: "invalid_charge_retire_failed", details: retired.error.message }, 500);
+    charge = null;
+  }
   if (!charge) {
     const reference = `cobs_ctqa_${String(order.id).replaceAll("-", "")}_${Date.now()}`;
     const created = await db
