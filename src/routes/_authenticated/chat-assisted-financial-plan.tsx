@@ -22,6 +22,30 @@ type FinancialPlanDraft = {
   notes?: string;
 };
 
+type FinancialPlanInsert = {
+  tenant_id: string;
+  operation_id: string;
+  expected_paying_passengers: number;
+  target_unit_price_minor: number;
+  contingency_minor: number;
+  tax_fee_minor: number;
+  notes: string;
+};
+
+type FinancialPlanRow = Pick<FinancialPlanInsert, "tenant_id" | "operation_id"> & { id: string };
+
+type FinancialPlansTable = {
+  select(columns: "id"): {
+    eq(column: "operation_id" | "tenant_id", value: string): FinancialPlansTable;
+    maybeSingle(): Promise<{ data: FinancialPlanRow | null; error: { message: string } | null }>;
+  };
+  insert(row: FinancialPlanInsert): Promise<{ error: { message: string } | null }>;
+};
+
+function financialPlansTable() {
+  return supabase.from("operation_financial_plans" as never) as unknown as FinancialPlansTable;
+}
+
 export const Route = createFileRoute("/_authenticated/chat-assisted-financial-plan")({
   head: () => ({
     meta: [
@@ -88,8 +112,7 @@ function ReviewFinancialPlanDraft() {
       if (operationError) throw operationError;
       if (!operation) throw new Error("A operação não pertence ao tenant autenticado.");
 
-      const { data: existing, error: existingError } = await supabase
-        .from("operation_financial_plans")
+      const { data: existing, error: existingError } = await financialPlansTable()
         .select("id")
         .eq("operation_id", draft.operation_id)
         .eq("tenant_id", draft.tenant_id)
@@ -104,7 +127,7 @@ function ReviewFinancialPlanDraft() {
         draft.target_unit_price_minor === 0 ? "Preço-alvo pendente até fechamento dos custos reais." : null,
       ].filter(Boolean).join(" ");
 
-      const { error } = await supabase.from("operation_financial_plans").insert({
+      const { error } = await financialPlansTable().insert({
         tenant_id: draft.tenant_id,
         operation_id: draft.operation_id,
         expected_paying_passengers: draft.expected_paying_passengers,
