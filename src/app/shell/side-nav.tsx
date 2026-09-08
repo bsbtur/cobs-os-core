@@ -61,15 +61,25 @@ export function SideNav({
   onOpenCommand: () => void;
 }) {
   const { t } = useI18n();
-  const { canManage } = useTenant();
+  const { canManage, role } = useTenant();
 
   return (
     <nav
       aria-label={t("nav.section.command")}
       className="flex h-full w-[268px] shrink-0 flex-col gap-5 border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground"
     >
-      <div className="px-1">
+      <div className="space-y-3 px-1">
         <BrandLockup />
+        {role ? (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-sidebar-border bg-sidebar-accent/35 px-3 py-2">
+            <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-sidebar-foreground/40">
+              {canManage ? t("overview.title") : t("nav.operations")}
+            </span>
+            <span className="rounded-full bg-sidebar-primary/12 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-sidebar-primary">
+              {t(`role.${role}`)}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       <OrgContext />
