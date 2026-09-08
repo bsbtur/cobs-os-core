@@ -85,7 +85,7 @@ function ReviewOrderDraft() {
       if (!buyer) throw new Error("Identidade QA compradora não encontrada.");
       if (!sellable || sellable.status !== "active") throw new Error("Sellable QA não está ativo.");
       const metadata = (sellable.metadata ?? {}) as Record<string, unknown>;
-      if (metadata.qa !== true || metadata.environment !== "test" || metadata.operation_id !== draft.operation_id) {
+      if (metadata["qa"] !== true || metadata["environment"] !== "test" || metadata["operation_id"] !== draft.operation_id) {
         throw new Error("Sellable não pertence ao ambiente TEST desta operação.");
       }
 
