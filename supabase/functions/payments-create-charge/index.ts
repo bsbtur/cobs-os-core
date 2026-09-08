@@ -76,20 +76,25 @@ Deno.serve(async (req: Request) => {
     return json({ error: "valid_payer_email_required" }, 400);
 
   async function resolvePaymentEnvironment(order: OrderEnvironmentSource) {
-    const { data: qaOrders, error: qaError } = await userClient.rpc("list_orders_by_environment", {
+    const classifierArgs = {
       _tenant_id: order.tenant_id,
-      _environment: "qa",
       _status: null,
       _operation_id: order.operation_id,
       _limit: 500,
-    });
-    if (qaError) return { error: qaError.message } as const;
-    const isQa = Array.isArray(qaOrders) && qaOrders.some((entry: any) => entry?.id === order.id);
-    const environment = isQa ? "test" : MP_ENVIRONMENT;
-    const accessToken = environment === "test"
-      ? (MP_TEST_ACCESS_TOKEN ?? (MP_ENVIRONMENT === "test" ? MP_ACCESS_TOKEN : null))
-      : MP_ACCESS_TOKEN;
-    if (!accessToken) return { error: environment === "test" ? "mercado_pago_test_not_configured" : "mercado_pago_not_configured" } as const;
+    };
+    const [qaResult, productionResult] = await Promise.all([
+      userClient.rpc("list_orders_by_environment", { ...classifierArgs, _environment: "qa" }),
+      userClient.rpc("list_orders_by_environment", { ...classifierArgs, _environment: "production" }),
+    ]);
+    if (qaResult.error) return { error: qaResult.error.message } as const;
+    if (productionResult.error) return { error: productionResult.error.message } as const;
+    const isQa = Array.isArray(qaResult.data) && qaResult.data.some((entry: any) => entry?.id === order.id);
+    const isProduction = Array.isArray(productionResult.data) && productionResult.data.some((entry: any) => entry?.id === order.id);
+    if (isQa === isProduction) return { error: "payment_environment_unclassified" } as const;
+    const environment = isQa ? "test" : "production";
+    const accessToken = environment === "test" ? MP_TEST_ACCESS_TOKEN : MP_ACCESS_TOKEN;
+    if (!accessToken)
+      return { error: environment === "test" ? "mercado_pago_test_not_configured" : "mercado_pago_not_configured" } as const;
     return { environment, accessToken } as const;
   }
 
