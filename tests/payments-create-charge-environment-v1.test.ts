@@ -7,10 +7,16 @@ const source = readFileSync(
 );
 
 describe("payments-create-charge environment isolation v1", () => {
-  test("uses the canonical commerce QA classifier before choosing payment environment", () => {
+  test("uses the canonical commerce classifiers before choosing payment environment", () => {
     expect(source).toContain('userClient.rpc("list_orders_by_environment"');
     expect(source).toContain('_environment: "qa"');
-    expect(source).toContain('const environment = isQa ? "test" : MP_ENVIRONMENT;');
+    expect(source).toContain('_environment: "production"');
+    expect(source).toContain('const environment = isQa ? "test" : "production";');
+  });
+
+  test("fails closed when the order is ambiguous or unclassified", () => {
+    expect(source).toContain('if (isQa === isProduction) return { error: "payment_environment_unclassified" } as const;');
+    expect(source).not.toContain('const environment = isQa ? "test" : MP_ENVIRONMENT;');
   });
 
   test("never reuses charges or attempts from another payment environment", () => {
