@@ -139,7 +139,7 @@ Deno.serve(async (req: Request) => {
   if (chargeLookupError) return json({ error: "charge_lookup_failed" }, 500);
   let charge = (openCharges ?? []).find((candidate: any) => candidate?.metadata?.environment === "test" && candidate?.metadata?.qa_fixture_key === FIXTURE_KEY) ?? null;
   if (!charge) {
-    const reference = `cobs_citytour_test_${String(order.id).replaceAll("-", "")}_${Date.now()}`;
+    const reference = `cobs_ctqa_${String(order.id).replaceAll("-", "")}_${Date.now()}`;
     const created = await db
       .from("payment_charges")
       .insert({
