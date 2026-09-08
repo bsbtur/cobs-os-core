@@ -1,20 +1,29 @@
 import { Link } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 
-import { isNavItemVisible, MOBILE_NAV_ITEMS, NAV_SECTIONS } from "@/lib/navigation";
+import { isNavItemVisible, NAV_ITEMS, NAV_SECTIONS, type NavItem } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { OrgContext } from "./org-context";
 import { BrandLockup } from "./brand";
+import { mobilePrimaryIdsForRole } from "./mobile-nav-role";
 
 const CELL_CLASS =
   "group flex min-h-14 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[11px] font-medium transition-colors";
 
+function itemsById(ids: readonly string[]): NavItem[] {
+  return ids
+    .map((id) => NAV_ITEMS.find((item) => item.id === id))
+    .filter((item): item is NavItem => Boolean(item));
+}
+
 /**
- * Field-first bottom navigation: 3 primary destinations + a "More" trigger.
- * The grid is exactly 4 cells — items never wrap or overlap at 390px.
+ * Role-focused bottom navigation: owner/admin memberships see command/operations/commerce,
+ * operations_agent sees operations/people/inbox, and other memberships preserve the neutral
+ * V1 defaults. This changes emphasis only; the full drawer preserves every destination already
+ * allowed by the existing RBAC.
  */
 export function MobileTabBar({
   activeId,
@@ -24,7 +33,9 @@ export function MobileTabBar({
   onOpenMenu: () => void;
 }) {
   const { t } = useI18n();
-  const primaryIds = MOBILE_NAV_ITEMS.map((item) => item.id);
+  const { role } = useTenant();
+  const primaryItems = itemsById(mobilePrimaryIdsForRole(role));
+  const primaryIds = primaryItems.map((item) => item.id);
   const moreActive = !primaryIds.includes(activeId);
 
   return (
@@ -34,7 +45,7 @@ export function MobileTabBar({
     >
       <div className="mx-auto w-full max-w-xl px-2 py-1.5">
         <ul className="grid grid-cols-4 gap-1">
-          {MOBILE_NAV_ITEMS.map((item) => {
+          {primaryItems.map((item) => {
             const Icon = item.icon;
             const active = item.id === activeId;
             return (
@@ -102,7 +113,7 @@ export function MobileNavDrawer({
   activeId: string;
 }) {
   const { t } = useI18n();
-  const { canManage } = useTenant();
+  const { canManage, role } = useTenant();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -114,6 +125,13 @@ export function MobileNavDrawer({
           <SheetTitle className="text-sidebar-foreground">
             <BrandLockup />
           </SheetTitle>
+          {role ? (
+            <div className="pt-2">
+              <span className="inline-flex min-h-8 items-center rounded-full border border-sidebar-border bg-sidebar-accent/50 px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-primary">
+                {t(`role.${role}`)}
+              </span>
+            </div>
+          ) : null}
         </SheetHeader>
         <div className="space-y-5 overflow-y-auto px-3 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-4">
           <OrgContext />
