@@ -34,11 +34,13 @@ type FinancialPlanInsert = {
 
 type FinancialPlanRow = Pick<FinancialPlanInsert, "tenant_id" | "operation_id"> & { id: string };
 
+type FinancialPlansQuery = {
+  eq(column: "operation_id" | "tenant_id", value: string): FinancialPlansQuery;
+  maybeSingle(): Promise<{ data: FinancialPlanRow | null; error: { message: string } | null }>;
+};
+
 type FinancialPlansTable = {
-  select(columns: "id"): {
-    eq(column: "operation_id" | "tenant_id", value: string): FinancialPlansTable;
-    maybeSingle(): Promise<{ data: FinancialPlanRow | null; error: { message: string } | null }>;
-  };
+  select(columns: "id"): FinancialPlansQuery;
   insert(row: FinancialPlanInsert): Promise<{ error: { message: string } | null }>;
 };
 
