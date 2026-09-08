@@ -4,10 +4,17 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
+const cors = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-methods": "POST, OPTIONS",
+};
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
+      ...cors,
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
     },
@@ -38,6 +45,7 @@ type DraftRequest = {
 };
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return json({ error: "server_not_configured" }, 500);
 
@@ -96,5 +104,8 @@ Deno.serve(async (req: Request) => {
     return json({ error: "operation_draft_failed", details: message }, 409);
   }
 
-  return json({ ok: true, operation_id: data, status: "draft" }, 201);
+  const operationId = data && typeof data === "object" && "operation_id" in data ? String((data as { operation_id: unknown }).operation_id) : String(data ?? "");
+  if (!isUuid(operationId)) return json({ error: "operation_draft_invalid_response" }, 502);
+
+  return json({ ok: true, operation_id: operationId, status: "draft" }, 201);
 });
