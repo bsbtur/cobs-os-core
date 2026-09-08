@@ -81,7 +81,12 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      const environment = attempt?.metadata?.environment ?? charge?.metadata?.environment ?? "production";
+      const environment = attempt?.metadata?.environment ?? charge?.metadata?.environment;
+      if (environment !== "test" && environment !== "production") {
+        summary.provider_errors++;
+        errors.push({ attempt_id: attempt.id, environment: environment ?? null, error: "invalid_payment_environment" });
+        continue;
+      }
       const accessToken = environment === "test" ? MP_TEST_ACCESS_TOKEN : MP_ACCESS_TOKEN;
       if (!accessToken) {
         summary.provider_errors++;
