@@ -1,36 +1,22 @@
 import { Link } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 
-import {
-  isNavItemVisible,
-  MOBILE_NAV_ITEMS,
-  NAV_ITEMS,
-  NAV_SECTIONS,
-  type NavItem,
-} from "@/lib/navigation";
+import { isNavItemVisible, NAV_ITEMS, NAV_SECTIONS, type NavItem } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n";
-import { useTenant, type AppRole } from "@/lib/tenant";
+import { useTenant } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { OrgContext } from "./org-context";
 import { BrandLockup } from "./brand";
+import { mobilePrimaryIdsForRole } from "./mobile-nav-role";
 
 const CELL_CLASS =
   "group flex min-h-14 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[11px] font-medium transition-colors";
-
-const MANAGER_PRIMARY_IDS = ["overview", "operations", "commerce"] as const;
-const OPERATOR_PRIMARY_IDS = ["operations", "people", "inbox"] as const;
 
 function itemsById(ids: readonly string[]): NavItem[] {
   return ids
     .map((id) => NAV_ITEMS.find((item) => item.id === id))
     .filter((item): item is NavItem => Boolean(item));
-}
-
-function primaryItemsForRole(role: AppRole | null, canManage: boolean): NavItem[] {
-  if (canManage) return itemsById(MANAGER_PRIMARY_IDS);
-  if (role === "operations_agent") return itemsById(OPERATOR_PRIMARY_IDS);
-  return MOBILE_NAV_ITEMS;
 }
 
 /**
@@ -47,8 +33,8 @@ export function MobileTabBar({
   onOpenMenu: () => void;
 }) {
   const { t } = useI18n();
-  const { canManage, role } = useTenant();
-  const primaryItems = primaryItemsForRole(role, canManage);
+  const { role } = useTenant();
+  const primaryItems = itemsById(mobilePrimaryIdsForRole(role));
   const primaryIds = primaryItems.map((item) => item.id);
   const moreActive = !primaryIds.includes(activeId);
 
