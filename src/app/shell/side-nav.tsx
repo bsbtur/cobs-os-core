@@ -62,6 +62,7 @@ export function SideNav({
 }) {
   const { t } = useI18n();
   const { canManage, role } = useTenant();
+  const contextLabel = role === "operations_agent" ? t("nav.operations") : t("overview.title");
 
   return (
     <nav
@@ -73,7 +74,7 @@ export function SideNav({
         {role ? (
           <div className="flex items-center justify-between gap-2 rounded-xl border border-sidebar-border bg-sidebar-accent/35 px-3 py-2">
             <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-sidebar-foreground/40">
-              {canManage ? t("overview.title") : t("nav.operations")}
+              {contextLabel}
             </span>
             <span className="rounded-full bg-sidebar-primary/12 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-sidebar-primary">
               {t(`role.${role}`)}
