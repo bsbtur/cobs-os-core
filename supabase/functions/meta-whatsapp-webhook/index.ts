@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
         "content-type": "application/json",
         "x-cobs-source": "meta-whatsapp",
         "x-cobs-meta-signature-verified": "true",
-        "x-cobs-n8n-whatsapp-token": N8N_WHATSAPP_TOKEN,
+        "x-cobs-webhook-token": N8N_WHATSAPP_TOKEN,
       },
       body: rawBody,
       signal: AbortSignal.timeout(10_000),
