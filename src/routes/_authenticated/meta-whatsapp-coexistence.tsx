@@ -7,7 +7,7 @@ import { RequireTenant } from "@/app/shell/require-tenant";
 import { Button } from "@/components/ui/button";
 
 const META_APP_ID = "1069669865565624";
-const META_CONFIG_ID = "969361429527409";
+const META_CONFIG_ID = "1080011617744421";
 const META_API_VERSION = "v26.0";
 
 type FacebookLoginResponse = {
@@ -207,7 +207,7 @@ function CoexistenceLauncher() {
       <section className="surface-panel space-y-4 p-5">
         <div className="grid gap-3 sm:grid-cols-2">
           <Status label="SDK Meta" value={sdkReady ? "pronto" : "carregando"} />
-          <Status label="Configuração" value="COBS OS WhatsApp" />
+          <Status label="Configuração" value="COBS OS WhatsApp Coexistência" />
           <Status label="Feature" value="whatsapp_business_app_onboarding" />
           <Status label="Session info" value="v3" />
         </div>
