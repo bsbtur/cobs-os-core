@@ -84,22 +84,29 @@ function parseEmbeddedSignupMessage(value: unknown): EmbeddedSignupData | null {
 
   if (!candidate || typeof candidate !== "object") return null;
   const record = candidate as Record<string, unknown>;
-  if (record.type !== "WA_EMBEDDED_SIGNUP") return null;
-  const rawData = record.data;
+  if (record["type"] !== "WA_EMBEDDED_SIGNUP") return null;
+  const rawData = record["data"];
   if (!rawData || typeof rawData !== "object") return null;
   const data = rawData as Record<string, unknown>;
-  const nested = data.data && typeof data.data === "object" ? (data.data as Record<string, unknown>) : undefined;
+  const rawNested = data["data"];
+  const nested =
+    rawNested && typeof rawNested === "object"
+      ? (rawNested as Record<string, unknown>)
+      : undefined;
 
-  return {
-    event: typeof data.event === "string" ? data.event : undefined,
-    data: nested
-      ? {
-          waba_id: typeof nested.waba_id === "string" ? nested.waba_id : undefined,
-          phone_number_id:
-            typeof nested.phone_number_id === "string" ? nested.phone_number_id : undefined,
-        }
-      : undefined,
-  };
+  const result: EmbeddedSignupData = {};
+  if (typeof data["event"] === "string") result.event = data["event"];
+
+  if (nested) {
+    const sanitized: NonNullable<EmbeddedSignupData["data"]> = {};
+    if (typeof nested["waba_id"] === "string") sanitized.waba_id = nested["waba_id"];
+    if (typeof nested["phone_number_id"] === "string") {
+      sanitized.phone_number_id = nested["phone_number_id"];
+    }
+    if (Object.keys(sanitized).length > 0) result.data = sanitized;
+  }
+
+  return result;
 }
 
 function CoexistenceLauncher() {
