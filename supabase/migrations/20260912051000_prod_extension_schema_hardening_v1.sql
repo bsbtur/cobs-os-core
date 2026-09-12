@@ -10,6 +10,7 @@
 DO $$
 DECLARE
   _pg_net_schema text;
+  _job record;
 BEGIN
   SELECT n.nspname
     INTO _pg_net_schema
@@ -19,13 +20,17 @@ BEGIN
 
   IF _pg_net_schema = 'public' THEN
     IF to_regclass('cron.job') IS NOT NULL THEN
-      UPDATE cron.job
-         SET active = false
-       WHERE active
-         AND (
-           lower(coalesce(jobname, '')) LIKE '%qa%'
-           OR lower(coalesce(command, '')) LIKE '%nktohbqmcpgonlizzcka%'
-         );
+      FOR _job IN
+        SELECT jobid
+        FROM cron.job
+        WHERE active
+          AND (
+            lower(coalesce(jobname, '')) LIKE '%qa%'
+            OR lower(coalesce(command, '')) LIKE '%nktohbqmcpgonlizzcka%'
+          )
+      LOOP
+        PERFORM cron.alter_job(_job.jobid, active := false);
+      END LOOP;
     END IF;
 
     DROP EXTENSION pg_net;
