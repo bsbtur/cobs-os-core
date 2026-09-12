@@ -146,7 +146,7 @@ BEGIN
     _tenant_id,
     'offering',
     _offering_id,
-    'CIOSP Experience 2027',
+    NULL,
     'Pacote comercial CIOSP 2027 — R$ 12.490 por passageiro, acomodação dupla.',
     'active',
     jsonb_build_object(
