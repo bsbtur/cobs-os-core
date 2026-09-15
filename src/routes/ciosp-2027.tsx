@@ -19,6 +19,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
+
+const META_DESCRIPTION = CIOSP_PUBLIC_SALES_OPEN
+  ? "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000."
+  : "CIOSP Experience 2027 com a BSBTUR: R$ 12.490 por passageiro, entrada de R$ 3.490 e 3 parcelas de R$ 3.000. Reservas em preparação — entre na lista prioritária.";
 
 export const Route = createFileRoute("/ciosp-2027")({
   head: () => ({
@@ -26,20 +31,17 @@ export const Route = createFileRoute("/ciosp-2027")({
       { title: "CIOSP 2027 — Experiência BSBTUR" },
       {
         name: "description",
-        content:
-          "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000.",
+        content: META_DESCRIPTION,
       },
       { property: "og:title", content: "CIOSP 2027 — Experiência BSBTUR" },
       {
         property: "og:description",
-        content:
-          "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000.",
+        content: META_DESCRIPTION,
       },
       { name: "twitter:title", content: "CIOSP 2027 — Experiência BSBTUR" },
       {
         name: "twitter:description",
-        content:
-          "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000.",
+        content: META_DESCRIPTION,
       },
     ],
   }),
@@ -110,9 +112,10 @@ async function edgeErrorCode(error: unknown) {
 
 function CiospLanding() {
   const salesQaMode = false;
-  const checkoutHref = "/ciosp-2027/reserva";
+  const salesOpen = CIOSP_PUBLIC_SALES_OPEN;
+  const checkoutHref = salesOpen ? "/ciosp-2027/reserva" : "#reserva";
   const targetId = "reserva";
-  const ctaLabel = "Reservar minha vaga";
+  const ctaLabel = salesOpen ? "Reservar minha vaga" : "Entrar na lista prioritária";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
