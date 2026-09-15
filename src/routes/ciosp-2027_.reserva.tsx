@@ -69,7 +69,8 @@ function CiospReservationPage() {
   const [pix, setPix] = useState<PixState | null>(null);
   const idempotencyKey = useMemo(getCheckoutIdempotencyKey, []);
   const salesQaMode =
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sales_qa") === "1";
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("sales_qa") === "1";
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -111,7 +112,9 @@ function CiospReservationPage() {
           code === "commercial_terms_version_mismatch" ||
           code === "cancellation_policy_version_mismatch"
         ) {
-          setError("Os termos comerciais foram atualizados. Recarregue a página antes de continuar.");
+          setError(
+            "Os termos comerciais foram atualizados. Recarregue a página antes de continuar.",
+          );
           return;
         }
         throw checkoutError;
@@ -177,12 +180,20 @@ function CiospReservationPage() {
             <ArrowLeft className="size-4" />
             Voltar para CIOSP 2027
           </a>
-          <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl sm:p-8" role="status">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">Reservas em preparação</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">A contratação ainda não está aberta</h1>
+          <div
+            className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl sm:p-8"
+            role="status"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">
+              Reservas em preparação
+            </p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+              A contratação ainda não está aberta
+            </h1>
             <p className="mt-3 text-sm leading-6 text-white/55">
-              A condição comercial da CIOSP Experience 2027 está aprovada (R$ 12.490 por passageiro em acomodação
-              dupla), mas as reservas ainda não foram liberadas. Nenhuma cobrança ou Pix pode ser gerado neste momento.
+              A condição comercial da CIOSP Experience 2027 está aprovada (R$ 12.490 por passageiro
+              em acomodação dupla), mas as reservas ainda não foram liberadas. Nenhuma cobrança ou
+              Pix pode ser gerado neste momento.
             </p>
             <a
               href="/ciosp-2027#reserva"
@@ -211,24 +222,36 @@ function CiospReservationPage() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-1 size-6 shrink-0 text-[#D6B56D]" />
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">Reserva oficial</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">
+                Reserva oficial
+              </p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight">CIOSP Experience 2027</h1>
               <p className="mt-3 text-sm leading-6 text-white/55">
-                Valor aprovado: R$ 12.490 por passageiro em acomodação dupla. Entrada de R$ 3.490 + 3
-                parcelas de R$ 3.000, com vencimentos em 10/10/2026, 10/11/2026 e 10/12/2026.
+                Valor aprovado: R$ 12.490 por passageiro em acomodação dupla. Entrada de R$ 3.490 +
+                3 parcelas de R$ 3.000, com vencimentos em 10/10/2026, 10/11/2026 e 10/12/2026.
               </p>
             </div>
           </div>
 
           {pix ? (
-            <div className="mt-8 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5" role="status">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Pix gerado</p>
+            <div
+              className="mt-8 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5"
+              role="status"
+            >
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
+                Pix gerado
+              </p>
               <p className="mt-2 text-3xl font-semibold">
-                R$ {((pix.amount_minor ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                R${" "}
+                {((pix.amount_minor ?? 0) / 100).toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                })}
               </p>
               <p className="mt-1 text-sm text-white/50">
                 Cobrança {pix.installment_number ?? "—"}/{pix.installment_count ?? 4}
-                {pix.due_at ? ` · vencimento ${new Date(pix.due_at).toLocaleDateString("pt-BR")}` : ""}
+                {pix.due_at
+                  ? ` · vencimento ${new Date(pix.due_at).toLocaleDateString("pt-BR")}`
+                  : ""}
               </p>
               {pix.qr_code_base64 && (
                 <img
@@ -334,11 +357,15 @@ function CiospReservationPage() {
                   className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm leading-6 text-amber-200"
                   role="status"
                 >
-                  As vendas ainda estão em validação final. Nenhuma cobrança foi criada por esta tentativa.
+                  As vendas ainda estão em validação final. Nenhuma cobrança foi criada por esta
+                  tentativa.
                 </div>
               )}
               {error && (
-                <div className="rounded-xl border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300" role="alert">
+                <div
+                  className="rounded-xl border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300"
+                  role="alert"
+                >
                   {error}
                 </div>
               )}
