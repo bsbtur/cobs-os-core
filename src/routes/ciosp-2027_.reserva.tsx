@@ -4,6 +4,7 @@ import { ArrowLeft, Copy, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
 
 const COMMERCIAL_TERMS_VERSION = "ciosp-2027-v1";
 const CANCELLATION_POLICY_VERSION = "ciosp-2027-cancellation-v1";
@@ -72,6 +73,8 @@ function CiospReservationPage() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    // Frontend lock: never trigger checkout or Pix creation while public sales are closed.
+    if (!CIOSP_PUBLIC_SALES_OPEN) return;
     if (loading || !consent) return;
 
     setLoading(true);
