@@ -202,7 +202,13 @@ function CommerceWorkspace() {
   const orders = useQuery({
     queryKey: ["w09", "orders", tenantId, environment, status],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc(
+      // list_orders_by_environment exists in the database but is absent from the
+      // generated RPC types; keep a local typed adapter instead of touching generated files.
+      const listOrders = supabase.rpc.bind(supabase) as unknown as (
+        fn: "list_orders_by_environment",
+        args: { _tenant_id: string; _environment: string; _status?: OrderStatus },
+      ) => PromiseLike<{ data: unknown; error: unknown }>;
+      const { data, error } = await listOrders(
         "list_orders_by_environment",
         rpcArgs({
           _tenant_id: tenantId,

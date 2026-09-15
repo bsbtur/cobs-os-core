@@ -40,7 +40,10 @@ function decodeBase64Url(value: string) {
 }
 
 function isUuid(value: unknown): value is string {
-  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  );
 }
 
 function parseDraft(): PixDraft | null {
@@ -49,7 +52,13 @@ function parseDraft(): PixDraft | null {
   if (!encoded) return null;
   try {
     const parsed = JSON.parse(decodeBase64Url(encoded)) as Partial<PixDraft>;
-    if (!isUuid(parsed.tenant_id) || !isUuid(parsed.order_id) || parsed.expected_total_minor !== 100 || parsed.environment !== "test") return null;
+    if (
+      !isUuid(parsed.tenant_id) ||
+      !isUuid(parsed.order_id) ||
+      parsed.expected_total_minor !== 100 ||
+      parsed.environment !== "test"
+    )
+      return null;
     return parsed as PixDraft;
   } catch {
     return null;
@@ -57,7 +66,12 @@ function parseDraft(): PixDraft | null {
 }
 
 function isOrderEntryWithId(value: unknown): value is { id: string } {
-  return typeof value === "object" && value !== null && "id" in value && typeof (value as { id?: unknown }).id === "string";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof (value as { id?: unknown }).id === "string"
+  );
 }
 
 function ReviewPixDraft() {
@@ -79,17 +93,31 @@ function ReviewPixDraft() {
         .eq("tenant_id", draft.tenant_id)
         .maybeSingle();
       if (orderError) throw orderError;
-      if (!order || order.status !== "submitted" || order.currency !== "BRL" || Number(order.grand_total_minor) !== 100) {
+      if (
+        !order ||
+        order.status !== "submitted" ||
+        order.currency !== "BRL" ||
+        Number(order.grand_total_minor) !== 100
+      ) {
         throw new Error("Pedido QA não está elegível para o Pix TEST de R$ 1,00.");
       }
 
-      const { data: qaOrders, error: qaError } = await supabase.rpc("list_orders_by_environment", {
+      // list_orders_by_environment exists in the database but is absent from the
+      // generated RPC types; keep a local typed adapter instead of touching generated files.
+      const listOrders = supabase.rpc.bind(supabase) as unknown as (
+        fn: "list_orders_by_environment",
+        args: { _tenant_id: string; _environment: "qa"; _limit: number },
+      ) => PromiseLike<{ data: unknown; error: unknown }>;
+      const { data: qaOrders, error: qaError } = await listOrders("list_orders_by_environment", {
         _tenant_id: draft.tenant_id,
         _environment: "qa",
         _limit: 500,
       });
       if (qaError) throw qaError;
-      if (!Array.isArray(qaOrders) || !qaOrders.some((entry) => isOrderEntryWithId(entry) && entry.id === draft.order_id)) {
+      if (
+        !Array.isArray(qaOrders) ||
+        !qaOrders.some((entry) => isOrderEntryWithId(entry) && entry.id === draft.order_id)
+      ) {
         throw new Error("FAIL CLOSED: pedido não foi classificado como QA. Pix não criado.");
       }
 
@@ -134,7 +162,8 @@ function ReviewPixDraft() {
           <h2 className="text-2xl font-semibold">Revisar Pix TEST assistido</h2>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Este é o primeiro gate que chama o Mercado Pago. O pedido precisa ser classificado como QA e o motor precisa retornar environment=test.
+          Este é o primeiro gate que chama o Mercado Pago. O pedido precisa ser classificado como QA
+          e o motor precisa retornar environment=test.
         </p>
       </header>
       <section className="surface-panel space-y-4 p-5">
@@ -152,28 +181,45 @@ function ReviewPixDraft() {
             ["Produção", "Bloqueada neste gate"],
           ].map(([label, value]) => (
             <div key={label} className="rounded-lg border border-border bg-elevated/50 px-3 py-2">
-              <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
+              <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                {label}
+              </dt>
               <dd className="mt-1 break-words text-sm">{value}</dd>
             </div>
           ))}
         </dl>
         {!tenantMatches ? (
-          <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">Este draft pertence a outro tenant.</p>
+          <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+            Este draft pertence a outro tenant.
+          </p>
         ) : null}
         {!canManage ? (
-          <p className="rounded-lg border border-border bg-elevated/50 p-3 text-sm text-muted-foreground">Sua função atual não permite criar cobranças.</p>
+          <p className="rounded-lg border border-border bg-elevated/50 p-3 text-sm text-muted-foreground">
+            Sua função atual não permite criar cobranças.
+          </p>
         ) : null}
         {result ? (
           <div className="space-y-3 rounded-lg border border-border bg-elevated/50 p-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="size-5" />
-              <span className="text-sm font-medium">Pix TEST criado. Environment confirmado: TEST.</span>
+              <span className="text-sm font-medium">
+                Pix TEST criado. Environment confirmado: TEST.
+              </span>
             </div>
             {result.pix_qr_code ? (
-              <textarea readOnly className="min-h-24 w-full rounded-md border bg-background p-3 font-mono text-xs" value={result.pix_qr_code} />
+              <textarea
+                readOnly
+                className="min-h-24 w-full rounded-md border bg-background p-3 font-mono text-xs"
+                value={result.pix_qr_code}
+              />
             ) : null}
             {result.pix_ticket_url ? (
-              <a className="text-sm underline" href={result.pix_ticket_url} target="_blank" rel="noreferrer">
+              <a
+                className="text-sm underline"
+                href={result.pix_ticket_url}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Abrir Pix TEST no provider
               </a>
             ) : null}
