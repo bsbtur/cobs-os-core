@@ -164,6 +164,38 @@ function CiospReservationPage() {
     }
   }
 
+  // Frontend lock (default CLOSED): without VITE_CIOSP_PUBLIC_SALES_OPEN === "true",
+  // this route never renders the checkout/Pix form. Backend sales_public remains the sovereign gate.
+  if (!CIOSP_PUBLIC_SALES_OPEN) {
+    return (
+      <main className="min-h-screen bg-[#070706] px-5 py-10 text-white sm:px-8 sm:py-14">
+        <section className="mx-auto max-w-xl">
+          <a
+            href="/ciosp-2027"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#E4CA91] underline underline-offset-4"
+          >
+            <ArrowLeft className="size-4" />
+            Voltar para CIOSP 2027
+          </a>
+          <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl sm:p-8" role="status">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">Reservas em preparação</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">A contratação ainda não está aberta</h1>
+            <p className="mt-3 text-sm leading-6 text-white/55">
+              A condição comercial da CIOSP Experience 2027 está aprovada (R$ 12.490 por passageiro em acomodação
+              dupla), mas as reservas ainda não foram liberadas. Nenhuma cobrança ou Pix pode ser gerado neste momento.
+            </p>
+            <a
+              href="/ciosp-2027#reserva"
+              className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-[#D6B56D] px-6 py-3 font-semibold text-black hover:bg-[#E4CA91]"
+            >
+              Entrar na lista prioritária
+            </a>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#070706] px-5 py-10 text-white sm:px-8 sm:py-14">
       <section className="mx-auto max-w-xl">
