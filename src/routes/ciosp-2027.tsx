@@ -19,6 +19,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
+
+const META_DESCRIPTION = CIOSP_PUBLIC_SALES_OPEN
+  ? "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000."
+  : "CIOSP Experience 2027 com a BSBTUR: R$ 12.490 por passageiro, entrada de R$ 3.490 e 3 parcelas de R$ 3.000. Reservas em preparação — entre na lista prioritária.";
 
 export const Route = createFileRoute("/ciosp-2027")({
   head: () => ({
@@ -26,20 +31,17 @@ export const Route = createFileRoute("/ciosp-2027")({
       { title: "CIOSP 2027 — Experiência BSBTUR" },
       {
         name: "description",
-        content:
-          "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000.",
+        content: META_DESCRIPTION,
       },
       { property: "og:title", content: "CIOSP 2027 — Experiência BSBTUR" },
       {
         property: "og:description",
-        content:
-          "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000.",
+        content: META_DESCRIPTION,
       },
       { name: "twitter:title", content: "CIOSP 2027 — Experiência BSBTUR" },
       {
         name: "twitter:description",
-        content:
-          "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000.",
+        content: META_DESCRIPTION,
       },
     ],
   }),
@@ -110,9 +112,10 @@ async function edgeErrorCode(error: unknown) {
 
 function CiospLanding() {
   const salesQaMode = false;
-  const checkoutHref = "/ciosp-2027/reserva";
+  const salesOpen = CIOSP_PUBLIC_SALES_OPEN;
+  const checkoutHref = salesOpen ? "/ciosp-2027/reserva" : "#reserva";
   const targetId = "reserva";
-  const ctaLabel = "Reservar minha vaga";
+  const ctaLabel = salesOpen ? "Reservar minha vaga" : "Entrar na lista prioritária";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -293,13 +296,13 @@ function CiospLanding() {
               <p className="mt-8 text-sm uppercase tracking-[.24em] text-white/55">VIAGEM BSBTUR · 25–31 JAN 2027</p>
               <p className="mt-2 text-xs uppercase tracking-[.2em] text-white/40">CIOSP · 27–30 JAN 2027 · EXPO CENTER NORTE</p>
               <h1 className="mt-4 text-5xl font-semibold leading-[.96] tracking-[-.035em] sm:text-6xl lg:text-7xl">Viva o CIOSP.<br /><span>Com uma jornada preparada para você.</span></h1>
-              <p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/72 sm:text-xl">Reservas abertas para a CIOSP Experience 2027: R$ 12.490 por passageiro em acomodação dupla, com entrada de R$ 3.490 e 3 parcelas de R$ 3.000.</p>
+              <p className="mt-7 max-w-2xl text-lg leading-relaxed text-white/72 sm:text-xl">{salesOpen ? "Reservas abertas para a CIOSP Experience 2027: R$ 12.490 por passageiro em acomodação dupla, com entrada de R$ 3.490 e 3 parcelas de R$ 3.000." : "CIOSP Experience 2027: R$ 12.490 por passageiro em acomodação dupla, com entrada de R$ 3.490 e 3 parcelas de R$ 3.000. Reservas em preparação — entre na lista prioritária."}</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row"><a href={checkoutHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold text-black shadow-[0_16px_50px_rgba(214,181,109,.18)]" style={{ background: `linear-gradient(135deg,#F0D9A3,${gold},#B78B38)` }}>{ctaLabel}<ArrowRight className="size-4" aria-hidden="true" /></a><a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur">Conhecer a experiência</a></div>
               <p className="mt-4 text-xs text-white/42">Pagamento seguro via Pix · confirmação após conciliação · termos disponíveis antes da contratação</p>
               {salesQaMode ? (
                 <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Users className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />30 vagas planejadas</span><span><Hotel className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />6 diárias planejadas</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />QA · não publicado</span></div>
               ) : (
-                <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Sparkles className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Reservas abertas</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Condição aprovada</span><span><Users className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Até 30 passageiros</span></div>
+                <div className="mt-9 flex flex-wrap gap-6 text-sm text-white/60"><span><Sparkles className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />{salesOpen ? "Reservas abertas" : "Reservas em preparação"}</span><span><ShieldCheck className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Condição aprovada</span><span><Users className="mr-2 inline size-4" style={{ color: gold }} aria-hidden="true" />Até 30 passageiros</span></div>
               )}
             </div>
             <div className="lg:justify-self-end"><div className="w-full max-w-md rounded-[2rem] border bg-black/72 p-7 shadow-2xl backdrop-blur-xl" style={{ borderColor: `${gold}66`, boxShadow: "0 30px 90px rgba(0,0,0,.55),0 0 70px rgba(214,181,109,.10)" }}><div className="flex items-center justify-between"><span className="text-sm text-white/45">CIOSP Experience 2027</span><Crown className="size-5" style={{ color: gold }} aria-hidden="true" /></div><p className="mt-9 text-xs uppercase tracking-[.2em] text-white/45">Valor por passageiro</p><p className="mt-2 text-5xl font-semibold tracking-tight text-[#F5E7C5]">R$ 12.490</p><p className="mt-3 text-sm leading-relaxed text-white/58">Entrada de <strong className="text-white">R$ 3.490</strong> + 3 parcelas de <strong className="text-white">R$ 3.000</strong>.</p><div className="my-7 h-px bg-[#D6B56D]/20" /><div className="space-y-3 text-sm text-white/72">{publicHighlights.map((x) => <div key={x} className="flex items-center gap-3"><CheckCircle2 className="size-4" style={{ color: gold }} aria-hidden="true" />{x}</div>)}</div><a href={checkoutHref} className="mt-7 flex w-full items-center justify-center rounded-full border border-[#D6B56D]/35 py-3 text-sm font-semibold text-[#E4CA91]">{ctaLabel}<ArrowRight className="ml-2 size-4" aria-hidden="true" /></a></div></div>
@@ -312,9 +315,9 @@ function CiospLanding() {
 
         <section className="border-y border-[#D6B56D]/15 bg-[#050505]"><div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-24"><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>Composição da experiência</p><h2 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Detalhes sujeitos à confirmação contratual.</h2><div className="mt-8 rounded-[2rem] border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-7"><p className="text-lg font-semibold text-[#F5E7C5]">Condição comercial aprovada; serviços descritos nos termos.</p><p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/55">Consulte os Termos Comerciais e a Política de Cancelamento no checkout antes de aceitar e gerar a cobrança. Itens, fornecedores e detalhes não expressamente confirmados não constituem promessa comercial.</p></div></div></section>
 
-        <section id={targetId} className="bg-[#080808]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-28"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>Reserva oficial</p><h2 className="mt-4 text-4xl font-semibold sm:text-5xl">Sua vaga começa<br />com o Pix de entrada.</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-white/52">Preencha seus dados no checkout, confira os termos e gere a cobrança de R$ 3.490. A confirmação da reserva ocorre depois que o pagamento é conciliado pelo COBS.</p><div className="mt-9 rounded-2xl border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><strong className="text-[#E4CA91]">CIOSP 2027 · BSBTUR</strong><br />R$ 12.490 por passageiro · acomodação dupla · até 30 pagantes</div></div><div className="rounded-[2rem] border border-[#D6B56D]/28 bg-[#111]/92 p-6 shadow-2xl sm:p-8">{form}</div></div></section>
+        <section id={targetId} className="bg-[#080808]"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[.85fr_1.15fr] lg:px-8 lg:py-28"><div><p className="text-xs font-bold uppercase tracking-[.22em]" style={{ color: gold }}>{salesOpen ? "Reserva oficial" : "Lista prioritária"}</p><h2 className="mt-4 text-4xl font-semibold sm:text-5xl">{salesOpen ? <>Sua vaga começa<br />com o Pix de entrada.</> : <>Reservas em preparação.<br />Entre na lista prioritária.</>}</h2><p className="mt-5 max-w-xl text-lg leading-relaxed text-white/52">{salesOpen ? "Preencha seus dados no checkout, confira os termos e gere a cobrança de R$ 3.490. A confirmação da reserva ocorre depois que o pagamento é conciliado pelo COBS." : "A contratação ainda não está aberta e nenhuma cobrança ou Pix pode ser gerado agora. Deixe seus dados para ser avisado pela BSBTUR quando as reservas forem liberadas."}</p><div className="mt-9 rounded-2xl border border-[#D6B56D]/20 bg-[#D6B56D]/5 p-5 text-sm text-white/55"><strong className="text-[#E4CA91]">CIOSP 2027 · BSBTUR</strong><br />R$ 12.490 por passageiro · acomodação dupla · até 30 pagantes</div></div><div className="rounded-[2rem] border border-[#D6B56D]/28 bg-[#111]/92 p-6 shadow-2xl sm:p-8">{salesOpen ? form : legacyForm}</div></div></section>
       </main>
-      <footer className="border-t border-white/10 bg-black"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between lg:px-8"><BsbTurSignature /><span>CIOSP 2027 · reservas oficiais abertas</span></div></footer>
+      <footer className="border-t border-white/10 bg-black"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between lg:px-8"><BsbTurSignature /><span>{salesOpen ? "CIOSP 2027 · reservas oficiais abertas" : "CIOSP 2027 · reservas em preparação"}</span></div></footer>
     </div>
   );
 }
