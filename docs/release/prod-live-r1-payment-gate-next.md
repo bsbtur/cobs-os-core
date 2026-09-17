@@ -1,0 +1,1 @@
+Next action after CI/review: implement the smallest server-side preflight/unlock needed to bind exactly one isolated BRL 1.00 fixture order to the one-shot gate. Do not invoke Mercado Pago in CI or during migration/deploy.
