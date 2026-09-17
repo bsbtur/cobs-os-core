@@ -1,0 +1,6 @@
+PROD LIVE R$1 PAYMENT GATE
+PREPARATION CHECKPOINT
+
+Branch is intentionally non-executable.
+No real charge authorization is encoded in this checkpoint.
+Provider-call authorization must happen later and explicitly.
