@@ -31,11 +31,13 @@ declare global { interface Window { MercadoPago?: MercadoPagoConstructor } }
 
 type OrderStatus = { total_minor: number; received_minor: number; balance_minor: number; payment_status: string; order_status: string; next_installment?: { installment_number?: number; installment_count?: number; amount_minor?: number; due_at?: string | null; status?: string } | null; };
 
-function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }: { amountMinor: number; payerEmail: string; checkoutProof: { order_id: string; checkout_token: string }; onApproved: () => void }) {
+function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved, qaMode = false }: { amountMinor: number; payerEmail: string; checkoutProof: { order_id: string; checkout_token: string }; onApproved: () => void; qaMode?: boolean }) {
   const mounted = useRef(false);
   const controller = useRef<MercadoPagoBrickController | null>(null);
   const [brickError, setBrickError] = useState<string | null>(null);
-  const publicKey: string | undefined = import.meta.env["VITE_MERCADO_PAGO_PUBLIC_KEY"];
+  const productionPublicKey: string | undefined = import.meta.env["VITE_MERCADO_PAGO_PUBLIC_KEY"];
+  const testPublicKey: string | undefined = import.meta.env["VITE_MERCADO_PAGO_TEST_PUBLIC_KEY"];
+  const publicKey = qaMode ? testPublicKey : productionPublicKey;
 
   useEffect(() => {
     if (!publicKey || mounted.current) return;
@@ -89,7 +91,7 @@ function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }
     return () => { cancelled = true; void controller.current?.unmount?.(); controller.current = null; mounted.current = false; };
   }, [amountMinor, checkoutProof, onApproved, payerEmail, publicKey]);
 
-  if (!publicKey) return <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">Pagamento por cartão aguardando configuração da chave pública do Mercado Pago.</div>;
+  if (!publicKey) return <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">{qaMode ? "QA bloqueado: configure a chave pública TEST do Mercado Pago antes de testar cartão." : "Pagamento por cartão aguardando configuração da chave pública do Mercado Pago."}</div>;
   return <div className="mt-5"><div id="ciosp-card-balance-brick" />{brickError && <p className="mt-3 text-sm text-amber-200">{brickError}</p>}<p className="mt-3 text-xs leading-5 text-white/40">Os dados completos do cartão e o CVV são processados diretamente pelo Mercado Pago e não são armazenados pelo COBS.</p></div>;
 }
 
@@ -388,7 +390,7 @@ function CiospReservationPage() {
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#D6B56D]">Etapa 2 de 2</p>
                   <h2 className="mt-2 text-xl font-semibold">Parcele o saldo de R$ {(orderStatus.balance_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} no cartão</h2>
                   <p className="mt-2 text-sm leading-6 text-white/55">A vaga é confirmada somente depois da aprovação deste pagamento.</p>
-                  <CardBalanceBrick amountMinor={orderStatus.balance_minor} payerEmail={email} checkoutProof={checkoutProof} onApproved={() => setCardApproved(true)} />
+                  <CardBalanceBrick amountMinor={orderStatus.balance_minor} payerEmail={email} checkoutProof={checkoutProof} onApproved={() => setCardApproved(true)} qaMode={salesQaMode} />
                 </div>
               )}
               <p className="mt-5 text-xs leading-5 text-white/40">
