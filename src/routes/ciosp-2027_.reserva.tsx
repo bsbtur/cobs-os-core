@@ -160,8 +160,9 @@ function CiospReservationPage() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    // Frontend lock: never trigger checkout or Pix creation while public sales are closed.
-    if (!CIOSP_PUBLIC_SALES_OPEN) return;
+    // Public sales stay closed by default. Authorized staff may exercise the QA path;
+    // the backend still requires x-ciosp-qa plus a valid owner/admin/operations_agent session.
+    if (!CIOSP_PUBLIC_SALES_OPEN && !salesQaMode) return;
     if (loading || !consent) return;
 
     setLoading(true);
@@ -253,9 +254,9 @@ function CiospReservationPage() {
     }
   }
 
-  // Frontend lock (default CLOSED): without VITE_CIOSP_PUBLIC_SALES_OPEN === "true",
-  // this route never renders the checkout/Pix form. Backend sales_public remains the sovereign gate.
-  if (!CIOSP_PUBLIC_SALES_OPEN) {
+  // Frontend lock (default CLOSED): public visitors still see the closed-sales screen.
+  // ?sales_qa=1 only exposes the QA form; the backend remains the sovereign authorization gate.
+  if (!CIOSP_PUBLIC_SALES_OPEN && !salesQaMode) {
     return (
       <main className="min-h-screen bg-[#070706] px-5 py-10 text-white sm:px-8 sm:py-14">
         <section className="mx-auto max-w-xl">
@@ -308,7 +309,7 @@ function CiospReservationPage() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-1 size-6 shrink-0 text-[#D6B56D]" />
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">Reserva oficial</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">{salesQaMode ? "QA interno · vendas fechadas" : "Reserva oficial"}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight">CIOSP Experience 2027</h1>
               <p className="mt-3 text-sm leading-6 text-white/55">
                 Valor aprovado: R$ 12.490 por passageiro em acomodação dupla. Entrada de R$ 3.490 + 3
