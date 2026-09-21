@@ -18,7 +18,8 @@ describe("CIOSP two-stage Pix + card checkout", () => {
   });
 
   test("uses Mercado Pago card token only in the transient provider request", () => {
-    expect(card).toContain('type: "credit_card", token: cardToken, installments');
+    expect(card).toContain('type: "credit_card", token: cardToken');
+    expect(card).toContain('installments } }]');
     expect(card).toContain('"x-idempotency-key": idempotencyKey');
   });
 
