@@ -42,7 +42,7 @@ function PortalMessages() {
       queryClient.invalidateQueries({ queryKey: portalKeys.scoped(operationId, "messages") }),
   });
 
-  const list = messages.data ?? [];
+  const list = React.useMemo(() => messages.data ?? [], [messages.data]);
   const seen = React.useRef(new Set<string>());
 
   // Reading the notice IS the read receipt — no extra button, one call per message.
