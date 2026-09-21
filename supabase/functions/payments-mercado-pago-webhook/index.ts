@@ -164,7 +164,12 @@ Deno.serve(async (req: Request) => {
   const providerAmountMatches = providerAmountMinor != null && providerAmountMinor === Number(charge.amount_minor);
   const currencyMatches = Boolean(providerCurrency && String(charge.currency).trim().toUpperCase() === providerCurrency);
   const referenceMatches = Boolean(providerExternalReference && charge.external_reference && providerExternalReference === charge.external_reference);
-  const methodMatches = String(attempt.method).toLowerCase() === "pix" && providerMethodId === "pix" && providerMethodType === "bank_transfer";
+  const localMethod = String(attempt.method).toLowerCase();
+  const methodMatches = localMethod === "pix"
+    ? providerMethodId === "pix" && providerMethodType === "bank_transfer"
+    : localMethod === "card"
+      ? Boolean(providerMethodId) && providerMethodType === "credit_card"
+      : false;
   const providerCorrelationValid = providerOrderMatches && tenantMatches && localAmountMatches && providerAmountMatches && currencyMatches && referenceMatches && methodMatches;
 
   if (!providerCorrelationValid) {
@@ -240,12 +245,24 @@ Deno.serve(async (req: Request) => {
       _occurred_at: payment?.date_approved ?? mp?.last_updated_date ?? now,
     });
     if (factError) return json({ error: "financial_fact_failed", details: factError.message }, 500);
-    const { error: confirmError } = await admin.rpc("confirm_paid_provider_order", {
-      _order_id: charge.order_id,
-      _charge_id: charge.id,
-      _provider_reference: reference,
-    });
-    if (confirmError) return json({ error: "order_confirmation_failed", details: confirmError.message }, 500);
+    const { data: orderRow, error: orderLookupError } = await admin.from("orders").select("grand_total_minor").eq("id", charge.order_id).single();
+    if (orderLookupError) return json({ error: "order_total_lookup_failed", details: orderLookupError.message }, 500);
+    const { data: factRows, error: factLookupError } = await admin.from("financial_facts").select("fact_type,amount_minor").eq("order_id", charge.order_id);
+    if (factLookupError) return json({ error: "order_facts_lookup_failed", details: factLookupError.message }, 500);
+    let netPaid = 0;
+    for (const fact of factRows ?? []) {
+      const amount = Number(fact.amount_minor ?? 0);
+      if (fact.fact_type === "PAYMENT_RECORDED") netPaid += amount;
+      if (fact.fact_type === "PAYMENT_REVERSED" || fact.fact_type === "REFUND_RECORDED") netPaid -= amount;
+    }
+    if (netPaid >= Number(orderRow.grand_total_minor ?? 0)) {
+      const { error: confirmError } = await admin.rpc("confirm_paid_provider_order", {
+        _order_id: charge.order_id,
+        _charge_id: charge.id,
+        _provider_reference: reference,
+      });
+      if (confirmError) return json({ error: "order_confirmation_failed", details: confirmError.message }, 500);
+    }
     const { error: sessionError } = await admin.from("public_checkout_sessions")
       .update({ status: "consumed", updated_at: now })
       .eq("order_id", charge.order_id)
