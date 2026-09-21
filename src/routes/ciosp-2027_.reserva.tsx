@@ -27,7 +27,7 @@ function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }
   const mounted = useRef(false);
   const controller = useRef<any>(null);
   const [brickError, setBrickError] = useState<string | null>(null);
-  const publicKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY as string | undefined;
+  const publicKey: string | undefined = import.meta.env["VITE_MERCADO_PAGO_PUBLIC_KEY"];
 
   useEffect(() => {
     if (!publicKey || mounted.current) return;
