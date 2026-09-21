@@ -186,6 +186,7 @@ function CiospReservationPage() {
             terms_accepted: true,
             commercial_terms_version: COMMERCIAL_TERMS_VERSION,
             cancellation_policy_version: CANCELLATION_POLICY_VERSION,
+            ...(salesQaMode ? { qa_resume_existing: true } : {}),
           },
         },
       );
