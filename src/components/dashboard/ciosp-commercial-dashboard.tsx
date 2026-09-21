@@ -219,7 +219,7 @@ export function CiospCommercialDashboard({ tenantId }: { tenantId: string }) {
                     <th className="px-4 py-3 font-medium">Situação</th>
                     <th className="px-4 py-3 font-medium">Vagas</th>
                     <th className="px-4 py-3 font-medium">Recebido</th>
-                    <th className="px-4 py-3 font-medium">Próxima parcela</th>
+                    <th className="px-4 py-3 font-medium">Próximo pagamento</th>
                     <th className="px-4 py-3 text-right font-medium">Pedido</th>
                   </tr>
                 </thead>
@@ -257,21 +257,31 @@ export function CiospCommercialDashboard({ tenantId }: { tenantId: string }) {
                           })}
                         </td>
                         <td className="px-4 py-3">
-                          {installment ? (
+                          {order.received_minor >= 349000 && order.received_minor < order.grand_total_minor ? (
                             <>
                               <p className="flex items-center gap-2 font-medium">
                                 <CalendarClock className="size-4 text-primary" aria-hidden="true" />
-                                {installment.installment_number}/4 ·{" "}
-                                {formatMoney(installment.remaining_minor, {
+                                Saldo no cartão ·{" "}
+                                {formatMoney(order.grand_total_minor - order.received_minor, {
                                   locale,
                                   currency: dashboard.data.currency,
                                 })}
                               </p>
                               <p className="mt-1 text-xs text-muted-foreground">
-                                {installment.due_date
-                                  ? `Vencimento: ${formatDate(`${installment.due_date}T12:00:00-03:00`, { locale, timeZone: "America/Sao_Paulo" })}`
-                                  : "Vencimento no aceite da contratação"}
+                                Parcelamento escolhido no pagamento seguro
                               </p>
+                            </>
+                          ) : installment ? (
+                            <>
+                              <p className="flex items-center gap-2 font-medium">
+                                <CalendarClock className="size-4 text-primary" aria-hidden="true" />
+                                Entrada ·{" "}
+                                {formatMoney(installment.remaining_minor, {
+                                  locale,
+                                  currency: dashboard.data.currency,
+                                })}
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">Aguardando confirmação da entrada</p>
                             </>
                           ) : (
                             <span className="text-xs text-muted-foreground">Quitado</span>
