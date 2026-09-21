@@ -209,7 +209,26 @@ function CiospReservationPage() {
         throw new Error("checkout_response_invalid");
       }
 
-      setCheckoutProof({ order_id: checkout.order_id, checkout_token: checkout.checkout_token });
+      const proof = { order_id: checkout.order_id, checkout_token: checkout.checkout_token };
+      setCheckoutProof(proof);
+
+      // A repeated/resumed QA checkout rotates the checkout token for the same order.
+      // If the entry is already recorded, resume directly at the card balance instead
+      // of creating a legacy second Pix installment.
+      const { data: resumedStatus, error: resumedStatusError } = await supabase.functions.invoke(
+        "ciosp-public-order-status",
+        { body: proof },
+      );
+      if (!resumedStatusError && resumedStatus?.order_id && resumedStatus.received_minor >= 349000 && resumedStatus.balance_minor > 0) {
+        setOrderStatus(resumedStatus as OrderStatus);
+        setPix({
+          amount_minor: 349000,
+          installment_number: 1,
+          installment_count: 1,
+          order_id: checkout.order_id,
+        });
+        return;
+      }
 
       const { data: pixData, error: pixError } = await supabase.functions.invoke(
         "ciosp-public-create-pix",
@@ -312,8 +331,7 @@ function CiospReservationPage() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D6B56D]">{salesQaMode ? "QA interno · vendas fechadas" : "Reserva oficial"}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight">CIOSP Experience 2027</h1>
               <p className="mt-3 text-sm leading-6 text-white/55">
-                Valor aprovado: R$ 12.490 por passageiro em acomodação dupla. Entrada de R$ 3.490 + 3
-                parcelas de R$ 3.000, com vencimentos em 10/10/2026, 10/11/2026 e 10/12/2026.
+                Valor aprovado: R$ 12.490 por passageiro em acomodação dupla. Entrada de R$ 3.490 via Pix e saldo de R$ 9.000 no cartão, com parcelamento disponível no ambiente seguro do Mercado Pago.
               </p>
             </div>
           </div>
@@ -325,7 +343,7 @@ function CiospReservationPage() {
                 R$ {((pix.amount_minor ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
               <p className="mt-1 text-sm text-white/50">
-                Cobrança {pix.installment_number ?? "—"}/{pix.installment_count ?? 4}
+                Cobrança de entrada {pix.installment_number ?? "—"}/{pix.installment_count ?? 1}
                 {pix.due_at ? ` · vencimento ${new Date(pix.due_at).toLocaleDateString("pt-BR")}` : ""}
               </p>
               {pix.qr_code_base64 && (
