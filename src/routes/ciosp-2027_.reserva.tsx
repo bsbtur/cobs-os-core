@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ export const Route = createFileRoute("/ciosp-2027_/reserva")({
   }),
   component: CiospReservationPage,
 });
+
+type OrderStatus = { total_minor: number; received_minor: number; balance_minor: number; payment_status: string; order_status: string; next_installment?: { installment_number?: number; installment_count?: number; amount_minor?: number; due_at?: string | null; status?: string } | null; };
 
 type PixState = {
   qr_code?: string | null;
@@ -67,9 +69,23 @@ function CiospReservationPage() {
   const [closed, setClosed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pix, setPix] = useState<PixState | null>(null);
+  const [checkoutProof, setCheckoutProof] = useState<{ order_id: string; checkout_token: string } | null>(null);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
   const idempotencyKey = useMemo(getCheckoutIdempotencyKey, []);
   const salesQaMode =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sales_qa") === "1";
+
+  useEffect(() => {
+    if (!checkoutProof) return;
+    let cancelled = false;
+    const refresh = async () => {
+      const { data, error: statusError } = await supabase.functions.invoke("ciosp-public-order-status", { body: checkoutProof });
+      if (!cancelled && !statusError && data?.order_id) setOrderStatus(data as OrderStatus);
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 5000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [checkoutProof]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -120,6 +136,8 @@ function CiospReservationPage() {
       if (!checkout?.order_id || !checkout?.checkout_token || !checkout?.payer_email) {
         throw new Error("checkout_response_invalid");
       }
+
+      setCheckoutProof({ order_id: checkout.order_id, checkout_token: checkout.checkout_token });
 
       const { data: pixData, error: pixError } = await supabase.functions.invoke(
         "ciosp-public-create-pix",
@@ -266,8 +284,16 @@ function CiospReservationPage() {
                   Abrir cobrança Pix
                 </a>
               )}
+              {orderStatus && (
+                <div className="mt-5 rounded-xl border border-white/10 bg-black/25 p-4 text-sm text-white/65">
+                  <p><strong className="text-white">Total:</strong> R$ {(orderStatus.total_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                  <p className="mt-1"><strong className="text-white">Pago confirmado:</strong> R$ {(orderStatus.received_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                  <p className="mt-1"><strong className="text-white">Saldo:</strong> R$ {(orderStatus.balance_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                  {orderStatus.received_minor >= 349000 && orderStatus.balance_minor > 0 && <p className="mt-3 text-emerald-300">Entrada confirmada. Saldo remanescente disponível para as próximas parcelas.</p>}
+                </div>
+              )}
               <p className="mt-5 text-xs leading-5 text-white/40">
-                Pedido: {pix.order_id}. A confirmação depende da conciliação do pagamento pelo COBS.
+                Pedido: {pix.order_id}. Esta tela atualiza automaticamente após a conciliação do pagamento pelo COBS.
               </p>
             </div>
           ) : (
