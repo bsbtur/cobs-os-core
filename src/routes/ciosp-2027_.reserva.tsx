@@ -21,11 +21,19 @@ export const Route = createFileRoute("/ciosp-2027_/reserva")({
   component: CiospReservationPage,
 });
 
+type CardFormData = { token?: string; payment_method_id?: string; installments?: number; payer?: { email?: string } };
+type MercadoPagoBrickController = { unmount?: () => void };
+type MercadoPagoBricks = { create: (brickName: string, containerId: string, configuration: { initialization: { amount: number; payer: { email: string } }; customization: { paymentMethods: { minInstallments: number; maxInstallments: number } }; callbacks: { onReady: () => void; onError: () => void; onSubmit: (formData: CardFormData) => Promise<void> } }) => Promise<MercadoPagoBrickController> };
+type MercadoPagoClient = { bricks: () => MercadoPagoBricks };
+type MercadoPagoConstructor = new (publicKey: string, options: { locale: string }) => MercadoPagoClient;
+
+declare global { interface Window { MercadoPago?: MercadoPagoConstructor } }
+
 type OrderStatus = { total_minor: number; received_minor: number; balance_minor: number; payment_status: string; order_status: string; next_installment?: { installment_number?: number; installment_count?: number; amount_minor?: number; due_at?: string | null; status?: string } | null; };
 
 function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }: { amountMinor: number; payerEmail: string; checkoutProof: { order_id: string; checkout_token: string }; onApproved: () => void }) {
   const mounted = useRef(false);
-  const controller = useRef<any>(null);
+  const controller = useRef<MercadoPagoBrickController | null>(null);
   const [brickError, setBrickError] = useState<string | null>(null);
   const publicKey: string | undefined = import.meta.env["VITE_MERCADO_PAGO_PUBLIC_KEY"];
 
@@ -34,7 +42,7 @@ function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }
     mounted.current = true;
     let cancelled = false;
     const boot = async () => {
-      if (!(window as any).MercadoPago) {
+      if (!window.MercadoPago) {
         await new Promise<void>((resolve, reject) => {
           const existing = document.querySelector('script[src="https://sdk.mercadopago.com/js/v2"]') as HTMLScriptElement | null;
           if (existing) { existing.addEventListener("load", () => resolve(), { once: true }); existing.addEventListener("error", () => reject(), { once: true }); return; }
@@ -46,7 +54,8 @@ function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }
         });
       }
       if (cancelled) return;
-      const mp = new (window as any).MercadoPago(publicKey, { locale: "pt-BR" });
+      if (cancelled || !window.MercadoPago) return;
+      const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
       const bricks = mp.bricks();
       controller.current = await bricks.create("cardPayment", "ciosp-card-balance-brick", {
         initialization: { amount: amountMinor / 100, payer: { email: payerEmail } },
@@ -54,7 +63,7 @@ function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }
         callbacks: {
           onReady: () => setBrickError(null),
           onError: () => setBrickError("Não foi possível carregar o formulário seguro do cartão."),
-          onSubmit: async (formData: any) => {
+          onSubmit: async (formData: CardFormData) => {
             setBrickError(null);
             const { data, error } = await supabase.functions.invoke("ciosp-public-pay-card", {
               body: {
