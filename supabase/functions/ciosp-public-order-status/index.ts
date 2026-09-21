@@ -50,8 +50,8 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
   if (sessionError) return json({ error: "resume_session_lookup_failed" }, 500);
   if (!session) return json({ error: "invalid_resume_proof" }, 403);
-  if (session.status !== "active")
-    return json({ error: "resume_session_not_active", status: session.status }, 409);
+  if (!["active", "consumed"].includes(session.status))
+    return json({ error: "resume_session_not_readable", status: session.status }, 409);
   if (new Date(session.expires_at).getTime() <= Date.now())
     return json({ error: "resume_session_expired" }, 409);
 
@@ -108,6 +108,7 @@ Deno.serve(async (req: Request) => {
     balance_minor: Math.max(total - received, 0),
     payment_status: received >= total ? "paid" : next?.status ?? "awaiting_payment",
     payment_environment: paymentEnvironment,
+    checkout_session_status: session.status,
     next_installment: next
       ? {
           charge_id: next.id,

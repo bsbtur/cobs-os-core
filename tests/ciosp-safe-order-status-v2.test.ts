@@ -13,6 +13,11 @@ describe("CIOSP safe order status v2", () => {
     expect(source).not.toContain("payer_email");
   });
 
+  test("keeps consumed checkout proof read-only for post-payment balance", () => {
+    expect(source).toContain('["active", "consumed"].includes(session.status)');
+    expect(source).toContain("checkout_session_status: session.status");
+  });
+
   test("scopes payment visibility to the canonical payment environment", () => {
     expect(source).toContain('metadata.qa_public_checkout === true ? "test" : MP_ENV');
     expect(source).toContain("charge?.metadata?.environment === paymentEnvironment");
