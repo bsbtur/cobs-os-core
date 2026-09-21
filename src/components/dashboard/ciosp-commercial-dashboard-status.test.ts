@@ -16,8 +16,8 @@ describe("formatOrderStatus", () => {
     expect(formatOrderStatus("submitted", true)).toBe("Aguardando Pix");
   });
 
-  it("sinaliza pedido enviado sem Pix ativo para acompanhamento", () => {
-    expect(formatOrderStatus("submitted", false)).toBe("Pix requer nova tentativa");
+  it("sinaliza entrada confirmada com saldo pendente sem Pix ativo", () => {
+    expect(formatOrderStatus("submitted", false)).toBe("Entrada confirmada · saldo pendente");
   });
 
   it("preserva um status futuro ainda não mapeado", () => {
