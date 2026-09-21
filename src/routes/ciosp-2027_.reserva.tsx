@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,67 @@ export const Route = createFileRoute("/ciosp-2027_/reserva")({
 });
 
 type OrderStatus = { total_minor: number; received_minor: number; balance_minor: number; payment_status: string; order_status: string; next_installment?: { installment_number?: number; installment_count?: number; amount_minor?: number; due_at?: string | null; status?: string } | null; };
+
+function CardBalanceBrick({ amountMinor, payerEmail, checkoutProof, onApproved }: { amountMinor: number; payerEmail: string; checkoutProof: { order_id: string; checkout_token: string }; onApproved: () => void }) {
+  const mounted = useRef(false);
+  const controller = useRef<any>(null);
+  const [brickError, setBrickError] = useState<string | null>(null);
+  const publicKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY as string | undefined;
+
+  useEffect(() => {
+    if (!publicKey || mounted.current) return;
+    mounted.current = true;
+    let cancelled = false;
+    const boot = async () => {
+      if (!(window as any).MercadoPago) {
+        await new Promise<void>((resolve, reject) => {
+          const existing = document.querySelector('script[src="https://sdk.mercadopago.com/js/v2"]') as HTMLScriptElement | null;
+          if (existing) { existing.addEventListener("load", () => resolve(), { once: true }); existing.addEventListener("error", () => reject(), { once: true }); return; }
+          const script = document.createElement("script");
+          script.src = "https://sdk.mercadopago.com/js/v2";
+          script.onload = () => resolve();
+          script.onerror = () => reject();
+          document.head.appendChild(script);
+        });
+      }
+      if (cancelled) return;
+      const mp = new (window as any).MercadoPago(publicKey, { locale: "pt-BR" });
+      const bricks = mp.bricks();
+      controller.current = await bricks.create("cardPayment", "ciosp-card-balance-brick", {
+        initialization: { amount: amountMinor / 100, payer: { email: payerEmail } },
+        customization: { paymentMethods: { minInstallments: 1, maxInstallments: 12 } },
+        callbacks: {
+          onReady: () => setBrickError(null),
+          onError: () => setBrickError("Não foi possível carregar o formulário seguro do cartão."),
+          onSubmit: async (formData: any) => {
+            setBrickError(null);
+            const { data, error } = await supabase.functions.invoke("ciosp-public-pay-card", {
+              body: {
+                ...checkoutProof,
+                card_token: formData?.token,
+                payment_method_id: formData?.payment_method_id,
+                installments: formData?.installments,
+                payer_email: formData?.payer?.email ?? payerEmail,
+              },
+            });
+            if (error || !data) {
+              setBrickError("Não foi possível concluir o pagamento no cartão. Revise os dados e tente novamente.");
+              throw error ?? new Error("card_payment_failed");
+            }
+            if (data.confirmed === true) onApproved();
+            else if (data.status === "processing" || data.status === "pending") setBrickError("Pagamento em análise. A vaga será confirmada automaticamente após a aprovação.");
+            else setBrickError("Pagamento não aprovado. Nenhum dado completo do cartão foi armazenado pelo COBS.");
+          },
+        },
+      });
+    };
+    void boot().catch(() => setBrickError("Não foi possível iniciar o formulário seguro do cartão."));
+    return () => { cancelled = true; void controller.current?.unmount?.(); controller.current = null; mounted.current = false; };
+  }, [amountMinor, checkoutProof, onApproved, payerEmail, publicKey]);
+
+  if (!publicKey) return <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">Pagamento por cartão aguardando configuração da chave pública do Mercado Pago.</div>;
+  return <div className="mt-5"><div id="ciosp-card-balance-brick" />{brickError && <p className="mt-3 text-sm text-amber-200">{brickError}</p>}<p className="mt-3 text-xs leading-5 text-white/40">Os dados completos do cartão e o CVV são processados diretamente pelo Mercado Pago e não são armazenados pelo COBS.</p></div>;
+}
 
 type PixState = {
   qr_code?: string | null;
@@ -71,6 +132,7 @@ function CiospReservationPage() {
   const [pix, setPix] = useState<PixState | null>(null);
   const [checkoutProof, setCheckoutProof] = useState<{ order_id: string; checkout_token: string } | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
+  const [cardApproved, setCardApproved] = useState(false);
   const idempotencyKey = useMemo(getCheckoutIdempotencyKey, []);
   const salesQaMode =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sales_qa") === "1";
@@ -289,7 +351,16 @@ function CiospReservationPage() {
                   <p><strong className="text-white">Total:</strong> R$ {(orderStatus.total_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                   <p className="mt-1"><strong className="text-white">Pago confirmado:</strong> R$ {(orderStatus.received_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                   <p className="mt-1"><strong className="text-white">Saldo:</strong> R$ {(orderStatus.balance_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                  {orderStatus.received_minor >= 349000 && orderStatus.balance_minor > 0 && <p className="mt-3 text-emerald-300">Entrada confirmada. Saldo remanescente disponível para as próximas parcelas.</p>}
+                  {orderStatus.received_minor >= 349000 && orderStatus.balance_minor > 0 && <p className="mt-3 text-emerald-300">Entrada confirmada. Agora finalize o saldo no cartão para confirmar sua vaga.</p>}
+                  {(cardApproved || orderStatus.balance_minor === 0) && <p className="mt-3 font-semibold text-emerald-300">Pagamento completo. Vaga confirmada.</p>}
+                </div>
+              )}
+              {orderStatus && orderStatus.received_minor >= 349000 && orderStatus.balance_minor > 0 && checkoutProof && (
+                <div className="mt-5 rounded-2xl border border-[#D6B56D]/25 bg-[#D6B56D]/5 p-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#D6B56D]">Etapa 2 de 2</p>
+                  <h2 className="mt-2 text-xl font-semibold">Parcele o saldo de R$ {(orderStatus.balance_minor / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} no cartão</h2>
+                  <p className="mt-2 text-sm leading-6 text-white/55">A vaga é confirmada somente depois da aprovação deste pagamento.</p>
+                  <CardBalanceBrick amountMinor={orderStatus.balance_minor} payerEmail={email} checkoutProof={checkoutProof} onApproved={() => setCardApproved(true)} />
                 </div>
               )}
               <p className="mt-5 text-xs leading-5 text-white/40">
