@@ -3,6 +3,8 @@
 do $$
 declare _offering_id uuid := 'f88ed059-80b0-44d5-8755-1344c4360e84';
 begin
+  perform set_config('app.w09_control','on',true);
+
   update public.offerings
   set metadata = coalesce(metadata,'{}'::jsonb) || jsonb_build_object(
     'commercial_release','v2',
