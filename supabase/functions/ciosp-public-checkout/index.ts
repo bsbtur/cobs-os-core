@@ -11,7 +11,7 @@ if(allow&&b.qa_resume_existing===true){
   const{data:buyers,error:be}=ids.length?await admin.from("people").select("id,email").in("id",ids):{data:[],error:null};
   if(be)return json({error:"qa_resume_buyer_lookup_failed"},500);
   const byId=new Map((buyers??[]).map((p:any)=>[p.id,String(p.email??"").toLowerCase()]));
-  const matches=(existingQa??[]).filter((o:any)=>byId.get(o.buyer_person_id)===email);
+  const matches=(existingQa??[]).filter((o:any)=>byId.get(o.buyer_person_id)===email&&o?.metadata?.commercial_terms_version===COMMERCIAL_TERMS_VERSION);
   if(matches.length>1)return json({error:"qa_resume_ambiguous"},409);
   const prior=matches[0]?.metadata?.public_checkout_idempotency_key;
   if(matches.length===1&&typeof prior==="string"&&prior.length>=16&&prior.length<=120)effectiveIdem=prior;
