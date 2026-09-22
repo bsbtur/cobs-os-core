@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
 
-const COMMERCIAL_TERMS_VERSION = "ciosp-2027-v1";
+const COMMERCIAL_TERMS_VERSION = "ciosp-2027-v2";
 const CANCELLATION_POLICY_VERSION = "ciosp-2027-cancellation-v1";
 const CHECKOUT_IDEMPOTENCY_SESSION_KEY = "cobs:ciosp-2027:reserva:idempotency-key";
 
