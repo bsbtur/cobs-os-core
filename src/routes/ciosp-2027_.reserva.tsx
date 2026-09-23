@@ -145,8 +145,11 @@ function CiospReservationPage() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
   const [cardApproved, setCardApproved] = useState(false);
   const idempotencyKey = useMemo(getCheckoutIdempotencyKey, []);
-  const salesQaMode =
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("sales_qa") === "1";
+  const [salesQaMode, setSalesQaMode] = useState(false);
+
+  useEffect(() => {
+    setSalesQaMode(new URLSearchParams(window.location.search).get("sales_qa") === "1");
+  }, []);
 
   useEffect(() => {
     if (!checkoutProof) return;
