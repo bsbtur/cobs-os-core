@@ -236,8 +236,8 @@ function CiospReservationPage() {
         return;
       }
 
-      const { data: pixData, error: pixError } = await supabase.functions.invoke(
-        "ciosp-public-create-pix",
+      const { data: hostedData, error: hostedError } = await supabase.functions.invoke(
+        "ciosp-public-checkout-pro",
         {
           body: {
             order_id: checkout.order_id,
@@ -247,31 +247,21 @@ function CiospReservationPage() {
         },
       );
 
-      if (pixError) {
-        const code = await edgeErrorCode(pixError);
+      if (hostedError) {
+        const code = await edgeErrorCode(hostedError);
         if (code === "sales_not_open") {
           setClosed(true);
           return;
         }
         if (code === "mercado_pago_not_configured" || code === "mercado_pago_test_not_configured") {
-          setError("A cobrança ainda não está disponível. Nenhum pagamento foi concluído.");
+          setError("O checkout ainda não está disponível. Nenhum pagamento foi concluído.");
           return;
         }
-        throw pixError;
+        throw hostedError;
       }
 
-      if (!pixData?.pix?.qr_code && !pixData?.pix?.ticket_url) {
-        throw new Error("pix_response_invalid");
-      }
-
-      setPix({
-        ...pixData.pix,
-        amount_minor: pixData.amount_minor ?? null,
-        installment_number: pixData.installment_number ?? null,
-        installment_count: pixData.installment_count ?? null,
-        due_at: pixData.due_at ?? null,
-        order_id: checkout.order_id,
-      });
+      if (!hostedData?.checkout_url) throw new Error("checkout_pro_response_invalid");
+      window.location.assign(hostedData.checkout_url);
     } catch {
       setError("Não foi possível iniciar a reserva agora. Tente novamente ou fale com a BSBTUR.");
     } finally {
@@ -493,7 +483,7 @@ function CiospReservationPage() {
                     Preparando reserva...
                   </>
                 ) : (
-                  "Gerar reserva e Pix"
+                  "Continuar para pagamento"
                 )}
               </Button>
             </form>
