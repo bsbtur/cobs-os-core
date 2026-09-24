@@ -61,9 +61,24 @@ Deno.serve(async (req: Request) => {
   const orderMeta = (order.metadata ?? {}) as Record<string, unknown>;
   const qa = orderMeta.qa_public_checkout === true;
   if (offeringMeta.sales_public !== true && !qa) return json({ error: "sales_not_open" }, 409);
-  const environment = qa ? "test" : "production";
-  const accessToken = qa ? MP_TEST_TOKEN : MP_PROD_TOKEN;
-  if (!accessToken) return json({ error: environment === "test" ? "mercado_pago_test_not_configured" : "mercado_pago_not_configured" }, 500);
+  // QA payment probe deliberately uses the real Mercado Pago production rail at R$1.00.
+  // It is restricted to an authenticated active operator of the order tenant; public sales remain closed.
+  if (qa) {
+    const authHeader = req.headers.get("authorization") ?? "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) return json({ error: "qa_operator_auth_required" }, 401);
+    const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
+      global: { headers: { Authorization: authHeader } }, auth: { persistSession: false },
+    });
+    const { data: authData, error: authError } = await userClient.auth.getUser();
+    if (authError || !authData.user) return json({ error: "qa_operator_auth_required" }, 401);
+    const { data: membership } = await db.from("tenant_memberships")
+      .select("role,status").eq("tenant_id", order.tenant_id).eq("profile_id", authData.user.id).eq("status", "active").maybeSingle();
+    if (!membership || !["owner", "admin", "operator"].includes(String(membership.role)))
+      return json({ error: "qa_operator_forbidden" }, 403);
+  }
+  const environment = "production";
+  const accessToken = MP_PROD_TOKEN;
+  if (!accessToken) return json({ error: "mercado_pago_not_configured" }, 500);
 
   const totalMinor = Number(order.grand_total_minor ?? 0);
   const entryMinor = Number(offeringMeta.entry_minor ?? 349000);
@@ -88,12 +103,12 @@ Deno.serve(async (req: Request) => {
     payer: payerEmail ? { email: payerEmail } : undefined,
     external_reference: externalReference,
     back_urls: {
-      success: `${RETURN_BASE}?payment=success`,
-      failure: `${RETURN_BASE}?payment=failure`,
-      pending: `${RETURN_BASE}?payment=pending`,
+      success: `${RETURN_BASE}?${qa ? "sales_qa=1&" : ""}payment=success`,
+      failure: `${RETURN_BASE}?${qa ? "sales_qa=1&" : ""}payment=failure`,
+      pending: `${RETURN_BASE}?${qa ? "sales_qa=1&" : ""}payment=pending`,
     },
     auto_return: "approved",
-    metadata: { cobs_order_id: order.id, cobs_stage: "entry", environment },
+    metadata: { cobs_order_id: order.id, cobs_stage: "entry", environment, qa_payment_probe: qa },
   };
 
   const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -104,7 +119,7 @@ Deno.serve(async (req: Request) => {
   const mp = await response.json().catch(() => ({}));
   if (!response.ok || !mp?.id) return json({ error: "mercado_pago_preference_error", status: response.status }, 502);
 
-  const checkoutUrl = environment === "test" ? (mp.sandbox_init_point ?? mp.init_point) : mp.init_point;
+  const checkoutUrl = mp.init_point;
   if (!checkoutUrl) return json({ error: "mercado_pago_preference_url_missing" }, 502);
 
   return json({
