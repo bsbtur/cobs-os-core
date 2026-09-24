@@ -66,10 +66,8 @@ Deno.serve(async (req: Request) => {
   if (qa) {
     const authHeader = req.headers.get("authorization") ?? "";
     if (!authHeader.toLowerCase().startsWith("bearer ")) return json({ error: "qa_operator_auth_required" }, 401);
-    const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
-      global: { headers: { Authorization: authHeader } }, auth: { persistSession: false },
-    });
-    const { data: authData, error: authError } = await userClient.auth.getUser();
+    const jwt = authHeader.slice(7).trim();
+    const { data: authData, error: authError } = await db.auth.getUser(jwt);
     if (authError || !authData.user) return json({ error: "qa_operator_auth_required" }, 401);
     const { data: membership } = await db.from("tenant_memberships")
       .select("role,status").eq("tenant_id", order.tenant_id).eq("profile_id", authData.user.id).eq("status", "active").maybeSingle();
