@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   if (!secretKey) return json({ error: "server_not_configured" }, 500);
 
-  let body: any;
+  let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
 
   const orderId = String(body?.order_id ?? "").trim();
@@ -75,26 +75,75 @@ Deno.serve(async (req: Request) => {
   const balance = Math.max(total - paid, 0);
   if (balance <= 0) return json({ error: "order_has_no_outstanding_balance" }, 409);
 
-  const { data: existing } = await db.from("payment_charges").select("id,status,amount_minor,provider_order_id,metadata").eq("order_id", orderId).eq("provider", "mercado_pago").eq("status", "paid").contains("metadata", { commercial_payment_stage: "card_balance" }).maybeSingle();
-  if (existing) return json({ error: "card_balance_already_paid" }, 409);
-
   const externalReference = `cobs_${orderId.replaceAll("-", "")}_card_balance`;
-  const { data: charge, error: chargeError } = await db.from("payment_charges").insert({
+
+  const { data: existingCharge, error: existingError } = await db.from("payment_charges")
+    .select("id,status,amount_minor,provider_order_id,paid_amount_minor,metadata")
+    .eq("tenant_id", order.tenant_id).eq("external_reference", externalReference).maybeSingle();
+  if (existingError) return json({ error: "card_charge_lookup_failed" }, 500);
+  if (existingCharge?.status === "paid") return json({ error: "card_balance_already_paid", charge_id: existingCharge.id }, 409);
+
+  if (existingCharge) {
+    const { data: liveAttempts, error: liveAttemptsError } = await db.from("payment_attempts")
+      .select("id,status,provider_order_id,provider_payment_id")
+      .eq("charge_id", existingCharge.id)
+      .in("status", ["created", "pending", "processing", "approved"])
+      .limit(1);
+    if (liveAttemptsError) return json({ error: "card_attempt_lookup_failed" }, 500);
+    if ((liveAttempts ?? []).length > 0 || ["draft", "pending", "processing"].includes(existingCharge.status)) {
+      return json({
+        error: "card_balance_payment_in_progress",
+        charge_id: existingCharge.id,
+        status: existingCharge.status,
+        provider_order_id: existingCharge.provider_order_id ?? null
+      }, 409);
+    }
+  }
+
+  const charge = existingCharge ?? (await db.from("payment_charges").insert({
     tenant_id: order.tenant_id, order_id: orderId, provider: "mercado_pago", status: "draft", currency: "BRL",
     amount_minor: balance, installment_number: 2, installment_count: 2, external_reference: externalReference,
     description: "CIOSP 2027 — saldo no cartão",
     metadata: { environment, source: "public_checkout", commercial_payment_stage: "card_balance", provider_installments: installments },
-  }).select("*").single();
-  if (chargeError) return json({ error: "card_charge_create_failed", details: chargeError.message }, 500);
+  }).select("*").single()).data;
+  const chargeError = existingCharge ? null : charge ? null : { code: "insert_failed" };
 
-  const idempotencyKey = crypto.randomUUID();
+  if (chargeError || !charge) {
+    if (chargeError.code === "23505") {
+      const { data: concurrent } = await db.from("payment_charges")
+        .select("id,status,provider_order_id").eq("tenant_id", order.tenant_id).eq("external_reference", externalReference).maybeSingle();
+      return json({
+        error: concurrent?.status === "paid" ? "card_balance_already_paid" : "card_balance_payment_in_progress",
+        charge_id: concurrent?.id ?? null,
+        status: concurrent?.status ?? null,
+        provider_order_id: concurrent?.provider_order_id ?? null
+      }, 409);
+    }
+    return json({ error: "card_charge_create_failed" }, 500);
+  }
+
+  const retryFingerprint = (await sha256(cardToken)).slice(0, 24);
+  const idempotencyKey = `cobs-card-balance-${charge.id}-${retryFingerprint}`;
+  if (existingCharge) {
+    await db.from("payment_charges").update({
+      status: "draft",
+      provider_order_id: null,
+      paid_amount_minor: 0,
+      paid_at: null,
+      metadata: { ...(existingCharge.metadata ?? {}), environment, source: "public_checkout", commercial_payment_stage: "card_balance", provider_installments: installments }
+    }).eq("id", existingCharge.id).in("status", ["failed", "cancelled", "rejected"]);
+  }
+
   const { data: attempt, error: attemptError } = await db.from("payment_attempts").insert({
     tenant_id: order.tenant_id, charge_id: charge.id, provider: "mercado_pago", method: "card", status: "created",
     amount_minor: balance, idempotency_key: idempotencyKey,
     request_snapshot: { type: "online", total_amount: (balance / 100).toFixed(2), external_reference: externalReference, payment_method_id: paymentMethodId, installments, payer_email: payerEmail, card_token_present: true },
     metadata: { environment, source: "public_checkout", commercial_payment_stage: "card_balance" },
   }).select("*").single();
-  if (attemptError) return json({ error: "card_attempt_create_failed", details: attemptError.message }, 500);
+  if (attemptError) {
+    await db.from("payment_charges").update({ status: "failed" }).eq("id", charge.id).eq("status", "draft");
+    return json({ error: "card_attempt_create_failed" }, 500);
+  }
 
   const amount = (balance / 100).toFixed(2);
   const providerBody = {
@@ -112,6 +161,7 @@ Deno.serve(async (req: Request) => {
     });
   } catch {
     await db.from("payment_attempts").update({ status: "rejected", provider_status: "network_error" }).eq("id", attempt.id);
+    await db.from("payment_charges").update({ status: "failed" }).eq("id", charge.id);
     return json({ error: "mercado_pago_network_error" }, 502);
   }
 
@@ -138,9 +188,9 @@ Deno.serve(async (req: Request) => {
   if (mapped === "approved") {
     const reference = `mercado_pago:${payment?.id ?? mp?.id}`;
     const { error: factError } = await db.rpc("record_provider_payment", { _order_id: orderId, _amount_minor: balance, _reference: reference, _reason: "CIOSP 2027 card balance approved", _occurred_at: payment?.date_approved ?? now });
-    if (factError) return json({ error: "financial_fact_failed", details: factError.message }, 500);
+    if (factError) return json({ error: "financial_fact_failed" }, 500);
     const { error: confirmError } = await db.rpc("confirm_paid_provider_order", { _order_id: orderId, _charge_id: charge.id, _provider_reference: reference });
-    if (confirmError) return json({ error: "order_confirmation_failed", details: confirmError.message }, 500);
+    if (confirmError) return json({ error: "order_confirmation_failed" }, 500);
   }
 
   return json({ order_id: orderId, charge_id: charge.id, attempt_id: attempt.id, amount_minor: balance, installments, status: mapped, provider_order_id: mp?.id ?? null, confirmed: mapped === "approved" }, 201);
