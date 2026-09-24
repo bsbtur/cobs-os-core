@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
 
 const META_DESCRIPTION = CIOSP_PUBLIC_SALES_OPEN
-  ? "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 e 3 parcelas de R$ 3.000."
+  ? "Reserve sua vaga na CIOSP Experience 2027 com a BSBTUR. R$ 12.490 por passageiro: entrada de R$ 3.490 via Pix e saldo de R$ 9.000 no cartão, com parcelamento disponível no Mercado Pago."
   : "CIOSP Experience 2027 com a BSBTUR: R$ 12.490 por passageiro, entrada de R$ 3.490 e 3 parcelas de R$ 3.000. Reservas em preparação — entre na lista prioritária.";
 
 export const Route = createFileRoute("/ciosp-2027")({
