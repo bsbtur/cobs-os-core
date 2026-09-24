@@ -237,7 +237,7 @@ function CiospReservationPage() {
       }
 
       const { data: hostedData, error: hostedError } = await supabase.functions.invoke(
-        "ciosp-public-checkout-pro",
+        "ciosp-public-create-preference",
         {
           body: {
             order_id: checkout.order_id,
