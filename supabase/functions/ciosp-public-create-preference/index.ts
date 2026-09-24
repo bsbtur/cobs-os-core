@@ -7,6 +7,7 @@ const SECRET = KEYS.default;
 const MP_TEST_TOKEN = Deno.env.get("MERCADO_PAGO_TEST_ACCESS_TOKEN");
 const MP_PROD_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
 const RETURN_BASE = "https://cobs-os-prod.vercel.app/ciosp-2027/reserva";
+const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/payments-mercado-pago-webhook`;
 const CIOSP_CODE = "CIOSP-SP-2027";
 const cors = {
   "access-control-allow-origin": "*",
@@ -106,6 +107,7 @@ Deno.serve(async (req: Request) => {
       pending: `${RETURN_BASE}?${qa ? "sales_qa=1&" : ""}payment=pending`,
     },
     auto_return: "approved",
+    notification_url: `${WEBHOOK_URL}?source_news=webhooks`,
     metadata: { cobs_order_id: order.id, cobs_stage: "entry", environment, qa_payment_probe: qa },
   };
 
