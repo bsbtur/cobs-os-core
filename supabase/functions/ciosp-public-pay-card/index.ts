@@ -61,10 +61,11 @@ Deno.serve(async (req: Request) => {
   const accessToken = environment === "test" ? MP_TEST_TOKEN : MP_TOKEN;
   if (!accessToken) return json({ error: "mercado_pago_not_configured" }, 500);
 
-  const { data: facts, error: factsError } = await db.from("financial_facts").select("fact_type,amount_minor").eq("order_id", orderId);
+  const { data: facts, error: factsError } = await db.from("financial_facts").select("fact_type,amount_minor,reason").eq("order_id", orderId);
   if (factsError) return json({ error: "financial_facts_lookup_failed" }, 500);
   let paid = 0;
   for (const fact of facts ?? []) {
+    if (qa && fact.fact_type === "PAYMENT_RECORDED" && fact.reason === "Mercado Pago QA production probe approved") continue;
     const amount = Number(fact.amount_minor ?? 0);
     if (fact.fact_type === "PAYMENT_RECORDED") paid += amount;
     if (fact.fact_type === "PAYMENT_REVERSED" || fact.fact_type === "REFUND_RECORDED") paid -= amount;
