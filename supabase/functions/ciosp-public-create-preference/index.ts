@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
     const jwt = authHeader.slice(7).trim();
     const { data: authData, error: authError } = await db.auth.getUser(jwt);
     if (authError || !authData.user) return json({ error: "qa_operator_auth_required" }, 401);
-    const { data: membership } = await db.from("tenant_memberships")
+    const { data: membership } = await db.from("memberships")
       .select("role,status").eq("tenant_id", order.tenant_id).eq("profile_id", authData.user.id).eq("status", "active").maybeSingle();
     if (!membership || !["owner", "admin", "operator"].includes(String(membership.role)))
       return json({ error: "qa_operator_forbidden" }, 403);
