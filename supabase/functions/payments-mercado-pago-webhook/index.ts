@@ -91,7 +91,7 @@ Deno.serve(async (req: Request) => {
   const payloadDataId = payload?.data?.id != null ? String(payload.data.id) : null;
   const dataId = queryDataId ?? payloadDataId;
   const topic = payload?.type ?? url.searchParams.get("type");
-  if (topic !== "order") return json({ ok: true, ignored: "unsupported_topic", environment }, 202);
+  if (!["order", "payment"].includes(String(topic))) return json({ ok: true, ignored: "unsupported_topic", environment }, 202);
   if (!dataId) return json({ error: "missing_resource_id" }, 400);
 
   const requestId = req.headers.get("x-request-id");
@@ -109,6 +109,67 @@ Deno.serve(async (req: Request) => {
   if (!accessToken) return json({ error: "server_not_configured", environment }, 500);
 
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
+
+  // Checkout Pro / Preferences emits payment notifications rather than Orders API notifications.
+  if (topic === "payment") {
+    const providerResponse = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`, {
+      headers: { accept: "application/json", authorization: `Bearer ${accessToken}` },
+    });
+    const payment = await providerResponse.json().catch(() => ({}));
+    if (!providerResponse.ok) return json({ error: "provider_payment_lookup_failed", status: providerResponse.status, environment }, 502);
+
+    const paymentEnvironment = String(payment?.metadata?.environment ?? "").trim().toLowerCase();
+    if (paymentEnvironment !== environment) {
+      console.error("mp_preference_webhook_environment_mismatch", JSON.stringify({ environment, payment_environment: paymentEnvironment || null }));
+      return json({ error: "payment_environment_mismatch", environment }, 409);
+    }
+
+    const externalReference = payment?.external_reference != null ? String(payment.external_reference) : "";
+    const match = externalReference.match(/^cobs_([0-9a-f]{32})_entry_pref$/i);
+    if (!match) return json({ ok: true, ignored: "unknown_external_reference", environment }, 202);
+    const raw = match[1].toLowerCase();
+    const orderId = `${raw.slice(0,8)}-${raw.slice(8,12)}-${raw.slice(12,16)}-${raw.slice(16,20)}-${raw.slice(20)}`;
+
+    const { data: order } = await admin.from("orders").select("id,tenant_id,grand_total_minor,metadata").eq("id", orderId).maybeSingle();
+    if (!order) return json({ ok: true, ignored: "unknown_order", environment }, 202);
+    const qaProbe = order?.metadata?.qa_public_checkout === true;
+    const amountMinor = amountToMinor(payment?.transaction_amount);
+    const expectedMinor = qaProbe ? 100 : 349000;
+    const currencyMatches = String(payment?.currency_id ?? "").toUpperCase() === "BRL";
+    if (amountMinor !== expectedMinor || !currencyMatches) return json({ error: "provider_correlation_mismatch", environment }, 409);
+
+    const eventId = payload?.id != null ? String(payload.id) : `payment:${dataId}`;
+    const { data: duplicate } = await admin.from("payment_events").select("id,processed_at")
+      .eq("provider", "mercado_pago").eq("provider_event_id", eventId).maybeSingle();
+    if (duplicate?.processed_at) return json({ ok: true, duplicate: true, environment });
+
+    const approved = payment?.status === "approved";
+    if (!duplicate) {
+      const { error: eventError } = await admin.from("payment_events").insert({
+        tenant_id: order.tenant_id, provider: "mercado_pago", event_type: payload?.action ?? "payment.updated",
+        provider_event_id: eventId, provider_resource_id: dataId, signature_valid: signatureValid,
+        payload, occurred_at: payload?.date_created ?? null,
+      });
+      if (eventError && eventError.code !== "23505") return json({ error: "event_insert_failed" }, 500);
+    }
+    if (approved) {
+      const reference = `mercado_pago:${dataId}`;
+      const { error: factError } = await admin.rpc("record_provider_payment", {
+        _order_id: order.id, _amount_minor: expectedMinor, _reference: reference,
+        _reason: qaProbe ? "Mercado Pago QA production probe approved" : "Mercado Pago Checkout Pro entry approved",
+        _occurred_at: payment?.date_approved ?? new Date().toISOString(),
+      });
+      if (factError) return json({ error: "financial_fact_failed", details: factError.message }, 500);
+      if (!qaProbe) {
+        const { error: sessionError } = await admin.from("public_checkout_sessions").update({ status: "consumed", updated_at: new Date().toISOString() }).eq("order_id", order.id).eq("status", "active");
+        if (sessionError) return json({ error: "checkout_session_consume_failed" }, 500);
+      }
+    }
+    await admin.from("payment_events").update({ processed_at: new Date().toISOString(), processing_error: null })
+      .eq("provider", "mercado_pago").eq("provider_event_id", eventId);
+    return json({ ok: true, provider_payment_id: dataId, status: payment?.status ?? null, signature_valid: signatureValid, environment, qa_probe: qaProbe });
+  }
+
   const providerResponse = await fetch(`https://api.mercadopago.com/v1/orders/${encodeURIComponent(dataId)}`, {
     headers: { accept: "application/json", authorization: `Bearer ${accessToken}` },
   });
