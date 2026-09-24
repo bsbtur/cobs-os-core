@@ -118,6 +118,12 @@ Deno.serve(async (req: Request) => {
     const payment = await providerResponse.json().catch(() => ({}));
     if (!providerResponse.ok) return json({ error: "provider_payment_lookup_failed", status: providerResponse.status, environment }, 502);
 
+    const paymentEnvironment = String(payment?.metadata?.environment ?? "").trim().toLowerCase();
+    if (paymentEnvironment !== environment) {
+      console.error("mp_preference_webhook_environment_mismatch", JSON.stringify({ environment, payment_environment: paymentEnvironment || null }));
+      return json({ error: "payment_environment_mismatch", environment }, 409);
+    }
+
     const externalReference = payment?.external_reference != null ? String(payment.external_reference) : "";
     const match = externalReference.match(/^cobs_([0-9a-f]{32})_entry_pref$/i);
     if (!match) return json({ ok: true, ignored: "unknown_external_reference", environment }, 202);
