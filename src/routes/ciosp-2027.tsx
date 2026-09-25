@@ -238,114 +238,68 @@ function CiospLanding() {
 
       <main>
         <section className="relative isolate overflow-hidden border-b border-white/10 bg-black">
-          <img src={heroImage} alt="CIOSP em São Paulo" className="hero-image absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-72 saturate-[.72] contrast-125" />
-          <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,2,2,.99)_0%,rgba(2,2,2,.93)_38%,rgba(2,2,2,.34)_72%,rgba(2,2,2,.28)_100%)]" />
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_42%,rgba(214,181,109,.18),transparent_30%)]" />
-          <div className="noise absolute inset-0 -z-10 opacity-30" />
-          <div className="mx-auto grid min-h-[610px] max-w-7xl items-center gap-8 px-5 py-10 lg:grid-cols-[1.22fr_.78fr] lg:px-8 lg:py-10">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/35 bg-black/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-[#E7D19A] backdrop-blur">
-                <Sparkles className="size-4" aria-hidden="true" /> 44º CIOSP · São Paulo
-              </div>
-              <h1 className="mt-6 text-5xl font-black leading-[.86] tracking-[-.06em] sm:text-6xl lg:text-[5.7rem]">
-                CIOSP<br /><span className="gold-text">EXPERIENCE</span><br />2027
+          <img src="/ciosp/expo-center-norte.jpg" alt="São Paulo e o ambiente da experiência CIOSP" className="absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-78 saturate-[.85] contrast-125" />
+          <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,2,2,.98)_0%,rgba(2,2,2,.82)_37%,rgba(2,2,2,.16)_68%,rgba(2,2,2,.42)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,#050505_0%,transparent_26%)]" />
+          <div className="mx-auto flex min-h-[650px] max-w-7xl items-center px-5 py-12 lg:px-8">
+            <div className="max-w-[640px]">
+              <SectionEyebrow>Viagem acadêmica premium</SectionEyebrow>
+              <h1 className="mt-4 text-5xl font-black uppercase leading-[.84] tracking-[-.065em] sm:text-7xl lg:text-[6.1rem]">
+                CIOSP<br/><span className="gold-text">EXPERIENCE</span><br/>2027
               </h1>
-              <p className="mt-5 max-w-xl text-lg leading-7 text-white/76">Uma jornada acadêmica completa de Brasília a São Paulo — organizada para você viver o CIOSP com mais presença, conexão e menos improviso.</p>
-
-              <div className="mt-6 grid max-w-xl grid-cols-3 gap-2">
-                {[
-                  ["25–31", "JAN 2027"],
-                  ["SÃO", "PAULO"],
-                  ["ATÉ 30", "VIAJANTES"],
-                ].map(([top, bottom]) => (
-                  <div key={top} className="glass rounded-2xl border border-white/10 px-3 py-4 sm:px-5">
-                    <div className="text-lg font-semibold text-white sm:text-xl">{top}</div>
-                    <div className="mt-1 text-[10px] uppercase tracking-[.18em] text-white/42">{bottom}</div>
-                  </div>
-                ))}
+              <p className="mt-5 max-w-md text-xl leading-7 text-white/88">Uma jornada acadêmica completa<br className="hidden sm:block"/> de Brasília a São Paulo.</p>
+              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold uppercase tracking-[.08em] text-white/82">
+                <span className="flex items-center gap-2"><CalendarDays className="size-4 text-[#D6B56D]"/>25–31 JAN 2027</span>
+                <span className="flex items-center gap-2"><MapPin className="size-4 text-[#D6B56D]"/>São Paulo · 44º CIOSP</span>
+                <span className="flex items-center gap-2"><Users className="size-4 text-[#D6B56D]"/>Até 30 viajantes</span>
               </div>
-
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Cta href={checkoutHref}>{ctaLabel}</Cta>
-                <a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur">Conhecer a experiência</a>
-              </div>
-              <p className="mt-4 max-w-xl text-xs leading-5 text-white/38">{salesOpen ? "Reservas abertas. A contratação acontece no COBS." : "Reservas ainda não abertas ao público. O cadastro abaixo serve apenas para lista prioritária."}</p>
+              <div className="mt-7"><Cta href={checkoutHref}>{ctaLabel}</Cta></div>
+              <p className="mt-4 flex items-center gap-2 text-[11px] text-white/50"><LockKeyhole className="size-3 text-[#D6B56D]"/>Ambiente seguro do COBS · Pagamento via Mercado Pago</p>
             </div>
-
-            <div className="lg:justify-self-end">
-              <div className="glass w-full max-w-md rounded-[2rem] border border-[#D6B56D]/30 p-7 shadow-[0_30px_90px_rgba(0,0,0,.6)] sm:p-8">
-                <SectionEyebrow>Experiência premium</SectionEyebrow>
-                <p className="mt-4 text-4xl font-semibold tracking-tight text-white">R$ 12.490</p>
-                <p className="mt-2 text-sm text-white/50">por passageiro · acomodação dupla</p>
-                <div className="my-6 h-px bg-white/10" />
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <p className="text-xs uppercase tracking-[.18em] text-white/40">Entrada</p>
-                    <p className="mt-1 text-2xl font-semibold text-[#F2DDAA]">R$ 3.490</p>
-                    <p className="mt-1 text-xs text-white/45">via Pix</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <p className="text-xs uppercase tracking-[.18em] text-white/40">Saldo</p>
-                    <p className="mt-1 text-2xl font-semibold text-white">R$ 9.000</p>
-                    <p className="mt-1 text-xs text-white/45">no cartão · parcelamento disponível pelo Mercado Pago</p>
-                  </div>
-                </div>
-                <a href={checkoutHref} className="mt-6 flex min-h-12 items-center justify-center rounded-full border border-[#D6B56D]/35 text-sm font-semibold text-[#E8D39C]">
-                  {ctaLabel}<ArrowRight className="ml-2 size-4" aria-hidden="true" />
-                </a>
-              </div>
+            <div className="ml-auto hidden self-start pt-20 text-right lg:block">
+              <p className="display text-4xl italic text-[#D6B56D]">São Paulo</p>
+              <p className="mt-4 text-xs font-semibold uppercase leading-6 tracking-[.18em] text-white/80">Conhecimento<br/>Inovação<br/>Networking<br/>Evolução</p>
             </div>
           </div>
         </section>
 
-        <section id="experiencia" className="border-b border-white/10 bg-[#080808]">
-          <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-white/10 border-x border-white/10 sm:grid-cols-4 sm:divide-y-0">
-            {[[CalendarDays,"25–31 JAN","7 dias de experiência"],[MapPin,"SÃO PAULO","CIOSP 2027"],[Users,"ATÉ 30","viajantes"],[ShieldCheck,"BSBTUR","operação organizada"]].map(([Icon,value,label])=>{ const Comp=Icon as typeof CalendarDays; return <div key={String(value)} className="flex items-center gap-4 px-5 py-5 sm:py-7"><Comp className="size-5 shrink-0 text-[#D6B56D]" /><div><p className="text-sm font-bold tracking-[.08em]">{value as string}</p><p className="mt-1 text-[11px] text-white/38">{label as string}</p></div></div>; })}
+        <section id="experiencia" className="border-b border-white/10 bg-[#050505]">
+          <div className="mx-auto grid max-w-7xl lg:grid-cols-[.82fr_1.18fr]">
+            <div className="flex flex-col justify-center px-5 py-10 lg:px-8 lg:py-14">
+              <SectionEyebrow>Mais que uma viagem</SectionEyebrow>
+              <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">Uma experiência organizada para quem vive a odontologia.</h2>
+              <p className="mt-4 max-w-lg text-sm leading-6 text-white/62">A BSBTUR cuida da organização da sua viagem para que você foque no que realmente importa: aprender, se atualizar e viver o CIOSP com conforto, segurança e uma operação organizada.</p>
+            </div>
+            <div className="relative min-h-[330px] overflow-hidden border-l border-white/10">
+              <img src="/ciosp/ciosp-bem-vindos.jpg" alt="Participantes no ambiente do CIOSP" className="absolute inset-0 h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-transparent to-transparent lg:w-1/3"/>
+            </div>
           </div>
         </section>
 
-        <section className="border-b border-white/10 bg-[#080808]">
-          <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
-            <div>
-              <div>
-                <SectionEyebrow>Mais do que uma viagem</SectionEyebrow>
-                <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
-              </div>
-              <p className="max-w-2xl text-lg leading-8 text-white/68 lg:justify-self-end">A BSBTUR organiza uma jornada acadêmica completa em torno do CIOSP: logística, suporte, cronograma, comunicação e gestão da viagem reunidos em uma experiência pensada para reduzir atrito e aumentar o valor do seu tempo em São Paulo.</p>
-            </div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {["Organização", "Conveniência", "Networking", "Desenvolvimento acadêmico"].map((item) => (
-                <div key={item} className="lift rounded-2xl border border-white/10 bg-white/[.025] p-5">
-                  <Check className="size-5 text-emerald-400" aria-hidden="true" />
-                  <p className="mt-5 text-lg font-semibold">{item}</p>
-                </div>
+        <section className="bg-[#070707]">
+          <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-12">
+            <SectionEyebrow>O que faz parte da experiência</SectionEyebrow>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Tudo organizado em um só pacote.</h2>
+            <p className="mt-2 text-sm text-white/52">Uma jornada completa, com os componentes confirmados conectados pela operação BSBTUR.</p>
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              {experienceCards.map(({icon:Icon,title,copy},i)=>(
+                <article key={title} className="group relative min-h-[210px] overflow-hidden rounded-xl border border-white/15 bg-[#101010]">
+                  <img src={gallery[i%gallery.length][0]} alt="" loading="lazy" className="absolute inset-0 h-[58%] w-full object-cover opacity-72 transition duration-500 group-hover:scale-105"/>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-[#080808]/70 to-transparent"/>
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <Icon className="mb-2 size-4 text-[#D6B56D]"/>
+                    <p className="text-sm font-semibold">{title}</p>
+                    <p className="mt-1 text-[10px] leading-4 text-white/48">{copy}</p>
+                  </div>
+                </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="relative overflow-hidden bg-[#050505] py-10 lg:py-12">
-          <div className="product-grid absolute inset-0 opacity-40" />
-          <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
-            <div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr] lg:items-end">
-              <div><SectionEyebrow>Imagine a experiência</SectionEyebrow><h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Não é sobre chegar a São Paulo. É sobre como você vive cada etapa.</h2></div>
-              <p className="max-w-xl text-lg leading-8 text-white/68 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
-            </div>
-            <div className="mt-7 grid auto-rows-[190px] gap-3 md:grid-cols-12 md:auto-rows-[175px]">
-              {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-white/10 bg-[#080808]">
-          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-10 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-            <div><SectionEyebrow>CIOSP Experience 2027</SectionEyebrow><p className="mt-2 max-w-2xl text-lg text-white/65">Aéreo, hospedagem, CIOSP, traslados e suporte conectados por uma operação única.</p></div>
-            <Cta href={checkoutHref} compact>{salesOpen ? "Quero viver essa experiência" : "Receber abertura das reservas"}</Cta>
-          </div>
-        </section>
-
         <section id="jornada" className="overflow-hidden border-y border-white/10 bg-[linear-gradient(90deg,#070707,#0d0b08,#070707)]">
-          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-12">
             <SectionEyebrow>A jornada</SectionEyebrow>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Do embarque ao último dia, tudo planejado.</h2>
             <div className="mt-7 -mx-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:px-0">
