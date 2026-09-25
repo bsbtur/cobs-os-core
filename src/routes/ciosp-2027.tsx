@@ -53,7 +53,13 @@ const experienceCards = [
   [Smartphone, "Comunicação centralizada", "Informações da experiência reunidas em um fluxo de comunicação organizado."],
 ] as const;
 
-const journey = ["Brasília", "Embarque", "São Paulo", "Hospedagem", "CIOSP", "Experiências programadas", "Retorno"] as const;\n\nconst gallery = [\n  [heroImage, "O centro da Odontologia", "Conhecimento, inovação e conexões no ambiente real do CIOSP."],\n  ["/ciosp/ciosp-bem-vindos.jpg", "Você chega dentro da experiência", "Uma jornada construída ao redor do principal motivo da viagem: viver o CIOSP."],\n  ["/ciosp/expo-center-norte.jpg", "São Paulo como palco", "A operação conecta Brasília, hospedagem, congresso e experiências programadas."],\n] as const;
+const journey = ["Brasília", "Embarque", "São Paulo", "Hospedagem", "CIOSP", "Experiências programadas", "Retorno"] as const;
+
+const gallery = [
+  [heroImage, "O centro da Odontologia", "Conhecimento, inovação e conexões no ambiente real do CIOSP."],
+  ["/ciosp/ciosp-bem-vindos.jpg", "Você chega dentro da experiência", "Uma jornada construída ao redor do principal motivo da viagem: viver o CIOSP."],
+  ["/ciosp/expo-center-norte.jpg", "São Paulo como palco", "A operação conecta Brasília, hospedagem, congresso e experiências programadas."],
+] as const;
 
 const audience = [
   "Estudantes de Odontologia",
@@ -90,7 +96,9 @@ const motionCss = `
   .ciosp-premium a, .ciosp-premium button { -webkit-tap-highlight-color: transparent; }
   .ciosp-premium .noise { background-image: radial-gradient(rgba(255,255,255,.055) .55px, transparent .55px); background-size: 4px 4px; }
   .ciosp-premium .glass { background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025)); backdrop-filter: blur(16px); }
-  .ciosp-premium .gold-text { background: linear-gradient(105deg,#f6e7bd 0%,#d6b56d 45%,#f0d49a 72%,#b88935 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }\n  .ciosp-premium .display { font-family: Georgia, "Times New Roman", serif; }\n  .ciosp-premium .product-grid { background-image: linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:64px 64px; }
+  .ciosp-premium .gold-text { background: linear-gradient(105deg,#f6e7bd 0%,#d6b56d 45%,#f0d49a 72%,#b88935 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .ciosp-premium .display { font-family: Georgia, "Times New Roman", serif; }
+  .ciosp-premium .product-grid { background-image: linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:64px 64px; }
   @media (prefers-reduced-motion:no-preference) {
     .ciosp-premium .hero-image { animation: heroBreath 16s ease-in-out infinite alternate; }
     .ciosp-premium .lift { transition: transform .35s cubic-bezier(.22,1,.36,1), border-color .35s ease, box-shadow .35s ease; }
