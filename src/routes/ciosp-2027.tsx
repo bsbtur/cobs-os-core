@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
+  Clock3,
   GraduationCap,
   Hotel,
   Loader2,
@@ -14,6 +15,7 @@ import {
   Plane,
   ShieldCheck,
   Smartphone,
+  Star,
   Sparkles,
   Users,
 } from "lucide-react";
@@ -52,7 +54,7 @@ const experienceCards = [
   [Smartphone, "Comunicação centralizada", "Informações da experiência reunidas em um fluxo de comunicação organizado."],
 ] as const;
 
-const journey = ["Brasília", "Embarque", "São Paulo", "Hospedagem", "CIOSP", "Experiências programadas", "Retorno"] as const;
+const journey = ["Brasília", "Embarque", "São Paulo", "Hospedagem", "CIOSP", "Experiências programadas", "Retorno"] as const;\n\nconst gallery = [\n  [heroImage, "O centro da Odontologia", "Conhecimento, inovação e conexões no ambiente real do CIOSP."],\n  ["/ciosp/ciosp-bem-vindos.jpg", "Você chega dentro da experiência", "Uma jornada construída ao redor do principal motivo da viagem: viver o CIOSP."],\n  ["/ciosp/expo-center-norte.jpg", "São Paulo como palco", "A operação conecta Brasília, hospedagem, congresso e experiências programadas."],\n] as const;
 
 const audience = [
   "Estudantes de Odontologia",
@@ -89,7 +91,7 @@ const motionCss = `
   .ciosp-premium a, .ciosp-premium button { -webkit-tap-highlight-color: transparent; }
   .ciosp-premium .noise { background-image: radial-gradient(rgba(255,255,255,.055) .55px, transparent .55px); background-size: 4px 4px; }
   .ciosp-premium .glass { background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025)); backdrop-filter: blur(16px); }
-  .ciosp-premium .gold-text { background: linear-gradient(105deg,#f6e7bd 0%,#d6b56d 45%,#f0d49a 72%,#b88935 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .ciosp-premium .gold-text { background: linear-gradient(105deg,#f6e7bd 0%,#d6b56d 45%,#f0d49a 72%,#b88935 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }\n  .ciosp-premium .display { font-family: Georgia, "Times New Roman", serif; }\n  .ciosp-premium .product-grid { background-image: linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:64px 64px; }
   @media (prefers-reduced-motion:no-preference) {
     .ciosp-premium .hero-image { animation: heroBreath 16s ease-in-out infinite alternate; }
     .ciosp-premium .lift { transition: transform .35s cubic-bezier(.22,1,.36,1), border-color .35s ease, box-shadow .35s ease; }
@@ -230,10 +232,10 @@ function CiospLanding() {
               <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/35 bg-black/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-[#E7D19A] backdrop-blur">
                 <Sparkles className="size-4" aria-hidden="true" /> 44º CIOSP · São Paulo
               </div>
-              <h1 className="mt-7 text-5xl font-semibold leading-[.94] tracking-[-.045em] sm:text-6xl lg:text-7xl">
+              <h1 className="display mt-7 text-5xl font-normal leading-[.92] tracking-[-.045em] sm:text-6xl lg:text-[5.6rem]">
                 CIOSP<br /><span className="gold-text">EXPERIENCE 2027</span>
               </h1>
-              <p className="mt-6 max-w-2xl text-xl leading-relaxed text-white/74">Uma jornada acadêmica completa de Brasília a São Paulo.</p>
+              <p className="mt-6 max-w-2xl text-xl leading-relaxed text-white/74">Uma jornada acadêmica completa de Brasília a São Paulo — organizada para você viver o CIOSP com mais presença, conexão e menos improviso.</p>
 
               <div className="mt-8 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
                 {[
@@ -281,6 +283,12 @@ function CiospLanding() {
           </div>
         </section>
 
+        <section className="border-b border-white/10 bg-[#0A0A0A]">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-white/10 border-x border-white/10 sm:grid-cols-4 sm:divide-y-0">
+            {[[CalendarDays,"25–31 JAN","7 dias de experiência"],[MapPin,"SÃO PAULO","CIOSP 2027"],[Users,"ATÉ 30","viajantes"],[ShieldCheck,"BSBTUR","operação organizada"]].map(([Icon,value,label])=>{ const Comp=Icon as typeof CalendarDays; return <div key={String(value)} className="flex items-center gap-4 px-5 py-5 sm:py-7"><Comp className="size-5 shrink-0 text-[#D6B56D]" /><div><p className="text-sm font-bold tracking-[.08em]">{value as string}</p><p className="mt-1 text-[11px] text-white/38">{label as string}</p></div></div>; })}
+          </div>
+        </section>
+
         <section className="border-b border-white/10 bg-[#080808]">
           <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
             <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
@@ -297,6 +305,19 @@ function CiospLanding() {
                   <p className="mt-5 text-lg font-semibold">{item}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden bg-[#050505] py-20 lg:py-28">
+          <div className="product-grid absolute inset-0 opacity-40" />
+          <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
+              <div><SectionEyebrow>Imagine a experiência</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Não é sobre chegar a São Paulo. É sobre como você vive cada etapa.</h2></div>
+              <p className="max-w-xl text-lg leading-8 text-white/52 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
+            </div>
+            <div className="mt-12 grid auto-rows-[250px] gap-4 md:grid-cols-12 md:auto-rows-[220px]">
+              {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading={i===0?"eager":"lazy"} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
             </div>
           </div>
         </section>
@@ -404,7 +425,7 @@ function CiospLanding() {
           <div className="mx-auto max-w-6xl px-5 py-20 lg:px-8 lg:py-28">
             <div className="text-center">
               <SectionEyebrow>Investimento</SectionEyebrow>
-              <h2 className="mt-4 text-5xl font-semibold tracking-tight sm:text-6xl">R$ 12.490</h2>
+              <h2 className="display mt-4 text-6xl font-normal tracking-tight sm:text-8xl">R$ 12.490</h2>
               <p className="mt-3 text-sm text-white/46">por passageiro · acomodação dupla</p>
             </div>
             <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
@@ -505,7 +526,7 @@ function CiospLanding() {
           <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-8 lg:py-28">
             <div>
               <SectionEyebrow>Próximo capítulo</SectionEyebrow>
-              <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Seu próximo grande capítulo na Odontologia pode começar aqui.</h2>
+              <h2 className="display mt-4 text-5xl font-normal leading-[1.02] tracking-tight sm:text-6xl">Seu próximo grande capítulo na Odontologia pode começar aqui.</h2>
               <p className="mt-5 text-lg leading-8 text-white/52">CIOSP Experience 2027 · 25 a 31 de janeiro · São Paulo · até 30 passageiros.</p>
               <div className="mt-8 flex flex-wrap gap-4 text-sm text-white/60">
                 <span><strong className="text-white">R$ 12.490</strong> total</span>
