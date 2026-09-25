@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Hotel,
   Loader2,
-  LockKeyhole,
   MapPin,
   Plane,
   ShieldCheck,
@@ -255,7 +254,7 @@ function CiospLanding() {
                 <span className="flex items-center gap-2"><Users className="size-4 text-[#D6B56D]"/>Até 30 viajantes</span>
               </div>
               <div className="mt-7"><Cta href={checkoutHref}>{ctaLabel}</Cta></div>
-              <p className="mt-4 flex items-center gap-2 text-[11px] text-white/50"><LockKeyhole className="size-3 text-[#D6B56D]"/>Ambiente seguro do COBS · Pagamento via Mercado Pago</p>
+              <p className="mt-4 flex items-center gap-2 text-[11px] text-white/50"><ShieldCheck className="size-3 text-[#D6B56D]"/>Ambiente seguro do COBS · Pagamento via Mercado Pago</p>
             </div>
             <div className="ml-auto hidden self-start pt-20 text-right lg:block">
               <p className="display text-4xl italic text-[#D6B56D]">São Paulo</p>
