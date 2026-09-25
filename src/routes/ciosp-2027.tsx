@@ -237,12 +237,12 @@ function CiospLanding() {
       </header>
 
       <main>
-        <section className="relative isolate overflow-hidden border-b border-white/10">
-          <img src={heroImage} alt="CIOSP em São Paulo" className="hero-image absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-65" />
-          <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,2,2,.98)_0%,rgba(2,2,2,.92)_40%,rgba(2,2,2,.58)_72%,rgba(2,2,2,.45)_100%)]" />
+        <section className="relative isolate overflow-hidden border-b border-white/10 bg-black">
+          <img src={heroImage} alt="CIOSP em São Paulo" className="hero-image absolute inset-0 -z-30 h-full w-full object-cover object-center opacity-72 saturate-[.72] contrast-125" />
+          <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,2,2,.99)_0%,rgba(2,2,2,.93)_38%,rgba(2,2,2,.34)_72%,rgba(2,2,2,.28)_100%)]" />
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_42%,rgba(214,181,109,.18),transparent_30%)]" />
           <div className="noise absolute inset-0 -z-10 opacity-30" />
-          <div className="mx-auto grid min-h-[620px] max-w-7xl items-center gap-8 px-5 py-10 lg:grid-cols-[1.2fr_.8fr] lg:px-8 lg:py-12">
+          <div className="mx-auto grid min-h-[610px] max-w-7xl items-center gap-8 px-5 py-10 lg:grid-cols-[1.22fr_.78fr] lg:px-8 lg:py-10">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/35 bg-black/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-[#E7D19A] backdrop-blur">
                 <Sparkles className="size-4" aria-hidden="true" /> 44º CIOSP · São Paulo
@@ -306,7 +306,7 @@ function CiospLanding() {
 
         <section className="border-b border-white/10 bg-[#080808]">
           <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
-            <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+            <div>
               <div>
                 <SectionEyebrow>Mais do que uma viagem</SectionEyebrow>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
@@ -315,7 +315,7 @@ function CiospLanding() {
             </div>
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {["Organização", "Conveniência", "Networking", "Desenvolvimento acadêmico"].map((item) => (
-                <div key={item} className="lift rounded-[1.6rem] border border-white/10 bg-white/[.025] p-6">
+                <div key={item} className="lift rounded-2xl border border-white/10 bg-white/[.025] p-5">
                   <Check className="size-5 text-emerald-400" aria-hidden="true" />
                   <p className="mt-5 text-lg font-semibold">{item}</p>
                 </div>
@@ -324,14 +324,14 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden bg-[#050505] py-12 lg:py-14">
+        <section className="relative overflow-hidden bg-[#050505] py-10 lg:py-12">
           <div className="product-grid absolute inset-0 opacity-40" />
           <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
-              <div><SectionEyebrow>Imagine a experiência</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Não é sobre chegar a São Paulo. É sobre como você vive cada etapa.</h2></div>
+            <div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr] lg:items-end">
+              <div><SectionEyebrow>Imagine a experiência</SectionEyebrow><h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Não é sobre chegar a São Paulo. É sobre como você vive cada etapa.</h2></div>
               <p className="max-w-xl text-lg leading-8 text-white/68 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
             </div>
-            <div className="mt-8 grid auto-rows-[210px] gap-3 md:grid-cols-12 md:auto-rows-[190px]">
+            <div className="mt-7 grid auto-rows-[190px] gap-3 md:grid-cols-12 md:auto-rows-[175px]">
               {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
             </div>
           </div>
@@ -347,8 +347,8 @@ function CiospLanding() {
         <section id="jornada" className="overflow-hidden border-y border-white/10 bg-[linear-gradient(90deg,#070707,#0d0b08,#070707)]">
           <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>A jornada</SectionEyebrow>
-            <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Logística transformada em experiência.</h2>
-            <div className="mt-12 -mx-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:px-0">
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Do embarque ao último dia, tudo planejado.</h2>
+            <div className="mt-7 -mx-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:px-0">
               <div className="flex w-max snap-x snap-mandatory gap-3 sm:grid sm:w-full sm:grid-cols-7 sm:gap-0">
                 {journey.map((item, index) => (
                   <div key={item} className="relative w-[180px] snap-start rounded-2xl border border-white/10 bg-white/[.025] p-5 sm:w-auto sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-2">
@@ -366,7 +366,7 @@ function CiospLanding() {
 
         <section className="bg-[#050505]">
           <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
-            <div className="relative min-h-[480px] overflow-hidden rounded-[2rem] border border-white/10">
+            <div className="relative min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10">
               <img src="/ciosp/ciosp-bem-vindos.jpg" alt="Ambiente do CIOSP" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="absolute bottom-0 p-7 sm:p-9">
@@ -394,9 +394,9 @@ function CiospLanding() {
             <SectionEyebrow>Para quem é</SectionEyebrow>
             <div className="mt-8 grid gap-4 lg:grid-cols-2">
               {audience.map((item) => (
-                <div key={item} className="lift flex items-start gap-4 rounded-[1.6rem] border border-white/10 bg-white/[.025] p-6">
+                <div key={item} className="lift flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[.025] p-4">
                   <Users className="mt-0.5 size-5 shrink-0 text-[#E4CA91]" aria-hidden="true" />
-                  <p className="text-lg font-medium text-white/82">{item}</p>
+                  <p className="text-sm font-medium leading-5 text-white/82">{item}</p>
                 </div>
               ))}
             </div>
@@ -413,7 +413,7 @@ function CiospLanding() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {inclusions.map((item) => (
-                  <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.025] p-5">
+                  <div key={item} className="flex items-center gap-3 border-b border-white/10 py-3">
                     <CheckCircle2 className="size-5 shrink-0 text-emerald-400" aria-hidden="true" />
                     <span className="text-sm font-medium text-white/78">{item}</span>
                   </div>
@@ -436,20 +436,20 @@ function CiospLanding() {
         </section>
 
         <section id="investimento" className="border-y border-[#D6B56D]/18 bg-[radial-gradient(circle_at_50%_0%,rgba(214,181,109,.12),transparent_42%),#080808]">
-          <div className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-12">
             <div className="text-center">
               <SectionEyebrow>Investimento</SectionEyebrow>
-              <h2 className="display mt-4 text-6xl font-normal tracking-tight sm:text-8xl">R$ 12.490</h2>
+              <h2 className="mt-3 text-5xl font-black tracking-tight text-[#E4B84F] sm:text-6xl">R$ 12.490</h2>
               <p className="mt-3 text-sm text-white/46">por passageiro · acomodação dupla</p>
             </div>
-            <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
-              <div className="glass rounded-[2rem] border border-[#D6B56D]/25 p-7 text-center">
+            <div className="mx-auto mt-7 grid max-w-4xl gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+              <div className="rounded-2xl border border-emerald-500/35 bg-emerald-950/20 p-5 text-center">
                 <p className="text-xs uppercase tracking-[.22em] text-white/42">Entrada</p>
                 <p className="mt-2 text-4xl font-semibold text-[#F0DCA7]">R$ 3.490</p>
                 <p className="mt-2 text-sm text-white/48">via Pix</p>
               </div>
               <ChevronRight className="mx-auto hidden size-7 text-[#D6B56D]/60 md:block" aria-hidden="true" />
-              <div className="glass rounded-[2rem] border border-white/10 p-7 text-center">
+              <div className="rounded-2xl border border-emerald-500/35 bg-emerald-950/20 p-5 text-center">
                 <p className="text-xs uppercase tracking-[.22em] text-white/42">Saldo</p>
                 <p className="mt-2 text-4xl font-semibold text-white">R$ 9.000</p>
                 <p className="mt-2 text-sm text-white/48">no cartão · parcelamento pelo Mercado Pago</p>
@@ -498,7 +498,7 @@ function CiospLanding() {
         <section className="border-y border-white/10 bg-[#090909]">
           <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>Confiança operacional</SectionEyebrow>
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 [Building2, "BSBTUR", "Organização da experiência e gestão da viagem."],
                 [ShieldCheck, "Processo estruturado", "Contratação conduzida no fluxo oficial do COBS."],
@@ -521,7 +521,7 @@ function CiospLanding() {
         <section className="bg-[#050505]">
           <div className="mx-auto max-w-5xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>FAQ</SectionEyebrow>
-            <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Dúvidas antes de reservar.</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Tudo o que você precisa saber.</h2>
             <div className="mt-8 grid gap-2 md:grid-cols-2">
               {faq.map(([question, answer]) => (
                 <details key={question} className="group rounded-xl border border-white/10 bg-white/[.025] px-4 py-3">
