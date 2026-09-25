@@ -251,8 +251,8 @@ Deno.serve(async (req: Request) => {
     return json({ error: signatureValid ? "provider_correlation_mismatch" : "provider_verification_failed", environment }, signatureValid ? 409 : 401);
   }
 
-  const authMethod = signatureValid ? "hmac" : "provider_lookup";
-  if (!signatureValid) console.warn("mp_qr_webhook_verified_by_provider_lookup", JSON.stringify({ environment, auth_method: authMethod }));
+  if (!signatureValid) return json({ error: "invalid_webhook_signature", environment }, 401);
+  const authMethod = "hmac";
 
   const eventId = payload?.id != null ? String(payload.id) : `${dataId}:${ts ?? "provider"}`;
   const { data: duplicate } = await admin.from("payment_events").select("id,processed_at")
