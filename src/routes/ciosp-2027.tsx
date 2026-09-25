@@ -221,6 +221,14 @@ function CiospLanding() {
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#050505]/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 lg:px-8">
           <BsbTurSignature />
+          <nav className="hidden items-center gap-6 text-[11px] font-medium text-white/60 xl:flex" aria-label="Navegação principal">
+            <a href="#experiencia" className="transition hover:text-[#E4CA91]">A Experiência</a>
+            <a href="#inclusoes" className="transition hover:text-[#E4CA91]">O que inclui</a>
+            <a href="#jornada" className="transition hover:text-[#E4CA91]">Cronograma</a>
+            <a href="#ciosp" className="transition hover:text-[#E4CA91]">CIOSP</a>
+            <a href="#investimento" className="transition hover:text-[#E4CA91]">Investimento</a>
+            <a href="#faq" className="transition hover:text-[#E4CA91]">FAQ</a>
+          </nav>
           <a href={checkoutHref} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#D6B56D]/35 px-4 py-2 text-xs font-semibold text-[#E8D39C] sm:text-sm">
             {ctaLabel}
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -234,17 +242,17 @@ function CiospLanding() {
           <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,2,2,.98)_0%,rgba(2,2,2,.92)_40%,rgba(2,2,2,.58)_72%,rgba(2,2,2,.45)_100%)]" />
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_42%,rgba(214,181,109,.18),transparent_30%)]" />
           <div className="noise absolute inset-0 -z-10 opacity-30" />
-          <div className="mx-auto grid min-h-[680px] max-w-7xl items-center gap-10 px-5 py-12 lg:grid-cols-[1.12fr_.88fr] lg:px-8 lg:py-16">
+          <div className="mx-auto grid min-h-[620px] max-w-7xl items-center gap-8 px-5 py-10 lg:grid-cols-[1.2fr_.8fr] lg:px-8 lg:py-12">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/35 bg-black/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-[#E7D19A] backdrop-blur">
                 <Sparkles className="size-4" aria-hidden="true" /> 44º CIOSP · São Paulo
               </div>
-              <h1 className="mt-7 text-5xl font-black leading-[.88] tracking-[-.055em] sm:text-6xl lg:text-[5.35rem]">
+              <h1 className="mt-6 text-5xl font-black leading-[.86] tracking-[-.06em] sm:text-6xl lg:text-[5.7rem]">
                 CIOSP<br /><span className="gold-text">EXPERIENCE</span><br />2027
               </h1>
-              <p className="mt-6 max-w-2xl text-xl leading-relaxed text-white/74">Uma jornada acadêmica completa de Brasília a São Paulo — organizada para você viver o CIOSP com mais presença, conexão e menos improviso.</p>
+              <p className="mt-5 max-w-xl text-lg leading-7 text-white/76">Uma jornada acadêmica completa de Brasília a São Paulo — organizada para você viver o CIOSP com mais presença, conexão e menos improviso.</p>
 
-              <div className="mt-8 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+              <div className="mt-6 grid max-w-xl grid-cols-3 gap-2">
                 {[
                   ["25–31", "JAN 2027"],
                   ["SÃO", "PAULO"],
@@ -257,7 +265,7 @@ function CiospLanding() {
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Cta href={checkoutHref}>{ctaLabel}</Cta>
                 <a href="#experiencia" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 bg-black/30 px-7 py-3 font-semibold text-white/90 backdrop-blur">Conhecer a experiência</a>
               </div>
@@ -290,22 +298,22 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section id="experiencia" className="border-b border-white/10 bg-[#0A0A0A]">
+        <section id="experiencia" className="border-b border-white/10 bg-[#080808]">
           <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-white/10 border-x border-white/10 sm:grid-cols-4 sm:divide-y-0">
             {[[CalendarDays,"25–31 JAN","7 dias de experiência"],[MapPin,"SÃO PAULO","CIOSP 2027"],[Users,"ATÉ 30","viajantes"],[ShieldCheck,"BSBTUR","operação organizada"]].map(([Icon,value,label])=>{ const Comp=Icon as typeof CalendarDays; return <div key={String(value)} className="flex items-center gap-4 px-5 py-5 sm:py-7"><Comp className="size-5 shrink-0 text-[#D6B56D]" /><div><p className="text-sm font-bold tracking-[.08em]">{value as string}</p><p className="mt-1 text-[11px] text-white/38">{label as string}</p></div></div>; })}
           </div>
         </section>
 
         <section className="border-b border-white/10 bg-[#080808]">
-          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
             <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
               <div>
                 <SectionEyebrow>Mais do que uma viagem</SectionEyebrow>
-                <h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
+                <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
               </div>
               <p className="max-w-2xl text-lg leading-8 text-white/68 lg:justify-self-end">A BSBTUR organiza uma jornada acadêmica completa em torno do CIOSP: logística, suporte, cronograma, comunicação e gestão da viagem reunidos em uma experiência pensada para reduzir atrito e aumentar o valor do seu tempo em São Paulo.</p>
             </div>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {["Organização", "Conveniência", "Networking", "Desenvolvimento acadêmico"].map((item) => (
                 <div key={item} className="lift rounded-[1.6rem] border border-white/10 bg-white/[.025] p-6">
                   <Check className="size-5 text-emerald-400" aria-hidden="true" />
@@ -316,14 +324,14 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden bg-[#050505] py-16 lg:py-20">
+        <section className="relative overflow-hidden bg-[#050505] py-12 lg:py-14">
           <div className="product-grid absolute inset-0 opacity-40" />
           <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
               <div><SectionEyebrow>Imagine a experiência</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Não é sobre chegar a São Paulo. É sobre como você vive cada etapa.</h2></div>
               <p className="max-w-xl text-lg leading-8 text-white/68 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
             </div>
-            <div className="mt-12 grid auto-rows-[250px] gap-4 md:grid-cols-12 md:auto-rows-[220px]">
+            <div className="mt-8 grid auto-rows-[210px] gap-3 md:grid-cols-12 md:auto-rows-[190px]">
               {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
             </div>
           </div>
@@ -336,7 +344,7 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section id="jornada" className="overflow-hidden border-y border-white/10 bg-[#0A0A0A]">
+        <section id="jornada" className="overflow-hidden border-y border-white/10 bg-[linear-gradient(90deg,#070707,#0d0b08,#070707)]">
           <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>A jornada</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Logística transformada em experiência.</h2>
@@ -514,14 +522,14 @@ function CiospLanding() {
           <div className="mx-auto max-w-5xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>FAQ</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Dúvidas antes de reservar.</h2>
-            <div className="mt-10 divide-y divide-white/10 border-y border-white/10">
+            <div className="mt-8 grid gap-2 md:grid-cols-2">
               {faq.map(([question, answer]) => (
-                <details key={question} className="group py-5">
+                <details key={question} className="group rounded-xl border border-white/10 bg-white/[.025] px-4 py-3">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold text-white/85">
                     {question}
                     <span className="grid size-8 shrink-0 place-items-center rounded-full border border-white/10 text-[#E4CA91] transition group-open:rotate-45">+</span>
                   </summary>
-                  <p className="max-w-3xl pt-4 text-sm leading-7 text-white/62">{answer}</p>
+                  <p className="pt-3 text-sm leading-6 text-white/62">{answer}</p>
                 </details>
               ))}
             </div>
