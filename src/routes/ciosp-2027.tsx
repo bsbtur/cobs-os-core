@@ -320,7 +320,7 @@ function CiospLanding() {
 
         <section className="bg-[#050505]">
           <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
-            <div className="relative min-h-[360px] overflow-hidden rounded-[2rem] border border-white/10">
+            <div className="relative min-h-[330px] overflow-hidden border-r border-white/10">
               <img src="/ciosp/ciosp-bem-vindos.jpg" alt="Ambiente do CIOSP" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="absolute bottom-0 p-7 sm:p-9">
@@ -330,7 +330,7 @@ function CiospLanding() {
             </div>
             <div>
               <SectionEyebrow>Valor acadêmico</SectionEyebrow>
-              <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">O CIOSP é o centro da experiência.</h2>
+              <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">O maior encontro da Odontologia dentro da sua jornada.</h2>
               <p className="mt-6 text-lg leading-8 text-white/68">A proposta combina participação no congresso com uma operação organizada ao redor do evento. Isso permite que o viajante concentre energia no conteúdo acadêmico, nas conexões profissionais e nas oportunidades que São Paulo oferece durante o período.</p>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {["Conteúdo acadêmico", "Networking", "Mercado e inovação", "Vivência profissional"].map((item) => (
@@ -362,7 +362,7 @@ function CiospLanding() {
             <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
               <div>
                 <SectionEyebrow>Inclusões confirmadas</SectionEyebrow>
-                <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Clareza antes da decisão.</h2>
+                <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Tudo o que você precisa para viver o CIOSP 2027.</h2>
                 <p className="mt-5 text-base leading-7 text-white/62">A página comercial apresenta apenas os componentes confirmados da experiência. Detalhes contratuais permanecem no fluxo oficial do COBS.</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -373,18 +373,6 @@ function CiospLanding() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#080808]">
-          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
-            <div className="overflow-hidden rounded-[2.2rem] border border-[#D6B56D]/20 bg-[linear-gradient(135deg,rgba(214,181,109,.12),rgba(255,255,255,.02)_45%,rgba(255,255,255,.01))]">
-              <div className="grid lg:grid-cols-[.82fr_1.18fr]">
-                <div className="border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r"><SectionEyebrow>O produto</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal sm:text-5xl">O que existe por trás dos R$ 12.490.</h2><p className="mt-5 text-sm leading-7 text-white/62">O valor reúne os principais componentes da viagem em uma operação acadêmica organizada pela BSBTUR — do embarque ao retorno.</p><div className="mt-8 flex items-center gap-3 text-sm text-[#E8D39C]"><Star className="size-4" />25–31 de janeiro de 2027</div></div>
-                <div className="grid sm:grid-cols-2">{experienceCards.map(([Icon,title],i)=><div key={title} className="flex min-h-28 items-center gap-4 border-b border-white/10 p-5 sm:border-r"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#D6B56D]/10"><Icon className="size-4 text-[#E8D39C]" /></span><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/28">0{i+1}</p><p className="mt-1 text-sm font-semibold">{title}</p></div></div>)}</div>
-              </div>
-              <div className="flex flex-col gap-5 border-t border-white/10 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"><p className="text-sm text-white/45">Uma decisão. Uma operação. Uma experiência completa.</p><Cta href={checkoutHref}>{salesOpen?"Quero viver essa experiência":"Quero acesso prioritário"}</Cta></div>
             </div>
           </div>
         </section>
@@ -490,8 +478,8 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section id="reserva" className="border-t border-[#D6B56D]/18 bg-[radial-gradient(circle_at_50%_20%,rgba(214,181,109,.14),transparent_40%),#080808]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-8 lg:py-20">
+        <section id="reserva" className="relative overflow-hidden border-t border-[#D6B56D]/18 bg-[#080808]">\n          <img src="/ciosp/expo-center-norte.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" loading="lazy"/><div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/55"/>
+          <div className="relative mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:px-8 lg:py-12">
             <div>
               <SectionEyebrow>Próximo capítulo</SectionEyebrow>
               <h2 className="display mt-4 text-5xl font-normal leading-[1.02] tracking-tight sm:text-6xl">Seu próximo grande capítulo na Odontologia pode começar aqui.</h2>
