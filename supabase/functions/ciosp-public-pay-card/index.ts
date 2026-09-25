@@ -189,4 +189,4 @@ Deno.serve(async (req: Request) => {
   // Financial facts, paid charge state, and order confirmation are webhook-authoritative.
   // A synchronous provider approval remains processing until the signed webhook is correlated.
 
-});
+  return json({ order_id: orderId, charge_id: charge.id, attempt_id: attempt.id, amount_minor: balance, installments, status: mapped, provider_order_id: mp?.id ?? null, confirmed: false, awaiting_webhook: mapped === "approved" }, 201);\n});
