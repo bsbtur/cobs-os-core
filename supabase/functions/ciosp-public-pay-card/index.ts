@@ -180,13 +180,13 @@ Deno.serve(async (req: Request) => {
     provider_status: payment?.status ?? mp?.status ?? null, provider_status_detail: payment?.status_detail ?? mp?.status_detail ?? null,
     response_snapshot: mp, ...(mapped === "approved" ? { approved_at: now } : {}),
   }).eq("id", attempt.id);
+  const synchronousChargeStatus = mapped === "rejected" ? "failed" : mapped === "approved" || mapped === "processing" ? "processing" : "pending";
   await db.from("payment_charges").update({
-    status: mapped === "approved" ? "paid" : mapped === "processing" ? "processing" : mapped === "rejected" ? "failed" : "pending",
-    provider_order_id: mp?.id ?? null, ...(mapped === "approved" ? { paid_amount_minor: balance, paid_at: now } : {}),
+    status: synchronousChargeStatus,
+    provider_order_id: mp?.id ?? null,
   }).eq("id", charge.id);
 
-  // Financial facts and order confirmation are webhook-authoritative.
-  // The synchronous provider response updates technical charge/attempt state only.
+  // Financial facts, paid charge state, and order confirmation are webhook-authoritative.
+  // A synchronous provider approval remains processing until the signed webhook is correlated.
 
-  return json({ order_id: orderId, charge_id: charge.id, attempt_id: attempt.id, amount_minor: balance, installments, status: mapped, provider_order_id: mp?.id ?? null, confirmed: mapped === "approved" }, 201);
 });
