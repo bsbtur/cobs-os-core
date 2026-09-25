@@ -297,7 +297,7 @@ function CiospLanding() {
         </section>
 
         <section className="border-b border-white/10 bg-[#080808]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
               <div>
                 <SectionEyebrow>Mais do que uma viagem</SectionEyebrow>
@@ -316,7 +316,7 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden bg-[#050505] py-20 lg:py-28">
+        <section className="relative overflow-hidden bg-[#050505] py-16 lg:py-20">
           <div className="product-grid absolute inset-0 opacity-40" />
           <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
@@ -337,7 +337,7 @@ function CiospLanding() {
         </section>
 
         <section className="overflow-hidden border-y border-white/10 bg-[#0A0A0A]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>A jornada</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Logística transformada em experiência.</h2>
             <div className="mt-12 -mx-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:px-0">
@@ -357,7 +357,7 @@ function CiospLanding() {
         </section>
 
         <section className="bg-[#050505]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-28">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
             <div className="relative min-h-[480px] overflow-hidden rounded-[2rem] border border-white/10">
               <img src="/ciosp/ciosp-bem-vindos.jpg" alt="Ambiente do CIOSP" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
@@ -369,7 +369,7 @@ function CiospLanding() {
             <div>
               <SectionEyebrow>Valor acadêmico</SectionEyebrow>
               <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">O CIOSP é o centro da experiência.</h2>
-              <p className="mt-6 text-lg leading-8 text-white/55">A proposta combina participação no congresso com uma operação organizada ao redor do evento. Isso permite que o viajante concentre energia no conteúdo acadêmico, nas conexões profissionais e nas oportunidades que São Paulo oferece durante o período.</p>
+              <p className="mt-6 text-lg leading-8 text-white/68">A proposta combina participação no congresso com uma operação organizada ao redor do evento. Isso permite que o viajante concentre energia no conteúdo acadêmico, nas conexões profissionais e nas oportunidades que São Paulo oferece durante o período.</p>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {["Conteúdo acadêmico", "Networking", "Mercado e inovação", "Vivência profissional"].map((item) => (
                   <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.025] p-4 text-sm text-white/72">
@@ -382,7 +382,7 @@ function CiospLanding() {
         </section>
 
         <section className="border-y border-white/10 bg-[#090909]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>Para quem é</SectionEyebrow>
             <div className="mt-8 grid gap-4 lg:grid-cols-2">
               {audience.map((item) => (
@@ -396,12 +396,12 @@ function CiospLanding() {
         </section>
 
         <section className="bg-[#050505]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
               <div>
                 <SectionEyebrow>Inclusões confirmadas</SectionEyebrow>
                 <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Clareza antes da decisão.</h2>
-                <p className="mt-5 text-base leading-7 text-white/48">A página comercial apresenta apenas os componentes confirmados da experiência. Detalhes contratuais permanecem no fluxo oficial do COBS.</p>
+                <p className="mt-5 text-base leading-7 text-white/62">A página comercial apresenta apenas os componentes confirmados da experiência. Detalhes contratuais permanecem no fluxo oficial do COBS.</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {inclusions.map((item) => (
@@ -416,10 +416,10 @@ function CiospLanding() {
         </section>
 
         <section className="bg-[#080808]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <div className="overflow-hidden rounded-[2.2rem] border border-[#D6B56D]/20 bg-[linear-gradient(135deg,rgba(214,181,109,.12),rgba(255,255,255,.02)_45%,rgba(255,255,255,.01))]">
               <div className="grid lg:grid-cols-[.82fr_1.18fr]">
-                <div className="border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r"><SectionEyebrow>O produto</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal sm:text-5xl">O que existe por trás dos R$ 12.490.</h2><p className="mt-5 text-sm leading-7 text-white/50">O valor reúne os principais componentes da viagem em uma operação acadêmica organizada pela BSBTUR — do embarque ao retorno.</p><div className="mt-8 flex items-center gap-3 text-sm text-[#E8D39C]"><Star className="size-4" />25–31 de janeiro de 2027</div></div>
+                <div className="border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r"><SectionEyebrow>O produto</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal sm:text-5xl">O que existe por trás dos R$ 12.490.</h2><p className="mt-5 text-sm leading-7 text-white/62">O valor reúne os principais componentes da viagem em uma operação acadêmica organizada pela BSBTUR — do embarque ao retorno.</p><div className="mt-8 flex items-center gap-3 text-sm text-[#E8D39C]"><Star className="size-4" />25–31 de janeiro de 2027</div></div>
                 <div className="grid sm:grid-cols-2">{experienceCards.map(([Icon,title],i)=><div key={title} className="flex min-h-28 items-center gap-4 border-b border-white/10 p-5 sm:border-r"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#D6B56D]/10"><Icon className="size-4 text-[#E8D39C]" /></span><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/28">0{i+1}</p><p className="mt-1 text-sm font-semibold">{title}</p></div></div>)}</div>
               </div>
               <div className="flex flex-col gap-5 border-t border-white/10 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"><p className="text-sm text-white/45">Uma decisão. Uma operação. Uma experiência completa.</p><Cta href={checkoutHref}>{salesOpen?"Quero viver essa experiência":"Quero acesso prioritário"}</Cta></div>
@@ -428,7 +428,7 @@ function CiospLanding() {
         </section>
 
         <section className="border-y border-[#D6B56D]/18 bg-[radial-gradient(circle_at_50%_0%,rgba(214,181,109,.12),transparent_42%),#080808]">
-          <div className="mx-auto max-w-6xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-20">
             <div className="text-center">
               <SectionEyebrow>Investimento</SectionEyebrow>
               <h2 className="display mt-4 text-6xl font-normal tracking-tight sm:text-8xl">R$ 12.490</h2>
@@ -452,11 +452,11 @@ function CiospLanding() {
         </section>
 
         <section className="bg-[#050505]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-28">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-20">
             <div>
               <SectionEyebrow>COBS</SectionEyebrow>
               <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Sua experiência também é digital.</h2>
-              <p className="mt-6 text-lg leading-8 text-white/55">O COBS é a estrutura digital usada para o processo de contratação e para disponibilizar informações da experiência ao participante. A landing page apresenta e vende a experiência; o COBS conduz a etapa oficial de contratação.</p>
+              <p className="mt-6 text-lg leading-8 text-white/68">O COBS é a estrutura digital usada para o processo de contratação e para disponibilizar informações da experiência ao participante. A landing page apresenta e vende a experiência; o COBS conduz a etapa oficial de contratação.</p>
               <div className="mt-7 flex items-center gap-3 text-sm text-emerald-300">
                 <ShieldCheck className="size-5" aria-hidden="true" />
                 Pagamento processado no ambiente do Mercado Pago.
@@ -488,7 +488,7 @@ function CiospLanding() {
         </section>
 
         <section className="border-y border-white/10 bg-[#090909]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>Confiança operacional</SectionEyebrow>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
@@ -511,7 +511,7 @@ function CiospLanding() {
         </section>
 
         <section className="bg-[#050505]">
-          <div className="mx-auto max-w-5xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-5xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>FAQ</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Dúvidas antes de reservar.</h2>
             <div className="mt-10 divide-y divide-white/10 border-y border-white/10">
@@ -521,7 +521,7 @@ function CiospLanding() {
                     {question}
                     <span className="grid size-8 shrink-0 place-items-center rounded-full border border-white/10 text-[#E4CA91] transition group-open:rotate-45">+</span>
                   </summary>
-                  <p className="max-w-3xl pt-4 text-sm leading-7 text-white/50">{answer}</p>
+                  <p className="max-w-3xl pt-4 text-sm leading-7 text-white/62">{answer}</p>
                 </details>
               ))}
             </div>
@@ -529,7 +529,7 @@ function CiospLanding() {
         </section>
 
         <section id="reserva" className="border-t border-[#D6B56D]/18 bg-[radial-gradient(circle_at_50%_20%,rgba(214,181,109,.14),transparent_40%),#080808]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-8 lg:py-28">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-8 lg:py-20">
             <div>
               <SectionEyebrow>Próximo capítulo</SectionEyebrow>
               <h2 className="display mt-4 text-5xl font-normal leading-[1.02] tracking-tight sm:text-6xl">Seu próximo grande capítulo na Odontologia pode começar aqui.</h2>
