@@ -234,13 +234,13 @@ function CiospLanding() {
           <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(2,2,2,.98)_0%,rgba(2,2,2,.92)_40%,rgba(2,2,2,.58)_72%,rgba(2,2,2,.45)_100%)]" />
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_42%,rgba(214,181,109,.18),transparent_30%)]" />
           <div className="noise absolute inset-0 -z-10 opacity-30" />
-          <div className="mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.12fr_.88fr] lg:px-8 lg:py-24">
+          <div className="mx-auto grid min-h-[680px] max-w-7xl items-center gap-10 px-5 py-12 lg:grid-cols-[1.12fr_.88fr] lg:px-8 lg:py-16">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#D6B56D]/35 bg-black/35 px-4 py-2 text-[11px] font-semibold uppercase tracking-[.22em] text-[#E7D19A] backdrop-blur">
                 <Sparkles className="size-4" aria-hidden="true" /> 44º CIOSP · São Paulo
               </div>
-              <h1 className="display mt-7 text-5xl font-normal leading-[.92] tracking-[-.045em] sm:text-6xl lg:text-[5.6rem]">
-                CIOSP<br /><span className="gold-text">EXPERIENCE 2027</span>
+              <h1 className="mt-7 text-5xl font-black leading-[.88] tracking-[-.055em] sm:text-6xl lg:text-[5.35rem]">
+                CIOSP<br /><span className="gold-text">EXPERIENCE</span><br />2027
               </h1>
               <p className="mt-6 max-w-2xl text-xl leading-relaxed text-white/74">Uma jornada acadêmica completa de Brasília a São Paulo — organizada para você viver o CIOSP com mais presença, conexão e menos improviso.</p>
 
@@ -290,7 +290,7 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="border-b border-white/10 bg-[#0A0A0A]">
+        <section id="experiencia" className="border-b border-white/10 bg-[#0A0A0A]">
           <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-white/10 border-x border-white/10 sm:grid-cols-4 sm:divide-y-0">
             {[[CalendarDays,"25–31 JAN","7 dias de experiência"],[MapPin,"SÃO PAULO","CIOSP 2027"],[Users,"ATÉ 30","viajantes"],[ShieldCheck,"BSBTUR","operação organizada"]].map(([Icon,value,label])=>{ const Comp=Icon as typeof CalendarDays; return <div key={String(value)} className="flex items-center gap-4 px-5 py-5 sm:py-7"><Comp className="size-5 shrink-0 text-[#D6B56D]" /><div><p className="text-sm font-bold tracking-[.08em]">{value as string}</p><p className="mt-1 text-[11px] text-white/38">{label as string}</p></div></div>; })}
           </div>
@@ -329,14 +329,14 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section id="experiencia" className="border-y border-white/10 bg-[#080808]">
+        <section className="border-y border-white/10 bg-[#080808]">
           <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-10 sm:flex-row sm:items-center sm:justify-between lg:px-8">
             <div><SectionEyebrow>CIOSP Experience 2027</SectionEyebrow><p className="mt-2 max-w-2xl text-lg text-white/65">Aéreo, hospedagem, CIOSP, traslados e suporte conectados por uma operação única.</p></div>
             <Cta href={checkoutHref} compact>{salesOpen ? "Quero viver essa experiência" : "Receber abertura das reservas"}</Cta>
           </div>
         </section>
 
-        <section className="overflow-hidden border-y border-white/10 bg-[#0A0A0A]">
+        <section id="jornada" className="overflow-hidden border-y border-white/10 bg-[#0A0A0A]">
           <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionEyebrow>A jornada</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Logística transformada em experiência.</h2>
@@ -427,7 +427,7 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="border-y border-[#D6B56D]/18 bg-[radial-gradient(circle_at_50%_0%,rgba(214,181,109,.12),transparent_42%),#080808]">
+        <section id="investimento" className="border-y border-[#D6B56D]/18 bg-[radial-gradient(circle_at_50%_0%,rgba(214,181,109,.12),transparent_42%),#080808]">
           <div className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-20">
             <div className="text-center">
               <SectionEyebrow>Investimento</SectionEyebrow>
