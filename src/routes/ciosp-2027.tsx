@@ -283,7 +283,7 @@ function CiospLanding() {
             <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Tudo organizado em um só pacote.</h2>
             <p className="mt-2 text-sm text-white/52">Uma jornada completa, com os componentes confirmados conectados pela operação BSBTUR.</p>
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-              {experienceCards.map(({icon:Icon,title,copy},i)=>(
+              {experienceCards.map(([Icon,title,copy],i)=>(
                 <article key={title} className="group relative min-h-[210px] overflow-hidden rounded-xl border border-white/15 bg-[#101010]">
                   <img src={gallery[i%gallery.length][0]} alt="" loading="lazy" className="absolute inset-0 h-[58%] w-full object-cover opacity-72 transition duration-500 group-hover:scale-105"/>
                   <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-[#080808]/70 to-transparent"/>
