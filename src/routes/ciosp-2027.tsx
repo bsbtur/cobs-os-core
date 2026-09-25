@@ -7,7 +7,6 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
-  Clock3,
   GraduationCap,
   Hotel,
   Loader2,
@@ -417,6 +416,18 @@ function CiospLanding() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#080808]">
+          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+            <div className="overflow-hidden rounded-[2.2rem] border border-[#D6B56D]/20 bg-[linear-gradient(135deg,rgba(214,181,109,.12),rgba(255,255,255,.02)_45%,rgba(255,255,255,.01))]">
+              <div className="grid lg:grid-cols-[.82fr_1.18fr]">
+                <div className="border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r"><SectionEyebrow>O produto</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal sm:text-5xl">O que existe por trás dos R$ 12.490.</h2><p className="mt-5 text-sm leading-7 text-white/50">Não é uma soma solta de serviços. É uma operação acadêmica e de viagem reunida em uma única experiência.</p><div className="mt-8 flex items-center gap-3 text-sm text-[#E8D39C]"><Star className="size-4" />25–31 de janeiro de 2027</div></div>
+                <div className="grid sm:grid-cols-2">{experienceCards.map(([Icon,title],i)=><div key={title} className="flex min-h-28 items-center gap-4 border-b border-white/10 p-5 sm:border-r"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#D6B56D]/10"><Icon className="size-4 text-[#E8D39C]" /></span><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/28">0{i+1}</p><p className="mt-1 text-sm font-semibold">{title}</p></div></div>)}</div>
+              </div>
+              <div className="flex flex-col gap-5 border-t border-white/10 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"><p className="text-sm text-white/45">Uma decisão. Uma operação. Uma experiência completa.</p><Cta href={checkoutHref}>{salesOpen?"Quero viver essa experiência":"Quero acesso prioritário"}</Cta></div>
             </div>
           </div>
         </section>
