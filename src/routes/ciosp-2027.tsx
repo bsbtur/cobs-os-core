@@ -324,7 +324,7 @@ function CiospLanding() {
               <p className="max-w-xl text-lg leading-8 text-white/68 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
             </div>
             <div className="mt-12 grid auto-rows-[250px] gap-4 md:grid-cols-12 md:auto-rows-[220px]">
-              {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading={i===0?"eager":"lazy"} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
+              {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
             </div>
           </div>
         </section>
@@ -502,7 +502,7 @@ function CiospLanding() {
                   <div key={String(title)} className="lift rounded-[1.6rem] border border-white/10 bg-white/[.025] p-6">
                     <Comp className="size-5 text-[#E4CA91]" aria-hidden="true" />
                     <h3 className="mt-5 text-lg font-semibold">{title as string}</h3>
-                    <p className="mt-2 text-sm leading-6 text-white/48">{copy as string}</p>
+                    <p className="mt-2 text-sm leading-6 text-white/62">{copy as string}</p>
                   </div>
                 );
               })}
