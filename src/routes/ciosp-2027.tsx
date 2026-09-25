@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Hotel,
   Loader2,
+  LockKeyhole,
   MapPin,
   Plane,
   ShieldCheck,
