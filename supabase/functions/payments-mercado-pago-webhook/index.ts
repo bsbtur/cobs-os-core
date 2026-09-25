@@ -153,14 +153,16 @@ Deno.serve(async (req: Request) => {
       if (eventError && eventError.code !== "23505") return json({ error: "event_insert_failed" }, 500);
     }
     if (approved) {
-      const reference = `mercado_pago:${dataId}`;
-      const { error: factError } = await admin.rpc("record_provider_payment", {
-        _order_id: order.id, _amount_minor: expectedMinor, _reference: reference,
-        _reason: qaProbe ? "Mercado Pago QA production probe approved" : "Mercado Pago Checkout Pro entry approved",
-        _occurred_at: payment?.date_approved ?? new Date().toISOString(),
-      });
-      if (factError) return json({ error: "financial_fact_failed", details: factError.message }, 500);
+      // QA production probes are technical evidence only. They must never create
+      // commercial revenue, reduce the order balance, or unlock the card stage.
       if (!qaProbe) {
+        const reference = `mercado_pago:${dataId}`;
+        const { error: factError } = await admin.rpc("record_provider_payment", {
+          _order_id: order.id, _amount_minor: expectedMinor, _reference: reference,
+          _reason: "Mercado Pago Checkout Pro entry approved",
+          _occurred_at: payment?.date_approved ?? new Date().toISOString(),
+        });
+        if (factError) return json({ error: "financial_fact_failed", details: factError.message }, 500);
         const { error: sessionError } = await admin.from("public_checkout_sessions").update({ status: "consumed", updated_at: new Date().toISOString() }).eq("order_id", order.id).eq("status", "active");
         if (sessionError) return json({ error: "checkout_session_consume_failed" }, 500);
       }
