@@ -107,6 +107,15 @@ Deno.serve(async (req: Request) => {
       pending: `${RETURN_BASE}?${qa ? "sales_qa=1&" : ""}payment=pending`,
     },
     auto_return: "approved",
+    payment_methods: {
+      excluded_payment_types: [
+        { id: "credit_card" },
+        { id: "debit_card" },
+        { id: "ticket" },
+        { id: "atm" },
+        { id: "prepaid_card" },
+      ],
+    },
     notification_url: `${WEBHOOK_URL}?source_news=webhooks`,
     metadata: { cobs_order_id: order.id, cobs_stage: "entry", environment, qa_payment_probe: qa },
   };
