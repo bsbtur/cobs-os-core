@@ -141,7 +141,7 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 function CiospLanding() {
   const salesOpen = CIOSP_PUBLIC_SALES_OPEN;
   const checkoutHref = salesOpen ? "/ciosp-2027/reserva" : "#reserva";
-  const ctaLabel = salesOpen ? "Reservar minha vaga" : "Entrar na lista prioritária";
+  const ctaLabel = salesOpen ? "Reservar minha vaga" : "Receber abertura das reservas";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -301,7 +301,7 @@ function CiospLanding() {
             <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
               <div>
                 <SectionEyebrow>Mais do que uma viagem</SectionEyebrow>
-                <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
+                <h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
               </div>
               <p className="max-w-2xl text-lg leading-8 text-white/55 lg:justify-self-end">A BSBTUR organiza uma jornada acadêmica completa em torno do CIOSP: logística, suporte, cronograma, comunicação e gestão da viagem reunidos em uma experiência pensada para reduzir atrito e aumentar o valor do seu tempo em São Paulo.</p>
             </div>
@@ -329,21 +329,10 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section id="experiencia" className="bg-[#050505]">
-          <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-            <SectionEyebrow>O que compõe a experiência</SectionEyebrow>
-            <h2 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Uma operação completa, organizada pela BSBTUR.</h2>
-            <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {experienceCards.map(([Icon, title, copy]) => (
-                <article key={title} className="lift rounded-[1.6rem] border border-white/10 bg-white/[.025] p-6">
-                  <div className="grid size-11 place-items-center rounded-2xl border border-[#D6B56D]/25 bg-[#D6B56D]/8">
-                    <Icon className="size-5 text-[#E4CA91]" aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-5 text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-white/48">{copy}</p>
-                </article>
-              ))}
-            </div>
+        <section id="experiencia" className="border-y border-white/10 bg-[#080808]">
+          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-10 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+            <div><SectionEyebrow>CIOSP Experience 2027</SectionEyebrow><p className="mt-2 max-w-2xl text-lg text-white/65">Aéreo, hospedagem, CIOSP, traslados e suporte conectados por uma operação única.</p></div>
+            <Cta href={checkoutHref} compact>{salesOpen ? "Quero viver essa experiência" : "Receber abertura das reservas"}</Cta>
           </div>
         </section>
 
@@ -351,17 +340,15 @@ function CiospLanding() {
           <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
             <SectionEyebrow>A jornada</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Logística transformada em experiência.</h2>
-            <div className="mt-12 overflow-x-auto pb-3">
-              <div className="flex min-w-[920px] items-center">
+            <div className="mt-12 -mx-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:px-0">
+              <div className="flex w-max snap-x snap-mandatory gap-3 sm:grid sm:w-full sm:grid-cols-7 sm:gap-0">
                 {journey.map((item, index) => (
-                  <div key={item} className="flex flex-1 items-center">
-                    <div className="w-full">
-                      <div className="mb-4 flex items-center gap-3">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-full border border-[#D6B56D]/35 bg-[#D6B56D]/10 text-xs font-bold text-[#E4CA91]">{String(index + 1).padStart(2, "0")}</span>
-                        {index < journey.length - 1 && <div className="h-px flex-1 bg-gradient-to-r from-[#D6B56D]/45 to-white/10" />}
-                      </div>
-                      <p className="max-w-[130px] text-sm font-semibold uppercase tracking-[.1em] text-white/75">{item}</p>
+                  <div key={item} className="relative w-[180px] snap-start rounded-2xl border border-white/10 bg-white/[.025] p-5 sm:w-auto sm:rounded-none sm:border-x-0 sm:border-b-0 sm:bg-transparent sm:px-2">
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-[#D6B56D]/35 bg-[#D6B56D]/10 text-xs font-bold text-[#E4CA91]">{String(index + 1).padStart(2, "0")}</span>
+                      {index < journey.length - 1 && <div className="hidden h-px flex-1 bg-gradient-to-r from-[#D6B56D]/45 to-white/10 sm:block" />}
                     </div>
+                    <p className="mt-5 text-xs font-semibold uppercase tracking-[.1em] text-white/75 sm:max-w-[130px]">{item}</p>
                   </div>
                 ))}
               </div>
@@ -576,7 +563,7 @@ function CiospLanding() {
 
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#060606]/94 p-3 backdrop-blur-xl sm:hidden">
         <a href={checkoutHref} className="flex min-h-12 w-full items-center justify-between rounded-full bg-[#D6B56D] px-5 font-semibold text-black">
-          <span>{salesOpen ? "Reservar vaga" : "Lista prioritária"}</span>
+          <span>{salesOpen ? "Reservar vaga" : "Receber abertura"}</span>
           <span className="text-sm">R$ 12.490</span>
         </a>
       </div>
