@@ -98,7 +98,7 @@ const motionCss = `
   .ciosp-premium .glass { background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025)); backdrop-filter: blur(16px); }
   .ciosp-premium .gold-text { background: linear-gradient(105deg,#f6e7bd 0%,#d6b56d 45%,#f0d49a 72%,#b88935 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .ciosp-premium .display { font-family: Georgia, "Times New Roman", serif; }
-  .ciosp-premium .product-grid { background-image: linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:64px 64px; }
+  .ciosp-premium .muted-readable { color: rgba(255,255,255,.62); }\n  .ciosp-premium .product-grid { background-image: linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:64px 64px; }
   @media (prefers-reduced-motion:no-preference) {
     .ciosp-premium .hero-image { animation: heroBreath 16s ease-in-out infinite alternate; }
     .ciosp-premium .lift { transition: transform .35s cubic-bezier(.22,1,.36,1), border-color .35s ease, box-shadow .35s ease; }
@@ -303,7 +303,7 @@ function CiospLanding() {
                 <SectionEyebrow>Mais do que uma viagem</SectionEyebrow>
                 <h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Você não está comprando apenas passagem, hotel e congresso.</h2>
               </div>
-              <p className="max-w-2xl text-lg leading-8 text-white/55 lg:justify-self-end">A BSBTUR organiza uma jornada acadêmica completa em torno do CIOSP: logística, suporte, cronograma, comunicação e gestão da viagem reunidos em uma experiência pensada para reduzir atrito e aumentar o valor do seu tempo em São Paulo.</p>
+              <p className="max-w-2xl text-lg leading-8 text-white/68 lg:justify-self-end">A BSBTUR organiza uma jornada acadêmica completa em torno do CIOSP: logística, suporte, cronograma, comunicação e gestão da viagem reunidos em uma experiência pensada para reduzir atrito e aumentar o valor do seu tempo em São Paulo.</p>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {["Organização", "Conveniência", "Networking", "Desenvolvimento acadêmico"].map((item) => (
@@ -321,7 +321,7 @@ function CiospLanding() {
           <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
               <div><SectionEyebrow>Imagine a experiência</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal tracking-tight sm:text-6xl">Não é sobre chegar a São Paulo. É sobre como você vive cada etapa.</h2></div>
-              <p className="max-w-xl text-lg leading-8 text-white/52 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
+              <p className="max-w-xl text-lg leading-8 text-white/68 lg:justify-self-end">Do embarque ao retorno, a proposta é tirar a viagem do modo improviso e colocar você no centro da experiência acadêmica.</p>
             </div>
             <div className="mt-12 grid auto-rows-[250px] gap-4 md:grid-cols-12 md:auto-rows-[220px]">
               {gallery.map(([src,title,copy],i)=><article key={src} className={"group relative overflow-hidden rounded-[1.8rem] border border-white/10 "+(i===0?"md:col-span-7 md:row-span-2":"md:col-span-5")}><img src={src} alt={title} loading={i===0?"eager":"lazy"} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" /><div className="absolute inset-x-0 bottom-0 p-6 sm:p-7"><p className="text-lg font-semibold">{title}</p><p className="mt-1 max-w-md text-sm leading-6 text-white/55">{copy}</p></div></article>)}
@@ -419,7 +419,7 @@ function CiospLanding() {
           <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
             <div className="overflow-hidden rounded-[2.2rem] border border-[#D6B56D]/20 bg-[linear-gradient(135deg,rgba(214,181,109,.12),rgba(255,255,255,.02)_45%,rgba(255,255,255,.01))]">
               <div className="grid lg:grid-cols-[.82fr_1.18fr]">
-                <div className="border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r"><SectionEyebrow>O produto</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal sm:text-5xl">O que existe por trás dos R$ 12.490.</h2><p className="mt-5 text-sm leading-7 text-white/50">Não é uma soma solta de serviços. É uma operação acadêmica e de viagem reunida em uma única experiência.</p><div className="mt-8 flex items-center gap-3 text-sm text-[#E8D39C]"><Star className="size-4" />25–31 de janeiro de 2027</div></div>
+                <div className="border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r"><SectionEyebrow>O produto</SectionEyebrow><h2 className="display mt-4 text-4xl font-normal sm:text-5xl">O que existe por trás dos R$ 12.490.</h2><p className="mt-5 text-sm leading-7 text-white/50">O valor reúne os principais componentes da viagem em uma operação acadêmica organizada pela BSBTUR — do embarque ao retorno.</p><div className="mt-8 flex items-center gap-3 text-sm text-[#E8D39C]"><Star className="size-4" />25–31 de janeiro de 2027</div></div>
                 <div className="grid sm:grid-cols-2">{experienceCards.map(([Icon,title],i)=><div key={title} className="flex min-h-28 items-center gap-4 border-b border-white/10 p-5 sm:border-r"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#D6B56D]/10"><Icon className="size-4 text-[#E8D39C]" /></span><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/28">0{i+1}</p><p className="mt-1 text-sm font-semibold">{title}</p></div></div>)}</div>
               </div>
               <div className="flex flex-col gap-5 border-t border-white/10 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"><p className="text-sm text-white/45">Uma decisão. Uma operação. Uma experiência completa.</p><Cta href={checkoutHref}>{salesOpen?"Quero viver essa experiência":"Quero acesso prioritário"}</Cta></div>
