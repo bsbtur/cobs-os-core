@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
       .eq("provider", "mercado_pago").eq("provider_event_id", eventId).maybeSingle();
     if (duplicate?.processed_at) return json({ ok: true, duplicate: true, environment });
 
-    const approved = payment?.status === "approved";
+    if (!signatureValid) return json({ error: "invalid_webhook_signature", environment }, 401);\n\n    const approved = payment?.status === "approved";
     if (!duplicate) {
       const { error: eventError } = await admin.from("payment_events").insert({
         tenant_id: order.tenant_id, provider: "mercado_pago", event_type: payload?.action ?? "payment.updated",
