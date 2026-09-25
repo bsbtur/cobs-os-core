@@ -185,13 +185,8 @@ Deno.serve(async (req: Request) => {
     provider_order_id: mp?.id ?? null, ...(mapped === "approved" ? { paid_amount_minor: balance, paid_at: now } : {}),
   }).eq("id", charge.id);
 
-  if (mapped === "approved") {
-    const reference = `mercado_pago:${payment?.id ?? mp?.id}`;
-    const { error: factError } = await db.rpc("record_provider_payment", { _order_id: orderId, _amount_minor: balance, _reference: reference, _reason: "CIOSP 2027 card balance approved", _occurred_at: payment?.date_approved ?? now });
-    if (factError) return json({ error: "financial_fact_failed" }, 500);
-    const { error: confirmError } = await db.rpc("confirm_paid_provider_order", { _order_id: orderId, _charge_id: charge.id, _provider_reference: reference });
-    if (confirmError) return json({ error: "order_confirmation_failed" }, 500);
-  }
+  // Financial facts and order confirmation are webhook-authoritative.
+  // The synchronous provider response updates technical charge/attempt state only.
 
   return json({ order_id: orderId, charge_id: charge.id, attempt_id: attempt.id, amount_minor: balance, installments, status: mapped, provider_order_id: mp?.id ?? null, confirmed: mapped === "approved" }, 201);
 });
