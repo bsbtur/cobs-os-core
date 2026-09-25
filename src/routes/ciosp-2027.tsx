@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
 
-const gold = "#D6B56D";
+const gold = "#D6B56D"; // visual rebuild deploy checkpoint
 const heroImage = "/ciosp/ciosp-pavilhao.jpg";
 
 const META_DESCRIPTION =
