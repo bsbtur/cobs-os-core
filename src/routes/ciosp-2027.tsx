@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { CIOSP_PUBLIC_SALES_OPEN } from "@/lib/ciosp-public-sales";
 
-const gold = "#D6B56D"; // visual rebuild deploy checkpoint
+const gold = "#D6B56D";
 const heroImage = "/ciosp/ciosp-pavilhao.jpg";
 
 const META_DESCRIPTION =
@@ -318,8 +318,8 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="bg-[#050505]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
+        <section id="ciosp" className="bg-[#050505]">
+          <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-14">
             <div className="relative min-h-[330px] overflow-hidden border-r border-white/10">
               <img src="/ciosp/ciosp-bem-vindos.jpg" alt="Ambiente do CIOSP" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
@@ -330,7 +330,7 @@ function CiospLanding() {
             </div>
             <div>
               <SectionEyebrow>Valor acadêmico</SectionEyebrow>
-              <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">O maior encontro da Odontologia dentro da sua jornada.</h2>
+              <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Um dos grandes encontros da Odontologia dentro da sua jornada.</h2>
               <p className="mt-6 text-lg leading-8 text-white/68">A proposta combina participação no congresso com uma operação organizada ao redor do evento. Isso permite que o viajante concentre energia no conteúdo acadêmico, nas conexões profissionais e nas oportunidades que São Paulo oferece durante o período.</p>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {["Conteúdo acadêmico", "Networking", "Mercado e inovação", "Vivência profissional"].map((item) => (
@@ -344,9 +344,9 @@ function CiospLanding() {
         </section>
 
         <section className="border-y border-white/10 bg-[#090909]">
-          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
             <SectionEyebrow>Para quem é</SectionEyebrow>
-            <div className="mt-8 grid gap-4 lg:grid-cols-2">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {audience.map((item) => (
                 <div key={item} className="lift flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[.025] p-4">
                   <Users className="mt-0.5 size-5 shrink-0 text-[#E4CA91]" aria-hidden="true" />
@@ -357,9 +357,9 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="bg-[#050505]">
-          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
-            <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
+        <section id="inclusoes" className="bg-[#050505]">
+          <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
+            <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
               <div>
                 <SectionEyebrow>Inclusões confirmadas</SectionEyebrow>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Tudo o que você precisa para viver o CIOSP 2027.</h2>
@@ -402,7 +402,7 @@ function CiospLanding() {
         </section>
 
         <section className="bg-[#050505]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-20">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-16">
             <div>
               <SectionEyebrow>COBS</SectionEyebrow>
               <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Sua experiência também é digital.</h2>
@@ -438,7 +438,7 @@ function CiospLanding() {
         </section>
 
         <section className="border-y border-white/10 bg-[#090909]">
-          <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-14">
             <SectionEyebrow>Confiança operacional</SectionEyebrow>
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
@@ -460,8 +460,8 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section className="bg-[#050505]">
-          <div className="mx-auto max-w-5xl px-5 py-16 lg:px-8 lg:py-20">
+        <section id="faq" className="bg-[#050505]">
+          <div className="mx-auto max-w-5xl px-5 py-12 lg:px-8 lg:py-14">
             <SectionEyebrow>FAQ</SectionEyebrow>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Tudo o que você precisa saber.</h2>
             <div className="mt-8 grid gap-2 md:grid-cols-2">
