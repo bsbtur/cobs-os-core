@@ -263,6 +263,68 @@ function CreateEventForm({
   );
 }
 
+function EventVenueControl({
+  event,
+  venues,
+  onChanged,
+}: {
+  event: EventRow;
+  venues: VenueRow[];
+  onChanged: () => void;
+}) {
+  const { t, locale } = useI18n();
+  const [venueId, setVenueId] = React.useState(event.venue_id ?? "");
+
+  React.useEffect(() => setVenueId(event.venue_id ?? ""), [event.id, event.venue_id]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc(
+        "update_event",
+        rpcArgs({
+          _event_id: event.id,
+          _venue_id: venueId || undefined,
+          _idempotency_key: newIdempotencyKey(),
+        }),
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w07.updated"));
+      onChanged();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <div className="grid gap-2 pt-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+      <div className="space-y-1.5">
+        <Label htmlFor={`event-venue-${event.id}`}>{t("w07.venue")}</Label>
+        <select
+          id={`event-venue-${event.id}`}
+          className={SELECT_CLASS}
+          value={venueId}
+          onChange={(e) => setVenueId(e.target.value)}
+        >
+          <option value="">{t("w07.venueNone")}</option>
+          {venues.map((venue) => (
+            <option key={venue.id} value={venue.id}>
+              {venue.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <Button
+        className="min-h-11"
+        disabled={save.isPending || !venueId || venueId === (event.venue_id ?? "")}
+        onClick={() => save.mutate()}
+      >
+        {save.isPending ? t("common.saving") : t("common.save")}
+      </Button>
+    </div>
+  );
+}
+
 function LifecyclePanel({ event, onChanged }: { event: EventRow; onChanged: () => void }) {
   const { t, locale } = useI18n();
   const { canManage, role } = useTenant();
@@ -1647,6 +1709,9 @@ function EventsTab() {
               {venues.data?.find((v) => v.id === selected.venue_id)?.name ?? t("w07.venueNone")} ·{" "}
               <EventHeaderDate event={selected} locale={locale} timeZone={timeZone} />
             </p>
+            {canOperate && !isTerminalEvent(selected.status) ? (
+              <EventVenueControl event={selected} venues={venues.data ?? []} onChanged={refresh} />
+            ) : null}
             {canOperate && !isTerminalEvent(selected.status) ? (
               <div className="pt-1">
                 <EventSchedulePrecisionControl
