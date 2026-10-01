@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { ListChecks, MessageSquareText, Plus, Send, Trash2 } from "lucide-react";
+import { Info, ListChecks, MessageSquareText, Plus, Send, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,11 @@ function OperationWallComposer() {
           Publique avisos leves, perguntas e enquetes para os viajantes. Eles podem reagir, comentar e votar pelo Portal do Viajante.
         </p>
       </header>
+
+      <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+        <p><span className="font-medium text-foreground">Mural é interação.</span> Mudanças de horário, ponto de encontro ou orientações operacionais importantes devem ser publicadas em <span className="font-medium text-foreground">Comunicação/Avisos</span>.</p>
+      </div>
 
       <section className="surface-panel space-y-5 p-5">
         <div className="grid gap-2 sm:grid-cols-2">
