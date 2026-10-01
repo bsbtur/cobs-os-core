@@ -105,6 +105,100 @@ function isTerminalLeg(state: LegDispatchState | null) {
   return Boolean(state?.actual_arrival || state?.cancelled_at);
 }
 
+function EditLegDialog({
+  leg,
+  state,
+  onDone,
+}: {
+  leg: TransportLegRow;
+  state: LegDispatchState | null;
+  onDone: () => void;
+}) {
+  const { locale } = useI18n();
+  const [open, setOpen] = React.useState(false);
+  const [title, setTitle] = React.useState(leg.title);
+  const [origin, setOrigin] = React.useState(leg.origin_label ?? "");
+  const [destination, setDestination] = React.useState(leg.destination_label ?? "");
+  const [departure, setDeparture] = React.useState("");
+  const [arrival, setArrival] = React.useState("");
+
+  React.useEffect(() => {
+    if (!open) return;
+    setTitle(leg.title);
+    setOrigin(leg.origin_label ?? "");
+    setDestination(leg.destination_label ?? "");
+    const localInput = (value: string | null | undefined) => {
+      if (!value) return "";
+      const date = new Date(value);
+      const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+      return shifted.toISOString().slice(0, 16);
+    };
+    setDeparture(localInput(state?.planned_departure));
+    setArrival(localInput(state?.planned_arrival));
+  }, [open, leg, state?.planned_departure, state?.planned_arrival]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const metadata = await supabase.rpc(
+        "update_transport_leg",
+        rpcArgs({
+          _transport_leg_id: leg.id,
+          _title: title,
+          _origin_label: origin || undefined,
+          _destination_label: destination || undefined,
+        }),
+      );
+      if (metadata.error) throw metadata.error;
+
+      const window = await supabase.rpc("set_transport_leg_planned_window", {
+        _transport_leg_id: leg.id,
+        _planned_departure: departure ? new Date(departure).toISOString() : "",
+        _planned_arrival: arrival ? new Date(arrival).toISOString() : "",
+      });
+      if (window.error) throw window.error;
+    },
+    onSuccess: () => {
+      feedback.success("Trecho atualizado.");
+      setOpen(false);
+      onDone();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <>
+      <Button variant="outline" className="min-h-11" onClick={() => setOpen(true)}>
+        Editar trecho
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar trecho planejado</DialogTitle>
+            <DialogDescription>
+              Atualize rota e horários planejados. Dados ainda não confirmados podem permanecer em branco.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div><Label htmlFor="edit-leg-title">Título</Label><Input id="edit-leg-title" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div><Label htmlFor="edit-leg-origin">Origem</Label><Input id="edit-leg-origin" value={origin} onChange={(e) => setOrigin(e.target.value)} /></div>
+              <div><Label htmlFor="edit-leg-destination">Destino</Label><Input id="edit-leg-destination" value={destination} onChange={(e) => setDestination(e.target.value)} /></div>
+              <div><Label htmlFor="edit-leg-departure">Saída planejada</Label><Input id="edit-leg-departure" type="datetime-local" value={departure} onChange={(e) => setDeparture(e.target.value)} /></div>
+              <div><Label htmlFor="edit-leg-arrival">Chegada planejada</Label><Input id="edit-leg-arrival" type="datetime-local" value={arrival} onChange={(e) => setArrival(e.target.value)} /></div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button disabled={save.isPending || !title.trim()} onClick={() => save.mutate()}>
+              {save.isPending ? "Salvando…" : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Leg creation                                                        */
 /* ------------------------------------------------------------------ */
@@ -1270,6 +1364,9 @@ function MobilityPage() {
                   {selected.origin_label ? ` · ${selected.origin_label}` : ""}
                   {selected.destination_label ? ` → ${selected.destination_label}` : ""}
                 </p>
+                {planning && !isTerminalLeg(state) ? (
+                  <div className="mt-3"><EditLegDialog leg={selected} state={state} onDone={refresh} /></div>
+                ) : null}
 
                 <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                   {[
