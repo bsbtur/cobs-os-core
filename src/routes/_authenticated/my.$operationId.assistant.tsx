@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { Bot, Send, UserRound } from "lucide-react";
+import { Bot, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 
 import {
   useAssistantConversation,
@@ -56,12 +56,10 @@ function PortalAssistant() {
       title={overview.data?.name ?? "Assistente COBS"}
       back={{ to: `/my/${operationId}`, label: "Voltar para minha viagem" }}
     >
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Assistente COBS</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Pergunte sobre horários, programação, transporte, hospedagem e informações confirmadas da sua viagem.
-        </p>
-      </div>
+      <section className="mb-5 rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-5 shadow-sm">
+        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><Bot className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Suporte da sua viagem</p><h2 className="mt-1 text-xl font-semibold text-foreground">Assistente COBS</h2><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre horários, programação, transporte, hospedagem e informações confirmadas da sua viagem.</p></div></div>
+        <div className="mt-4 flex flex-wrap gap-2"><span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"><ShieldCheck className="size-3.5" />Não inventa informações não confirmadas</span><span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs font-medium text-foreground"><Sparkles className="size-3.5 text-primary" />Contexto da sua operação</span></div>
+      </section>
 
       <PortalQueryGate
         isLoading={conversation.isLoading || messages.isLoading}
