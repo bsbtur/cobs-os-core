@@ -152,8 +152,8 @@ function EditLegDialog({
 
       const window = await supabase.rpc("set_transport_leg_planned_window", {
         _transport_leg_id: leg.id,
-        _planned_departure: departure ? new Date(departure).toISOString() : null,
-        _planned_arrival: arrival ? new Date(arrival).toISOString() : null,
+        _planned_departure: departure ? new Date(departure).toISOString() : "",
+        _planned_arrival: arrival ? new Date(arrival).toISOString() : "",
       });
       if (window.error) throw window.error;
     },
