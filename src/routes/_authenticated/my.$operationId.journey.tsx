@@ -133,7 +133,7 @@ function PortalJourney() {
                             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{CIOSP_DAILY_PROGRAM[step.title]?.description ?? "Acompanhe aqui horário, ponto de encontro e mudanças desta etapa. Informações ainda não fechadas aparecem como “a confirmar”."}</p>
                             {CIOSP_DAILY_PROGRAM[step.title] ? (
                               <ol className="mt-3 space-y-2">
-                                {CIOSP_DAILY_PROGRAM[step.title].items.map((item, itemIndex) => (
+                                {CIOSP_DAILY_PROGRAM[step.title]?.items.map((item, itemIndex) => (
                                   <li key={`${step.stepId}-program-${itemIndex}`} className="flex gap-2 text-xs leading-relaxed text-foreground">
                                     <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{itemIndex + 1}</span>
                                     <span className="pt-0.5">{item}</span>
