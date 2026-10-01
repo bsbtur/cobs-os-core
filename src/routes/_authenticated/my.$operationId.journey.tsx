@@ -1,5 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { CalendarDays, MapPin, Megaphone, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { CalendarDays, ChevronDown, Clock3, MapPin, Megaphone, Sparkles } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyJourney, useMyOverview } from "@/lib/w10";
@@ -28,6 +29,12 @@ function PortalJourney() {
   const journey = useMyJourney(operationId);
   const timeZone = overview.data?.timezone ?? null;
   const steps = journey.data ?? [];
+  const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
+  const now = Date.now();
+  const nextStepId = steps.find((step) => {
+    const value = step.expectedStart ?? step.plannedStart;
+    return value ? new Date(value).getTime() >= now : false;
+  })?.stepId ?? null;
 
   return (
     <PortalShell operationId={operationId} title={overview.data?.name ?? t("w10.portal.brand")} active="journey">
@@ -57,7 +64,15 @@ function PortalJourney() {
           <PortalEmpty body={t("w10.journey.empty")} />
         ) : (
           <ol className="relative ml-3 border-l border-border pl-6">
-            {steps.map((step, index) => (
+            {steps.map((step, index) => {
+              const effectiveStart = step.expectedStart ?? step.plannedStart;
+              const effectiveEnd = step.expectedEnd ?? step.plannedEnd;
+              const startMs = effectiveStart ? new Date(effectiveStart).getTime() : null;
+              const endMs = effectiveEnd ? new Date(effectiveEnd).getTime() : startMs;
+              const completed = endMs !== null && endMs < now;
+              const isNext = !completed && step.stepId === nextStepId;
+              const expanded = expandedStepId === step.stepId;
+              return (
               <li key={step.stepId} className="relative pb-5 last:pb-0">
                 <span className="absolute -left-[2.05rem] top-5 flex h-4 w-4 rounded-full border-4 border-background bg-primary shadow-sm" />
                 <article className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm transition-shadow hover:shadow-md">
@@ -66,6 +81,10 @@ function PortalJourney() {
                       <div className="min-w-0">
                         <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Etapa {String(index + 1).padStart(2, "0")}</p>
                         <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">{step.title}</h3>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {isNext ? <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">Próxima etapa</span> : null}
+                          {completed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">Concluída</span> : null}
+                        </div>
                       </div>
                       {step.updates.length > 0 ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
@@ -86,10 +105,45 @@ function PortalJourney() {
                         </p>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedStepId(expanded ? null : step.stepId)}
+                      className="mt-4 flex w-full items-center justify-between rounded-xl border border-border/70 bg-background/60 px-3 py-2.5 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
+                      aria-expanded={expanded}
+                    >
+                      <span>{expanded ? "Ocultar detalhes" : "Ver programação da etapa"}</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                    </button>
+                    {expanded ? (
+                      <div className="mt-3 space-y-3 rounded-xl border border-border/60 bg-muted/25 p-4">
+                        <div className="flex gap-3">
+                          <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">O que você precisa saber</p>
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Acompanhe aqui horário, ponto de encontro e mudanças desta etapa. Informações ainda não fechadas aparecem como “a confirmar”.</p>
+                          </div>
+                        </div>
+                        {step.updates.length > 0 ? (
+                          <div className="border-t border-border/60 pt-3">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Atualizações da operação</p>
+                            <div className="space-y-2">
+                              {step.updates.map((update, updateIndex) => (
+                                <div key={`${step.stepId}-${updateIndex}`} className="rounded-lg bg-background/70 p-3 text-xs text-foreground">
+                                  {update.note || "Atualização operacional disponível."}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="border-t border-border/60 pt-3 text-xs text-muted-foreground">Nenhuma alteração operacional publicada para esta etapa.</p>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </article>
               </li>
-            ))}
+              );
+            })}
           </ol>
         )}
       </PortalQueryGate>
