@@ -110,12 +110,13 @@ export function PortalShell({ operationId, title, active, children }: { operatio
   const [moreOpen, setMoreOpen] = React.useState(false);
   const navigate = useNavigate();
   const wallLabel = locale === "en-US" ? "Wall" : "Mural";
+  const moreActive = SECONDARY.some((tab) => tab.id === active);
   const label = (tab: (typeof SECONDARY)[number] | (typeof PRIMARY)[number]) => tab.id === "wall" ? wallLabel : t(tab.labelKey);
 
   const tabClass = (isActive: boolean) =>
     cn(
-      "flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px]",
-      isActive ? "text-primary" : "text-muted-foreground",
+      "relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-medium transition-colors",
+      isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
     );
 
   return (
@@ -150,18 +151,20 @@ export function PortalShell({ operationId, title, active, children }: { operatio
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-4 lg:pb-12">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label={t("w10.portal.brand")}>
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/80 bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur lg:hidden" aria-label={t("w10.portal.brand")}>
         <div className="mx-auto flex w-full max-w-3xl items-stretch gap-0.5 px-1 py-1">
           {PRIMARY.map((tab) => {
             const Icon = tab.icon;
             return (
               <Link key={tab.id} to={tab.to} params={{ operationId }} className={tabClass(active === tab.id)}>
+                {active === tab.id ? <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" aria-hidden /> : null}
                 <Icon className="size-5 shrink-0" aria-hidden="true" />
                 <span className="w-full truncate text-center">{label(tab)}</span>
               </Link>
             );
           })}
-          <button type="button" onClick={() => setMoreOpen(true)} className={tabClass(SECONDARY.some((tab) => tab.id === active))}>
+          <button type="button" onClick={() => setMoreOpen(true)} className={tabClass(moreActive)}>
+            {moreActive ? <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" aria-hidden /> : null}
             <MoreHorizontal className="size-5 shrink-0" aria-hidden="true" />
             <span className="w-full truncate text-center">{t("w10.nav.more")}</span>
           </button>
@@ -171,7 +174,7 @@ export function PortalShell({ operationId, title, active, children }: { operatio
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent side="bottom" className="pb-[calc(env(safe-area-inset-bottom)+1rem)]">
           <SheetHeader>
-            <SheetTitle>{t("w10.nav.more")}</SheetTitle>
+            <SheetTitle>Mais da sua viagem</SheetTitle>
           </SheetHeader>
           <div className="mt-4 flex flex-col gap-2">
             {SECONDARY.map((tab) => {
@@ -180,7 +183,7 @@ export function PortalShell({ operationId, title, active, children }: { operatio
                 <button
                   key={tab.id}
                   type="button"
-                  className="flex min-h-[52px] items-center gap-3 rounded-lg border border-border px-4 text-left text-sm text-foreground"
+                  className={cn("flex min-h-[56px] items-center gap-3 rounded-xl border px-4 text-left text-sm font-medium transition-colors", active === tab.id ? "border-primary/30 bg-primary/10 text-primary" : "border-border bg-card text-foreground hover:bg-muted/60")}
                   onClick={() => {
                     setMoreOpen(false);
                     void navigate({ to: tab.to, params: { operationId } });
