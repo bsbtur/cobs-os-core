@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { Bus, MapPin, ShieldCheck } from "lucide-react";
+import { Bus, MapPin, Plane, ShieldCheck, TrainFront, Van } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyMobility, useMyOverview } from "@/lib/w10";
@@ -27,6 +27,14 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/mobility")
   component: PortalMobility,
 });
 
+function mobilityMode(leg: { title: string | null; originLabel: string | null; destinationLabel: string | null }) {
+  const text = [leg.title, leg.originLabel, leg.destinationLabel].filter(Boolean).join(" ").toLowerCase();
+  if (/aeroporto|bsb|cgh|congonhas|voo|aéreo/.test(text)) return { label: "Aéreo", Icon: Plane };
+  if (/metrô|metro|estação/.test(text)) return { label: "Metrô", Icon: TrainFront };
+  if (/ônibus|onibus|ciosp|expo center norte/.test(text)) return { label: "Ônibus oficial", Icon: Bus };
+  return { label: "Traslado", Icon: Van };
+}
+
 function PortalMobility() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/mobility" });
   const { t } = useI18n();
@@ -53,9 +61,13 @@ function PortalMobility() {
           <PortalEmpty body={t("w10.mobility.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
-            {(mobility.data ?? []).map((leg) => (
+            {(mobility.data ?? []).map((leg) => {
+              const mode = mobilityMode(leg);
+              const ModeIcon = mode.Icon;
+              return (
               <PortalCard key={leg.legId}>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><ModeIcon className="h-4 w-4" />{mode.label}</div>
                   <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                     {leg.title ??
                       [leg.originLabel, leg.destinationLabel].filter(Boolean).join(" → ")}
@@ -132,7 +144,8 @@ function PortalMobility() {
                   </div>
                 ) : null}
               </PortalCard>
-            ))}
+              );
+            })}
           </div>
         )}
       </PortalQueryGate>
