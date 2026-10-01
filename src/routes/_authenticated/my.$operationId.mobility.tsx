@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { Bus, MapPin, ShieldCheck } from "lucide-react";
+import { Bus, MapPin, Plane, ShieldCheck, TrainFront, Van } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyMobility, useMyOverview } from "@/lib/w10";
@@ -26,6 +26,25 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/mobility")
   }),
   component: PortalMobility,
 });
+
+function TransportMode({ title, legKind }: { title: string | null; legKind: string | null }) {
+  const value = (title ?? "").toLocaleLowerCase("pt-BR");
+  const mode = value.includes("metrô") || value.includes("metro")
+    ? { label: "Metrô", Icon: TrainFront }
+    : value.includes("voo") || value.includes("aeroporto") || value.includes("aéreo") || value.includes("aereo")
+      ? { label: "Aéreo", Icon: Plane }
+      : value.includes("ônibus") || value.includes("onibus") || legKind === "shuttle"
+        ? { label: "Ônibus", Icon: Bus }
+        : value.includes("traslado") || value.includes("transfer") || legKind === "transfer"
+          ? { label: "Traslado", Icon: Van }
+          : { label: "Deslocamento", Icon: Bus };
+  return (
+    <PortalTag>
+      <mode.Icon className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+      {mode.label}
+    </PortalTag>
+  );
+}
 
 function PortalMobility() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/mobility" });
@@ -60,15 +79,14 @@ function PortalMobility() {
                     {leg.title ??
                       [leg.originLabel, leg.destinationLabel].filter(Boolean).join(" → ")}
                   </h3>
-                  {leg.mySeat?.active && leg.mySeat.seatLabel ? (
-                    <PortalTag>
-                      {t("w10.mobility.seat")} {leg.mySeat.seatLabel}
-                    </PortalTag>
-                  ) : (
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {t("w10.mobility.noSeat")}
-                    </span>
-                  )}
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <TransportMode title={leg.title} legKind={leg.legKind} />
+                    {leg.mySeat?.active && leg.mySeat.seatLabel ? (
+                      <PortalTag>
+                        {t("w10.mobility.seat")} {leg.mySeat.seatLabel}
+                      </PortalTag>
+                    ) : null}
+                  </div>
                 </div>
 
                 <dl className="mt-2 flex flex-col gap-1">
