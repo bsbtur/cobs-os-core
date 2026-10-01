@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, MessageCircleHeart, ShieldCheck, UsersRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,10 +85,10 @@ function PortalWall() {
       title={overview.data?.name ?? t("w10.portal.brand")}
       active="wall"
     >
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{copy.title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p>
-      </div>
+      <section className="mb-5 rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/50 p-5 shadow-sm">
+        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><MessageCircleHeart className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Comunidade da viagem</p><h2 className="mt-1 text-xl font-semibold text-foreground">{copy.title}</h2><p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p></div></div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2"><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><UsersRound className="h-4 w-4 shrink-0 text-primary" />Reaja, participe de enquetes e converse com o grupo.</div><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" />Avisos operacionais oficiais continuam na área Avisos.</div></div>
+      </section>
 
       <PortalQueryGate isLoading={wall.isLoading} error={wall.error} onRetry={() => void wall.refetch()}>
         {(wall.data ?? []).length === 0 ? (
