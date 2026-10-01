@@ -104,7 +104,12 @@ export function PortalTime({
     return Boolean(match && match[1] === "00" && match[2] === "00" && (match[3] ?? "00") === "00");
   };
   const effective = expected ?? planned;
-  if (effective && isPlaceholderMidnight(effective) && (!expected || expected === planned)) {
+  if (
+    effective &&
+    isPlaceholderMidnight(effective) &&
+    (!planned || isPlaceholderMidnight(planned)) &&
+    (!expected || isPlaceholderMidnight(expected))
+  ) {
     return (
       <span className="text-xs text-foreground">
         {new Intl.DateTimeFormat(locale, { dateStyle: "medium", ...(timeZone ? { timeZone } : {}) }).format(new Date(effective))}
