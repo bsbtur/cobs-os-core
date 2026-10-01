@@ -527,6 +527,39 @@ function AssignmentPanel({
   );
 }
 
+function CancelLegAction({ leg, state, onDone }: { leg: TransportLegRow; state: LegDispatchState | null; onDone: () => void }) {
+  const { locale } = useI18n();
+  const [reason, setReason] = React.useState("");
+  const cancel = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("cancel_transport_leg", {
+        _transport_leg_id: leg.id,
+        _reason: reason.trim(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success("Trecho cancelado.");
+      setReason("");
+      onDone();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  if (isTerminalLeg(state) || state?.actual_departure) return null;
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border p-3">
+      <p className="text-sm font-medium">Cancelar trecho</p>
+      <p className="text-xs text-muted-foreground">Use para um trecho criado por engano. O registro permanece no histórico.</p>
+      <Input placeholder="Motivo do cancelamento" value={reason} onChange={(e) => setReason(e.target.value)} />
+      <Button variant="outline" className="min-h-11" disabled={cancel.isPending || reason.trim() === ""} onClick={() => cancel.mutate()}>
+        {cancel.isPending ? "Cancelando…" : "Cancelar trecho"}
+      </Button>
+    </div>
+  );
+}
+
 function DispatchActions({
   leg,
   state,
@@ -1419,6 +1452,7 @@ function MobilityPage() {
                   <SectionLabel>{t("w05.state.requested")}</SectionLabel>
                   <div className="mt-2">
                     <DispatchActions leg={selected} state={state} onRefresh={refresh} />
+              <CancelLegAction leg={selected} state={state} onDone={refresh} />
                   </div>
                 </div>
 
