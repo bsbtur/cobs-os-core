@@ -1,4 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
+import { CalendarDays, MapPin, Ticket } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyEventProgram, useMyOverview } from "@/lib/w10";
@@ -38,7 +39,10 @@ function PortalEvents() {
       title={overview.data?.name ?? t("w10.portal.brand")}
       active="events"
     >
-      <h2 className="mb-3 text-lg font-semibold text-foreground">{t("w10.events.title")}</h2>
+      <section className="mb-5 rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/50 p-5 shadow-sm">
+        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><Ticket className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">44º CIOSP</p><h2 className="mt-1 text-xl font-semibold text-foreground">{t("w10.events.title")}</h2><p className="mt-1 text-sm text-muted-foreground">Programação do evento, sessões, espaços e horários disponíveis para sua experiência.</p></div></div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2"><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><CalendarDays className="h-4 w-4 shrink-0 text-primary" />27 a 30 de janeiro de 2027.</div><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><MapPin className="h-4 w-4 shrink-0 text-primary" />Expo Center Norte · São Paulo.</div></div>
+      </section>
       <PortalQueryGate
         isLoading={events.isLoading || precision.isLoading}
         error={events.error ?? precision.error}
