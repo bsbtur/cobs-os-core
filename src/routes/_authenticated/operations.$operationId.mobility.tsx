@@ -1452,12 +1452,15 @@ function MobilityPage() {
                   <SectionLabel>{t("w05.state.requested")}</SectionLabel>
                   <div className="mt-2">
                     <DispatchActions leg={selected} state={state} onRefresh={refresh} />
-              <CancelLegAction leg={selected} state={state} onDone={refresh} />
                   </div>
                 </div>
 
                 <div className="mt-5">
                   <LegControls leg={selected} state={state} onRefresh={refresh} />
+                </div>
+
+                <div className="mt-5">
+                  <CancelLegAction leg={selected} state={state} onDone={refresh} />
                 </div>
               </article>
 
