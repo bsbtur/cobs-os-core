@@ -1,6 +1,23 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useState } from "react";
-import { CalendarDays, ChevronDown, Clock3, MapPin, Megaphone, Sparkles } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3, MapPin, Megaphone, Sparkles, Plane, ShieldCheck, UtensilsCrossed } from "lucide-react";
+
+const CIOSP_TRIP_META = {
+  period: "25–31 JAN 2027",
+  duration: "7 dias",
+  route: "Brasília → São Paulo",
+  event: "44º CIOSP",
+};
+
+const CIOSP_MEAL_NOTE: Record<string, string> = {
+  "Brasília → São Paulo": "Almoço de boas-vindas incluído",
+  "Experiência BSBTUR em São Paulo": "Demais refeições conforme programação",
+  "CIOSP — Dia 1": "Alimentação no congresso por conta do participante",
+  "CIOSP — Dia 2": "Alimentação no congresso por conta do participante",
+  "CIOSP — Dia 3": "Alimentação no congresso por conta do participante",
+  "CIOSP — Dia 4": "Jantar de confraternização incluído",
+  "Retorno a Brasília": "Almoço incluído",
+};
 
 const CIOSP_DAILY_PROGRAM: Record<string, { description: string; items: string[] }> = {
   "Brasília → São Paulo": { description: "Início da Caravana BSBTUR CIOSP 2027, com embarque em Brasília, chegada a São Paulo e acolhimento do grupo.", items: ["Encontro do grupo no Aeroporto de Brasília", "Check-in e organização do embarque", "Voo Brasília → São Paulo", "Recepção do grupo na chegada", "Traslado privativo", "Almoço de boas-vindas incluso", "Check-in no hotel", "Apresentação da operação BSBTUR, credenciais e orientações gerais", "Noite livre"] },
@@ -69,6 +86,33 @@ function PortalJourney() {
         ) : null}
       </section>
 
+      <section className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Período", CIOSP_TRIP_META.period],
+          ["Duração", CIOSP_TRIP_META.duration],
+          ["Rota", CIOSP_TRIP_META.route],
+          ["Evento", CIOSP_TRIP_META.event],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
+          </div>
+        ))}
+      </section>
+
+      {nextStepId ? (
+        <section className="mb-5 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-primary/10 p-2"><Plane className="h-5 w-5 text-primary" /></div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Próxima atividade</p>
+              <p className="mt-1 text-base font-semibold text-foreground">{steps.find((step) => step.stepId === nextStepId)?.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Consulte esta tela antes de cada saída. Horários e pontos de encontro confirmados serão publicados aqui.</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <PortalQueryGate isLoading={journey.isLoading} error={journey.error} onRetry={() => void journey.refetch()}>
         {steps.length === 0 ? (
           <PortalEmpty body={t("w10.journey.empty")} />
@@ -113,6 +157,22 @@ function PortalJourney() {
                           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                           {step.locationLabel || "Local a confirmar"}
                         </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
+                        <UtensilsCrossed className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Alimentação</p>
+                          <p className="mt-0.5 text-xs font-medium text-foreground">{CIOSP_MEAL_NOTE[step.title] ?? "Conforme programação da operação"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fonte oficial</p>
+                          <p className="mt-0.5 text-xs font-medium text-foreground">Atualizações operacionais serão publicadas no COBS.</p>
+                        </div>
                       </div>
                     </div>
                     <button
