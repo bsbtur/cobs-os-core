@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeError, useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { isSafeAppPath } from "@/lib/safe-redirect";
+import { claimTokenFromInviteInput, savePendingClaim } from "@/lib/claim-intent";
 import { BrandLockup } from "@/app/shell/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +47,9 @@ function AuthPage() {
   const [busy, setBusy] = React.useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = React.useState<string | null>(null);
 
-  const destination = isSafeAppPath(search.redirect) ? search.redirect : "/app";
+  const claimToken = search.redirect ? claimTokenFromInviteInput(search.redirect) : null;
+  if (claimToken) savePendingClaim(claimToken);
+  const destination = isSafeAppPath(search.redirect) ? search.redirect : claimToken ? `/my/claim/${claimToken}` : "/app";
 
   React.useEffect(() => {
     if (!loading && session) {
