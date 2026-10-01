@@ -98,6 +98,21 @@ export function PortalTime({
 }) {
   const { t, locale } = useI18n();
   const ctx = timeZone ? { locale, timeZone } : { locale };
+  const isPlaceholderMidnight = (value: string | null) => {
+    if (!value) return false;
+    const match = value.match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);
+    return Boolean(match && match[1] === "00" && match[2] === "00" && (match[3] ?? "00") === "00");
+  };
+  const effective = expected ?? planned;
+  if (effective && isPlaceholderMidnight(effective) && (!expected || expected === planned)) {
+    return (
+      <span className="text-xs text-foreground">
+        {new Intl.DateTimeFormat(locale, { dateStyle: "medium", ...(timeZone ? { timeZone } : {}) }).format(new Date(effective))}
+        {" · "}
+        <span className="text-muted-foreground">{t("w10.time.tbd")}</span>
+      </span>
+    );
+  }
   if (!planned && !expected) {
     return <span className="text-xs text-muted-foreground">{t("w10.time.tbd")}</span>;
   }
