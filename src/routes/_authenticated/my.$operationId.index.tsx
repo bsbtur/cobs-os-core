@@ -32,9 +32,22 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/")({
 function AgendaLine({ item, timeZone }: { item: PortalAgendaItem; timeZone: string | null }) {
   const { locale } = useI18n();
   const ctx = timeZone ? { locale, timeZone } : { locale };
+  const start = item.start ? new Date(item.start) : null;
+  const isMidnightPlaceholder =
+    start !== null &&
+    new Intl.DateTimeFormat("en-CA", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      ...(timeZone ? { timeZone } : {}),
+    }).format(start) === "00:00";
   return (
     <div className="min-w-0">
-      {item.start ? <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">{formatDateTime(item.start, ctx)}</p> : null}
+      {item.start ? (
+        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+          {isMidnightPlaceholder ? `${formatDate(item.start, ctx)} · Horário a confirmar` : formatDateTime(item.start, ctx)}
+        </p>
+      ) : null}
       <p className="break-words text-lg font-semibold text-foreground">{item.title}</p>
       {item.detail ? <p className="mt-1 break-words text-sm leading-relaxed text-muted-foreground">{item.detail}</p> : null}
     </div>
