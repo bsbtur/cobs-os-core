@@ -61,10 +61,14 @@ function PortalMobility() {
           <PortalEmpty body={t("w10.mobility.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
-            {(mobility.data ?? []).map((leg) => {\n              const mode = mobilityMode(leg);\n              const ModeIcon = mode.Icon;\n              return (
+            {(mobility.data ?? []).map((leg) => {
+              const mode = mobilityMode(leg);
+              const ModeIcon = mode.Icon;
+              return (
               <PortalCard key={leg.legId}>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><ModeIcon className="h-4 w-4" />{mode.label}</div>\n                  <h3 className="min-w-0 break-words text-base font-medium text-foreground">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><ModeIcon className="h-4 w-4" />{mode.label}</div>
+                  <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                     {leg.title ??
                       [leg.originLabel, leg.destinationLabel].filter(Boolean).join(" → ")}
                   </h3>
