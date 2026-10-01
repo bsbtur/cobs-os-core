@@ -144,7 +144,8 @@ function PortalMobility() {
                   </div>
                 ) : null}
               </PortalCard>
-            ))}
+              );
+            })}
           </div>
         )}
       </PortalQueryGate>
