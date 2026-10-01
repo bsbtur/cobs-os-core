@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, type ErrorComponentProps } from "@tanstack/react-router";
 
 /** COBS OS · W10 — Traveler Portal subtree. Participant surfaces only. */
 export const Route = createFileRoute("/_authenticated/my")({
@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/my")({
   errorComponent: TravelerPortalError,
 });
 
-function TravelerPortalError({ reset }: { error: Error; reset: () => void }) {
+function TravelerPortalError({ reset }: ErrorComponentProps) {
   return (
     <div className="min-h-screen bg-background px-4 py-10 text-foreground">
       <div className="mx-auto max-w-lg rounded-xl border border-border bg-elevated/60 p-6">
