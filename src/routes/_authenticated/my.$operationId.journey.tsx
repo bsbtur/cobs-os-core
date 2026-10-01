@@ -4,7 +4,7 @@ import { CalendarDays, MapPin, Megaphone, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useMyJourney, useMyOverview } from "@/lib/w10";
 import { PortalShell } from "@/app/portal/portal-shell";
-import { PortalEmpty, PortalQueryGate, PortalTime } from "@/app/portal/portal-states";
+import { PortalEmpty, PortalQueryGate } from "@/app/portal/portal-states";
 
 export const Route = createFileRoute("/_authenticated/my/$operationId/journey")({
   head: () => ({
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/journey")(
 
 function PortalJourney() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/journey" });
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const overview = useMyOverview(operationId);
   const journey = useMyJourney(operationId);
   const timeZone = overview.data?.timezone ?? null;
@@ -76,7 +76,7 @@ function PortalJourney() {
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-xl bg-muted/55 p-3">
                         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Quando</p>
-                        <PortalTime planned={step.plannedStart} expected={step.expectedStart} timeZone={timeZone} />
+                        <JourneyTime planned={step.plannedStart} expected={step.expectedStart} locale={locale} timeZone={timeZone} />
                       </div>
                       <div className="rounded-xl bg-muted/55 p-3">
                         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Onde</p>
@@ -95,4 +95,50 @@ function PortalJourney() {
       </PortalQueryGate>
     </PortalShell>
   );
+}
+
+
+function JourneyTime({
+  planned,
+  expected,
+  locale,
+  timeZone,
+}: {
+  planned: string | null;
+  expected: string | null;
+  locale: string;
+  timeZone?: string | null;
+}) {
+  const effective = expected ?? planned;
+  if (!effective) return <span className="text-xs text-muted-foreground">Horário a confirmar</span>;
+
+  const date = new Date(effective);
+  const timeParts = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(date);
+  const hour = timeParts.find((part) => part.type === "hour")?.value;
+  const minute = timeParts.find((part) => part.type === "minute")?.value;
+  const dateLabel = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(date);
+
+  if (hour === "00" && minute === "00") {
+    return (
+      <span className="text-xs text-foreground">
+        {dateLabel} · <span className="text-muted-foreground">Horário a confirmar</span>
+      </span>
+    );
+  }
+
+  const timeLabel = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(date);
+
+  return <span className="text-xs text-foreground">{dateLabel}, {timeLabel}</span>;
 }
