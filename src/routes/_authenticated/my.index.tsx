@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import * as React from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Compass, MapPin, ShieldOff } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
@@ -133,7 +134,16 @@ function OperationCard({ op }: { op: PortalOperationCard }) {
 function MyOperationsPage() {
   const { t } = useI18n();
   const operations = useMyOperations();
-  const { claim } = Route.useSearch();
+  const navigate = useNavigate();
+  const { claim, operation } = Route.useSearch();
+
+  React.useEffect(() => {
+    if (claim !== "ok" || !operation || operations.isLoading || operations.error) return;
+    const granted = (operations.data ?? []).some((op) => op.operationId === operation);
+    if (granted) {
+      void navigate({ to: "/my/$operationId", params: { operationId: operation }, replace: true });
+    }
+  }, [claim, operation, operations.isLoading, operations.error, operations.data, navigate]);
 
   return (
     <PortalFrame title={t("w10.list.title")}>
