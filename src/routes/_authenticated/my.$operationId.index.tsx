@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowRight, BedDouble, Bot, Bus, CalendarDays, MapPin, Megaphone, Ticket } from "lucide-react";
+import { ArrowRight, BedDouble, Bot, Bus, CalendarDays, MapPin, Megaphone, ShieldCheck, Sparkles, Ticket } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import {
@@ -72,6 +72,10 @@ function TripContextCard({ overview }: { overview: PortalOverview }) {
           {period ? <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-4 text-sidebar-primary" aria-hidden="true" />{period}</span> : null}
         </div>
         <p className="mt-6 max-w-2xl text-sm leading-relaxed text-sidebar-foreground/65">Tudo o que você precisa para viver sua viagem com clareza: próximos passos, roteiro, transporte, hospedagem, evento e avisos confirmados.</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-sidebar-primary/25 bg-sidebar-primary/10 px-3 py-1.5 text-xs font-medium text-sidebar-primary"><Sparkles className="size-3.5" />Experiência BSBTUR</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-sidebar-foreground/15 bg-sidebar-foreground/5 px-3 py-1.5 text-xs font-medium text-sidebar-foreground/75"><ShieldCheck className="size-3.5" />COBS · informações confirmadas</span>
+        </div>
       </div>
     </section>
   );
@@ -129,6 +133,13 @@ function PortalHome() {
               <PortalCard title={t("w10.home.now")}>{now ? <AgendaLine item={now} timeZone={timeZone} /> : <p className="text-sm leading-relaxed text-muted-foreground">{upcoming ? "Sua viagem ainda não começou." : t("w10.home.nothingNow")}</p>}</PortalCard>
             </div>
           )}
+
+          <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-primary/10 p-2"><Megaphone className="size-4 text-primary" /></div>
+              <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Antes de sair</p><p className="mt-1 text-sm leading-relaxed text-muted-foreground">Confira sempre <span className="font-medium text-foreground">Próximo passo</span> e <span className="font-medium text-foreground">Avisos</span>. Alterações operacionais confirmadas serão refletidas no COBS.</p></div>
+            </div>
+          </section>
 
           <section className="flex flex-col gap-3">
             <div className="px-1">
