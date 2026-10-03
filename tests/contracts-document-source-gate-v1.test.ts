@@ -38,3 +38,18 @@ describe("contract document source gate v1", () => {
     expect(migration).toContain("v_ready := v_source_valid and v_renderer_version is not null");
   });
 });
+
+
+describe("contract document source digest schema hardening", () => {
+  const hardening = readFileSync(
+    "supabase/migrations/20261004130000_contract_document_source_digest_schema_hardening_v1.sql",
+    "utf8",
+  );
+
+  test("qualifies pgcrypto digest in source registration and activation guard", () => {
+    expect(hardening).toContain("app_private.guard_contract_template_upload_document_source");
+    expect(hardening).toContain("public.register_contract_document_source_draft");
+    expect(hardening.match(/extensions\.digest\(/g)?.length).toBe(2);
+    expect(hardening).not.toMatch(/(?<!extensions\.)digest\(convert_to/);
+  });
+});
