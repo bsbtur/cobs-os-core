@@ -70,7 +70,12 @@ begin
   update public.operation_wall_posts set status='archived', archived_at=now() where id=_post_id;
   perform app_private.record_audit_event(
     _post.tenant_id, auth.uid(), 'operation_wall.post_archived', 'operation_wall_post', _post.id,
-    jsonb_build_object('status','published'), jsonb_build_object('status','archived','operation_id',_post.operation_id)
+    null,
+    jsonb_build_object(
+      'operation_id', _post.operation_id,
+      'from_status', 'published',
+      'to_status', 'archived'
+    )
   );
   return true;
 end; $$;
