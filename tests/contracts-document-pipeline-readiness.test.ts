@@ -31,8 +31,10 @@ describe("contract document pipeline readiness", () => {
   test("readiness UI includes the document pipeline in technical readiness", () => {
     expect(runtimeTypes).toContain("get_contract_document_pipeline_readiness");
     expect(route).toContain('supabase.rpc("get_contract_document_pipeline_readiness"');
-    expect(route).toContain("Pipeline de geração do documento contratual");
-    expect(route).toContain("data.technical_ready && documentPipeline.ready");
+    expect(route).toContain('check.key === "document_pipeline"');
+    expect(route).toContain("const technicalReady = data.technical_ready;");
+    expect(route).not.toContain("data.technical_ready && documentPipeline.ready");
+    expect(route).not.toContain('key: "document_pipeline",\n      label: "Pipeline de geração do documento contratual"');
   });
 
   test("never presents pipeline readiness as provider-send release", () => {
