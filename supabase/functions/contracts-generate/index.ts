@@ -179,6 +179,16 @@ Deno.serve(async (req: Request) => {
       return json({ error: "order_not_contractable", status: order.status }, 409);
     if (order.grand_total_minor == null || !Number.isSafeInteger(order.grand_total_minor) || order.grand_total_minor <= 0)
       return json({ error: "order_total_required" }, 409);
+    const { data: contractableProductionOrder, error: contractableProductionOrderError } = await admin
+      .rpc("is_order_contractable_production_for_service", {
+        _tenant_id: order.tenant_id,
+        _order_id: order.id,
+      });
+    if (contractableProductionOrderError)
+      return json({ error: "contractable_production_order_check_failed" }, 500);
+    if (contractableProductionOrder !== true)
+      return json({ error: "production_contract_order_required" }, 409);
+
     const currency = asNonEmptyString(order.currency)?.toUpperCase();
     if (!currency) return json({ error: "order_currency_required" }, 409);
     if (currency !== "BRL") return json({ error: "unsupported_contract_currency", currency }, 409);
