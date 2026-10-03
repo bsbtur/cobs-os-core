@@ -32,7 +32,8 @@ export type WallPollOption = {
 };
 
 export type WallPost = {
-  postId: string;\n  status: "published" | "archived";
+  postId: string;
+  status: "published" | "archived";
   kind: WallPostKind;
   body: string;
   publishedAt: string | null;
@@ -53,7 +54,8 @@ function mapPost(raw: Raw): WallPost {
   for (const reaction of WALL_REACTIONS) reactions[reaction] = num(reactionsRaw[reaction]);
 
   return {
-    postId: req(raw["post_id"]),\n    status: raw["status"] === "archived" ? "archived" : "published",
+    postId: req(raw["post_id"]),
+    status: raw["status"] === "archived" ? "archived" : "published",
     kind: raw["kind"] === "poll" ? "poll" : "post",
     body: req(raw["body"]),
     publishedAt: str(raw["published_at"]),
