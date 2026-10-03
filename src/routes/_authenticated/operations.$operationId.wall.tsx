@@ -1,11 +1,18 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { Info, ListChecks, MessageSquareText, Plus, Send, Trash2 } from "lucide-react";
+import { Archive, Heart, Info, ListChecks, MessageCircle, MessageSquareText, Plus, Send, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { createWallPost, type WallPostKind } from "@/lib/operation-wall";
+import {
+  archiveWallPost,
+  createWallPost,
+  useOperationWallAdmin,
+  wallAdminKeys,
+  type WallPostKind,
+} from "@/lib/operation-wall";
 
 export const Route = createFileRoute("/_authenticated/operations/$operationId/wall")({
   component: OperationWallComposer,
@@ -18,6 +25,8 @@ function OperationWallComposer() {
   const [options, setOptions] = useState(["", ""]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const queryClient = useQueryClient();
+  const feed = useOperationWallAdmin(operationId);
 
   const cleanOptions = options.map((option) => option.trim()).filter(Boolean);
   const valid = body.trim().length > 0 && body.trim().length <= 2000 && (kind === "post" || (cleanOptions.length >= 2 && cleanOptions.length <= 6));
@@ -31,6 +40,7 @@ function OperationWallComposer() {
       setBody("");
       setOptions(["", ""]);
       setMessage({ type: "success", text: "Publicado no Mural dos viajantes." });
+      await queryClient.invalidateQueries({ queryKey: wallAdminKeys.scoped(operationId) });
     } catch (error) {
       setMessage({
         type: "error",
