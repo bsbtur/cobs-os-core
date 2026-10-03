@@ -35,13 +35,12 @@ describe("contract readiness panel", () => {
     expect(route).toContain("BLOQUEADO");
   });
 
-  test("surfaces a missing production order before downstream 0/0 checks", () => {
-    expect(route).toContain('check.key === "commercial_terms"');
-    expect(route).toContain('detail.startsWith("0/0")');
-    expect(route).toContain('key: "production_order"');
-    expect(route).toContain("Pedido de produção contratável");
-    expect(route).toContain("Nenhum pedido de produção com reserva ativa foi encontrado.");
-    expect(route).toContain('status: noProductionOrders ? "blocked" : "ready"');
+  test("counts only canonical backend readiness checks", () => {
+    expect(route).toContain("const checks: ReadinessCheck[] = data.checks.map");
+    expect(route).not.toContain('detail.startsWith("0/0")');
+    expect(route).not.toContain('key: "production_order"');
+    expect(route).not.toContain("noProductionOrders");
+    expect(route).toContain('checks.filter((check) => check.status === "blocked").length');
   });
 
   test("links remediation without fabricating evidence", () => {
