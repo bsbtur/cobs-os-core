@@ -24,6 +24,7 @@ function OperationWallComposer() {
   const [body, setBody] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [submitting, setSubmitting] = useState(false);
+  const [archivingPostId, setArchivingPostId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const queryClient = useQueryClient();
   const feed = useOperationWallAdmin(operationId);
@@ -48,6 +49,21 @@ function OperationWallComposer() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const archivePost = async (postId: string) => {
+    if (archivingPostId) return;
+    setArchivingPostId(postId);
+    setMessage(null);
+    try {
+      await archiveWallPost(postId);
+      setMessage({ type: "success", text: "Publicação ocultada do Portal do Viajante. O histórico foi preservado." });
+      await queryClient.invalidateQueries({ queryKey: wallAdminKeys.scoped(operationId) });
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "Não foi possível ocultar a publicação do Portal." });
+    } finally {
+      setArchivingPostId(null);
     }
   };
 
@@ -187,8 +203,8 @@ function OperationWallComposer() {
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground">{post.body}</p>
                 </div>
                 {post.status === "published" ? (
-                  <Button type="button" variant="outline" size="sm" onClick={async () => { await archiveWallPost(post.postId); await queryClient.invalidateQueries({ queryKey: wallAdminKeys.scoped(operationId) }); }}>
-                    <Archive className="mr-2 size-4" aria-hidden="true" />Ocultar do Portal
+                  <Button type="button" variant="outline" size="sm" onClick={() => void archivePost(post.postId)} disabled={archivingPostId === post.postId}>
+                    <Archive className="mr-2 size-4" aria-hidden="true" />{archivingPostId === post.postId ? "Ocultando…" : "Ocultar do Portal"}
                   </Button>
                 ) : null}
               </div>
