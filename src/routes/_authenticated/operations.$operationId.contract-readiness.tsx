@@ -62,15 +62,16 @@ function ContractReadinessPage() {
         ]);
       if (error) throw error;
       if (documentError) throw documentError;
-      if (quoteError) throw quoteError;
-      const quotes = (Array.isArray(quoteData) ? quoteData : []) as unknown as QuoteStatus[];
+      const quotes = (!quoteError && Array.isArray(quoteData) ? quoteData : []) as unknown as QuoteStatus[];
       return {
         readiness: data as Readiness,
         documentPipeline: documentData as DocumentPipelineReadiness,
-        supplierCounts: {
-          selected: quotes.filter((quote) => quote.status === "selected").length,
-          contracted: quotes.filter((quote) => quote.status === "contracted").length,
-        },
+        supplierCounts: quoteError
+          ? null
+          : {
+              selected: quotes.filter((quote) => quote.status === "selected").length,
+              contracted: quotes.filter((quote) => quote.status === "contracted").length,
+            },
       };
     },
   });
@@ -98,6 +99,7 @@ function ContractReadinessPage() {
     }
     if (check.key !== "contracted_suppliers") return check;
     const legallyComplete = Number.parseInt(check.detail.split("/")[0] ?? "0", 10) || 0;
+    if (!supplierCounts) return check;
     return {
       ...check,
       detail: `${supplierCounts.selected} selecionada(s) · ${supplierCounts.contracted} contratada(s) · ${legallyComplete} com evidência jurídica completa`,

@@ -14,6 +14,10 @@ describe("contract readiness supplier wording", () => {
     expect(route).toContain("selecionada(s)");
     expect(route).toContain("contratada(s)");
     expect(route).toContain("com evidência jurídica completa");
+    expect(route).toContain("!quoteError && Array.isArray(quoteData)");
+    expect(route).toContain("supplierCounts: quoteError");
+    expect(route).toContain("if (!supplierCounts) return check;");
+    expect(route).not.toContain("if (quoteError) throw quoteError;");
   });
 
   test("keeps the readiness surface read-only", () => {
