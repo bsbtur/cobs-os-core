@@ -87,35 +87,22 @@ function ContractReadinessPage() {
   const data = readiness.data.readiness;
   const documentPipeline = readiness.data.documentPipeline;
   const supplierCounts = readiness.data.supplierCounts;
-  const commercialTermsCheck = data.checks.find((check) => check.key === "commercial_terms");
-  const noProductionOrders = commercialTermsCheck?.detail.startsWith("0/0") ?? false;
-  const checks: ReadinessCheck[] = [
-    {
-      key: "production_order",
-      label: "Pedido de produção contratável",
-      status: noProductionOrders ? "blocked" : "ready",
-      kind: "technical",
-      detail: noProductionOrders
-        ? "Nenhum pedido de produção com reserva ativa foi encontrado."
-        : "Existe ao menos um pedido de produção contratável para esta operação.",
-    },
-    ...data.checks.map((check) => {
-      if (check.key === "document_pipeline") {
-        return {
-          ...check,
-          detail: documentPipeline.ready
-            ? `Configurado (${documentPipeline.mode}${documentPipeline.renderer_version ? ` · ${documentPipeline.renderer_version}` : ""})`
-            : documentPipeline.detail,
-        };
-      }
-      if (check.key !== "contracted_suppliers") return check;
-      const legallyComplete = Number.parseInt(check.detail.split("/")[0] ?? "0", 10) || 0;
+  const checks: ReadinessCheck[] = data.checks.map((check) => {
+    if (check.key === "document_pipeline") {
       return {
         ...check,
-        detail: `${supplierCounts.selected} selecionada(s) · ${supplierCounts.contracted} contratada(s) · ${legallyComplete} com evidência jurídica completa`,
+        detail: documentPipeline.ready
+          ? `Configurado (${documentPipeline.mode}${documentPipeline.renderer_version ? ` · ${documentPipeline.renderer_version}` : ""})`
+          : documentPipeline.detail,
       };
-    }),
-  ];
+    }
+    if (check.key !== "contracted_suppliers") return check;
+    const legallyComplete = Number.parseInt(check.detail.split("/")[0] ?? "0", 10) || 0;
+    return {
+      ...check,
+      detail: `${supplierCounts.selected} selecionada(s) · ${supplierCounts.contracted} contratada(s) · ${legallyComplete} com evidência jurídica completa`,
+    };
+  });
   const technicalReady = data.technical_ready;
   const blocked = checks.filter((check) => check.status === "blocked").length;
 
