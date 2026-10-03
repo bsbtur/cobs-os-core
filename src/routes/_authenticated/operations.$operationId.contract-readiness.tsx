@@ -100,6 +100,14 @@ function ContractReadinessPage() {
         : "Existe ao menos um pedido de produção contratável para esta operação.",
     },
     ...data.checks.map((check) => {
+      if (check.key === "document_pipeline") {
+        return {
+          ...check,
+          detail: documentPipeline.ready
+            ? `Configurado (${documentPipeline.mode}${documentPipeline.renderer_version ? ` · ${documentPipeline.renderer_version}` : ""})`
+            : documentPipeline.detail,
+        };
+      }
       if (check.key !== "contracted_suppliers") return check;
       const legallyComplete = Number.parseInt(check.detail.split("/")[0] ?? "0", 10) || 0;
       return {
@@ -107,17 +115,8 @@ function ContractReadinessPage() {
         detail: `${supplierCounts.selected} selecionada(s) · ${supplierCounts.contracted} contratada(s) · ${legallyComplete} com evidência jurídica completa`,
       };
     }),
-    {
-      key: "document_pipeline",
-      label: "Pipeline de geração do documento contratual",
-      status: documentPipeline.ready ? "ready" : "blocked",
-      kind: "technical",
-      detail: documentPipeline.ready
-        ? `Configurado (${documentPipeline.mode}${documentPipeline.renderer_version ? ` · ${documentPipeline.renderer_version}` : ""})`
-        : documentPipeline.detail,
-    },
   ];
-  const technicalReady = data.technical_ready && documentPipeline.ready;
+  const technicalReady = data.technical_ready;
   const blocked = checks.filter((check) => check.status === "blocked").length;
 
   return (
