@@ -81,6 +81,22 @@ function mapPost(raw: Raw): WallPost {
   };
 }
 
+export const wallAdminKeys = {
+  scoped: (operationId: string) => ["operation-wall-admin", operationId] as const,
+};
+
+export function useOperationWallAdmin(operationId: string) {
+  return useQuery({
+    queryKey: wallAdminKeys.scoped(operationId),
+    queryFn: async () => {
+      const { data, error } = await rpc("get_operation_wall_admin", { _operation_id: operationId });
+      if (error) throw toPortalError(error);
+      return arr(obj(data)["posts"]).map(mapPost);
+    },
+    staleTime: 10_000,
+  });
+}
+
 export const wallKeys = {
   scoped: (operationId: string) => ["operation-wall", operationId] as const,
 };
@@ -127,4 +143,9 @@ export function toggleWallReaction(postId: string, reaction: WallReaction) {
 
 export function voteWallPoll(optionId: string) {
   return command("vote_my_operation_wall_poll", { _option_id: optionId });
+}
+
+
+export function archiveWallPost(postId: string) {
+  return command("archive_operation_wall_post", { _post_id: postId });
 }
