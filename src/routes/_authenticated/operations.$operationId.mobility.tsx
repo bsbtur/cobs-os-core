@@ -108,10 +108,12 @@ function isTerminalLeg(state: LegDispatchState | null) {
 function EditLegDialog({
   leg,
   state,
+  steps,
   onDone,
 }: {
   leg: TransportLegRow;
   state: LegDispatchState | null;
+  steps: Array<{ id: string; title: string }>;
   onDone: () => void;
 }) {
   const { locale } = useI18n();
@@ -121,12 +123,14 @@ function EditLegDialog({
   const [destination, setDestination] = React.useState(leg.destination_label ?? "");
   const [departure, setDeparture] = React.useState("");
   const [arrival, setArrival] = React.useState("");
+  const [stepId, setStepId] = React.useState(leg.journey_step_id ?? "");
 
   React.useEffect(() => {
     if (!open) return;
     setTitle(leg.title);
     setOrigin(leg.origin_label ?? "");
     setDestination(leg.destination_label ?? "");
+    setStepId(leg.journey_step_id ?? "");
     const localInput = (value: string | null | undefined) => {
       if (!value) return "";
       const date = new Date(value);
@@ -156,6 +160,14 @@ function EditLegDialog({
         _planned_arrival: arrival ? new Date(arrival).toISOString() : "",
       });
       if (window.error) throw window.error;
+
+      if (stepId !== (leg.journey_step_id ?? "")) {
+        const link = await supabase.rpc("link_transport_leg_to_journey_step", {
+          _transport_leg_id: leg.id,
+          _journey_step_id: stepId || null,
+        });
+        if (link.error) throw link.error;
+      }
     },
     onSuccess: () => {
       feedback.success("Trecho atualizado.");
@@ -185,6 +197,22 @@ function EditLegDialog({
               <div><Label htmlFor="edit-leg-destination">Destino</Label><Input id="edit-leg-destination" value={destination} onChange={(e) => setDestination(e.target.value)} /></div>
               <div><Label htmlFor="edit-leg-departure">Saída planejada</Label><Input id="edit-leg-departure" type="datetime-local" value={departure} onChange={(e) => setDeparture(e.target.value)} /></div>
               <div><Label htmlFor="edit-leg-arrival">Chegada planejada</Label><Input id="edit-leg-arrival" type="datetime-local" value={arrival} onChange={(e) => setArrival(e.target.value)} /></div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-leg-step">Etapa da jornada vinculada</Label>
+              <select
+                id="edit-leg-step"
+                className={SELECT_CLASS}
+                value={stepId}
+                onChange={(e) => setStepId(e.target.value)}
+              >
+                <option value="">Nenhuma etapa vinculada</option>
+                {steps.map((step) => (
+                  <option key={step.id} value={step.id}>
+                    {step.title}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <DialogFooter>
@@ -1398,7 +1426,12 @@ function MobilityPage() {
                   {selected.destination_label ? ` → ${selected.destination_label}` : ""}
                 </p>
                 {planning && !isTerminalLeg(state) ? (
-                  <div className="mt-3"><EditLegDialog leg={selected} state={state} onDone={refresh} /></div>
+                  <div className="mt-3"><EditLegDialog
+                    leg={selected}
+                    state={state}
+                    steps={data.data?.steps ?? []}
+                    onDone={refresh}
+                  /></div>
                 ) : null}
 
                 <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
