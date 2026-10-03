@@ -5865,7 +5865,7 @@ export type Database = {
         Returns: Json
       }
       link_transport_leg_to_journey_step: {
-        Args: { _journey_step_id: string; _transport_leg_id: string }
+        Args: { _journey_step_id: string | null; _transport_leg_id: string }
         Returns: Json
       }
       list_event_runtime_events: {
