@@ -168,6 +168,43 @@ function OperationWallComposer() {
           </Button>
         </div>
       </section>
+
+      <section className="surface-panel space-y-4 p-5">
+        <div>
+          <h3 className="text-base font-semibold">Publicações desta operação</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Visualize reações e comentários do Portal do Viajante. Arquivar remove a publicação do portal sem apagar o histórico.</p>
+        </div>
+        {feed.isLoading ? <p className="text-sm text-muted-foreground">Carregando publicações…</p> : null}
+        {feed.error ? <p className="text-sm text-destructive">Não foi possível carregar as publicações.</p> : null}
+        {!feed.isLoading && !feed.error && (feed.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma publicação nesta operação.</p> : null}
+        {(feed.data ?? []).map((post) => {
+          const reactions = Object.values(post.reactions).reduce((sum, qty) => sum + qty, 0);
+          return (
+            <article key={post.postId} className="rounded-xl border border-border p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{post.kind === "poll" ? "Enquete" : "Post"} · {post.status === "archived" ? "Arquivado" : "Publicado"}</p>
+                  <p className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground">{post.body}</p>
+                </div>
+                {post.status === "published" ? (
+                  <Button type="button" variant="outline" size="sm" onClick={async () => { await archiveWallPost(post.postId); await queryClient.invalidateQueries({ queryKey: wallAdminKeys.scoped(operationId) }); }}>
+                    <Archive className="mr-2 size-4" aria-hidden="true" />Ocultar do Portal
+                  </Button>
+                ) : null}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-4 border-t border-border pt-3 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1"><Heart className="size-4" aria-hidden="true" />{reactions} reações</span>
+                <span className="inline-flex items-center gap-1"><MessageCircle className="size-4" aria-hidden="true" />{post.comments.length} comentários</span>
+              </div>
+              {post.comments.length > 0 ? (
+                <div className="mt-3 space-y-2">
+                  {post.comments.map((comment) => <div key={comment.commentId} className="rounded-lg bg-muted/40 px-3 py-2 text-sm"><span className="font-medium">{comment.authorName}</span> {comment.body}</div>)}
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </section>
     </section>
   );
 }
