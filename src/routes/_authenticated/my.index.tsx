@@ -66,15 +66,15 @@ function ClaimOutcome({ claim }: { claim: ClaimOutcomeState }) {
           {ok
             ? t("w10.claim.success")
             : wrongAccount
-              ? "Este convite pertence a outra conta"
+              ? t("w10.claim.wrongAccount")
               : t("w10.claim.invalid")}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {ok
             ? t("w10.claim.body")
             : wrongAccount
-              ? "O convite continua válido e não foi consumido. Saia desta conta e abra novamente o link do convite em uma janela privada, entrando com a conta do viajante convidado."
-              : "Não foi possível aceitar este convite. Ele pode estar expirado, revogado ou já ter sido utilizado. Solicite um novo convite ao responsável pela operação."}
+              ? t("w10.claim.wrongAccountBody")
+              : t("w10.claim.invalidBody")}
         </p>
         {wrongAccount ? (
           <Button
@@ -87,7 +87,7 @@ function ClaimOutcome({ claim }: { claim: ClaimOutcomeState }) {
               });
             }}
           >
-            Sair desta conta
+            {t("w10.claim.signOut")}
           </Button>
         ) : null}
       </div>
