@@ -61,11 +61,10 @@ function ContractReadinessPage() {
           }),
         ]);
       if (error) throw error;
-      if (documentError) throw documentError;
       const quotes = (!quoteError && Array.isArray(quoteData) ? quoteData : []) as unknown as QuoteStatus[];
       return {
         readiness: data as Readiness,
-        documentPipeline: documentData as DocumentPipelineReadiness,
+        documentPipeline: documentError ? null : (documentData as DocumentPipelineReadiness),
         supplierCounts: quoteError
           ? null
           : {
@@ -90,6 +89,7 @@ function ContractReadinessPage() {
   const supplierCounts = readiness.data.supplierCounts;
   const checks: ReadinessCheck[] = data.checks.map((check) => {
     if (check.key === "document_pipeline") {
+      if (!documentPipeline) return check;
       return {
         ...check,
         detail: documentPipeline.ready

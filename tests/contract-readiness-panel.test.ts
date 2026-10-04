@@ -43,6 +43,13 @@ describe("contract readiness panel", () => {
     expect(route).toContain('checks.filter((check) => check.status === "blocked").length');
   });
 
+  test("keeps canonical readiness visible when document enrichment fails", () => {
+    expect(route).toContain("documentPipeline: documentError ? null");
+    expect(route).toContain("if (!documentPipeline) return check;");
+    expect(route).not.toContain("if (documentError) throw documentError;");
+    expect(route).toContain("const technicalReady = data.technical_ready;");
+  });
+
   test("links remediation without fabricating evidence", () => {
     expect(workspace).toContain('to: "/operations/$operationId/contract-readiness"');
     expect(route).toContain('to="/operations/$operationId/procurement"');
