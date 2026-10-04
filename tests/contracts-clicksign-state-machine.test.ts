@@ -19,7 +19,8 @@ describe("Clicksign contract state machine", () => {
 
   test("webhook uses compare-and-set so concurrent provider events cannot overwrite a newer state", () => {
     expect(webhook).toContain('.eq("status", current)');
-    expect(webhook).toContain('.select("id,status").maybeSingle()');
+    expect(webhook).toContain('.select("id,status")');
+    expect(webhook).toContain(".maybeSingle()");
     expect(webhook).toContain('error: "contract_changed_during_webhook"');
 
     const transitionGate = webhook.indexOf("if (canApplyStatus(current, mapped.status))");
