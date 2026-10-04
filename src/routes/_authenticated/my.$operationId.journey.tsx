@@ -82,8 +82,8 @@ function PortalJourney() {
               const effectiveEnd = step.expectedEnd ?? step.plannedEnd;
               const startMs = effectiveStart ? new Date(effectiveStart).getTime() : null;
               const endMs = effectiveEnd ? new Date(effectiveEnd).getTime() : startMs;
-              const completed = endMs !== null && endMs < now;
-              const isNext = !completed && step.stepId === nextStepId;
+              const elapsed = endMs !== null && endMs < now;
+              const isNext = !elapsed && step.stepId === nextStepId;
               const expanded = expandedStepId === step.stepId;
               return (
               <li key={step.stepId} className="relative pb-5 last:pb-0">
@@ -96,7 +96,7 @@ function PortalJourney() {
                         <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">{step.title}</h3>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {isNext ? <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">{t("w10.journey.nextStep")}</span> : null}
-                          {completed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">{t("w10.journey.completed")}</span> : null}
+                          {elapsed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">{t("w10.journey.elapsed")}</span> : null}
                         </div>
                       </div>
                       {step.updates.length > 0 ? (
