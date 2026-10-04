@@ -41,6 +41,9 @@ const REACTIONS: Array<{ id: WallReaction; emoji: string }> = [
 const COPY = {
   "pt-BR": {
     title: "Mural",
+    eyebrow: "Comunidade da viagem",
+    community: "Reaja, participe de enquetes e converse com o grupo.",
+    officialNotices: "Avisos operacionais oficiais continuam na área Avisos.",
     subtitle: "Interaja com a organização e com os viajantes da sua experiência.",
     empty: "Ainda não há publicações. Os próximos avisos, perguntas e enquetes aparecerão aqui.",
     vote: "voto",
@@ -51,6 +54,9 @@ const COPY = {
   },
   "en-US": {
     title: "Wall",
+    eyebrow: "Trip community",
+    community: "React, join polls, and chat with the group.",
+    officialNotices: "Official operational notices remain in the Notices area.",
     subtitle: "Interact with the organizers and travelers in your experience.",
     empty: "No posts yet. New questions, polls and updates will appear here.",
     vote: "vote",
@@ -61,6 +67,9 @@ const COPY = {
   },
   "es-ES": {
     title: "Mural",
+    eyebrow: "Comunidad del viaje",
+    community: "Reacciona, participa en encuestas y conversa con el grupo.",
+    officialNotices: "Los avisos operativos oficiales siguen en el área Avisos.",
     subtitle: "Interactúa con la organización y con los viajeros de tu experiencia.",
     empty: "Todavía no hay publicaciones. Las preguntas, encuestas y novedades aparecerán aquí.",
     vote: "voto",
@@ -86,8 +95,8 @@ function PortalWall() {
       active="wall"
     >
       <section className="mb-5 rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card to-muted/50 p-5 shadow-sm">
-        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><MessageCircleHeart className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Comunidade da viagem</p><h2 className="mt-1 text-xl font-semibold text-foreground">{copy.title}</h2><p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p></div></div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2"><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><UsersRound className="h-4 w-4 shrink-0 text-primary" />Reaja, participe de enquetes e converse com o grupo.</div><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" />Avisos operacionais oficiais continuam na área Avisos.</div></div>
+        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><MessageCircleHeart className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">{copy.eyebrow}</p><h2 className="mt-1 text-xl font-semibold text-foreground">{copy.title}</h2><p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p></div></div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2"><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><UsersRound className="h-4 w-4 shrink-0 text-primary" />{copy.community}</div><div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" />{copy.officialNotices}</div></div>
       </section>
 
       <PortalQueryGate isLoading={wall.isLoading} error={wall.error} onRetry={() => void wall.refetch()}>
