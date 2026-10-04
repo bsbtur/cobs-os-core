@@ -173,7 +173,7 @@ export function PortalShell({ operationId, title, active, children }: { operatio
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent side="bottom" className="pb-[calc(env(safe-area-inset-bottom)+1rem)]">
           <SheetHeader>
-            <SheetTitle>Mais da sua viagem</SheetTitle>
+            <SheetTitle>{t("w10.nav.moreTitle")}</SheetTitle>
           </SheetHeader>
           <div className="mt-4 flex flex-col gap-2">
             {SECONDARY.map((tab) => {
