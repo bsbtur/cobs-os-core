@@ -29,10 +29,10 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/mobility")
 
 function mobilityMode(leg: { title: string | null; originLabel: string | null; destinationLabel: string | null }) {
   const text = [leg.title, leg.originLabel, leg.destinationLabel].filter(Boolean).join(" ").toLowerCase();
-  if (/aeroporto|bsb|cgh|congonhas|voo|aéreo/.test(text)) return { label: "Aéreo", Icon: Plane };
-  if (/metrô|metro|estação/.test(text)) return { label: "Metrô", Icon: TrainFront };
-  if (/ônibus|onibus|bus|rodoviária|rodoviaria/.test(text)) return { label: "Ônibus", Icon: Bus };
-  return { label: "Traslado", Icon: Van };
+  if (/aeroporto|bsb|cgh|congonhas|voo|aéreo/.test(text)) return { labelKey: "w10.mobility.modeAir" as const, Icon: Plane };
+  if (/metrô|metro|estação/.test(text)) return { labelKey: "w10.mobility.modeMetro" as const, Icon: TrainFront };
+  if (/ônibus|onibus|bus|rodoviária|rodoviaria/.test(text)) return { labelKey: "w10.mobility.modeBus" as const, Icon: Bus };
+  return { labelKey: "w10.mobility.modeTransfer" as const, Icon: Van };
 }
 
 function PortalMobility() {
@@ -67,7 +67,7 @@ function PortalMobility() {
               return (
               <PortalCard key={leg.legId}>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><ModeIcon className="h-4 w-4" />{mode.label}</div>
+                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><ModeIcon className="h-4 w-4" />{t(mode.labelKey)}</div>
                   <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                     {leg.title ??
                       [leg.originLabel, leg.destinationLabel].filter(Boolean).join(" → ")}
