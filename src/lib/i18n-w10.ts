@@ -71,6 +71,9 @@ export const W10_DICTIONARIES = {
     "w10.stay.empty": "Hospedagem em preparação. Os detalhes aparecerão aqui assim que forem confirmados.",
 
     "w10.events.title": "Programação",
+    "w10.events.heroBody": "Programação do evento, sessões, espaços e horários disponíveis para sua experiência.",
+    "w10.events.datePending": "Data a confirmar",
+    "w10.events.locationPending": "Local a confirmar",
     "w10.events.venue": "Local",
     "w10.events.sessions": "Sessões",
     "w10.events.empty": "Programação em preparação. As atividades confirmadas aparecerão aqui.",
@@ -169,6 +172,9 @@ export const W10_DICTIONARIES = {
     "w10.stay.empty": "Accommodation is being prepared. Details will appear here as soon as they are confirmed.",
 
     "w10.events.title": "Program",
+    "w10.events.heroBody": "Event program, sessions, spaces, and available times for your experience.",
+    "w10.events.datePending": "Date to be confirmed",
+    "w10.events.locationPending": "Location to be confirmed",
     "w10.events.venue": "Venue",
     "w10.events.sessions": "Sessions",
     "w10.events.empty": "The program is being prepared. Confirmed activities will appear here.",
@@ -267,6 +273,9 @@ export const W10_DICTIONARIES = {
     "w10.stay.empty": "El alojamiento está en preparación. Los detalles aparecerán aquí cuando estén confirmados.",
 
     "w10.events.title": "Programación",
+    "w10.events.heroBody": "Programa del evento, sesiones, espacios y horarios disponibles para tu experiencia.",
+    "w10.events.datePending": "Fecha por confirmar",
+    "w10.events.locationPending": "Lugar por confirmar",
     "w10.events.venue": "Lugar",
     "w10.events.sessions": "Sesiones",
     "w10.events.empty": "La programación está en preparación. Las actividades confirmadas aparecerán aquí.",
