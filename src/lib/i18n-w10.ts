@@ -121,6 +121,10 @@ export const W10_DICTIONARIES = {
     "w10.mobility.departure": "Saída",
     "w10.mobility.arrival": "Chegada",
     "w10.mobility.return": "Retorno combinado",
+    "w10.mobility.modeAir": "Aéreo",
+    "w10.mobility.modeMetro": "Metrô",
+    "w10.mobility.modeBus": "Ônibus",
+    "w10.mobility.modeTransfer": "Traslado",
     "w10.mobility.empty": "Transporte em preparação. Os detalhes aparecerão aqui assim que forem confirmados.",
 
     "w10.stay.title": "Minha hospedagem",
@@ -296,6 +300,10 @@ export const W10_DICTIONARIES = {
     "w10.mobility.departure": "Departure",
     "w10.mobility.arrival": "Arrival",
     "w10.mobility.return": "Agreed return",
+    "w10.mobility.modeAir": "Air",
+    "w10.mobility.modeMetro": "Metro",
+    "w10.mobility.modeBus": "Bus",
+    "w10.mobility.modeTransfer": "Transfer",
     "w10.mobility.empty": "Transport is being prepared. Details will appear here as soon as they are confirmed.",
 
     "w10.stay.title": "My stay",
@@ -471,6 +479,10 @@ export const W10_DICTIONARIES = {
     "w10.mobility.departure": "Salida",
     "w10.mobility.arrival": "Llegada",
     "w10.mobility.return": "Regreso acordado",
+    "w10.mobility.modeAir": "Aéreo",
+    "w10.mobility.modeMetro": "Metro",
+    "w10.mobility.modeBus": "Autobús",
+    "w10.mobility.modeTransfer": "Traslado",
     "w10.mobility.empty": "El transporte está en preparación. Los detalles aparecerán aquí cuando estén confirmados.",
 
     "w10.stay.title": "Mi alojamiento",
