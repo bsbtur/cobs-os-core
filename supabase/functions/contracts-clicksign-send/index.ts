@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
     let input: { contract_id?: string }; try { input = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
     const contractId = input.contract_id?.trim(); if (!contractId) return json({ error: "contract_id_required" }, 400);
     const admin = createClient(SUPABASE_URL, SEC, { auth: { persistSession: false } });
-    const { data: c, error: ce } = await admin.from("customer_contracts").select("id,tenant_id,customer_person_id,status,template_key,template_version,original_document_path,document_hash,provider_envelope_id,signer_name,signer_document,expires_at,metadata,sent_at").eq("id", contractId).eq("provider", "clicksign").maybeSingle();
+    const { data: c, error: ce } = await admin.from("customer_contracts").select("id,tenant_id,order_id,customer_person_id,status,template_key,template_version,original_document_path,document_hash,provider_envelope_id,signer_name,signer_document,expires_at,metadata,sent_at").eq("id", contractId).eq("provider", "clicksign").maybeSingle();
     if (ce) return json({ error: "contract_lookup_failed" }, 500); if (!c) return json({ error: "contract_not_found" }, 404);
     const { data: m } = await admin.from("memberships").select("role").eq("tenant_id", c.tenant_id).eq("profile_id", ud.user.id).eq("status", "active").maybeSingle();
     if (!m || !["owner", "admin", "operations_agent"].includes(m.role)) return json({ error: "forbidden" }, 403);
@@ -42,6 +42,23 @@ Deno.serve(async (req: Request) => {
     if (templateError) return json({ error: "contract_template_lookup_failed" }, 500);
     if (!template?.legal_reviewed_at)
       return json({ error: "contract_provider_send_locked", reason: "formal_legal_validation_required" }, 423);
+
+    const { data: order, error: orderError } = await admin
+      .from("orders")
+      .select("operation_id")
+      .eq("id", c.order_id)
+      .eq("tenant_id", c.tenant_id)
+      .maybeSingle();
+    if (orderError) return json({ error: "contract_operation_lookup_failed" }, 500);
+    if (!order?.operation_id) return json({ error: "contract_operation_required" }, 409);
+
+    const { data: readiness, error: readinessError } = await userClient.rpc("get_operation_contract_readiness", {
+      _operation_id: order.operation_id,
+      _template_key: c.template_key,
+    });
+    if (readinessError) return json({ error: "contract_readiness_check_failed" }, 500);
+    if (readiness?.provider_send_ready !== true)
+      return json({ error: "contract_provider_send_locked", reason: "canonical_provider_send_not_ready" }, 423);
 
     if (!c.original_document_path) return json({ error: "original_document_missing" }, 409);
     if (!c.document_hash) return json({ error: "contract_document_hash_missing" }, 409);
