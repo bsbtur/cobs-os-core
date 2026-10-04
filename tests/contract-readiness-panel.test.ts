@@ -26,6 +26,12 @@ describe("contract readiness panel", () => {
     expect(route).not.toContain("contracts-generate");
   });
 
+  test("explains blocked zero-order checks without implying 0/0 completion", () => {
+    expect(route).toContain("Nenhum pedido de produção contratável encontrado");
+    expect(route).toContain('["commercial_terms", "customer_contract_data", "payment_schedule"]');
+    expect(route).toContain('check.status === "blocked"');
+  });
+
   test("separates technical and legal blockers", () => {
     expect(migration).toContain("'kind','legal'");
     expect(migration).toContain("'kind','technical'");
