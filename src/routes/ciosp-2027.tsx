@@ -285,7 +285,7 @@ function CiospLanding() {
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
               {experienceCards.map(([Icon,title,copy],i)=>(
                 <article key={title} className="group relative min-h-[210px] overflow-hidden rounded-xl border border-white/15 bg-[#101010]">
-                  <img src={gallery[i%gallery.length][0]} alt="" loading="lazy" className="absolute inset-0 h-[58%] w-full object-cover opacity-72 transition duration-500 group-hover:scale-105"/>
+                  <img src={gallery[i % gallery.length]?.[0] ?? "/ciosp/expo-center-norte.jpg"} alt="" loading="lazy" className="absolute inset-0 h-[58%] w-full object-cover opacity-72 transition duration-500 group-hover:scale-105"/>
                   <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-[#080808]/70 to-transparent"/>
                   <div className="absolute inset-x-0 bottom-0 p-3">
                     <Icon className="mb-2 size-4 text-[#D6B56D]"/>
