@@ -51,7 +51,7 @@ function PortalJourney() {
           </div>
           <div className="hidden rounded-2xl bg-background/70 p-3 sm:block"><CalendarDays className="h-6 w-6 text-primary" /></div>
         </div>
-        {steps.length > 0 ? (
+        {!journey.isLoading && !journey.error && steps.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">{steps.length} atividades programadas</span>
             <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">Horário local da operação</span>
@@ -59,7 +59,7 @@ function PortalJourney() {
         ) : null}
       </section>
 
-      {nextStepId ? (
+      {!journey.isLoading && !journey.error && nextStepId ? (
         <section className="mb-5 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-primary/10 p-2"><Plane className="h-5 w-5 text-primary" /></div>
