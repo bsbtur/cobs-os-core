@@ -478,7 +478,8 @@ function CiospLanding() {
           </div>
         </section>
 
-        <section id="reserva" className="relative overflow-hidden border-t border-[#D6B56D]/18 bg-[#080808]">\n          <img src="/ciosp/expo-center-norte.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" loading="lazy"/><div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/55"/>
+        <section id="reserva" className="relative overflow-hidden border-t border-[#D6B56D]/18 bg-[#080808]">
+          <img src="/ciosp/expo-center-norte.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" loading="lazy"/><div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/55"/>
           <div className="relative mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:px-8 lg:py-12">
             <div>
               <SectionEyebrow>Próximo capítulo</SectionEyebrow>
