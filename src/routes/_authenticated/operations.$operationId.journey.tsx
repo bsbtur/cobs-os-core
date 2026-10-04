@@ -385,18 +385,18 @@ function ForecastDialog({
   const [reason, setReason] = React.useState("");
 
   React.useEffect(() => {
-    setStart("");
-    setEnd("");
+    setStart(step ? toLocalInput(step.expected_start ?? step.planned_start ?? "") : "");
+    setEnd(step ? toLocalInput(step.expected_end ?? step.planned_end ?? "") : "");
     setReason("");
-  }, [step?.id]);
+  }, [step?.id, step?.expected_start, step?.expected_end, step?.planned_start, step?.planned_end]);
 
   const save = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (values: { start: string; end: string; reason: string }) => {
       const { error } = await supabase.rpc("set_step_expected_window", {
         _journey_step_id: step!.id,
-        _expected_start: toIsoOrNull(start),
-        _expected_end: toIsoOrNull(end),
-        _reason: reason.trim(),
+        _expected_start: toIsoOrNull(values.start),
+        _expected_end: toIsoOrNull(values.end),
+        _reason: values.reason.trim(),
       });
       if (error) throw error;
     },
@@ -414,12 +414,24 @@ function ForecastDialog({
         <DialogHeader>
           <DialogTitle>{t("w04.expected.change")}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const form = new FormData(event.currentTarget);
+            save.mutate({
+              start: String(form.get("forecast-start") ?? ""),
+              end: String(form.get("forecast-end") ?? ""),
+              reason: String(form.get("forecast-reason") ?? ""),
+            });
+          }}
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="fc-start">{t("w04.field.expectedStart")}</Label>
               <Input
                 id="fc-start"
+                name="forecast-start"
                 type="datetime-local"
                 value={start}
                 onChange={(event) => setStart(event.target.value)}
@@ -430,6 +442,7 @@ function ForecastDialog({
               <Label htmlFor="fc-end">{t("w04.field.expectedEnd")}</Label>
               <Input
                 id="fc-end"
+                name="forecast-end"
                 type="datetime-local"
                 value={end}
                 onChange={(event) => setEnd(event.target.value)}
@@ -441,6 +454,7 @@ function ForecastDialog({
             <Label htmlFor="fc-reason">{t("w04.field.reason")}</Label>
             <Textarea
               id="fc-reason"
+              name="forecast-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               rows={2}
@@ -450,11 +464,11 @@ function ForecastDialog({
           <Button
             className="min-h-11 w-full"
             disabled={!reason.trim() || save.isPending}
-            onClick={() => save.mutate()}
+            type="submit"
           >
             {t("w04.expected.change")}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
