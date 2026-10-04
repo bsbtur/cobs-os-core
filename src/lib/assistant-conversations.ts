@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { AssistantSupabaseClient } from "@/integrations/supabase/assistant-types";
 import { toPortalError } from "@/lib/w10";
+import { getAssistantPollingInterval } from "@/lib/assistant-response-state";
 
 const assistantSupabase = supabase as unknown as AssistantSupabaseClient;
 
@@ -112,11 +113,7 @@ export function useAssistantMessages(conversationId: string | undefined) {
     queryKey: assistantKeys.messages(conversationId ?? ""),
     queryFn: () => getMessages(conversationId!),
     enabled: Boolean(conversationId),
-    refetchInterval: (query) => {
-      const messages = query.state.data ?? [];
-      const waiting = messages.some((message) => message.role === "user" && message.status === "pending");
-      return waiting ? 2_000 : 10_000;
-    },
+    refetchInterval: (query) => getAssistantPollingInterval(query.state.data ?? []),
   });
 }
 
