@@ -76,11 +76,7 @@ function PortalMobility() {
                     <PortalTag>
                       {t("w10.mobility.seat")} {leg.mySeat.seatLabel}
                     </PortalTag>
-                  ) : (
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {t("w10.mobility.noSeat")}
-                    </span>
-                  )}
+                  ) : null}
                 </div>
 
                 <dl className="mt-2 flex flex-col gap-1">
