@@ -11,11 +11,11 @@ describe("Clicksign send atomic envelope claim", () => {
     expect(migration).toContain("v_contract.provider_envelope_id is not null");
     expect(migration).toContain("v_metadata ? 'clicksign_envelope_attempted_at'");
     expect(migration).toContain("revoke all on function app_private.claim_clicksign_envelope_creation(uuid) from authenticated");
-    expect(migration).toContain("grant execute on function app_private.claim_clicksign_envelope_creation(uuid) to service_role");
+    expect(migration).toContain("grant execute on function app_private.claim_clicksign_envelope_creation(uuid) to service_role");\n    expect(migration).toContain("revoke all on function public.claim_clicksign_envelope_creation_service(uuid) from authenticated");\n    expect(migration).toContain("grant execute on function public.claim_clicksign_envelope_creation_service(uuid) to service_role");
   });
 
   test("sender must win the claim before the external envelope POST", () => {
-    const claim = sender.indexOf('rpc("claim_clicksign_envelope_creation"');
+    const claim = sender.indexOf('rpc("claim_clicksign_envelope_creation_service"');
     const providerPost = sender.indexOf('cs("/envelopes", "POST"');
     expect(claim).toBeGreaterThan(-1);
     expect(providerPost).toBeGreaterThan(claim);
