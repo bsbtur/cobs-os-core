@@ -129,7 +129,7 @@ function ContractReadinessPage() {
         </div>
         <div className="surface-panel p-4">
           <p className="text-xs text-muted-foreground">Envio ao provedor</p>
-          <p className="mt-1 font-semibold">BLOQUEADO</p>
+          <p className="mt-1 font-semibold">{data.provider_send_ready ? "PRONTO" : "BLOQUEADO"}</p>
         </div>
       </section>
 
