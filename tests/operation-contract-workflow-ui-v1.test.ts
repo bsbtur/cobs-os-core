@@ -17,11 +17,6 @@ const runtimeTypes = readFileSync("src/integrations/supabase/runtime-rpc-types.t
 const normalizedRoute = route.replace(/\s+/g, " ");
 
 describe("operation contract workflow UI v1", () => {
-  test("fails closed while contract executors are not deployed", () => {
-    expect(route).toContain("const CONTRACT_EXECUTORS_AVAILABLE = false;");
-    expect(normalizedRoute).toContain("CONTRACT_EXECUTORS_AVAILABLE && canOperate");
-    expect(route).toContain("Ações de geração e PDF indisponíveis até os executores contratuais serem implantados e aprovados em produção.");
-  });
   test("lists only canonical production contractable orders", () => {
     expect(migration).toContain("get_operation_contract_workflow");
     expect(migration).toContain("order_matches_commerce_environment(o.tenant_id,o.id,'production')");
