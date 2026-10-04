@@ -48,7 +48,8 @@ describe("contract readiness panel", () => {
 
   test("counts only canonical backend readiness checks", () => {
     expect(route).toContain("const checks: ReadinessCheck[] = data.checks.map");
-    expect(route).not.toContain('detail.startsWith("0/0")');
+    expect(route).toContain('detail.startsWith("0/0")');
+    expect(route).toContain('return { ...check, detail: "Nenhum pedido de produção contratável encontrado" };');
     expect(route).not.toContain('key: "production_order"');
     expect(route).not.toContain("noProductionOrders");
     expect(route).toContain('checks.filter((check) => check.status === "blocked").length');
