@@ -17,7 +17,7 @@ describe("Clicksign send atomic envelope claim", () => {
   });
 
   test("sender must win the claim before the external envelope POST", () => {
-    const claim = sender.indexOf('rpc("claim_clicksign_envelope_creation_service"');
+    const claim = sender.indexOf("claim_clicksign_envelope_creation_service");
     const providerPost = sender.indexOf('cs("/envelopes", "POST"');
     expect(claim).toBeGreaterThan(-1);
     expect(providerPost).toBeGreaterThan(claim);
