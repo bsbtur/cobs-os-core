@@ -42,19 +42,19 @@ function PortalJourney() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Sparkles className="h-3.5 w-3.5" /> Sua jornada
+              <Sparkles className="h-3.5 w-3.5" /> {t("w10.journey.eyebrow")}
             </div>
             <h2 className="text-xl font-semibold tracking-tight text-foreground">{t("w10.journey.title")}</h2>
             <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Acompanhe a programação da viagem, horários, locais e atualizações da operação em um só lugar.
+              {t("w10.journey.heroBody")}
             </p>
           </div>
           <div className="hidden rounded-2xl bg-background/70 p-3 sm:block"><CalendarDays className="h-6 w-6 text-primary" /></div>
         </div>
         {!journey.isLoading && !journey.error && steps.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">{steps.length} atividades programadas</span>
-            <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">Horário local da operação</span>
+            <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">{steps.length} {t("w10.journey.activities")}</span>
+            <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">{t("w10.journey.localTime")}</span>
           </div>
         ) : null}
       </section>
@@ -64,9 +64,9 @@ function PortalJourney() {
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-primary/10 p-2"><Plane className="h-5 w-5 text-primary" /></div>
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Próxima atividade</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{t("w10.journey.nextActivity")}</p>
               <p className="mt-1 text-base font-semibold text-foreground">{steps.find((step) => step.stepId === nextStepId)?.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Consulte esta tela antes de cada saída. Horários e pontos de encontro confirmados serão publicados aqui.</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("w10.journey.nextGuidance")}</p>
             </div>
           </div>
         </section>
@@ -92,11 +92,11 @@ function PortalJourney() {
                   <div className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Etapa {String(index + 1).padStart(2, "0")}</p>
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{t("w10.journey.step")} {String(index + 1).padStart(2, "0")}</p>
                         <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">{step.title}</h3>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {isNext ? <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">Próxima etapa</span> : null}
-                          {completed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">Concluída</span> : null}
+                          {isNext ? <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">{t("w10.journey.nextStep")}</span> : null}
+                          {completed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">{t("w10.journey.completed")}</span> : null}
                         </div>
                       </div>
                       {step.updates.length > 0 ? (
@@ -107,22 +107,22 @@ function PortalJourney() {
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-xl bg-muted/55 p-3">
-                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Quando</p>
-                        <JourneyTime planned={step.plannedStart} expected={step.expectedStart} locale={locale} timeZone={timeZone} />
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.when")}</p>
+                        <JourneyTime planned={step.plannedStart} expected={step.expectedStart} locale={locale} timeZone={timeZone} pendingLabel={t("w10.journey.timePending")} />
                       </div>
                       <div className="rounded-xl bg-muted/55 p-3">
-                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Onde</p>
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.where")}</p>
                         <p className="flex gap-2 break-words text-sm font-medium text-foreground">
                           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                          {step.locationLabel || "Local a confirmar"}
+                          {step.locationLabel || t("w10.journey.locationPending")}
                         </p>
                       </div>
                     </div>
                     <div className="mt-3 flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fonte oficial</p>
-                        <p className="mt-0.5 text-xs font-medium text-foreground">Atualizações operacionais serão publicadas no COBS.</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.officialSource")}</p>
+                        <p className="mt-0.5 text-xs font-medium text-foreground">{t("w10.journey.officialSourceBody")}</p>
                       </div>
                     </div>
                     <button
@@ -131,7 +131,7 @@ function PortalJourney() {
                       className="mt-4 flex w-full items-center justify-between rounded-xl border border-border/70 bg-background/60 px-3 py-2.5 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                       aria-expanded={expanded}
                     >
-                      <span>{expanded ? "Ocultar detalhes" : "Ver programação da etapa"}</span>
+                      <span>{expanded ? t("w10.journey.hideDetails") : t("w10.journey.showDetails")}</span>
                       <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
                     </button>
                     {expanded ? (
@@ -139,23 +139,23 @@ function PortalJourney() {
                         <div className="flex gap-3">
                           <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                           <div>
-                            <p className="text-sm font-semibold text-foreground">Programação do dia</p>
-                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Acompanhe aqui horário, ponto de encontro e mudanças desta etapa. Informações ainda não fechadas aparecem como “a confirmar”.</p>
+                            <p className="text-sm font-semibold text-foreground">{t("w10.journey.dayProgram")}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("w10.journey.dayProgramBody")}</p>
                           </div>
                         </div>
                         {step.updates.length > 0 ? (
                           <div className="border-t border-border/60 pt-3">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Atualizações da operação</p>
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.operationUpdates")}</p>
                             <div className="space-y-2">
                               {step.updates.map((update, updateIndex) => (
                                 <div key={`${step.stepId}-${updateIndex}`} className="rounded-lg bg-background/70 p-3 text-xs text-foreground">
-                                  {update.note || "Atualização operacional disponível."}
+                                  {update.note || t("w10.journey.updateAvailable")}
                                 </div>
                               ))}
                             </div>
                           </div>
                         ) : (
-                          <p className="border-t border-border/60 pt-3 text-xs text-muted-foreground">Nenhuma alteração operacional publicada para esta etapa.</p>
+                          <p className="border-t border-border/60 pt-3 text-xs text-muted-foreground">{t("w10.journey.noUpdates")}</p>
                         )}
                       </div>
                     ) : null}
@@ -177,14 +177,16 @@ function JourneyTime({
   expected,
   locale,
   timeZone,
+  pendingLabel,
 }: {
   planned: string | null;
   expected: string | null;
   locale: string;
   timeZone?: string | null;
+  pendingLabel: string;
 }) {
   const effective = expected ?? planned;
-  if (!effective) return <span className="text-xs text-muted-foreground">Horário a confirmar</span>;
+  if (!effective) return <span className="text-xs text-muted-foreground">{pendingLabel}</span>;
 
   const date = new Date(effective);
   const timeParts = new Intl.DateTimeFormat("en-GB", {
@@ -203,7 +205,7 @@ function JourneyTime({
   if (hour === "00" && minute === "00") {
     return (
       <span className="text-xs text-foreground">
-        {dateLabel} · <span className="text-muted-foreground">Horário a confirmar</span>
+        {dateLabel} · <span className="text-muted-foreground">{pendingLabel}</span>
       </span>
     );
   }
