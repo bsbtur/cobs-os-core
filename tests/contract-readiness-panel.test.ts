@@ -32,7 +32,12 @@ describe("contract readiness panel", () => {
     expect(route).toContain("Prontidão Contratual");
     expect(route).toContain("Jurídico");
     expect(route).toContain("Técnico");
-    expect(route).toContain("BLOQUEADO");
+    expect(route).toContain('data.provider_send_ready ? "PRONTO" : "BLOQUEADO"');
+  });
+
+  test("renders provider status from canonical backend readiness", () => {
+    expect(route).toContain('data.provider_send_ready ? "PRONTO" : "BLOQUEADO"');
+    expect(migration).toContain("'provider_send_ready',false");
   });
 
   test("counts only canonical backend readiness checks", () => {
