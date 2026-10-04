@@ -31,7 +31,7 @@ function mobilityMode(leg: { title: string | null; originLabel: string | null; d
   const text = [leg.title, leg.originLabel, leg.destinationLabel].filter(Boolean).join(" ").toLowerCase();
   if (/aeroporto|bsb|cgh|congonhas|voo|aéreo/.test(text)) return { label: "Aéreo", Icon: Plane };
   if (/metrô|metro|estação/.test(text)) return { label: "Metrô", Icon: TrainFront };
-  if (/ônibus|onibus|ciosp|expo center norte/.test(text)) return { label: "Ônibus oficial", Icon: Bus };
+  if (/ônibus|onibus|bus|rodoviária|rodoviaria/.test(text)) return { label: "Ônibus", Icon: Bus };
   return { label: "Traslado", Icon: Van };
 }
 
