@@ -66,14 +66,14 @@ function PortalMessages() {
         <div className="flex items-start gap-3">
           <div className="rounded-2xl bg-primary/10 p-3"><BellRing className="h-5 w-5 text-primary" /></div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Central da operação</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">{t("w10.messages.eyebrow")}</p>
             <h2 className="mt-1 text-xl font-semibold text-foreground">{t("w10.messages.title")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Mudanças de horário, pontos de encontro e orientações importantes da sua viagem aparecem aqui.</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("w10.messages.heroBody")}</p>
           </div>
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          <div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" />Considere os avisos publicados no COBS como referência operacional.</div>
-          <div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><CheckCheck className="h-4 w-4 shrink-0 text-primary" />Ao abrir esta área, novos avisos são registrados como lidos.</div>
+          <div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" />{t("w10.messages.reference")}</div>
+          <div className="flex gap-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground"><CheckCheck className="h-4 w-4 shrink-0 text-primary" />{t("w10.messages.readReceipt")}</div>
         </div>
       </section>
       <PortalQueryGate
