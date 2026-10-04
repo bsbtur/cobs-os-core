@@ -106,10 +106,10 @@ function toLocalInput(iso: string) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function toIsoOrNull(value: string) {
-  if (!value) return undefined;
+function toIsoOrNull(value: string): string | null {
+  if (!value) return null;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 /* ------------------------------------------------------------------ */
@@ -394,8 +394,8 @@ function ForecastDialog({
     mutationFn: async () => {
       const { error } = await supabase.rpc("set_step_expected_window", {
         _journey_step_id: step!.id,
-        _expected_start: toIsoOrNull(start) as unknown as string,
-        _expected_end: toIsoOrNull(end) as unknown as string,
+        _expected_start: toIsoOrNull(start),
+        _expected_end: toIsoOrNull(end),
         _reason: reason.trim(),
       });
       if (error) throw error;
