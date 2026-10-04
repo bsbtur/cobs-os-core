@@ -3,10 +3,12 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { Bot, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 
 import {
+  type AssistantConversationMessage,
   useAssistantConversation,
   useAssistantMessages,
   useSubmitAssistantMessage,
 } from "@/lib/assistant-conversations";
+import { ASSISTANT_RESPONSE_WAIT_MS, getAssistantResponseState } from "@/lib/assistant-response-state";
 import { useMyOverview } from "@/lib/w10";
 import { useI18n } from "@/lib/i18n";
 import { PortalFrame } from "@/app/portal/portal-shell";
@@ -108,9 +110,7 @@ function PortalAssistant() {
                     <span>{mine ? t("w10.assistant.you") : message.role === "human" ? t("w10.assistant.team") : "COBS"}</span>
                   </div>
                   <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
-                  {mine && message.status === "pending" ? (
-                    <p className="mt-1 text-[11px] opacity-70">{t("w10.assistant.processing")}</p>
-                  ) : null}
+                  <AssistantResponseStatus message={message} />
                 </div>
               </div>
             );
@@ -155,4 +155,23 @@ function PortalAssistant() {
       </form>
     </PortalFrame>
   );
+}
+
+function AssistantResponseStatus({ message }: { message: AssistantConversationMessage }) {
+  const { t } = useI18n();
+  const [now, setNow] = React.useState(() => Date.now());
+  const { role, status, createdAt } = message;
+
+  React.useEffect(() => {
+    const current = Date.now();
+    setNow(current);
+    if (getAssistantResponseState({ role, status, createdAt }, current) !== "processing") return;
+    const remaining = Date.parse(createdAt) + ASSISTANT_RESPONSE_WAIT_MS - current;
+    const timer = setTimeout(() => setNow(Date.now()), remaining);
+    return () => clearTimeout(timer);
+  }, [role, status, createdAt]);
+
+  const state = getAssistantResponseState(message, now);
+  if (!state) return null;
+  return <p className="mt-1 text-xs opacity-80" role="status">{t(`w10.assistant.${state}`)}</p>;
 }
