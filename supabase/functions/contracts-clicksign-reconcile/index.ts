@@ -59,6 +59,7 @@ Deno.serve(async (req: Request) => {
 
     if (contract.status === "signed") return json({ ok: true, idempotent: true, contract_id: contract.id, status: "signed" }, 200);
     if (["cancelled", "expired", "superseded"].includes(contract.status)) return json({ error: "terminal_contract_state", status: contract.status }, 409);
+    if (!["sent", "viewed"].includes(contract.status)) return json({ error: "contract_not_sent_to_provider", status: contract.status }, 409);
     if (!contract.provider_envelope_id) return json({ error: "provider_envelope_missing" }, 409);
     if (!TOKEN) return json({ error: "clicksign_not_configured" }, 503);
 
