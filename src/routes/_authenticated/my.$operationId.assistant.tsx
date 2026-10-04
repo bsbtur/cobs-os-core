@@ -8,6 +8,7 @@ import {
   useSubmitAssistantMessage,
 } from "@/lib/assistant-conversations";
 import { useMyOverview } from "@/lib/w10";
+import { useI18n } from "@/lib/i18n";
 import { PortalFrame } from "@/app/portal/portal-shell";
 import { PortalCard, PortalQueryGate } from "@/app/portal/portal-states";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/assistant"
 
 function PortalAssistant() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/assistant" });
+  const { t } = useI18n();
   const overview = useMyOverview(operationId);
   const conversation = useAssistantConversation(operationId);
   const messages = useAssistantMessages(conversation.data?.conversationId);
@@ -53,12 +55,12 @@ function PortalAssistant() {
 
   return (
     <PortalFrame
-      title={overview.data?.name ?? "Assistente COBS"}
-      back={{ to: `/my/${operationId}`, label: "Voltar para minha viagem" }}
+      title={overview.data?.name ?? t("w10.home.assistantShortcut")}
+      back={{ to: `/my/${operationId}`, label: t("w10.assistant.back") }}
     >
       <section className="mb-5 rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-5 shadow-sm">
-        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><Bot className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Suporte da sua viagem</p><h2 className="mt-1 text-xl font-semibold text-foreground">Assistente COBS</h2><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre horários, programação, transporte, hospedagem e informações confirmadas da sua viagem.</p></div></div>
-        <div className="mt-4 flex flex-wrap gap-2"><span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"><ShieldCheck className="size-3.5" />Não inventa informações não confirmadas</span><span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs font-medium text-foreground"><Sparkles className="size-3.5 text-primary" />Contexto da sua operação</span></div>
+        <div className="flex items-start gap-3"><div className="rounded-2xl bg-primary/10 p-3"><Bot className="h-5 w-5 text-primary" /></div><div><p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">{t("w10.assistant.eyebrow")}</p><h2 className="mt-1 text-xl font-semibold text-foreground">{t("w10.home.assistantShortcut")}</h2><p className="mt-1 text-sm text-muted-foreground">{t("w10.assistant.heroBody")}</p></div></div>
+        <div className="mt-4 flex flex-wrap gap-2"><span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"><ShieldCheck className="size-3.5" />{t("w10.assistant.confirmedOnly")}</span><span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs font-medium text-foreground"><Sparkles className="size-3.5 text-primary" />{t("w10.assistant.operationContext")}</span></div>
       </section>
 
       <PortalQueryGate
@@ -77,9 +79,9 @@ function PortalAssistant() {
                   <Bot className="size-4" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="font-medium text-foreground">Como posso ajudar?</p>
+                  <p className="font-medium text-foreground">{t("w10.assistant.emptyTitle")}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Eu respondo usando os dados disponíveis da sua operação. Quando uma informação não estiver confirmada, não vou inventar.
+                    {t("w10.assistant.emptyBody")}
                   </p>
                 </div>
               </div>
@@ -103,11 +105,11 @@ function PortalAssistant() {
                     ) : (
                       <Bot className="size-3.5" aria-hidden="true" />
                     )}
-                    <span>{mine ? "Você" : message.role === "human" ? "Equipe COBS" : "COBS"}</span>
+                    <span>{mine ? t("w10.assistant.you") : message.role === "human" ? t("w10.assistant.team") : "COBS"}</span>
                   </div>
                   <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
                   {mine && message.status === "pending" ? (
-                    <p className="mt-1 text-[11px] opacity-70">Processando…</p>
+                    <p className="mt-1 text-[11px] opacity-70">{t("w10.assistant.processing")}</p>
                   ) : null}
                 </div>
               </div>
@@ -133,22 +135,22 @@ function PortalAssistant() {
               void send();
             }
           }}
-          placeholder="Digite sua pergunta…"
-          aria-label="Mensagem para o Assistente COBS"
+          placeholder={t("w10.assistant.placeholder")}
+          aria-label={t("w10.assistant.ariaMessage")}
           rows={2}
           maxLength={1200}
           disabled={!conversation.data || submit.isPending}
           className="min-h-[72px] resize-none"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">Enter envia · Shift+Enter quebra linha</p>
+          <p className="text-xs text-muted-foreground">{t("w10.assistant.keyboardHint")}</p>
           <Button type="submit" disabled={!draft.trim() || !conversation.data || submit.isPending}>
             <Send className="mr-2 size-4" aria-hidden="true" />
-            Enviar
+            {t("w10.assistant.send")}
           </Button>
         </div>
         {submit.isError ? (
-          <p className="mt-2 text-xs text-destructive">Não foi possível enviar. Tente novamente.</p>
+          <p className="mt-2 text-xs text-destructive">{t("w10.assistant.sendError")}</p>
         ) : null}
       </form>
     </PortalFrame>
