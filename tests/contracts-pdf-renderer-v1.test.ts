@@ -51,7 +51,7 @@ describe("contracts PDF renderer v1", () => {
     expect(sender).toContain("contract_document_hash_missing");
     expect(sender).toContain("contract_pdf_hash_mismatch");
     const hashCheck = sender.indexOf("contract_pdf_hash_mismatch");
-    const firstProviderAttempt = sender.indexOf('rpc("claim_clicksign_envelope_creation_service"');
+    const firstProviderAttempt = sender.indexOf("claim_clicksign_envelope_creation_service");
     expect(hashCheck).toBeGreaterThan(-1);
     expect(firstProviderAttempt).toBeGreaterThan(hashCheck);
   });
