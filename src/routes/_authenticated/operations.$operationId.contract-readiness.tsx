@@ -97,6 +97,13 @@ function ContractReadinessPage() {
           : documentPipeline.detail,
       };
     }
+    if (
+      check.status === "blocked" &&
+      ["commercial_terms", "customer_contract_data", "payment_schedule"].includes(check.key) &&
+      check.detail.startsWith("0/0")
+    ) {
+      return { ...check, detail: "Nenhum pedido de produção contratável encontrado" };
+    }
     if (check.key !== "contracted_suppliers") return check;
     const legallyComplete = Number.parseInt(check.detail.split("/")[0] ?? "0", 10) || 0;
     if (!supplierCounts) return check;
