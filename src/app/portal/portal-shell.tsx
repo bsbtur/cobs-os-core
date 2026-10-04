@@ -106,12 +106,11 @@ export function PortalFrame({ title, back, children }: { title: string; back?: {
 }
 
 export function PortalShell({ operationId, title, active, children }: { operationId: string; title: string; active: TabId; children: React.ReactNode }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [moreOpen, setMoreOpen] = React.useState(false);
   const navigate = useNavigate();
-  const wallLabel = locale === "en-US" ? "Wall" : "Mural";
   const moreActive = SECONDARY.some((tab) => tab.id === active);
-  const label = (tab: (typeof SECONDARY)[number] | (typeof PRIMARY)[number]) => tab.id === "wall" ? wallLabel : t(tab.labelKey);
+  const label = (tab: (typeof SECONDARY)[number] | (typeof PRIMARY)[number]) => t(tab.labelKey);
 
   const tabClass = (isActive: boolean) =>
     cn(
