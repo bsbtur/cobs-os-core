@@ -26,8 +26,11 @@ describe("operation contract workflow UI v1", () => {
     expect(migration).not.toMatch(/update\s+public\./i);
   });
 
-  test("gates draft generation on technical, legal and document readiness", () => {
-    expect(route).toContain("readiness.technical_ready && readiness.legal_ready && pipeline.ready");
+  test("gates draft generation on canonical technical and legal readiness", () => {
+    expect(route).toContain("readiness.technical_ready && readiness.legal_ready");
+    expect(route).not.toContain("readiness.technical_ready && readiness.legal_ready && pipeline.ready");
+    expect(route).toContain("pipeline: pipeline.error ? null");
+    expect(route).not.toContain("if (pipeline.error) throw pipeline.error");
     expect(route).toContain('supabase.functions.invoke("contracts-generate"');
     expect(route).toContain("row.party_profile_complete");
     expect(route).toContain("!row.contract_id");
