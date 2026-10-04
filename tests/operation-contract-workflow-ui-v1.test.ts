@@ -19,7 +19,7 @@ const normalizedRoute = route.replace(/\s+/g, " ");
 describe("operation contract workflow UI v1", () => {
   test("fails closed while contract executors are not deployed", () => {
     expect(route).toContain("const CONTRACT_EXECUTORS_AVAILABLE = false;");
-    expect(route).toContain("CONTRACT_EXECUTORS_AVAILABLE && canOperate");
+    expect(normalizedRoute).toContain("CONTRACT_EXECUTORS_AVAILABLE && canOperate");
     expect(route).toContain("Ações de geração e PDF indisponíveis até os executores contratuais serem implantados e aprovados em produção.");
   });
   test("lists only canonical production contractable orders", () => {
