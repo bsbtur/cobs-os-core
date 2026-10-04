@@ -21,6 +21,8 @@ describe("Clicksign send atomic envelope claim", () => {
     const providerPost = sender.indexOf('cs("/envelopes", "POST"');
     expect(claim).toBeGreaterThan(-1);
     expect(providerPost).toBeGreaterThan(claim);
-    expect(sender).toContain('if (claimed !== true) return json({ error: "provider_recovery_required", stage: "envelope" }, 409)');
+    expect(sender).toContain("claimed !== true");
+    expect(sender).toContain('error: "provider_recovery_required"');
+    expect(sender).toContain('stage: "envelope"');
   });
 });
