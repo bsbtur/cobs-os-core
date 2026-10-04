@@ -46,3 +46,19 @@ describe("privacy policy draft registry v1", () => {
     expect(auditSection).not.toContain("'content_snapshot'");
   });
 });
+
+
+describe("privacy policy legal evidence immutability", () => {
+  const hardening = readFileSync(
+    "supabase/migrations/20261004133000_privacy_policy_legal_evidence_immutability_v1.sql",
+    "utf8",
+  );
+
+  test("freezes formal legal-review evidence after review or activation", () => {
+    expect(hardening).toContain("reviewed_privacy_policy_legal_evidence_immutable");
+    expect(hardening).toContain("new.legal_reviewed_at is distinct from old.legal_reviewed_at");
+    expect(hardening).toContain("new.legal_review_reference is distinct from old.legal_review_reference");
+    expect(hardening).toContain("extensions.digest");
+    expect(hardening).toContain("from public, anon, authenticated, service_role");
+  });
+});
