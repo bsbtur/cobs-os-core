@@ -12,6 +12,15 @@ async function sha(v: string) { return hex(await crypto.subtle.digest("SHA-256",
 function safeEq(a: string, b: string) { if (a.length !== b.length) return false; let x = 0; for (let i = 0; i < a.length; i++) x |= a.charCodeAt(i) ^ b.charCodeAt(i); return x === 0; }
 function eventName(req: Request, p: any) { return String(req.headers.get("event") ?? p?.event?.name ?? p?.event ?? p?.data?.attributes?.name ?? p?.name ?? "unknown"); }
 function envelopeId(p: any) { return p?.envelope?.id ?? p?.envelope?.key ?? p?.event?.data?.envelope?.id ?? p?.event?.data?.envelope?.key ?? p?.event?.envelope_id ?? p?.data?.relationships?.envelope?.data?.id ?? p?.data?.attributes?.envelope_id ?? null; }
+const progression: Record<string, number> = { draft: 0, sent: 1, viewed: 2, signed: 3 };
+function canApplyStatus(current: string, next: string) {
+  if (current === next) return true;
+  if (["signed", "cancelled", "expired", "superseded"].includes(current)) return false;
+  if (next === "cancelled" || next === "expired") return true;
+  const currentRank = progression[current];
+  const nextRank = progression[next];
+  return Number.isInteger(currentRank) && Number.isInteger(nextRank) && nextRank === currentRank + 1;
+}
 function mapEvent(name: string) {
   const n = name.toLowerCase().trim();
   if (n === "sign" || n === "signed" || n.includes("document_signed") || n.includes("signature_completed") || n.includes("signature_finished")) return { event: "signed", status: "signed" } as const;
@@ -48,8 +57,7 @@ Deno.serve(async (req) => {
     if (eventError) return json({ error: "event_insert_failed" }, 500);
     if (mapped.status) {
       const current = String(contract.status ?? "draft");
-      const terminal = ["signed", "cancelled", "expired", "superseded"].includes(current);
-      if (!terminal || current === mapped.status) {
+      if (canApplyStatus(current, mapped.status)) {
         const now = new Date().toISOString();
         const patch: Record<string, unknown> = { status: mapped.status, metadata: { ...(contract.metadata ?? {}), last_clicksign_event: name, last_clicksign_event_at: now } };
         if (mapped.status === "sent" && !contract.sent_at) patch.sent_at = now;
