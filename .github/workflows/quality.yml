@@ -26,7 +26,7 @@ jobs:
         run: bun install
 
       - name: Refresh lockfile
-        if: github.ref_name == 'feat/ciosp-approved-visual' && !contains(github.event.head_commit.message, 'chore: sync bun lockfile')
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/ciosp-approved-visual' && !contains(github.event.pull_request.title, 'chore: sync bun lockfile')
         run: |
           bun install
           git config user.name 'github-actions[bot]'
