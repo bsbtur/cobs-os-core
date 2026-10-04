@@ -79,6 +79,10 @@ export const W10_DICTIONARIES = {
     "w10.events.empty": "Programação em preparação. As atividades confirmadas aparecerão aqui.",
 
     "w10.messages.title": "Avisos",
+    "w10.messages.eyebrow": "Central da operação",
+    "w10.messages.heroBody": "Mudanças de horário, pontos de encontro e orientações importantes da sua viagem aparecem aqui.",
+    "w10.messages.reference": "Considere os avisos publicados no COBS como referência operacional.",
+    "w10.messages.readReceipt": "Ao abrir esta área, novos avisos são registrados como lidos.",
     "w10.messages.read": "Marcar como lido",
     "w10.messages.readAt": "Lido",
     "w10.messages.cancelled": "Cancelado",
@@ -180,6 +184,10 @@ export const W10_DICTIONARIES = {
     "w10.events.empty": "The program is being prepared. Confirmed activities will appear here.",
 
     "w10.messages.title": "Notices",
+    "w10.messages.eyebrow": "Operations center",
+    "w10.messages.heroBody": "Schedule changes, meeting points, and important guidance for your trip appear here.",
+    "w10.messages.reference": "Use notices published in COBS as your operational reference.",
+    "w10.messages.readReceipt": "When you open this area, new notices are recorded as read.",
     "w10.messages.read": "Mark as read",
     "w10.messages.readAt": "Read",
     "w10.messages.cancelled": "Cancelled",
@@ -281,6 +289,10 @@ export const W10_DICTIONARIES = {
     "w10.events.empty": "La programación está en preparación. Las actividades confirmadas aparecerán aquí.",
 
     "w10.messages.title": "Avisos",
+    "w10.messages.eyebrow": "Central de la operación",
+    "w10.messages.heroBody": "Los cambios de horario, puntos de encuentro y orientaciones importantes de tu viaje aparecen aquí.",
+    "w10.messages.reference": "Considera los avisos publicados en COBS como referencia operativa.",
+    "w10.messages.readReceipt": "Al abrir esta área, los nuevos avisos se registran como leídos.",
     "w10.messages.read": "Marcar como leído",
     "w10.messages.readAt": "Leído",
     "w10.messages.cancelled": "Cancelado",
