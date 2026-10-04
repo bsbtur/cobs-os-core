@@ -64,8 +64,9 @@ Deno.serve(async (req) => {
         if (mapped.status === "viewed" && !contract.viewed_at) patch.viewed_at = now;
         if (mapped.status === "signed" && !contract.signed_at) patch.signed_at = now;
         if (mapped.status === "cancelled" && !contract.cancelled_at) patch.cancelled_at = now;
-        const { error } = await admin.from("customer_contracts").update(patch).eq("id", contract.id);
+        const { data: updated, error } = await admin.from("customer_contracts").update(patch).eq("id", contract.id).eq("status", current).select("id,status").maybeSingle();
         if (error) return json({ error: "contract_update_failed" }, 500);
+        if (!updated) return json({ error: "contract_changed_during_webhook", event: name }, 409);
       }
     }
     return json({ ok: true, contract_id: contract.id, event: name, status: mapped.status });

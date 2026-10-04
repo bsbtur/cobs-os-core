@@ -17,6 +17,19 @@ describe("Clicksign contract state machine", () => {
     expect(webhook).toContain('if (next === "cancelled" || next === "expired") return true');
   });
 
+  test("webhook uses compare-and-set so concurrent provider events cannot overwrite a newer state", () => {
+    expect(webhook).toContain('.eq("status", current)');
+    expect(webhook).toContain('.select("id,status")');
+    expect(webhook).toContain(".maybeSingle()");
+    expect(webhook).toContain('error: "contract_changed_during_webhook"');
+
+    const transitionGate = webhook.indexOf("if (canApplyStatus(current, mapped.status))");
+    const compareAndSet = webhook.indexOf('.eq("status", current)');
+    const lostRace = webhook.indexOf('error: "contract_changed_during_webhook"');
+    expect(compareAndSet).toBeGreaterThan(transitionGate);
+    expect(lostRace).toBeGreaterThan(compareAndSet);
+  });
+
   test("reconcile cannot promote an unsent draft directly to signed", () => {
     expect(reconcile).toContain('if (!["sent", "viewed"].includes(contract.status))');
     expect(reconcile).toContain('error: "contract_not_sent_to_provider"');
