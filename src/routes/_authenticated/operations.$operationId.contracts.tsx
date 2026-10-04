@@ -73,11 +73,10 @@ function OperationContractsPage() {
       ]);
       if (workflow.error) throw workflow.error;
       if (readiness.error) throw readiness.error;
-      if (pipeline.error) throw pipeline.error;
       return {
         rows: (workflow.data ?? []) as WorkflowRow[],
         readiness: readiness.data as Readiness,
-        pipeline: pipeline.data as Pipeline,
+        pipeline: pipeline.error ? null : (pipeline.data as Pipeline),
       };
     },
   });
@@ -129,7 +128,7 @@ function OperationContractsPage() {
   }
 
   const { rows, readiness, pipeline } = state.data;
-  const generationReady = readiness.technical_ready && readiness.legal_ready && pipeline.ready;
+  const generationReady = readiness.technical_ready && readiness.legal_ready;
 
   return (
     <div className="space-y-5">
@@ -154,8 +153,8 @@ function OperationContractsPage() {
         </div>
         <div className="surface-panel p-4">
           <p className="text-xs text-muted-foreground">Pipeline PDF</p>
-          <p className="mt-1 font-semibold">{pipeline.ready ? "PRONTO" : "BLOQUEADO"}</p>
-          {!pipeline.ready ? <p className="mt-1 text-xs text-muted-foreground">{pipeline.detail}</p> : null}
+          <p className="mt-1 font-semibold">{pipeline ? (pipeline.ready ? "PRONTO" : "BLOQUEADO") : "DETALHE INDISPONÍVEL"}</p>
+          {pipeline && !pipeline.ready ? <p className="mt-1 text-xs text-muted-foreground">{pipeline.detail}</p> : null}
         </div>
       </section>
 
