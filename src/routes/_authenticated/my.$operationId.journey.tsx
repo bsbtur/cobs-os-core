@@ -1,33 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useState } from "react";
-import { CalendarDays, ChevronDown, Clock3, MapPin, Megaphone, Sparkles, Plane, ShieldCheck, UtensilsCrossed } from "lucide-react";
-
-const CIOSP_TRIP_META = {
-  period: "25–31 JAN 2027",
-  duration: "7 dias",
-  route: "Brasília → São Paulo",
-  event: "44º CIOSP",
-};
-
-const CIOSP_MEAL_NOTE: Record<string, string> = {
-  "Brasília → São Paulo": "Almoço de boas-vindas incluído",
-  "Experiência BSBTUR em São Paulo": "Demais refeições conforme programação",
-  "CIOSP — Dia 1": "Alimentação no congresso por conta do participante",
-  "CIOSP — Dia 2": "Alimentação no congresso por conta do participante",
-  "CIOSP — Dia 3": "Alimentação no congresso por conta do participante",
-  "CIOSP — Dia 4": "Jantar de confraternização incluído",
-  "Retorno a Brasília": "Almoço incluído",
-};
-
-const CIOSP_DAILY_PROGRAM: Record<string, { description: string; items: string[] }> = {
-  "Brasília → São Paulo": { description: "Início da Caravana BSBTUR CIOSP 2027, com embarque em Brasília, chegada a São Paulo e acolhimento do grupo.", items: ["Encontro do grupo no Aeroporto de Brasília", "Check-in e organização do embarque", "Voo Brasília → São Paulo", "Recepção do grupo na chegada", "Traslado privativo", "Almoço de boas-vindas incluso", "Aniversário de São Paulo — programação especial a confirmar", "Check-in no hotel", "Apresentação da operação BSBTUR, credenciais e orientações gerais", "Noite livre"] },
-  "Experiência BSBTUR em São Paulo": { description: "Dia de integração, experiência em São Paulo e preparação do grupo para os quatro dias de congresso.", items: ["Café da manhã", "Programação turística / experiência BSBTUR em São Paulo", "Integração do grupo", "Organização para o congresso", "Conferência de inscrições, credenciais e documentos", "Alinhamento de pontos de encontro e traslados", "Retorno ao hotel", "Noite livre"] },
-  "CIOSP — Dia 1": { description: "Primeiro dia do 44º CIOSP no Expo Center Norte.", items: ["Café da manhã", "Encontro do grupo no hotel", "Traslado hotel → Expo Center Norte", "Chegada e acesso ao 44º CIOSP", "Participação nas atividades do congresso", "Alimentação durante o evento por conta do participante", "Ponto de encontro BSBTUR ao final da programação", "Traslado de retorno ao hotel", "Noite livre"] },
-  "CIOSP — Dia 2": { description: "Segundo dia de congresso, com programação científica, comercial e visita à feira.", items: ["Café da manhã", "Encontro do grupo", "Traslado hotel → Expo Center Norte", "Participação no CIOSP", "Programação científica, comercial e visita à feira conforme interesse do participante", "Alimentação durante o evento por conta do participante", "Encontro do grupo ao término das atividades", "Retorno ao hotel", "Noite livre"] },
-  "CIOSP — Dia 3": { description: "Terceiro dia do CIOSP, com acompanhamento operacional da BSBTUR durante a experiência.", items: ["Café da manhã", "Encontro do grupo", "Traslado para o Expo Center Norte", "Participação nas atividades do congresso e feira", "Acompanhamento operacional BSBTUR", "Alimentação durante o evento por conta do participante", "Ponto de encontro para retorno", "Traslado ao hotel", "Noite livre"] },
-  "CIOSP — Dia 4": { description: "Último dia do 44º CIOSP e encerramento da experiência de congresso.", items: ["Café da manhã", "Traslado para o Expo Center Norte", "Participação nas atividades finais do CIOSP", "Alimentação durante o congresso por conta do participante", "Encontro do grupo após o evento", "Retorno", "Jantar de confraternização incluído", "Encerramento da experiência CIOSP com o grupo"] },
-  "Retorno a Brasília": { description: "Encerramento da operação em São Paulo e retorno do grupo para Brasília.", items: ["Café da manhã", "Organização das bagagens", "Check-out", "Almoço incluído", "Traslado para o aeroporto", "Organização do check-in e embarque", "Voo São Paulo → Brasília", "Chegada a Brasília e encerramento da Caravana BSBTUR CIOSP 2027"] },
-};
+import { CalendarDays, ChevronDown, Clock3, MapPin, Megaphone, Sparkles, Plane, ShieldCheck } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyJourney, useMyOverview } from "@/lib/w10";
@@ -84,20 +57,6 @@ function PortalJourney() {
             <span className="rounded-full border bg-background/70 px-3 py-1.5 text-xs font-medium">Horário local da operação</span>
           </div>
         ) : null}
-      </section>
-
-      <section className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          ["Período", CIOSP_TRIP_META.period],
-          ["Duração", CIOSP_TRIP_META.duration],
-          ["Rota", CIOSP_TRIP_META.route],
-          ["Evento", CIOSP_TRIP_META.event],
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
-          </div>
-        ))}
       </section>
 
       {nextStepId ? (
@@ -159,20 +118,11 @@ function PortalJourney() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
-                        <UtensilsCrossed className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Alimentação</p>
-                          <p className="mt-0.5 text-xs font-medium text-foreground">{CIOSP_MEAL_NOTE[step.title] ?? "Conforme programação da operação"}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
-                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fonte oficial</p>
-                          <p className="mt-0.5 text-xs font-medium text-foreground">Atualizações operacionais serão publicadas no COBS.</p>
-                        </div>
+                    <div className="mt-3 flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fonte oficial</p>
+                        <p className="mt-0.5 text-xs font-medium text-foreground">Atualizações operacionais serão publicadas no COBS.</p>
                       </div>
                     </div>
                     <button
@@ -190,17 +140,7 @@ function PortalJourney() {
                           <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                           <div>
                             <p className="text-sm font-semibold text-foreground">Programação do dia</p>
-                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{CIOSP_DAILY_PROGRAM[step.title]?.description ?? "Acompanhe aqui horário, ponto de encontro e mudanças desta etapa. Informações ainda não fechadas aparecem como “a confirmar”."}</p>
-                            {CIOSP_DAILY_PROGRAM[step.title] ? (
-                              <ol className="mt-3 space-y-2">
-                                {CIOSP_DAILY_PROGRAM[step.title]?.items.map((item, itemIndex) => (
-                                  <li key={`${step.stepId}-program-${itemIndex}`} className="flex gap-2 text-xs leading-relaxed text-foreground">
-                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{itemIndex + 1}</span>
-                                    <span className="pt-0.5">{item}</span>
-                                  </li>
-                                ))}
-                              </ol>
-                            ) : null}
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Acompanhe aqui horário, ponto de encontro e mudanças desta etapa. Informações ainda não fechadas aparecem como “a confirmar”.</p>
                           </div>
                         </div>
                         {step.updates.length > 0 ? (
