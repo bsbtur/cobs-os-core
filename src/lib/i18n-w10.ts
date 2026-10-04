@@ -61,7 +61,7 @@ export const W10_DICTIONARIES = {
     "w10.stay.eyebrow": "Sua hospedagem",
     "w10.stay.heroBody": "Hotel, endereço, quarto e janelas de check-in e check-out em um só lugar.",
     "w10.stay.pendingTimes": "Horários ainda não fechados aparecem como a confirmar.",
-    "w10.stay.privacy": "Sua tela mostra apenas a sua acomodação."
+    "w10.stay.privacy": "Sua tela mostra apenas a sua acomodação.",
     "w10.stay.checkIn": "Check-in",
     "w10.stay.checkOut": "Check-out",
     "w10.stay.room": "Meu quarto",
@@ -159,7 +159,7 @@ export const W10_DICTIONARIES = {
     "w10.stay.eyebrow": "Your stay",
     "w10.stay.heroBody": "Hotel, address, room, and check-in and check-out windows in one place.",
     "w10.stay.pendingTimes": "Times that are not final yet appear as to be confirmed.",
-    "w10.stay.privacy": "Your screen shows only your accommodation."
+    "w10.stay.privacy": "Your screen shows only your accommodation.",
     "w10.stay.checkIn": "Check-in",
     "w10.stay.checkOut": "Check-out",
     "w10.stay.room": "My room",
@@ -257,7 +257,7 @@ export const W10_DICTIONARIES = {
     "w10.stay.eyebrow": "Tu alojamiento",
     "w10.stay.heroBody": "Hotel, dirección, habitación y horarios de check-in y check-out en un solo lugar.",
     "w10.stay.pendingTimes": "Los horarios aún no confirmados aparecen como pendientes de confirmación.",
-    "w10.stay.privacy": "Tu pantalla muestra únicamente tu alojamiento."
+    "w10.stay.privacy": "Tu pantalla muestra únicamente tu alojamiento.",
     "w10.stay.checkIn": "Check-in",
     "w10.stay.checkOut": "Check-out",
     "w10.stay.room": "Mi habitación",
