@@ -48,6 +48,10 @@ export const W10_DICTIONARIES = {
     "w10.journey.empty": "Seu cronograma está sendo preparado. As informações confirmadas aparecerão aqui.",
 
     "w10.mobility.title": "Meu transporte",
+    "w10.mobility.eyebrow": "Deslocamentos da viagem",
+    "w10.mobility.heroBody": "Saídas, chegadas, pontos de encontro e assento confirmados pela operação.",
+    "w10.mobility.meetingPoint": "Confira o ponto de encontro antes de cada saída.",
+    "w10.mobility.confirmedOnly": "O COBS exibe somente informações confirmadas.",
     "w10.mobility.seat": "Meu assento",
     "w10.mobility.noSeat": "Sem assento atribuído",
     "w10.mobility.stops": "Paradas",
@@ -153,6 +157,10 @@ export const W10_DICTIONARIES = {
     "w10.journey.empty": "Your schedule is being prepared. Confirmed information will appear here.",
 
     "w10.mobility.title": "My transport",
+    "w10.mobility.eyebrow": "Trip transport",
+    "w10.mobility.heroBody": "Departures, arrivals, meeting points, and seats confirmed by the operation.",
+    "w10.mobility.meetingPoint": "Check the meeting point before each departure.",
+    "w10.mobility.confirmedOnly": "COBS displays only confirmed information.",
     "w10.mobility.seat": "My seat",
     "w10.mobility.noSeat": "No seat assigned",
     "w10.mobility.stops": "Stops",
@@ -258,6 +266,10 @@ export const W10_DICTIONARIES = {
     "w10.journey.empty": "Tu cronograma se está preparando. La información confirmada aparecerá aquí.",
 
     "w10.mobility.title": "Mi transporte",
+    "w10.mobility.eyebrow": "Desplazamientos del viaje",
+    "w10.mobility.heroBody": "Salidas, llegadas, puntos de encuentro y asientos confirmados por la operación.",
+    "w10.mobility.meetingPoint": "Consulta el punto de encuentro antes de cada salida.",
+    "w10.mobility.confirmedOnly": "COBS muestra únicamente información confirmada.",
     "w10.mobility.seat": "Mi asiento",
     "w10.mobility.noSeat": "Sin asiento asignado",
     "w10.mobility.stops": "Paradas",
