@@ -26,4 +26,17 @@ describe("contracts-clicksign-send legal gate", () => {
     expect(pdf).toBeGreaterThan(gate);
     expect(provider).toBeGreaterThan(gate);
   });
+  test("requires canonical provider readiness before PDF access or Clicksign interaction", () => {
+    expect(source).toContain('userClient.rpc("get_operation_contract_readiness"');
+    expect(source).toContain("readiness?.provider_send_ready !== true");
+    expect(source).toContain('reason: "canonical_provider_send_not_ready"');
+
+    const readiness = source.indexOf('userClient.rpc("get_operation_contract_readiness"');
+    const pdf = source.indexOf('"customer-contracts"');
+    const provider = source.indexOf('await cs("/envelopes"');
+    expect(readiness).toBeGreaterThan(-1);
+    expect(pdf).toBeGreaterThan(readiness);
+    expect(provider).toBeGreaterThan(readiness);
+  });
+
 });
