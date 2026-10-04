@@ -46,3 +46,17 @@ revoke all on function app_private.claim_clicksign_envelope_creation(uuid) from 
 revoke all on function app_private.claim_clicksign_envelope_creation(uuid) from anon;
 revoke all on function app_private.claim_clicksign_envelope_creation(uuid) from authenticated;
 grant execute on function app_private.claim_clicksign_envelope_creation(uuid) to service_role;
+
+create or replace function public.claim_clicksign_envelope_creation_service(_contract_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public, app_private, pg_temp
+as $$
+  select app_private.claim_clicksign_envelope_creation(_contract_id);
+$$;
+
+revoke all on function public.claim_clicksign_envelope_creation_service(uuid) from public;
+revoke all on function public.claim_clicksign_envelope_creation_service(uuid) from anon;
+revoke all on function public.claim_clicksign_envelope_creation_service(uuid) from authenticated;
+grant execute on function public.claim_clicksign_envelope_creation_service(uuid) to service_role;
