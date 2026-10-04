@@ -12,7 +12,6 @@ import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
 
 const TEMPLATE_KEY = "CIOSP-2027";
-const CONTRACT_EXECUTORS_AVAILABLE = false;
 
 type WorkflowRow = {
   order_id: string;
@@ -181,9 +180,8 @@ function OperationContractsPage() {
       ) : (
         <section className="space-y-3">
           {rows.map((row) => {
-            const canGenerate = CONTRACT_EXECUTORS_AVAILABLE && canOperate && generationReady && row.party_profile_complete && !row.contract_id;
+            const canGenerate = canOperate && generationReady && row.party_profile_complete && !row.contract_id;
             const canRender =
-              CONTRACT_EXECUTORS_AVAILABLE &&
               canOperate &&
               generationReady &&
               row.contract_status === "draft" &&
@@ -249,11 +247,9 @@ function OperationContractsPage() {
                     </Button>
                   ) : null}
                 </div>
-                {!CONTRACT_EXECUTORS_AVAILABLE || !generationReady ? (
+                {!generationReady ? (
                   <p className="mt-3 text-xs text-muted-foreground">
-                    {!CONTRACT_EXECUTORS_AVAILABLE
-                      ? "Ações de geração e PDF indisponíveis até os executores contratuais serem implantados e aprovados em produção."
-                      : "Geração bloqueada até Prontidão Contratual e Pipeline PDF ficarem verdes."}
+                    {"Geração bloqueada até Prontidão Contratual e Pipeline PDF ficarem verdes."}
                   </p>
                 ) : null}
               </article>
