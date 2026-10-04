@@ -14,7 +14,7 @@ describe("traveler portal golden path release gate", () => {
     expect(operationRoot).toContain("PortalOperationGate");
     expect(operationRoot).toContain("useMyOverview");
     expect(operationRoot).toContain("<PortalDenied");
-    expect(operationRoot).toContain("<PortalLoading");
+    expect(operationRoot).toContain("<FullPageLoading");
   });
 
   test("keeps every golden-path destination inside the traveler shell", () => {
@@ -32,7 +32,7 @@ describe("traveler portal golden path release gate", () => {
 
   test("keeps loading/error handling on every traveler data surface", () => {
     for (const name of travelerRoutes) expect(route(name), name).toContain("PortalQueryGate");
-    expect(states).toContain("if (loading) return <PortalLoading");
+    expect(states).toContain("if (isLoading) return <PanelSkeleton");
     expect(states).toContain("if (error)");
     expect(states).toContain("onRetry");
   });
