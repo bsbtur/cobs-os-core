@@ -6412,8 +6412,8 @@ export type Database = {
       }
       set_step_expected_window: {
         Args: {
-          _expected_end: string
-          _expected_start: string
+          _expected_end: string | null
+          _expected_start: string | null
           _journey_step_id: string
           _reason: string
         }
