@@ -65,6 +65,7 @@ Deno.serve(async (req: Request) => {
   if (!order) return json({ error: "order_not_found" }, 404);
 
   const metadata = (order.metadata ?? {}) as Record<string, unknown>;
+  const qa = metadata.qa_public_checkout === true;
   const paymentEnvironment = metadata.qa_public_checkout === true ? "test" : MP_ENV;
   const { data: chargeCandidates, error: chargeError } = await db
     .from("payment_charges")
@@ -80,7 +81,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: facts, error: factsError } = await db
     .from("financial_facts")
-    .select("fact_type,amount_minor,occurred_at")
+    .select("fact_type,amount_minor,occurred_at,reason")
     .eq("tenant_id", session.tenant_id)
     .eq("order_id", orderId)
     .order("occurred_at", { ascending: true });
@@ -88,6 +89,7 @@ Deno.serve(async (req: Request) => {
 
   let received = 0;
   for (const fact of facts ?? []) {
+    if (qa && fact.fact_type === "PAYMENT_RECORDED" && fact.reason === "Mercado Pago QA production probe approved") continue;
     const amount = Number(fact.amount_minor ?? 0);
     if (fact.fact_type === "PAYMENT_RECORDED") received += amount;
     if (fact.fact_type === "PAYMENT_REVERSED" || fact.fact_type === "REFUND_RECORDED")
