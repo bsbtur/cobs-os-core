@@ -1093,22 +1093,22 @@ function LeadApprovalPanel({
                   Convite do viajante — exibido somente nesta sessão
                 </p>
                 <p className="mt-1 break-all font-mono text-[11px] text-foreground">
-                  {accessLinks[lead.id].url}
+                  {accessLinks[lead.id]?.url ?? ""}
                 </p>
                 <Button
                   type="button"
                   variant="outline"
                   className="mt-2 min-h-10"
                   onClick={() => {
-                    void navigator.clipboard.writeText(accessLinks[lead.id].url);
+                    void navigator.clipboard.writeText(accessLinks[lead.id]?.url ?? "");
                     feedback.success("Link de acesso copiado.");
                   }}
                 >
                   Copiar convite
                 </Button>
-                {accessLinks[lead.id].expiresAt ? (
+                {accessLinks[lead.id]?.expiresAt ? (
                   <p className="mt-2 text-[11px] text-muted-foreground">
-                    Expira em {formatDateTime(accessLinks[lead.id].expiresAt, { locale })}
+                    Expira em {formatDateTime(accessLinks[lead.id]?.expiresAt ?? "", { locale })}
                   </p>
                 ) : null}
               </div>
