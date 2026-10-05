@@ -27,7 +27,7 @@ begin
   select * into _park
   from public.journey_steps
   where operation_id = _op.id
-    and title = 'Parque Nacional da Chapada dos Veadeiros'
+    and traveler_label = 'Parque Nacional da Chapada dos Veadeiros'
     and archived_at is null
   order by sequence
   limit 1;
@@ -35,7 +35,7 @@ begin
   select * into _poco
   from public.journey_steps
   where operation_id = _op.id
-    and title = 'Poço Encantado'
+    and traveler_label = 'Poço Encantado'
     and archived_at is null
   order by sequence
   limit 1;
@@ -53,7 +53,7 @@ begin
 
   perform set_config('app.w04_control','off', true);
 
-  _actor := auth.uid();
+  _actor := coalesce(auth.uid(), _op.created_by);
 
   perform app_private.record_audit_event(
     _op.tenant_id,
