@@ -462,6 +462,23 @@ function UnassignedRoomQueue({
 
   if (unassigned.length === 0) return null;
 
+  const preferenceOrder = [
+    "Casal",
+    "Quarto duplo compartilhado",
+    "Acompanhante / família",
+    "Ainda não defini",
+    "Ainda não definida",
+  ];
+  const preferenceLabel = (guest: StayGuest) =>
+    guest.accommodation_preference === "Ainda não defini"
+      ? "Ainda não definida"
+      : guest.accommodation_preference || "Ainda não definida";
+  const preferenceCounts = unassigned.reduce<Record<string, number>>((acc, guest) => {
+    const label = preferenceLabel(guest);
+    acc[label] = (acc[label] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const availableRooms = rooms.filter(
     (room) => room.room_status !== "blocked" && room.occupancy < room.capacity,
   );
@@ -497,10 +514,29 @@ function UnassignedRoomQueue({
         </p>
       ) : null}
 
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[
+          ["Casal", preferenceCounts["Casal"] ?? 0],
+          ["Duplo compartilhado", preferenceCounts["Quarto duplo compartilhado"] ?? 0],
+          ["Acompanhante / família", preferenceCounts["Acompanhante / família"] ?? 0],
+          ["Não definida", (preferenceCounts["Ainda não definida"] ?? 0) + (preferenceCounts["Ainda não defini"] ?? 0)],
+        ].map(([label, count]) => (
+          <span key={String(label)} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+            {String(label)} · <strong className="text-foreground">{String(count)}</strong>
+          </span>
+        ))}
+      </div>
+
       <ul className="mt-3 grid gap-2 lg:grid-cols-2">
         {unassigned
           .slice()
-          .sort((a, b) => a.full_name.localeCompare(b.full_name, undefined, { sensitivity: "base" }))
+          .sort((a, b) => {
+            const pa = preferenceOrder.indexOf(a.accommodation_preference);
+            const pb = preferenceOrder.indexOf(b.accommodation_preference);
+            const wa = pa === -1 ? preferenceOrder.length : pa;
+            const wb = pb === -1 ? preferenceOrder.length : pb;
+            return wa - wb || a.full_name.localeCompare(b.full_name, undefined, { sensitivity: "base" });
+          })
           .map((guest, index) => (
             <li
               key={guest.stay_participation_id}
@@ -516,7 +552,7 @@ function UnassignedRoomQueue({
                   {" · "}Sem quarto
                 </p>
                 <p className="mt-1 text-xs font-medium">
-                  Acomodação: {((guest as unknown as { accommodation_preference?: string }).accommodation_preference ?? "Ainda não definida")}
+                  Acomodação: {preferenceLabel(guest)}
                 </p>
               </div>
               {terminal ? null : (

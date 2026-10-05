@@ -99,6 +99,7 @@ export type StayGuest = {
   full_name: string;
   participation_kind: string;
   participation_status: string;
+  accommodation_preference: string;
   is_active: boolean;
   removal_reason: string | null;
   state: GuestState;
