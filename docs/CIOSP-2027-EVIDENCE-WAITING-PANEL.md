@@ -71,9 +71,13 @@
 
 **Status:** EM ANÁLISE PELA LATAM
 
-**Casos abertos:**
-- `04621237`
+**Caso ativo:**
 - `04621238`
+
+**Caso encerrado por duplicidade:**
+- `04621237`
+
+A LATAM informou que o chamado `04621237` foi fechado por duplicidade e que o tratamento deve continuar no `04621238`.
 
 **Escopo solicitado:**
 - 30 adultos;
@@ -199,7 +203,7 @@
 | Bloco | Situação | Pode criar quote agora? | Próxima evidência |
 | --- | --- | --- | --- |
 | B&B São Paulo Luz | aguardando proposta | não | proposta formal |
-| LATAM | em análise | não | proposta comercial |
+| LATAM | caso 04621238 em análise | não | proposta comercial |
 | GOL | aguardando canal atual | não | proposta/canal válido |
 | Pazuti | aguardando proposta revisada | não | proposta para 37 pessoas + operação completa |
 | APCD/CIOSP | aguardando resposta | não | regra comercial de grupo/caravana |
