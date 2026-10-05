@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
 
   let body: {
     full_name?: string; email?: string; phone?: string; city?: string;
-    profile?: string; distance?: string; quantity?: string; notes?: string;
+    profile?: string; distance?: string; quantity?: string; accommodation_preference?: string; notes?: string;
     consent_contact?: boolean; idempotency_key?: string; source?: string; campaign?: string;
   };
   try { body = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
@@ -48,6 +48,7 @@ Deno.serve(async (req: Request) => {
   const profile = clean(body.profile, 40);
   const distance = clean(body.distance, 40) || "A definir";
   const quantity = clean(body.quantity, 10) || "1";
+  const accommodationPreference = clean(body.accommodation_preference, 80) || "Ainda não defini";
   const notes = clean(body.notes, 600);
   const consentContact = body.consent_contact === true;
   const idempotencyKey = clean(body.idempotency_key, 120);
@@ -62,6 +63,7 @@ Deno.serve(async (req: Request) => {
   if (!["Atleta","Acompanhante"].includes(profile)) return json({ error: "invalid_profile" }, 400);
   if (!["A definir","5K","10K","21K","42K"].includes(distance)) return json({ error: "invalid_distance" }, 400);
   if (!["1","2","3","4","5+"].includes(quantity)) return json({ error: "invalid_quantity" }, 400);
+  if (!["Ainda não defini","Casal","Quarto duplo compartilhado","Acompanhante / família"].includes(accommodationPreference)) return json({ error: "invalid_accommodation_preference" }, 400);
 
   const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
   const { data: op, error: opError } = await admin
@@ -81,6 +83,7 @@ Deno.serve(async (req: Request) => {
     traveler_profile: profile,
     intended_distance: distance,
     party_size: quantity,
+    accommodation_preference: accommodationPreference,
     city: city || null,
     notes: notes || null,
     prelaunch: true,
@@ -134,7 +137,7 @@ Deno.serve(async (req: Request) => {
     correlation_id: correlationId,
     payload: {
       lead_id: inserted.id, name: fullName, email, phone, city: city || null,
-      profile, distance, quantity,
+      profile, distance, quantity, accommodation_preference: accommodationPreference,
       message: "Tenho interesse na Team Seffrin Experience — Brasília 2027.",
       source, campaign, is_test: false,
     },
