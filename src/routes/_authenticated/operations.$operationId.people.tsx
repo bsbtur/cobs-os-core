@@ -882,7 +882,7 @@ function LeadApprovalPanel({
 
   const approve = useMutation({
     mutationFn: async (lead: CommercialLeadRow) => {
-      const { data: converted, error: convertError } = await supabase.rpc(
+      const { data: converted, error: convertError } = await (supabase as any).rpc(
         "convert_commercial_lead_to_person",
         { _lead_id: lead.id },
       );
