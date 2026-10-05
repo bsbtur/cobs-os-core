@@ -124,8 +124,21 @@ function PortalHome() {
   const unread = (messages.data ?? []).filter((m) => m.myFirstReadAt === null && m.status === "published").length;
   const legs = mobility.data ?? [];
   const stays = stay.data ?? [];
-  const sessions = (events.data ?? []).reduce((acc, e) => acc + e.sessions.length, 0);
-  const firstEventName = events.data?.[0]?.name;
+  const eventRows = events.data ?? [];
+  const sessions = eventRows.reduce((acc, e) => acc + e.sessions.length, 0);
+  const firstEventName = eventRows[0]?.name;
+  const showEventShortcut = eventRows.length > 0;
+  const firstStay = stays[0] ?? null;
+  const activeRoom = firstStay?.myRoom.find((room) => room.active) ?? null;
+  const transportSummary =
+    legs.length > 0
+      ? `${legs.length} deslocamentos · ${legs[0]?.title ?? ""}`
+      : t("w10.mobility.empty");
+  const staySummary = firstStay
+    ? `${firstStay.property?.name ?? firstStay.name ?? t("w10.home.stayShortcut")} · ${
+        activeRoom?.label ?? t("w10.stay.noRoom")
+      }`
+    : t("w10.stay.empty");
   const historical = overview.data?.historical === true;
   const plannedStart = overview.data?.expectedStart ?? overview.data?.plannedStart ?? null;
   const upcoming = plannedStart ? new Date(plannedStart).getTime() > Date.now() : false;
@@ -176,9 +189,11 @@ function PortalHome() {
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             <ShortcutRow to="/my/$operationId/journey" operationId={operationId} icon={CalendarDays} label={t("w10.home.journeyShortcut")} value={(journey.data ?? []).length > 0 ? `${(journey.data ?? []).length} ${t("w10.home.steps")}` : t("w10.journey.empty")} />
-                            <ShortcutRow to="/my/$operationId/mobility" operationId={operationId} icon={Bus} label={t("w10.home.transportShortcut")} value={legs.length > 0 ? (legs[0]?.mySeat?.seatLabel ? `${t("w10.mobility.seat")} ${legs[0].mySeat.seatLabel}` : (legs[0]?.title ?? "")) : t("w10.mobility.empty")} />
-                            <ShortcutRow to="/my/$operationId/stay" operationId={operationId} icon={BedDouble} label={t("w10.home.stayShortcut")} value={stays.length > 0 ? (stays[0]?.property?.name ?? stays[0]?.name ?? "") : t("w10.stay.empty")} />
-                            <ShortcutRow to="/my/$operationId/events" operationId={operationId} icon={Ticket} label={t("w10.home.eventShortcut")} value={sessions > 0 ? `${sessions} ${t("w10.home.activities")}` : (firstEventName ?? t("w10.events.empty"))} />
+                            <ShortcutRow to="/my/$operationId/mobility" operationId={operationId} icon={Bus} label={t("w10.home.transportShortcut")} value={transportSummary} />
+                            <ShortcutRow to="/my/$operationId/stay" operationId={operationId} icon={BedDouble} label={t("w10.home.stayShortcut")} value={staySummary} />
+                            {showEventShortcut ? (
+                              <ShortcutRow to="/my/$operationId/events" operationId={operationId} icon={Ticket} label={t("w10.home.eventShortcut")} value={sessions > 0 ? `${sessions} ${t("w10.home.activities")}` : (firstEventName ?? t("w10.events.empty"))} />
+                            ) : null}
                             <ShortcutRow to="/my/$operationId/messages" operationId={operationId} icon={Megaphone} label={t("w10.home.messagesShortcut")} value={(messages.data ?? []).length > 0 ? (unread > 0 ? `${unread} ${t(unread > 1 ? "w10.home.newNotices" : "w10.home.newNotice")}` : ((messages.data ?? [])[0]?.title ?? "")) : t("w10.messages.empty")} />
                             <ShortcutRow to="/my/$operationId/assistant" operationId={operationId} icon={Bot} label={t("w10.home.assistantShortcut")} value={t("w10.home.assistantBody")} />
                           </div>
