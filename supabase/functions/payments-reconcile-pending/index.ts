@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
     .limit(limit);
   if (attemptsError) return json({ error: "attempts_lookup_failed", details: attemptsError.message }, 500);
 
-  const summary = { scanned: 0, updated: 0, paid: 0, unchanged: 0, amount_mismatch: 0, provider_errors: 0, db_errors: 0 };
+  const summary = { scanned: 0, updated: 0, paid: 0, deferred_to_webhook: 0, unchanged: 0, amount_mismatch: 0, provider_errors: 0, db_errors: 0 };
   const errors: Array<Record<string, unknown>> = [];
 
   for (const attempt of attempts ?? []) {
@@ -135,8 +135,16 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      const chargePatch: Record<string, unknown> = { status: chargeStatus, provider_order_id: attempt.provider_order_id };
-      if (chargeStatus === "paid") {
+      const webhookAuthoritative =
+        charge?.metadata?.settlement_authority === "webhook" ||
+        attempt?.metadata?.settlement_authority === "webhook";
+      const effectiveChargeStatus =
+        webhookAuthoritative && chargeStatus === "paid" ? "processing" : chargeStatus;
+      const chargePatch: Record<string, unknown> = {
+        status: effectiveChargeStatus,
+        provider_order_id: attempt.provider_order_id,
+      };
+      if (chargeStatus === "paid" && !webhookAuthoritative) {
         chargePatch.paid_amount_minor = expectedMinor;
         chargePatch.paid_at = now;
       }
@@ -148,7 +156,9 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      if (chargeStatus === "paid") {
+      if (chargeStatus === "paid" && webhookAuthoritative) {
+        summary.deferred_to_webhook++;
+      } else if (chargeStatus === "paid") {
         const reference = `mercado_pago:${payment?.id ?? attempt.provider_order_id}`;
         const { error: factError } = await admin.rpc("record_provider_payment", {
           _order_id: charge.order_id,
@@ -176,7 +186,7 @@ Deno.serve(async (req: Request) => {
         summary.paid++;
       }
 
-      const changed = attempt.status !== attemptStatus || attempt.provider_status !== providerStatus || attempt.provider_status_detail !== providerStatusDetail || charge.status !== chargeStatus;
+      const changed = attempt.status !== attemptStatus || attempt.provider_status !== providerStatus || attempt.provider_status_detail !== providerStatusDetail || charge.status !== effectiveChargeStatus;
       if (changed) summary.updated++; else summary.unchanged++;
     } catch (error) {
       summary.provider_errors++;
