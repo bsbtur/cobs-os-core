@@ -990,79 +990,139 @@ function CommercialLeadApprovalQueue({
   const rows = leads.data ?? [];
   if (rows.length === 0) return null;
 
+  const isWaitlistLead = (lead: CommercialLeadRow) =>
+    lead.metadata?.["waitlist"] === true || lead.metadata?.["capacity_status"] === "sold_out";
+
+  const approvalRows = rows.filter((lead) => !isWaitlistLead(lead));
+  const waitlistRows = rows.filter(isWaitlistLead);
+
+  const renderLead = (lead: CommercialLeadRow, waitlist: boolean) => {
+    const profile =
+      lead.metadata && typeof lead.metadata["traveler_profile"] === "string"
+        ? String(lead.metadata["traveler_profile"])
+        : "Participante";
+    const distance =
+      lead.metadata && typeof lead.metadata["intended_distance"] === "string"
+        ? String(lead.metadata["intended_distance"])
+        : null;
+    const accommodation =
+      lead.metadata && typeof lead.metadata["accommodation_preference"] === "string"
+        ? String(lead.metadata["accommodation_preference"])
+        : null;
+
+    return (
+      <li key={lead.id} className="flex flex-wrap items-center gap-3 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-sm font-medium">{lead.full_name}</p>
+            {waitlist ? (
+              <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">
+                Lista de espera
+              </span>
+            ) : null}
+          </div>
+          <p className="truncate text-xs text-muted-foreground">
+            {lead.email} · {lead.phone}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {profile}
+            {distance ? ` · ${distance}` : ""}
+            {accommodation ? ` · ${accommodation}` : ""}
+            {" · "}recebido em {formatDateTime(lead.created_at, { locale })}
+          </p>
+        </div>
+        <Button
+          className="min-h-11"
+          disabled={disabled || approve.isPending || Boolean(woodstockStay.data?.soldOut)}
+          onClick={() => approve.mutate(lead.id)}
+        >
+          {woodstockStay.data?.soldOut
+            ? "Aguardando vaga"
+            : approve.isPending && approve.variables === lead.id
+              ? "Aprovando…"
+              : waitlist
+                ? "Aprovar vaga liberada"
+                : woodstockStay.data?.id
+                  ? "Aprovar + Woodstock"
+                  : "Aprovar e vincular"}
+        </Button>
+      </li>
+    );
+  };
+
   return (
-    <section className="surface-panel space-y-3 p-4">
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold">Leads aguardando aprovação</p>
-          {woodstockStay.data?.id ? (
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                woodstockStay.data.soldOut
-                  ? "bg-destructive/10 text-destructive"
-                  : "bg-success-soft text-success"
-              }`}
-            >
-              {woodstockStay.data.soldOut
-                ? `Operação lotada · ${woodstockStay.data.activeGuests}/${woodstockStay.data.capacity}`
-                : `${woodstockStay.data.remainingCapacity} vaga${woodstockStay.data.remainingCapacity === 1 ? "" : "s"} disponível${woodstockStay.data.remainingCapacity === 1 ? "" : "is"}`}
-            </span>
+    <section className="space-y-4">
+      <section className="surface-panel space-y-3 p-4">
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold">Leads aguardando aprovação</p>
+              <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                {approvalRows.length}
+              </span>
+            </div>
+            {woodstockStay.data?.id ? (
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  woodstockStay.data.soldOut
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-success-soft text-success"
+                }`}
+              >
+                {woodstockStay.data.soldOut
+                  ? `Operação lotada · ${woodstockStay.data.activeGuests}/${woodstockStay.data.capacity}`
+                  : `${woodstockStay.data.remainingCapacity} vaga${woodstockStay.data.remainingCapacity === 1 ? "" : "s"} disponível${woodstockStay.data.remainingCapacity === 1 ? "" : "is"}`}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Cadastros que chegaram com capacidade disponível e podem seguir pelo fluxo comercial.
+            Aprovar cria ou reutiliza a Pessoa no COBS e, nesta operação, adiciona o participante à Woodstock como hóspede sem quarto.
+          </p>
+          {woodstockStay.data?.soldOut ? (
+            <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser liberada na hospedagem.
+            </p>
           ) : null}
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Aprovar cria ou reutiliza a Pessoa no COBS e a adiciona a esta operação como participante esperado.
-          {woodstockStay.data?.id
-            ? " Nesta operação, o participante também entra automaticamente na Woodstock Guesthouse como hóspede sem quarto."
-            : " Nenhuma hospedagem Woodstock ativa foi encontrada, então a aprovação ficará somente no roster."}
-          {" "}Não cria pagamento, pedido, reserva comercial, acesso ao portal ou alocação de quarto.
-        </p>
-        {woodstockStay.data?.soldOut ? (
-          <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser liberada na hospedagem.
+
+        {approvalRows.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
+            Nenhum lead aguardando aprovação imediata.
           </p>
-        ) : null}
-      </div>
+        ) : (
+          <ul className="divide-y divide-border/70">
+            {approvalRows.map((lead) => renderLead(lead, false))}
+          </ul>
+        )}
+      </section>
 
-      <ul className="divide-y divide-border/70">
-        {rows.map((lead) => {
-          const profile =
-            lead.metadata && typeof lead.metadata["traveler_profile"] === "string"
-              ? String(lead.metadata["traveler_profile"])
-              : "Participante";
-          const distance =
-            lead.metadata && typeof lead.metadata["intended_distance"] === "string"
-              ? String(lead.metadata["intended_distance"])
-              : null;
-
-          return (
-            <li key={lead.id} className="flex flex-wrap items-center gap-3 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{lead.full_name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {lead.email} · {lead.phone}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {profile}{distance ? ` · ${distance}` : ""} · recebido em{" "}
-                  {formatDateTime(lead.created_at, { locale })}
-                </p>
+      {waitlistRows.length > 0 ? (
+        <section className="surface-panel border-warning/30 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold">Lista de espera</p>
+                <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
+                  {waitlistRows.length}
+                </span>
               </div>
-              <Button
-                className="min-h-11"
-                disabled={disabled || approve.isPending || Boolean(woodstockStay.data?.soldOut)}
-                onClick={() => approve.mutate(lead.id)}
-              >
-                {woodstockStay.data?.soldOut
-                  ? "Operação lotada"
-                  : approve.isPending && approve.variables === lead.id
-                    ? "Aprovando…"
-                    : woodstockStay.data?.id
-                      ? "Aprovar + Woodstock"
-                      : "Aprovar e vincular"}
-              </Button>
-            </li>
-          );
-        })}
-      </ul>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Estes interessados se cadastraram quando a hospedagem estava lotada. Eles não ocupam vaga e não foram transformados em participantes.
+              </p>
+            </div>
+            {!woodstockStay.data?.soldOut && woodstockStay.data?.id ? (
+              <span className="rounded-full bg-success-soft px-2.5 py-1 text-xs font-medium text-success">
+                Vaga liberada · revisão comercial disponível
+              </span>
+            ) : null}
+          </div>
+
+          <ul className="mt-2 divide-y divide-border/70">
+            {waitlistRows.map((lead) => renderLead(lead, true))}
+          </ul>
+        </section>
+      ) : null}
     </section>
   );
 }
