@@ -65,6 +65,98 @@ export type Database = {
           },
         ]
       }
+      commercial_leads: {
+        Row: {
+          campaign: string | null
+          consent_at: string | null
+          consent_contact: boolean
+          converted_at: string | null
+          converted_person_id: string | null
+          created_at: string
+          email: string
+          experience_id: string | null
+          full_name: string
+          id: string
+          idempotency_key: string
+          metadata: Json
+          operation_id: string | null
+          phone: string
+          source: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          campaign?: string | null
+          consent_at?: string | null
+          consent_contact?: boolean
+          converted_at?: string | null
+          converted_person_id?: string | null
+          created_at?: string
+          email: string
+          experience_id?: string | null
+          full_name: string
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          operation_id?: string | null
+          phone: string
+          source?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          campaign?: string | null
+          consent_at?: string | null
+          consent_contact?: boolean
+          converted_at?: string | null
+          converted_person_id?: string | null
+          created_at?: string
+          email?: string
+          experience_id?: string | null
+          full_name?: string
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          operation_id?: string | null
+          phone?: string
+          source?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_leads_converted_person_id_fkey"
+            columns: ["converted_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_leads_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_leads_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_leads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commercial_reservations: {
         Row: {
           confirmed_at: string | null
@@ -5375,6 +5467,10 @@ export type Database = {
       }
       confirm_order: {
         Args: { _idempotency_key?: string; _order_id: string }
+        Returns: Json
+      }
+      convert_commercial_lead_to_person: {
+        Args: { _lead_id: string }
         Returns: Json
       }
       create_ad_hoc_journey_step: {

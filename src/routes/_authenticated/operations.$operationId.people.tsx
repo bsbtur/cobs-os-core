@@ -864,6 +864,277 @@ type CommercialLeadRow = {
   created_at: string;
 };
 
+function GenericLeadApprovalPanel({
+  operationId,
+  disabled,
+  enableChapadaGoldenPath,
+}: {
+  operationId: string;
+  disabled: boolean;
+  enableChapadaGoldenPath: boolean;
+}) {
+  const { locale } = useI18n();
+  const queryClient = useQueryClient();
+  const [accessLinks, setAccessLinks] = React.useState<
+    Record<string, { url: string; expiresAt: string | null }>
+  >({});
+
+  const leads = useQuery({
+    queryKey: ["commercial-leads", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_leads")
+        .select("id, full_name, email, phone, status, created_at, converted_person_id")
+        .eq("operation_id", operationId)
+        .in("status", ["new", "contacted", "qualified", "converted"])
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CommercialLeadRow[];
+    },
+  });
+
+  const approve = useMutation({
+    mutationFn: async (lead: CommercialLeadRow) => {
+      const { data: converted, error: convertError } = await supabase.rpc(
+        "convert_commercial_lead_to_person",
+        { _lead_id: lead.id },
+      );
+      if (convertError) throw convertError;
+
+      const payload = (converted ?? {}) as Record<string, unknown>;
+      const personId =
+        typeof payload["person_id"] === "string" ? payload["person_id"] : lead.converted_person_id;
+      if (!personId) throw new Error("lead_conversion_missing_person_id");
+
+      const { data: existing, error: existingError } = await supabase
+        .from("operation_participations")
+        .select("id")
+        .eq("operation_id", operationId)
+        .eq("person_id", personId)
+        .maybeSingle();
+      if (existingError) throw existingError;
+
+      if (!existing) {
+        const { error: addError } = await supabase.rpc("add_operation_participation", {
+          _operation_id: operationId,
+          _person_id: personId,
+          _participation_kind: "participant",
+          _idempotency_key: `commercial-lead-roster:${lead.id}`,
+          _role_type_ids: [],
+        });
+        if (addError) throw addError;
+      }
+
+      const { data: participation, error: participationError } = await supabase
+        .from("operation_participations")
+        .select("id")
+        .eq("operation_id", operationId)
+        .eq("person_id", personId)
+        .maybeSingle();
+      if (participationError) throw participationError;
+      if (!participation?.id) throw new Error("lead_roster_participation_missing");
+
+      let stayAdded = false;
+      let accessUrl: string | null = null;
+      let expiresAt: string | null = null;
+      let accessAlreadyActive = false;
+
+      if (enableChapadaGoldenPath) {
+        const { data: stay, error: stayError } = await supabase
+          .from("hospitality_stays")
+          .select("id")
+          .eq("operation_id", operationId)
+          .not("status", "in", '("cancelled","completed")')
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (stayError) throw stayError;
+
+        if (stay?.id) {
+          const { data: existingStayGuest, error: stayGuestError } = await supabase
+            .from("hospitality_stay_participations")
+            .select("id, is_active")
+            .eq("stay_id", stay.id)
+            .eq("participation_id", participation.id)
+            .maybeSingle();
+          if (stayGuestError) throw stayGuestError;
+
+          if (!existingStayGuest?.is_active) {
+            const { error: addStayError } = await supabase.rpc("add_stay_participation", {
+              _stay_id: stay.id,
+              _participation_id: participation.id,
+              _idempotency_key: `commercial-lead-stay:${lead.id}`,
+              _notes: "Incluído após aprovação comercial; quarto ainda não definido.",
+            });
+            if (addStayError) throw addStayError;
+          }
+          stayAdded = true;
+        }
+
+        const { data: grant, error: grantError } = await supabase
+          .from("participant_access_grants")
+          .select("id")
+          .eq("operation_id", operationId)
+          .eq("person_id", personId)
+          .eq("status", "active")
+          .maybeSingle();
+        if (grantError) throw grantError;
+
+        if (grant) {
+          accessAlreadyActive = true;
+        } else {
+          const { data: invitation, error: invitationError } = await supabase.rpc(
+            "invite_participant_access",
+            {
+              _operation_id: operationId,
+              _person_id: personId,
+              _idempotency_key: `commercial-lead-access:${lead.id}`,
+            },
+          );
+          if (invitationError) throw invitationError;
+          const invitationPayload = (invitation ?? {}) as Record<string, unknown>;
+          const token = typeof invitationPayload["token"] === "string" ? invitationPayload["token"] : null;
+          expiresAt =
+            typeof invitationPayload["expires_at"] === "string"
+              ? invitationPayload["expires_at"]
+              : null;
+          if (token && typeof window !== "undefined") {
+            accessUrl = `${window.location.origin}/my/claim/${token}`;
+          }
+        }
+      }
+
+      return { personId, stayAdded, accessUrl, expiresAt, accessAlreadyActive };
+    },
+    onSuccess: (result, lead) => {
+      if (result.accessUrl) {
+        setAccessLinks((current) => ({
+          ...current,
+          [lead.id]: { url: result.accessUrl!, expiresAt: result.expiresAt },
+        }));
+      }
+      feedback.success(
+        enableChapadaGoldenPath
+          ? result.accessAlreadyActive
+            ? "Lead aprovado, hospedagem vinculada e acesso já ativo."
+            : "Lead aprovado, hospedagem vinculada e convite de acesso gerado."
+          : "Lead aprovado e adicionado à operação.",
+      );
+      void queryClient.invalidateQueries({ queryKey: ["commercial-leads", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  if (leads.isLoading) {
+    return <PanelSkeleton rows={2} />;
+  }
+
+  if (leads.isError) {
+    return (
+      <section className="surface-panel p-4">
+        <p className="font-medium">Leads da landing</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Não foi possível carregar os interessados desta operação.
+        </p>
+        <Button variant="outline" className="mt-3 min-h-11" onClick={() => void leads.refetch()}>
+          Tentar novamente
+        </Button>
+      </section>
+    );
+  }
+
+  const rows = leads.data ?? [];
+  const pending = rows.filter((lead) => lead.status !== "converted");
+  const converted = rows.filter((lead) => lead.status === "converted");
+
+  if (rows.length === 0) return null;
+
+  return (
+    <section className="surface-panel p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold">Leads da landing</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Aprovar converte o lead em Pessoa e adiciona o viajante ao roster desta operação. Não cria pedido nem cobrança.
+          </p>
+        </div>
+        <Chip className="bg-primary-soft text-primary">
+          {pending.length} aguardando
+        </Chip>
+      </div>
+
+      <ul className="mt-4 space-y-2">
+        {rows.map((lead) => (
+          <li key={lead.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{lead.full_name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {lead.email} · {lead.phone}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {formatDateTime(lead.created_at, { locale })}
+              </p>
+            </div>
+            <Chip
+              className={
+                lead.status === "converted"
+                  ? "bg-primary-soft text-primary"
+                  : "border border-border text-muted-foreground"
+              }
+            >
+              {lead.status === "converted" ? "convertido" : lead.status}
+            </Chip>
+            {lead.status !== "converted" ? (
+              <Button
+                className="min-h-11"
+                disabled={disabled || approve.isPending}
+                onClick={() => approve.mutate(lead)}
+              >
+                <UserPlus className="mr-2 size-4" aria-hidden="true" />
+                {enableChapadaGoldenPath ? "Aprovar e preparar acesso" : "Aprovar e adicionar"}
+              </Button>
+            ) : null}
+            {accessLinks[lead.id] ? (
+              <div className="w-full rounded-lg border border-primary/30 bg-primary-soft p-3">
+                <p className="text-xs font-semibold text-primary">
+                  Convite do viajante — exibido somente nesta sessão
+                </p>
+                <p className="mt-1 break-all font-mono text-[11px] text-foreground">
+                  {accessLinks[lead.id]?.url ?? ""}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-2 min-h-10"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(accessLinks[lead.id]?.url ?? "");
+                    feedback.success("Link de acesso copiado.");
+                  }}
+                >
+                  Copiar convite
+                </Button>
+                {accessLinks[lead.id]?.expiresAt ? (
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Expira em {formatDateTime(accessLinks[lead.id]?.expiresAt ?? "", { locale })}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
+      {converted.length > 0 ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Leads convertidos permanecem visíveis aqui como evidência do funil comercial.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+
 function CommercialLeadApprovalQueue({
   operationId,
   disabled,
@@ -1144,7 +1415,7 @@ function Roster() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operations")
-        .select("status")
+        .select("status, code")
         .eq("id", operationId)
         .maybeSingle();
       if (error) throw error;
@@ -1269,7 +1540,11 @@ function Roster() {
       ) : null}
 
       {canManage ? (
-        <CommercialLeadApprovalQueue operationId={operationId} disabled={!canMutate} />
+        operationState.data?.code === "TEAM-SEFFRIN-BSB-20270416" ? (
+          <CommercialLeadApprovalQueue operationId={operationId} disabled={!canMutate} />
+        ) : (
+          <GenericLeadApprovalPanel operationId={operationId} disabled={!canMutate} />
+        )
       ) : null}
 
       {rows.length === 0 ? (
