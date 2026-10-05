@@ -756,11 +756,18 @@ function RosterCard({
           ) : null}
 
           {!readOnly ? (
-            <PortalAccessAction
-              operationId={operationId}
-              personId={row.person_id}
-              disabled={row.status === "cancelled"}
-            />
+            <div className="space-y-2">
+              {row.status !== "confirmed" ? (
+                <p className="text-xs text-muted-foreground">
+                  O acesso ao Portal do Passageiro fica disponível somente após a participação ser confirmada.
+                </p>
+              ) : null}
+              <PortalAccessAction
+                operationId={operationId}
+                personId={row.person_id}
+                disabled={row.status !== "confirmed"}
+              />
+            </div>
           ) : null}
 
           {!readOnly ? (
