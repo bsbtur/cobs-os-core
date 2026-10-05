@@ -27,9 +27,11 @@ describe("CIOSP commercial operation canonical routing", () => {
       "utf8",
     );
 
-    expect(source).toContain('const CODE="CIOSP-SP-2027-COMMERCIAL"');
-    expect(source).toContain('_operation_code:CODE');
-    expect(source).toContain('.eq("code",CODE)');
+    expect(source).toMatch(
+      /const\s+CODE\s*=\s*["']CIOSP-SP-2027-COMMERCIAL["']/,
+    );
+    expect(source).toMatch(/_operation_code\s*:\s*CODE/);
+    expect(source).toMatch(/\.eq\(\s*["']code["']\s*,\s*CODE\s*\)/);
   });
 
   test("Pix rejects orders from any non-canonical operation", () => {
@@ -38,8 +40,10 @@ describe("CIOSP commercial operation canonical routing", () => {
       "utf8",
     );
 
-    expect(source).toContain('const CODE="CIOSP-SP-2027-COMMERCIAL"');
-    expect(source).toContain("op.code!==CODE");
+    expect(source).toMatch(
+      /const\s+CODE\s*=\s*["']CIOSP-SP-2027-COMMERCIAL["']/,
+    );
+    expect(source).toMatch(/op\.code\s*!==\s*CODE/);
     expect(source).toContain('"order_not_canonical_ciops"');
   });
 
