@@ -845,6 +845,134 @@ function RosterCard({
   );
 }
 
+
+type CommercialLeadRow = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  status: string;
+  metadata: Record<string, unknown> | null;
+  converted_person_id: string | null;
+  created_at: string;
+};
+
+function CommercialLeadApprovalQueue({
+  operationId,
+  disabled,
+}: {
+  operationId: string;
+  disabled: boolean;
+}) {
+  const { locale } = useI18n();
+  const queryClient = useQueryClient();
+
+  const leads = useQuery({
+    queryKey: ["commercial-leads-operation", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_leads")
+        .select("id,full_name,email,phone,status,metadata,converted_person_id,created_at")
+        .eq("operation_id", operationId)
+        .is("converted_person_id", null)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CommercialLeadRow[];
+    },
+  });
+
+  const approve = useMutation({
+    mutationFn: async (leadId: string) => {
+      const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation", {
+        _lead_id: leadId,
+        _idempotency_key: newIdempotencyKey(),
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      feedback.success("Lead aprovado e vinculado à operação como participante esperado.");
+      void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  if (leads.isLoading) {
+    return <PanelSkeleton rows={2} />;
+  }
+
+  if (leads.isError) {
+    return (
+      <section className="surface-panel p-4">
+        <p className="text-sm font-medium">Leads comerciais</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Não foi possível carregar os cadastros comerciais desta operação.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-3 min-h-11"
+          onClick={() => void leads.refetch()}
+        >
+          Tentar novamente
+        </Button>
+      </section>
+    );
+  }
+
+  const rows = leads.data ?? [];
+  if (rows.length === 0) return null;
+
+  return (
+    <section className="surface-panel space-y-3 p-4">
+      <div>
+        <p className="text-sm font-semibold">Leads aguardando aprovação</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Aprovar cria ou reutiliza a Pessoa no COBS e a adiciona a esta operação como participante esperado.
+          Não cria pagamento, pedido, reserva, acesso ao portal ou alocação de quarto.
+        </p>
+      </div>
+
+      <ul className="divide-y divide-border/70">
+        {rows.map((lead) => {
+          const profile =
+            lead.metadata && typeof lead.metadata["traveler_profile"] === "string"
+              ? String(lead.metadata["traveler_profile"])
+              : "Participante";
+          const distance =
+            lead.metadata && typeof lead.metadata["intended_distance"] === "string"
+              ? String(lead.metadata["intended_distance"])
+              : null;
+
+          return (
+            <li key={lead.id} className="flex flex-wrap items-center gap-3 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{lead.full_name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {lead.email} · {lead.phone}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {profile}{distance ? ` · ${distance}` : ""} · recebido em{" "}
+                  {formatDateTime(lead.created_at, { locale })}
+                </p>
+              </div>
+              <Button
+                className="min-h-11"
+                disabled={disabled || approve.isPending}
+                onClick={() => approve.mutate(lead.id)}
+              >
+                {approve.isPending && approve.variables === lead.id
+                  ? "Aprovando…"
+                  : "Aprovar e vincular"}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function Roster() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/people" });
   const { t } = useI18n();
@@ -984,6 +1112,10 @@ function Roster() {
           <p className="font-medium">{t("roster.readOnly")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("roster.readOnlyBody")}</p>
         </section>
+      ) : null}
+
+      {canManage ? (
+        <CommercialLeadApprovalQueue operationId={operationId} disabled={!canMutate} />
       ) : null}
 
       {rows.length === 0 ? (
