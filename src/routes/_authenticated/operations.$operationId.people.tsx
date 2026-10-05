@@ -869,7 +869,7 @@ function LeadApprovalPanel({
   const leads = useQuery({
     queryKey: ["commercial-leads", operationId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("commercial_leads")
         .select("id, full_name, email, phone, status, created_at, converted_person_id")
         .eq("operation_id", operationId)
