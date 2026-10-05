@@ -1543,7 +1543,11 @@ function Roster() {
         operationState.data?.code === "TEAM-SEFFRIN-BSB-20270416" ? (
           <CommercialLeadApprovalQueue operationId={operationId} disabled={!canMutate} />
         ) : (
-          <GenericLeadApprovalPanel operationId={operationId} disabled={!canMutate} />
+          <GenericLeadApprovalPanel
+            operationId={operationId}
+            disabled={!canMutate}
+            enableChapadaGoldenPath={operationState.data?.code === "CHAPADA-EXPERIENCE-20270615"}
+          />
         )
       ) : null}
 
