@@ -5188,6 +5188,14 @@ export type Database = {
         }
         Returns: Json
       }
+      approve_commercial_lead_to_operation: {
+        Args: { _idempotency_key: string; _lead_id: string }
+        Returns: Json
+      }
+      approve_commercial_lead_to_operation_and_stay: {
+        Args: { _idempotency_key: string; _lead_id: string; _stay_id: string }
+        Returns: Json
+      }
       add_order_item: {
         Args: {
           _beneficiary_person_id?: string

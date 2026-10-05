@@ -756,11 +756,18 @@ function RosterCard({
           ) : null}
 
           {!readOnly ? (
-            <PortalAccessAction
-              operationId={operationId}
-              personId={row.person_id}
-              disabled={row.status === "cancelled"}
-            />
+            <div className="space-y-2">
+              {row.status !== "confirmed" ? (
+                <p className="text-xs text-muted-foreground">
+                  O acesso ao Portal do Passageiro fica disponível somente após a participação ser confirmada.
+                </p>
+              ) : null}
+              <PortalAccessAction
+                operationId={operationId}
+                personId={row.person_id}
+                disabled={row.status !== "confirmed"}
+              />
+            </div>
           ) : null}
 
           {!readOnly ? (
@@ -852,11 +859,12 @@ type CommercialLeadRow = {
   email: string;
   phone: string;
   status: string;
-  created_at: string;
+  metadata: Record<string, unknown> | null;
   converted_person_id: string | null;
+  created_at: string;
 };
 
-function LeadApprovalPanel({
+function GenericLeadApprovalPanel({
   operationId,
   disabled,
   enableChapadaGoldenPath,
@@ -1126,6 +1134,270 @@ function LeadApprovalPanel({
   );
 }
 
+
+function CommercialLeadApprovalQueue({
+  operationId,
+  disabled,
+}: {
+  operationId: string;
+  disabled: boolean;
+}) {
+  const { locale } = useI18n();
+  const queryClient = useQueryClient();
+
+  const leads = useQuery({
+    queryKey: ["commercial-leads-operation", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_leads")
+        .select("id,full_name,email,phone,status,metadata,converted_person_id,created_at")
+        .eq("operation_id", operationId)
+        .is("converted_person_id", null)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CommercialLeadRow[];
+    },
+  });
+
+  const woodstockStay = useQuery({
+    queryKey: ["team-seffrin-woodstock-stay", operationId],
+    queryFn: async () => {
+      const { data: stay, error } = await supabase
+        .from("hospitality_stays")
+        .select("id,name,status,hospitality_properties!inner(name)")
+        .eq("operation_id", operationId)
+        .eq("hospitality_properties.name", "Woodstock Guesthouse")
+        .neq("status", "cancelled")
+        .maybeSingle();
+      if (error) throw error;
+      if (!stay) return null;
+
+      const [rooms, guests] = await Promise.all([
+        supabase
+          .from("hospitality_rooms")
+          .select("capacity,room_status")
+          .eq("stay_id", stay.id),
+        supabase
+          .from("hospitality_stay_participations")
+          .select("id", { count: "exact", head: true })
+          .eq("stay_id", stay.id)
+          .eq("is_active", true),
+      ]);
+      if (rooms.error) throw rooms.error;
+      if (guests.error) throw guests.error;
+
+      const capacity = (rooms.data ?? [])
+        .filter((room) => room.room_status !== "blocked")
+        .reduce((sum, room) => sum + room.capacity, 0);
+      const activeGuests = guests.count ?? 0;
+
+      return {
+        ...stay,
+        capacity,
+        activeGuests,
+        remainingCapacity: Math.max(0, capacity - activeGuests),
+        soldOut: capacity > 0 && activeGuests >= capacity,
+      };
+    },
+  });
+
+  const approve = useMutation({
+    mutationFn: async (leadId: string) => {
+      const stayId = woodstockStay.data?.id ?? null;
+      if (stayId) {
+        const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+          _lead_id: leadId,
+          _stay_id: stayId,
+          _idempotency_key: newIdempotencyKey(),
+        });
+        if (error) throw error;
+        return data;
+      }
+
+      const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation", {
+        _lead_id: leadId,
+        _idempotency_key: newIdempotencyKey(),
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      feedback.success(
+        woodstockStay.data?.id
+          ? "Lead aprovado, participante criado e adicionado à Woodstock sem quarto."
+          : "Lead aprovado e vinculado à operação como participante esperado.",
+      );
+      void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["team-seffrin-woodstock-stay", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["stay-guests"] });
+      void queryClient.invalidateQueries({ queryKey: ["hospitality-stay"] });
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  if (leads.isLoading || woodstockStay.isLoading) {
+    return <PanelSkeleton rows={2} />;
+  }
+
+  if (leads.isError) {
+    return (
+      <section className="surface-panel p-4">
+        <p className="text-sm font-medium">Leads comerciais</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Não foi possível carregar os cadastros comerciais desta operação.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-3 min-h-11"
+          onClick={() => void leads.refetch()}
+        >
+          Tentar novamente
+        </Button>
+      </section>
+    );
+  }
+
+  const rows = leads.data ?? [];
+  if (rows.length === 0) return null;
+
+  const isWaitlistLead = (lead: CommercialLeadRow) =>
+    lead.metadata?.["waitlist"] === true || lead.metadata?.["capacity_status"] === "sold_out";
+
+  const approvalRows = rows.filter((lead) => !isWaitlistLead(lead));
+  const waitlistRows = rows.filter(isWaitlistLead);
+
+  const renderLead = (lead: CommercialLeadRow, waitlist: boolean) => {
+    const profile =
+      lead.metadata && typeof lead.metadata["traveler_profile"] === "string"
+        ? String(lead.metadata["traveler_profile"])
+        : "Participante";
+    const distance =
+      lead.metadata && typeof lead.metadata["intended_distance"] === "string"
+        ? String(lead.metadata["intended_distance"])
+        : null;
+    const accommodation =
+      lead.metadata && typeof lead.metadata["accommodation_preference"] === "string"
+        ? String(lead.metadata["accommodation_preference"])
+        : null;
+
+    return (
+      <li key={lead.id} className="flex flex-wrap items-center gap-3 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-sm font-medium">{lead.full_name}</p>
+            {waitlist ? (
+              <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">
+                Lista de espera
+              </span>
+            ) : null}
+          </div>
+          <p className="truncate text-xs text-muted-foreground">
+            {lead.email} · {lead.phone}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {profile}
+            {distance ? ` · ${distance}` : ""}
+            {accommodation ? ` · ${accommodation}` : ""}
+            {" · "}recebido em {formatDateTime(lead.created_at, { locale })}
+          </p>
+        </div>
+        <Button
+          className="min-h-11"
+          disabled={disabled || approve.isPending || Boolean(woodstockStay.data?.soldOut)}
+          onClick={() => approve.mutate(lead.id)}
+        >
+          {woodstockStay.data?.soldOut
+            ? "Aguardando vaga"
+            : approve.isPending && approve.variables === lead.id
+              ? "Aprovando…"
+              : waitlist
+                ? "Aprovar vaga liberada"
+                : woodstockStay.data?.id
+                  ? "Aprovar + Woodstock"
+                  : "Aprovar e vincular"}
+        </Button>
+      </li>
+    );
+  };
+
+  return (
+    <section className="space-y-4">
+      <section className="surface-panel space-y-3 p-4">
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold">Leads aguardando aprovação</p>
+              <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                {approvalRows.length}
+              </span>
+            </div>
+            {woodstockStay.data?.id ? (
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  woodstockStay.data.soldOut
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-success-soft text-success"
+                }`}
+              >
+                {woodstockStay.data.soldOut
+                  ? `Operação lotada · ${woodstockStay.data.activeGuests}/${woodstockStay.data.capacity}`
+                  : `${woodstockStay.data.remainingCapacity} vaga${woodstockStay.data.remainingCapacity === 1 ? "" : "s"} disponível${woodstockStay.data.remainingCapacity === 1 ? "" : "is"}`}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Cadastros que chegaram com capacidade disponível e podem seguir pelo fluxo comercial.
+            Aprovar cria ou reutiliza a Pessoa no COBS e, nesta operação, adiciona o participante à Woodstock como hóspede sem quarto.
+          </p>
+          {woodstockStay.data?.soldOut ? (
+            <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser liberada na hospedagem.
+            </p>
+          ) : null}
+        </div>
+
+        {approvalRows.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
+            Nenhum lead aguardando aprovação imediata.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border/70">
+            {approvalRows.map((lead) => renderLead(lead, false))}
+          </ul>
+        )}
+      </section>
+
+      {waitlistRows.length > 0 ? (
+        <section className="surface-panel border-warning/30 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold">Lista de espera</p>
+                <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
+                  {waitlistRows.length}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Estes interessados se cadastraram quando a hospedagem estava lotada. Eles não ocupam vaga e não foram transformados em participantes.
+              </p>
+            </div>
+            {!woodstockStay.data?.soldOut && woodstockStay.data?.id ? (
+              <span className="rounded-full bg-success-soft px-2.5 py-1 text-xs font-medium text-success">
+                Vaga liberada · revisão comercial disponível
+              </span>
+            ) : null}
+          </div>
+
+          <ul className="mt-2 divide-y divide-border/70">
+            {waitlistRows.map((lead) => renderLead(lead, true))}
+          </ul>
+        </section>
+      ) : null}
+    </section>
+  );
+}
+
 function Roster() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/people" });
   const { t } = useI18n();
@@ -1260,19 +1532,23 @@ function Roster() {
         ) : null}
       </section>
 
-      <LeadApprovalPanel
-        operationId={operationId}
-        disabled={!canMutate}
-        enableChapadaGoldenPath={
-          operationState.data?.code === "CHAPADA-EXPERIENCE-20270615"
-        }
-      />
-
       {terminal ? (
         <section className="surface-panel border-border p-4">
           <p className="font-medium">{t("roster.readOnly")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("roster.readOnlyBody")}</p>
         </section>
+      ) : null}
+
+      {canManage ? (
+        operationState.data?.code === "TEAM-SEFFRIN-BSB-20270416" ? (
+          <CommercialLeadApprovalQueue operationId={operationId} disabled={!canMutate} />
+        ) : (
+          <GenericLeadApprovalPanel
+            operationId={operationId}
+            disabled={!canMutate}
+            enableChapadaGoldenPath={operationState.data?.code === "CHAPADA-EXPERIENCE-20270615"}
+          />
+        )
       ) : null}
 
       {rows.length === 0 ? (
