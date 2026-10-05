@@ -7,7 +7,7 @@ const secretKey = KEYS.default;
 const MP_ENV = (Deno.env.get("MERCADO_PAGO_ENVIRONMENT") ?? "production").trim().toLowerCase();
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
 const MP_TEST_TOKEN = Deno.env.get("MERCADO_PAGO_TEST_ACCESS_TOKEN");
-const CIOSP_CODE = "CIOSP-SP-2027";
+const CIOSP_CODE = "CIOSP-SP-2027-COMMERCIAL";
 const ENTRY_MINOR = 349000;
 
 const cors = {
