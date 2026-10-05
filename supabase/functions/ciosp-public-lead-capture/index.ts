@@ -7,7 +7,7 @@ const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? 
 const secretKey = SUPABASE_SECRET_KEYS.default;
 const N8N_COMMERCIAL_WEBHOOK_URL = Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ?? "";
 const N8N_WEBHOOK_TOKEN = Deno.env.get("N8N_WEBHOOK_TOKEN") ?? "";
-const OPERATION_CODE = "CIOSP-SP-2027";
+const OPERATION_CODE = "CIOSP-SP-2027-COMMERCIAL";
 
 const cors = { ...corsHeaders, "access-control-allow-methods": "POST, OPTIONS" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
