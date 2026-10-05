@@ -9,7 +9,7 @@ const N8N_COMMERCIAL_WEBHOOK_URL = Deno.env.get("N8N_COMMERCIAL_WEBHOOK_URL") ??
 const N8N_WEBHOOK_TOKEN = Deno.env.get("N8N_WEBHOOK_TOKEN") ?? "";
 const OPERATION_CODE = "CHAPADA-EXPERIENCE-20270615";
 const SOURCE = "chapada_experience";
-const CAMPAIGN = "chapada-experience-privativo-casal-20270615";
+const CAMPAIGN = "chapada-experience-grupo-20270615";
 
 const cors = { ...corsHeaders, "access-control-allow-methods": "POST, OPTIONS" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
     tenant_id: op.tenant_id, experience_id: op.experience_id, operation_id: op.id,
     full_name: fullName, email, phone, source: SOURCE, campaign: CAMPAIGN, status: "new",
     consent_contact: true, consent_at: new Date().toISOString(), idempotency_key: idempotencyKey,
-    metadata: { event_type: "lead.created", landing: "/chapada-experience", product: "privativo_casal", sales_mode: "proposal_request", creates_order: false, creates_payment: false },
+    metadata: { event_type: "lead.created", landing: "/chapada-experience", product: "chapada_group_2027", sales_mode: "priority_list", creates_order: false, creates_payment: false },
   }).select("id,status,created_at").single();
 
   if (insertError) {
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
   const { data: automationEvent, error: eventError } = await admin.from("automation_events").insert({
     tenant_id: op.tenant_id, operation_id: op.id, actor_profile_id: null,
     event_type: "lead.created", source: "chapada_public", idempotency_key: `lead:${inserted.id}`, correlation_id: correlationId,
-    payload: { lead_id: inserted.id, name: fullName, email, phone, message: "Tenho interesse na Chapada Experience — Privativo Casal e quero receber a proposta comercial.", source: SOURCE, campaign: CAMPAIGN, product: "privativo_casal", is_test: false },
+    payload: { lead_id: inserted.id, name: fullName, email, phone, message: "Tenho interesse na Chapada Experience 2027 em grupo e quero receber a proposta comercial.", source: SOURCE, campaign: CAMPAIGN, product: "chapada_group_2027", is_test: false },
   }).select("id,tenant_id,operation_id,event_type,idempotency_key,correlation_id,payload,created_at").single();
 
   if (eventError) {
