@@ -515,6 +515,9 @@ function UnassignedRoomQueue({
                   {guest.participation_status === "confirmed" ? "Participação confirmada" : "Participação esperada"}
                   {" · "}Sem quarto
                 </p>
+                <p className="mt-1 text-xs font-medium">
+                  Acomodação: {((guest as unknown as { accommodation_preference?: string }).accommodation_preference ?? "Ainda não definida")}
+                </p>
               </div>
               {terminal ? null : (
                 <RoomPicker
