@@ -236,6 +236,34 @@ function CiospReservationPage() {
         return;
       }
 
+      if (salesQaMode) {
+        const { data: pixData, error: pixError } = await supabase.functions.invoke(
+          "ciosp-public-create-pix",
+          {
+            body: {
+              order_id: checkout.order_id,
+              checkout_token: checkout.checkout_token,
+              payer_email: checkout.payer_email,
+            },
+          },
+        );
+
+        if (pixError) {
+          const code = await edgeErrorCode(pixError);
+          if (code === "mercado_pago_test_not_configured") {
+            setError("O Pix sandbox ainda não está configurado.");
+            return;
+          }
+          throw pixError;
+        }
+
+        if (!pixData?.order_id || pixData?.environment !== "test") {
+          throw new Error("qa_pix_response_invalid");
+        }
+        setPix(pixData as PixState);
+        return;
+      }
+
       const { data: hostedData, error: hostedError } = await supabase.functions.invoke(
         "ciosp-public-create-preference",
         {
