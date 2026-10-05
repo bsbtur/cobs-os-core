@@ -75,6 +75,45 @@ Deno.serve(async (req: Request) => {
   if (opError) return json({ error: "operation_lookup_failed" }, 500);
   if (!op?.tenant_id) return json({ error: "lead_capture_not_configured" }, 409);
 
+  const { data: stay } = await admin
+    .from("hospitality_stays")
+    .select("id,status,hospitality_properties!inner(name)")
+    .eq("operation_id", op.id)
+    .eq("tenant_id", op.tenant_id)
+    .eq("hospitality_properties.name", "Woodstock Guesthouse")
+    .neq("status", "cancelled")
+    .maybeSingle();
+
+  let capacityStatus = "unconfigured";
+  let waitlist = false;
+  let remainingCapacity: number | null = null;
+
+  if (stay?.id) {
+    const [rooms, guests] = await Promise.all([
+      admin
+        .from("hospitality_rooms")
+        .select("capacity,room_status")
+        .eq("stay_id", stay.id)
+        .eq("tenant_id", op.tenant_id),
+      admin
+        .from("hospitality_stay_participations")
+        .select("id", { count: "exact", head: true })
+        .eq("stay_id", stay.id)
+        .eq("tenant_id", op.tenant_id)
+        .eq("is_active", true),
+    ]);
+
+    if (!rooms.error && !guests.error) {
+      const capacity = (rooms.data ?? [])
+        .filter((room) => room.room_status !== "blocked")
+        .reduce((sum, room) => sum + Number(room.capacity || 0), 0);
+      const occupied = guests.count ?? 0;
+      remainingCapacity = Math.max(0, capacity - occupied);
+      waitlist = capacity > 0 && occupied >= capacity;
+      capacityStatus = capacity > 0 ? (waitlist ? "sold_out" : "available") : "unconfigured";
+    }
+  }
+
   const metadata = {
     event_type: "lead.created",
     landing: "maratona-brasilia-2027.vercel.app",
@@ -84,6 +123,9 @@ Deno.serve(async (req: Request) => {
     intended_distance: distance,
     party_size: quantity,
     accommodation_preference: accommodationPreference,
+    capacity_status: capacityStatus,
+    waitlist,
+    remaining_capacity_at_capture: remainingCapacity,
     city: city || null,
     notes: notes || null,
     prelaunch: true,
@@ -138,7 +180,10 @@ Deno.serve(async (req: Request) => {
     payload: {
       lead_id: inserted.id, name: fullName, email, phone, city: city || null,
       profile, distance, quantity, accommodation_preference: accommodationPreference,
-      message: "Tenho interesse na Team Seffrin Experience — Brasília 2027.",
+      capacity_status: capacityStatus, waitlist,
+      message: waitlist
+        ? "Tenho interesse na lista de espera da Team Seffrin Experience — Brasília 2027."
+        : "Tenho interesse na Team Seffrin Experience — Brasília 2027.",
       source, campaign, is_test: false,
     },
   };
