@@ -891,7 +891,7 @@ function CommercialLeadApprovalQueue({
   const woodstockStay = useQuery({
     queryKey: ["team-seffrin-woodstock-stay", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: stay, error } = await supabase
         .from("hospitality_stays")
         .select("id,name,status,hospitality_properties!inner(name)")
         .eq("operation_id", operationId)
@@ -899,7 +899,34 @@ function CommercialLeadApprovalQueue({
         .neq("status", "cancelled")
         .maybeSingle();
       if (error) throw error;
-      return data;
+      if (!stay) return null;
+
+      const [rooms, guests] = await Promise.all([
+        supabase
+          .from("hospitality_rooms")
+          .select("capacity,room_status")
+          .eq("stay_id", stay.id),
+        supabase
+          .from("hospitality_stay_participations")
+          .select("id", { count: "exact", head: true })
+          .eq("stay_id", stay.id)
+          .eq("is_active", true),
+      ]);
+      if (rooms.error) throw rooms.error;
+      if (guests.error) throw guests.error;
+
+      const capacity = (rooms.data ?? [])
+        .filter((room) => room.room_status !== "blocked")
+        .reduce((sum, room) => sum + room.capacity, 0);
+      const activeGuests = guests.count ?? 0;
+
+      return {
+        ...stay,
+        capacity,
+        activeGuests,
+        remainingCapacity: Math.max(0, capacity - activeGuests),
+        soldOut: capacity > 0 && activeGuests >= capacity,
+      };
     },
   });
 
@@ -930,6 +957,7 @@ function CommercialLeadApprovalQueue({
           : "Lead aprovado e vinculado à operação como participante esperado.",
       );
       void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["team-seffrin-woodstock-stay", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["stay-guests"] });
       void queryClient.invalidateQueries({ queryKey: ["hospitality-stay"] });
@@ -965,7 +993,22 @@ function CommercialLeadApprovalQueue({
   return (
     <section className="surface-panel space-y-3 p-4">
       <div>
-        <p className="text-sm font-semibold">Leads aguardando aprovação</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold">Leads aguardando aprovação</p>
+          {woodstockStay.data?.id ? (
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                woodstockStay.data.soldOut
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-success-soft text-success"
+              }`}
+            >
+              {woodstockStay.data.soldOut
+                ? `Operação lotada · ${woodstockStay.data.activeGuests}/${woodstockStay.data.capacity}`
+                : `${woodstockStay.data.remainingCapacity} vaga${woodstockStay.data.remainingCapacity === 1 ? "" : "s"} disponível${woodstockStay.data.remainingCapacity === 1 ? "" : "is"}`}
+            </span>
+          ) : null}
+        </div>
         <p className="mt-1 text-xs text-muted-foreground">
           Aprovar cria ou reutiliza a Pessoa no COBS e a adiciona a esta operação como participante esperado.
           {woodstockStay.data?.id
@@ -973,6 +1016,11 @@ function CommercialLeadApprovalQueue({
             : " Nenhuma hospedagem Woodstock ativa foi encontrada, então a aprovação ficará somente no roster."}
           {" "}Não cria pagamento, pedido, reserva comercial, acesso ao portal ou alocação de quarto.
         </p>
+        {woodstockStay.data?.soldOut ? (
+          <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser liberada na hospedagem.
+          </p>
+        ) : null}
       </div>
 
       <ul className="divide-y divide-border/70">
@@ -1000,14 +1048,16 @@ function CommercialLeadApprovalQueue({
               </div>
               <Button
                 className="min-h-11"
-                disabled={disabled || approve.isPending}
+                disabled={disabled || approve.isPending || Boolean(woodstockStay.data?.soldOut)}
                 onClick={() => approve.mutate(lead.id)}
               >
-                {approve.isPending && approve.variables === lead.id
-                  ? "Aprovando…"
-                  : woodstockStay.data?.id
-                    ? "Aprovar + Woodstock"
-                    : "Aprovar e vincular"}
+                {woodstockStay.data?.soldOut
+                  ? "Operação lotada"
+                  : approve.isPending && approve.variables === lead.id
+                    ? "Aprovando…"
+                    : woodstockStay.data?.id
+                      ? "Aprovar + Woodstock"
+                      : "Aprovar e vincular"}
               </Button>
             </li>
           );
