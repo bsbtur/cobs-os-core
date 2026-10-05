@@ -845,6 +845,165 @@ function RosterCard({
   );
 }
 
+
+type CommercialLeadRow = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  status: string;
+  created_at: string;
+  converted_person_id: string | null;
+};
+
+function LeadApprovalPanel({
+  operationId,
+  disabled,
+}: {
+  operationId: string;
+  disabled: boolean;
+}) {
+  const { locale } = useI18n();
+  const queryClient = useQueryClient();
+
+  const leads = useQuery({
+    queryKey: ["commercial-leads", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commercial_leads")
+        .select("id, full_name, email, phone, status, created_at, converted_person_id")
+        .eq("operation_id", operationId)
+        .in("status", ["new", "contacted", "qualified", "converted"])
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CommercialLeadRow[];
+    },
+  });
+
+  const approve = useMutation({
+    mutationFn: async (lead: CommercialLeadRow) => {
+      const { data: converted, error: convertError } = await supabase.rpc(
+        "convert_commercial_lead_to_person",
+        { _lead_id: lead.id },
+      );
+      if (convertError) throw convertError;
+
+      const payload = (converted ?? {}) as Record<string, unknown>;
+      const personId =
+        typeof payload["person_id"] === "string" ? payload["person_id"] : lead.converted_person_id;
+      if (!personId) throw new Error("lead_conversion_missing_person_id");
+
+      const { data: existing, error: existingError } = await supabase
+        .from("operation_participations")
+        .select("id")
+        .eq("operation_id", operationId)
+        .eq("person_id", personId)
+        .maybeSingle();
+      if (existingError) throw existingError;
+
+      if (!existing) {
+        const { error: addError } = await supabase.rpc("add_operation_participation", {
+          _operation_id: operationId,
+          _person_id: personId,
+          _participation_kind: "participant",
+          _idempotency_key: `commercial-lead-roster:${lead.id}`,
+          _role_type_ids: [],
+        });
+        if (addError) throw addError;
+      }
+
+      return { personId };
+    },
+    onSuccess: () => {
+      feedback.success("Lead aprovado e adicionado à operação.");
+      void queryClient.invalidateQueries({ queryKey: ["commercial-leads", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  if (leads.isLoading) {
+    return <PanelSkeleton rows={2} />;
+  }
+
+  if (leads.isError) {
+    return (
+      <section className="surface-panel p-4">
+        <p className="font-medium">Leads da landing</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Não foi possível carregar os interessados desta operação.
+        </p>
+        <Button variant="outline" className="mt-3 min-h-11" onClick={() => void leads.refetch()}>
+          Tentar novamente
+        </Button>
+      </section>
+    );
+  }
+
+  const rows = leads.data ?? [];
+  const pending = rows.filter((lead) => lead.status !== "converted");
+  const converted = rows.filter((lead) => lead.status === "converted");
+
+  if (rows.length === 0) return null;
+
+  return (
+    <section className="surface-panel p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold">Leads da landing</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Aprovar converte o lead em Pessoa e adiciona o viajante ao roster desta operação. Não cria pedido nem cobrança.
+          </p>
+        </div>
+        <Chip className="bg-primary-soft text-primary">
+          {pending.length} aguardando
+        </Chip>
+      </div>
+
+      <ul className="mt-4 space-y-2">
+        {rows.map((lead) => (
+          <li key={lead.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{lead.full_name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {lead.email} · {lead.phone}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {formatDateTime(lead.created_at, { locale })}
+              </p>
+            </div>
+            <Chip
+              className={
+                lead.status === "converted"
+                  ? "bg-primary-soft text-primary"
+                  : "border border-border text-muted-foreground"
+              }
+            >
+              {lead.status === "converted" ? "convertido" : lead.status}
+            </Chip>
+            {lead.status !== "converted" ? (
+              <Button
+                className="min-h-11"
+                disabled={disabled || approve.isPending}
+                onClick={() => approve.mutate(lead)}
+              >
+                <UserPlus className="mr-2 size-4" aria-hidden="true" />
+                Aprovar e adicionar
+              </Button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
+      {converted.length > 0 ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Leads convertidos permanecem visíveis aqui como evidência do funil comercial.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 function Roster() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/people" });
   const { t } = useI18n();
@@ -978,6 +1137,8 @@ function Roster() {
           </Button>
         ) : null}
       </section>
+
+      <LeadApprovalPanel operationId={operationId} disabled={!canMutate} />
 
       {terminal ? (
         <section className="surface-panel border-border p-4">
