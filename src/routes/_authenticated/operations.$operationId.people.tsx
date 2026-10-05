@@ -881,8 +881,34 @@ function CommercialLeadApprovalQueue({
     },
   });
 
+  const woodstockStay = useQuery({
+    queryKey: ["team-seffrin-woodstock-stay", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("hospitality_stays")
+        .select("id,name,status,hospitality_properties!inner(name)")
+        .eq("operation_id", operationId)
+        .eq("hospitality_properties.name", "Woodstock Guesthouse")
+        .neq("status", "cancelled")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const approve = useMutation({
     mutationFn: async (leadId: string) => {
+      const stayId = woodstockStay.data?.id ?? null;
+      if (stayId) {
+        const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+          _lead_id: leadId,
+          _stay_id: stayId,
+          _idempotency_key: newIdempotencyKey(),
+        });
+        if (error) throw error;
+        return data;
+      }
+
       const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation", {
         _lead_id: leadId,
         _idempotency_key: newIdempotencyKey(),
@@ -891,14 +917,20 @@ function CommercialLeadApprovalQueue({
       return data;
     },
     onSuccess: () => {
-      feedback.success("Lead aprovado e vinculado à operação como participante esperado.");
+      feedback.success(
+        woodstockStay.data?.id
+          ? "Lead aprovado, participante criado e adicionado à Woodstock sem quarto."
+          : "Lead aprovado e vinculado à operação como participante esperado.",
+      );
       void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["stay-guests"] });
+      void queryClient.invalidateQueries({ queryKey: ["hospitality-stay"] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  if (leads.isLoading) {
+  if (leads.isLoading || woodstockStay.isLoading) {
     return <PanelSkeleton rows={2} />;
   }
 
@@ -929,7 +961,10 @@ function CommercialLeadApprovalQueue({
         <p className="text-sm font-semibold">Leads aguardando aprovação</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Aprovar cria ou reutiliza a Pessoa no COBS e a adiciona a esta operação como participante esperado.
-          Não cria pagamento, pedido, reserva, acesso ao portal ou alocação de quarto.
+          {woodstockStay.data?.id
+            ? " Nesta operação, o participante também entra automaticamente na Woodstock Guesthouse como hóspede sem quarto."
+            : " Nenhuma hospedagem Woodstock ativa foi encontrada, então a aprovação ficará somente no roster."}
+          {" "}Não cria pagamento, pedido, reserva comercial, acesso ao portal ou alocação de quarto.
         </p>
       </div>
 
@@ -963,7 +998,9 @@ function CommercialLeadApprovalQueue({
               >
                 {approve.isPending && approve.variables === lead.id
                   ? "Aprovando…"
-                  : "Aprovar e vincular"}
+                  : woodstockStay.data?.id
+                    ? "Aprovar + Woodstock"
+                    : "Aprovar e vincular"}
               </Button>
             </li>
           );
