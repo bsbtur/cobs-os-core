@@ -440,6 +440,98 @@ function ReleaseRoomButton({ guest, onDone }: { guest: StayGuest; onDone: () => 
 }
 
 /* ------------------------------------------------------------------ */
+/* Unassigned room queue                                               */
+/* ------------------------------------------------------------------ */
+
+function UnassignedRoomQueue({
+  guests,
+  rooms,
+  terminal,
+  canOverride,
+  onDone,
+}: {
+  guests: StayGuest[];
+  rooms: RoomingRoom[];
+  terminal: boolean;
+  canOverride: boolean;
+  onDone: () => void;
+}) {
+  const unassigned = guests.filter(
+    (guest) => guest.is_active && !guest.room_id && guest.state === "NOT_ARRIVED",
+  );
+
+  if (unassigned.length === 0) return null;
+
+  const availableRooms = rooms.filter(
+    (room) => room.room_status !== "blocked" && room.occupancy < room.capacity,
+  );
+  const availablePlaces = availableRooms.reduce(
+    (total, room) => total + Math.max(0, room.capacity - room.occupancy),
+    0,
+  );
+
+  return (
+    <section className="surface-panel border-warning/30 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <SectionLabel>Fila sem quarto</SectionLabel>
+          <h3 className="mt-1 text-lg font-semibold">
+            {unassigned.length} {unassigned.length === 1 ? "pessoa aguardando" : "pessoas aguardando"} alocação
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Estes hóspedes já pertencem à hospedagem, mas ainda não ocupam nenhum quarto.
+            Alocar quarto não registra check-in.
+          </p>
+        </div>
+        <div className="rounded-lg border border-border px-3 py-2 text-right">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            Vagas disponíveis
+          </p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">{availablePlaces}</p>
+        </div>
+      </div>
+
+      {availablePlaces < unassigned.length ? (
+        <p className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
+          Atenção: há {unassigned.length} hóspedes sem quarto e apenas {availablePlaces} vagas disponíveis nos quartos não bloqueados.
+        </p>
+      ) : null}
+
+      <ul className="mt-3 grid gap-2 lg:grid-cols-2">
+        {unassigned
+          .slice()
+          .sort((a, b) => a.full_name.localeCompare(b.full_name, undefined, { sensitivity: "base" }))
+          .map((guest, index) => (
+            <li
+              key={guest.stay_participation_id}
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
+            >
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-elevated text-xs font-semibold">
+                {index + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{guest.full_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {guest.participation_status === "confirmed" ? "Participação confirmada" : "Participação esperada"}
+                  {" · "}Sem quarto
+                </p>
+              </div>
+              {terminal ? null : (
+                <RoomPicker
+                  guest={guest}
+                  rooms={rooms}
+                  canOverride={canOverride}
+                  onDone={onDone}
+                />
+              )}
+            </li>
+          ))}
+      </ul>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Guest row                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -1625,6 +1717,14 @@ function HospitalityPage() {
                   </div>
                 )}
               </article>
+
+              <UnassignedRoomQueue
+                guests={guests}
+                rooms={rooms}
+                terminal={terminal}
+                canOverride={canManage}
+                onDone={refresh}
+              />
 
               <section className="surface-panel p-4">
                 <div className="flex items-center gap-2">
