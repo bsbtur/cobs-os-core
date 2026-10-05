@@ -33,7 +33,7 @@ A implementação existente é deliberadamente fail-closed: a fonte documental d
 
 ## 3. Variáveis obrigatórias registradas no ambiente
 
-Schema atual observado no banco: `schema_version = 31`.
+Após a reconciliação técnica de 2026-10-05, o ambiente foi verificado com `schema_version = 32`, mantendo `status = review_required` e `legal_reviewed_at = null`.
 
 Obrigatórias:
 
@@ -61,6 +61,8 @@ Obrigatórias:
 22. `contracted_suppliers`
 23. `privacy_policy_version`
 24. `privacy_policy_effective_at`
+25. `program_snapshot`
+26. `program_hash`
 
 Opcionais:
 
@@ -79,6 +81,8 @@ Metadados atuais do V3.1 exigem:
 - snapshot dos fornecedores;
 - identidade jurídica dos fornecedores;
 - snapshot do cronograma de pagamentos;
+- snapshot da programação do viajante;
+- hash SHA-256 da programação;
 - versão da política de privacidade;
 - preflight dos placeholders;
 - política de privacidade com key `ciosp-2027-traveler-contract`;
@@ -111,18 +115,27 @@ O gerador canônico trabalha apenas com:
 
 A aprovação do fornecedor de pagamento ou qualquer dado de QA não substitui esses gates jurídicos.
 
-## 7. Divergência técnica identificada para reconciliação
+## 7. Reconciliação técnica do schema V3.1
 
-O repositório contém a migration `20260907015000_contract_v31_require_program_snapshot.sql`, que pretende elevar o schema para `32` e adicionar:
+A divergência observada inicialmente — banco em `schema_version = 31` apesar da intenção de exigir `program_snapshot` e `program_hash` — foi reconciliada em 2026-10-05.
 
-- `program_snapshot`
-- `program_hash`
+Foi criada e aprovada a correção técnica em PR separada, preservando:
 
-além de `requires_program_snapshot=true`.
+- `status = review_required`;
+- `legal_reviewed_at = null`;
+- fonte documental ainda não registrada;
+- nenhuma ativação de template;
+- nenhuma chamada à Clicksign;
+- nenhuma alteração em pagamentos.
 
-Entretanto, no ambiente consultado em 2026-10-05, a linha V3.1 ainda apresenta `schema_version = 31` e não contém esses dois campos em `required`.
+O estado verificado após a reconciliação é:
 
-Esta divergência deve ser reconciliada tecnicamente **antes de congelar a fonte documental final**, sem alterar o status `review_required` e sem registrar revisão jurídica fictícia.
+- `schema_version = 32`;
+- `program_snapshot` obrigatório;
+- `program_hash` obrigatório;
+- `requires_program_snapshot = true`;
+- `program_snapshot_source = journey_steps`;
+- `program_snapshot_hash = sha256`.
 
 ## 8. Materiais-fonte técnicos
 
@@ -140,9 +153,9 @@ Principais fontes do repositório usadas nesta extração:
 
 ## 9. Conclusão desta etapa
 
-A extração integral do **conteúdo atualmente existente** está concluída.
+A extração integral do **conteúdo atualmente existente** está concluída e o schema técnico V3.1 foi reconciliado antes do congelamento de qualquer fonte documental.
 
-O achado central é objetivo: **V3.1 ainda não possui texto contratual integral registrado**. Portanto, não há cláusulas existentes a serem “extraídas” sem inventar conteúdo. O próximo artefato correto é elaborar o texto-base jurídico em draft, usando somente dados e placeholders canônicos já definidos, para posterior registro como fonte documental e envio a revisão jurídica formal.
+O próximo artefato é o texto-base jurídico em draft, usando somente placeholders canônicos já definidos, para revisão jurídica formal.
 
 Até lá:
 
