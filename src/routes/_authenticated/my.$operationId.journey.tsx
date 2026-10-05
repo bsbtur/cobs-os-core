@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useState } from "react";
-import { CalendarDays, ChevronDown, Clock3, MapPin, Megaphone, Sparkles, Plane, ShieldCheck } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3, Compass, MapPin, Megaphone, Sparkles, ShieldCheck } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { useMyJourney, useMyOverview } from "@/lib/w10";
@@ -62,7 +62,7 @@ function PortalJourney() {
       {!journey.isLoading && !journey.error && nextStepId ? (
         <section className="mb-5 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
           <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-primary/10 p-2"><Plane className="h-5 w-5 text-primary" /></div>
+            <div className="rounded-xl bg-primary/10 p-2"><Compass className="h-5 w-5 text-primary" /></div>
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{t("w10.journey.nextActivity")}</p>
               <p className="mt-1 text-base font-semibold text-foreground">{steps.find((step) => step.stepId === nextStepId)?.title}</p>
