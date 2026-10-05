@@ -859,12 +859,17 @@ type CommercialLeadRow = {
 function LeadApprovalPanel({
   operationId,
   disabled,
+  enableChapadaGoldenPath,
 }: {
   operationId: string;
   disabled: boolean;
+  enableChapadaGoldenPath: boolean;
 }) {
   const { locale } = useI18n();
   const queryClient = useQueryClient();
+  const [accessLinks, setAccessLinks] = React.useState<
+    Record<string, { url: string; expiresAt: string | null }>
+  >({});
 
   const leads = useQuery({
     queryKey: ["commercial-leads", operationId],
@@ -912,10 +917,101 @@ function LeadApprovalPanel({
         if (addError) throw addError;
       }
 
-      return { personId };
+      const { data: participation, error: participationError } = await supabase
+        .from("operation_participations")
+        .select("id")
+        .eq("operation_id", operationId)
+        .eq("person_id", personId)
+        .maybeSingle();
+      if (participationError) throw participationError;
+      if (!participation?.id) throw new Error("lead_roster_participation_missing");
+
+      let stayAdded = false;
+      let accessUrl: string | null = null;
+      let expiresAt: string | null = null;
+      let accessAlreadyActive = false;
+
+      if (enableChapadaGoldenPath) {
+        const { data: stay, error: stayError } = await supabase
+          .from("hospitality_stays")
+          .select("id")
+          .eq("operation_id", operationId)
+          .not("status", "in", '("cancelled","completed")')
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (stayError) throw stayError;
+
+        if (stay?.id) {
+          const { data: existingStayGuest, error: stayGuestError } = await supabase
+            .from("hospitality_stay_participations")
+            .select("id, is_active")
+            .eq("stay_id", stay.id)
+            .eq("participation_id", participation.id)
+            .maybeSingle();
+          if (stayGuestError) throw stayGuestError;
+
+          if (!existingStayGuest?.is_active) {
+            const { error: addStayError } = await supabase.rpc("add_stay_participation", {
+              _stay_id: stay.id,
+              _participation_id: participation.id,
+              _idempotency_key: `commercial-lead-stay:${lead.id}`,
+              _notes: "Incluído após aprovação comercial; quarto ainda não definido.",
+            });
+            if (addStayError) throw addStayError;
+          }
+          stayAdded = true;
+        }
+
+        const { data: grant, error: grantError } = await supabase
+          .from("participant_access_grants")
+          .select("id")
+          .eq("operation_id", operationId)
+          .eq("person_id", personId)
+          .eq("status", "active")
+          .maybeSingle();
+        if (grantError) throw grantError;
+
+        if (grant) {
+          accessAlreadyActive = true;
+        } else {
+          const { data: invitation, error: invitationError } = await supabase.rpc(
+            "invite_participant_access",
+            {
+              _operation_id: operationId,
+              _person_id: personId,
+              _idempotency_key: `commercial-lead-access:${lead.id}`,
+            },
+          );
+          if (invitationError) throw invitationError;
+          const invitationPayload = (invitation ?? {}) as Record<string, unknown>;
+          const token = typeof invitationPayload["token"] === "string" ? invitationPayload["token"] : null;
+          expiresAt =
+            typeof invitationPayload["expires_at"] === "string"
+              ? invitationPayload["expires_at"]
+              : null;
+          if (token && typeof window !== "undefined") {
+            accessUrl = `${window.location.origin}/my/claim/${token}`;
+          }
+        }
+      }
+
+      return { personId, stayAdded, accessUrl, expiresAt, accessAlreadyActive };
     },
-    onSuccess: () => {
-      feedback.success("Lead aprovado e adicionado à operação.");
+    onSuccess: (result, lead) => {
+      if (result.accessUrl) {
+        setAccessLinks((current) => ({
+          ...current,
+          [lead.id]: { url: result.accessUrl!, expiresAt: result.expiresAt },
+        }));
+      }
+      feedback.success(
+        enableChapadaGoldenPath
+          ? result.accessAlreadyActive
+            ? "Lead aprovado, hospedagem vinculada e acesso já ativo."
+            : "Lead aprovado, hospedagem vinculada e convite de acesso gerado."
+          : "Lead aprovado e adicionado à operação.",
+      );
       void queryClient.invalidateQueries({ queryKey: ["commercial-leads", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
     },
@@ -988,8 +1084,34 @@ function LeadApprovalPanel({
                 onClick={() => approve.mutate(lead)}
               >
                 <UserPlus className="mr-2 size-4" aria-hidden="true" />
-                Aprovar e adicionar
+                {enableChapadaGoldenPath ? "Aprovar e preparar acesso" : "Aprovar e adicionar"}
               </Button>
+            ) : null}
+            {accessLinks[lead.id] ? (
+              <div className="w-full rounded-lg border border-primary/30 bg-primary-soft p-3">
+                <p className="text-xs font-semibold text-primary">
+                  Convite do viajante — exibido somente nesta sessão
+                </p>
+                <p className="mt-1 break-all font-mono text-[11px] text-foreground">
+                  {accessLinks[lead.id]?.url ?? ""}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-2 min-h-10"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(accessLinks[lead.id]?.url ?? "");
+                    feedback.success("Link de acesso copiado.");
+                  }}
+                >
+                  Copiar convite
+                </Button>
+                {accessLinks[lead.id]?.expiresAt ? (
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Expira em {formatDateTime(accessLinks[lead.id]?.expiresAt ?? "", { locale })}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </li>
         ))}
@@ -1021,7 +1143,7 @@ function Roster() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operations")
-        .select("status")
+        .select("status, code")
         .eq("id", operationId)
         .maybeSingle();
       if (error) throw error;
@@ -1138,7 +1260,13 @@ function Roster() {
         ) : null}
       </section>
 
-      <LeadApprovalPanel operationId={operationId} disabled={!canMutate} />
+      <LeadApprovalPanel
+        operationId={operationId}
+        disabled={!canMutate}
+        enableChapadaGoldenPath={
+          operationState.data?.code === "CHAPADA-EXPERIENCE-20270615"
+        }
+      />
 
       {terminal ? (
         <section className="surface-panel border-border p-4">
