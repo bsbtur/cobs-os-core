@@ -13,23 +13,29 @@ const webhook = readFileSync(
 
 describe("CIOSP Pix webhook authority", () => {
   test("Pix function never records the financial fact synchronously", () => {
-    expect(pix).not.toContain('db.rpc("record_provider_payment"');
-    expect(pix).not.toContain('status:"paid"');
-    expect(pix).not.toContain('paid_amount_minor:amount');
-    expect(pix).not.toContain('public_checkout_sessions").update({status:"consumed"');
+    expect(pix).not.toMatch(/\.rpc\(\s*["']record_provider_payment["']/);
+    expect(pix).not.toMatch(/status\s*:\s*["']paid["']/);
+    expect(pix).not.toMatch(/paid_amount_minor\s*:\s*amount/);
+    expect(pix).not.toMatch(
+      /public_checkout_sessions[\s\S]*?update\(\s*\{\s*status\s*:\s*["']consumed["']/,
+    );
   });
 
   test("provider approval stays processing until the webhook is correlated", () => {
-    expect(pix).toContain(
-      'const cs=as==="approved"||as==="processing"?"processing":"pending"',
+    expect(pix).toMatch(
+      /const\s+cs\s*=\s*as\s*===\s*["']approved["']\s*\|\|\s*as\s*===\s*["']processing["']\s*\?\s*["']processing["']\s*:\s*["']pending["']/,
     );
-    expect(pix).toContain('confirmed:false');
-    expect(pix).toContain('awaiting_webhook:as==="approved"');
+    expect(pix).toMatch(/confirmed\s*:\s*false/);
+    expect(pix).toMatch(
+      /awaiting_webhook\s*:\s*as\s*===\s*["']approved["']/,
+    );
   });
 
   test("signed/correlated webhook owns payment recording", () => {
-    expect(webhook).toContain('db.rpc("record_provider_payment"');
-    expect(webhook).toContain('provider_correlation_mismatch');
-    expect(webhook).toContain('signature_valid');
+    expect(webhook).toMatch(
+      /admin\.rpc\(\s*["']record_provider_payment["']/,
+    );
+    expect(webhook).toContain("provider_correlation_mismatch");
+    expect(webhook).toContain("signature_valid");
   });
 });
