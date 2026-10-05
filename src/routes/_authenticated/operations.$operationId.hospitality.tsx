@@ -855,11 +855,17 @@ function RoomsPanel({
   stayId,
   rooms,
   terminal,
+  inventoryPending,
+  reportedSuiteCount,
+  reportedGroupCapacity,
   onDone,
 }: {
   stayId: string;
   rooms: RoomingRoom[];
   terminal: boolean;
+  inventoryPending: boolean;
+  reportedSuiteCount: number | null;
+  reportedGroupCapacity: number | null;
   onDone: () => void;
 }) {
   const { t, locale } = useI18n();
@@ -933,6 +939,24 @@ function RoomsPanel({
         <SectionLabel>{t("w06.room.title")}</SectionLabel>
       </div>
 
+      {inventoryPending ? (
+        <div className="mt-3 rounded-xl border border-warning/30 bg-warning-soft p-3">
+          <p className="text-sm font-semibold text-warning">Inventário aguardando confirmação do fornecedor</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            A Woodstock foi cadastrada como hospedagem de referência, mas a configuração exata das suítes desta saída ainda não foi confirmada. Não cadastre quartos fictícios.
+          </p>
+          {reportedSuiteCount || reportedGroupCapacity ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Referência pública da propriedade:
+              {reportedSuiteCount ? ` ${reportedSuiteCount} suítes` : ""}
+              {reportedSuiteCount && reportedGroupCapacity ? " ·" : ""}
+              {reportedGroupCapacity ? ` capacidade divulgada de até ${reportedGroupCapacity} hóspedes` : ""}.
+              Esses números não representam inventário contratado.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {rooms.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">{t("w06.room.empty")}</p>
       ) : (
@@ -991,7 +1015,7 @@ function RoomsPanel({
         </ul>
       )}
 
-      {terminal ? null : (
+      {terminal || inventoryPending ? null : (
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
           <div className="space-y-1.5">
             <Label htmlFor="room-label">{t("w06.room.label")}</Label>
@@ -1468,10 +1492,15 @@ function HospitalityPage() {
     queryKey: ["hospitality-stay", selectedStayId],
     enabled: Boolean(selectedStayId),
     queryFn: async () => {
-      const [overview, rooming, guests, events] = await Promise.all([
+      const [overview, rooming, guests, stayMeta, events] = await Promise.all([
         supabase.rpc("w06_stay_overview", { _stay_id: selectedStayId! }),
         supabase.rpc("w06_stay_rooming", { _stay_id: selectedStayId! }),
         supabase.rpc("w06_stay_guests", { _stay_id: selectedStayId! }),
+        supabase
+          .from("hospitality_stays")
+          .select("metadata")
+          .eq("id", selectedStayId!)
+          .maybeSingle(),
         supabase
           .from("hospitality_events")
           .select("*")
@@ -1482,11 +1511,13 @@ function HospitalityPage() {
       if (overview.error) throw overview.error;
       if (rooming.error) throw rooming.error;
       if (guests.error) throw guests.error;
+      if (stayMeta.error) throw stayMeta.error;
       if (events.error) throw events.error;
       return {
         overview: (overview.data ?? null) as unknown as StayOverview | null,
         rooming: (rooming.data ?? null) as unknown as StayRooming | null,
         guests: (guests.data ?? null) as unknown as StayGuests | null,
+        metadata: (stayMeta.data?.metadata ?? {}) as Record<string, unknown>,
         events: (events.data ?? []) as HospitalityEventRow[],
       };
     },
@@ -1561,6 +1592,17 @@ function HospitalityPage() {
   const overview = detail.data?.overview ?? null;
   const rooms = detail.data?.rooming?.rooms ?? [];
   const guests = detail.data?.guests?.guests ?? [];
+  const stayMetadata = detail.data?.metadata ?? {};
+  const inventoryPending =
+    stayMetadata["room_inventory_status"] === "pending_supplier_confirmation";
+  const reportedSuiteCount =
+    typeof stayMetadata["reported_suite_count"] === "number"
+      ? stayMetadata["reported_suite_count"]
+      : null;
+  const reportedGroupCapacity =
+    typeof stayMetadata["reported_group_capacity"] === "number"
+      ? stayMetadata["reported_group_capacity"]
+      : null;
   const terminal = isTerminalStay(overview?.status);
   const checkinOpen = Boolean(overview?.checkin_opened_at);
   const action = nextAction(overview, rooms);
@@ -1909,6 +1951,9 @@ function HospitalityPage() {
                 stayId={overview.stay_id}
                 rooms={rooms}
                 terminal={terminal}
+                inventoryPending={inventoryPending}
+                reportedSuiteCount={reportedSuiteCount}
+                reportedGroupCapacity={reportedGroupCapacity}
                 onDone={refresh}
               />
 
