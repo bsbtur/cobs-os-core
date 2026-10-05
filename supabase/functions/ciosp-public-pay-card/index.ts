@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
     tenant_id: order.tenant_id, order_id: orderId, provider: "mercado_pago", status: "draft", currency: "BRL",
     amount_minor: balance, installment_number: 2, installment_count: 2, external_reference: externalReference,
     description: "CIOSP 2027 — saldo no cartão",
-    metadata: { environment, source: "public_checkout", commercial_payment_stage: "card_balance", provider_installments: installments },
+    metadata: { environment, source: "public_checkout", settlement_authority: "webhook", commercial_payment_stage: "card_balance", provider_installments: installments },
   }).select("*").single()).data;
   const chargeError = existingCharge ? null : charge ? null : { code: "insert_failed" };
 
@@ -131,7 +131,7 @@ Deno.serve(async (req: Request) => {
       provider_order_id: null,
       paid_amount_minor: 0,
       paid_at: null,
-      metadata: { ...(existingCharge.metadata ?? {}), environment, source: "public_checkout", commercial_payment_stage: "card_balance", provider_installments: installments }
+      metadata: { ...(existingCharge.metadata ?? {}), environment, source: "public_checkout", settlement_authority: "webhook", commercial_payment_stage: "card_balance", provider_installments: installments }
     }).eq("id", existingCharge.id).in("status", ["failed", "cancelled", "rejected"]);
   }
 
@@ -139,7 +139,7 @@ Deno.serve(async (req: Request) => {
     tenant_id: order.tenant_id, charge_id: charge.id, provider: "mercado_pago", method: "card", status: "created",
     amount_minor: balance, idempotency_key: idempotencyKey,
     request_snapshot: { type: "online", total_amount: (balance / 100).toFixed(2), external_reference: externalReference, payment_method_id: paymentMethodId, installments, payer_email: payerEmail, card_token_present: true },
-    metadata: { environment, source: "public_checkout", commercial_payment_stage: "card_balance" },
+    metadata: { environment, source: "public_checkout", settlement_authority: "webhook", commercial_payment_stage: "card_balance" },
   }).select("*").single();
   if (attemptError) {
     await db.from("payment_charges").update({ status: "failed" }).eq("id", charge.id).eq("status", "draft");
