@@ -1587,6 +1587,14 @@ function HospitalityPage() {
     .filter((row) => !already.has(row.id))
     .map((row) => ({ participation_id: row.id, full_name: row.people?.full_name ?? "—" }));
 
+  const usableRooms = rooms.filter((room) => room.room_status !== "blocked");
+  const totalCapacity = usableRooms.reduce((sum, room) => sum + room.capacity, 0);
+  const activeGuests = guests.filter((guest) => guest.is_active).length;
+  const allocatedGuests = overview?.counts.with_room ?? 0;
+  const guestsWithoutRoom = overview?.counts.without_room ?? 0;
+  const remainingCapacity = Math.max(0, totalCapacity - activeGuests);
+  const overCapacity = Math.max(0, activeGuests - totalCapacity);
+
   const counters: Array<{ key: string; label: string; value: number; filter: RoomingFilter }> = [
     {
       key: "rooms",
@@ -1727,6 +1735,58 @@ function HospitalityPage() {
                     {t(action.key)}
                   </p>
                 ) : null}
+
+                <section className="mt-4 rounded-xl border border-border bg-elevated/30 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <SectionLabel>Capacidade da hospedagem</SectionLabel>
+                      <h4 className="mt-1 text-base font-semibold">
+                        {overview.property.name}
+                      </h4>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Capacidade operacional considera apenas quartos não bloqueados. Hóspedes sem quarto já contam como ocupação planejada.
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                        overCapacity > 0
+                          ? "bg-destructive/10 text-destructive"
+                          : remainingCapacity === 0
+                            ? "bg-warning-soft text-warning"
+                            : "bg-success-soft text-success"
+                      }`}
+                    >
+                      {overCapacity > 0
+                        ? `Excedente: ${overCapacity}`
+                        : remainingCapacity === 0
+                          ? "Lotação atingida"
+                          : `${remainingCapacity} vaga${remainingCapacity === 1 ? "" : "s"} restante${remainingCapacity === 1 ? "" : "s"}`}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {[
+                      ["Vagas totais", totalCapacity],
+                      ["Hóspedes", activeGuests],
+                      ["Alocados", allocatedGuests],
+                      ["Sem quarto", guestsWithoutRoom],
+                      ["Vagas restantes", remainingCapacity],
+                    ].map(([label, value]) => (
+                      <div key={String(label)} className="rounded-lg border border-border bg-background/60 p-3">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                          {String(label)}
+                        </p>
+                        <p className="mt-1 text-2xl font-semibold tabular-nums">{Number(value)}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {overCapacity > 0 ? (
+                    <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                      Atenção: há {activeGuests} hóspedes para {totalCapacity} vagas operacionais. Revise quartos bloqueados, capacidade ou participantes antes de confirmar novas inclusões.
+                    </p>
+                  ) : null}
+                </section>
 
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
                   {counters.map((counter) => (
