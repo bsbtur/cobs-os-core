@@ -80,7 +80,12 @@ Deno.serve(async (req: Request) => {
   let payload: any = {};
   try { payload = await req.json(); } catch { return json({ error: "invalid_json" }, 400); }
 
-  const isTest = payload?.live_mode === false || (payload?.live_mode == null && MP_ENVIRONMENT === "test");
+  const isSimulator =
+    String(payload?.data?.id ?? "") === "123456" &&
+    payload?.action === "order.processed" &&
+    payload?.data?.external_reference === "ext_ref_1234";
+
+  const isTest = isSimulator || payload?.live_mode === false || (payload?.live_mode == null && MP_ENVIRONMENT === "test");
   const environment = isTest ? "test" : "production";
   const accessToken = isTest ? MP_TEST_ACCESS_TOKEN : MP_ACCESS_TOKEN;
   const candidateSecrets = [...new Set((isTest ? [MP_TEST_WEBHOOK_SECRET, MP_WEBHOOK_SECRET] : [MP_WEBHOOK_SECRET])
