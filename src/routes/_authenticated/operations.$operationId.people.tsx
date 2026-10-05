@@ -869,14 +869,14 @@ function LeadApprovalPanel({
   const leads = useQuery({
     queryKey: ["commercial-leads", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("commercial_leads")
         .select("id, full_name, email, phone, status, created_at, converted_person_id")
         .eq("operation_id", operationId)
         .in("status", ["new", "contacted", "qualified", "converted"])
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as CommercialLeadRow[];
+      return (data ?? []) as unknown as CommercialLeadRow[];
     },
   });
 
