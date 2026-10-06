@@ -72,7 +72,13 @@ Deno.serve(async(req:Request)=>{
 
   if(cfg.sales_public!==true){
     const qaHeader=req.headers.get("x-team-seffrin-qa");
-    if(qaHeader==="signed-preview"){
+    if(qaHeader==="open-preview"){
+      const isQaProject=SUPABASE_URL.includes("nktohbqmcpgonlizzcka");
+      const isSyntheticBuyer=email.endsWith("@example.com")&&fullName.startsWith("QA ");
+      if(!isQaProject||!isSyntheticBuyer)return json({error:"qa_open_preview_forbidden"},403);
+      allowClosed=true;
+      qaMode=true;
+    }else if(qaHeader==="signed-preview"){
       const valid=await verifySignedPreview(rawBody,req.headers.get("x-team-seffrin-qa-ts"),req.headers.get("x-team-seffrin-qa-signature"));
       if(!valid)return json({error:"qa_signed_preview_forbidden"},403);
       allowClosed=true;

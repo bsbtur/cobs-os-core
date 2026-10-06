@@ -8,6 +8,9 @@ describe("Team Seffrin signed QA checkout",()=>{
     expect(source).toContain("sales_not_open");
     expect(source).toContain("signed-preview");
     expect(source).toContain("qa_signed_preview_forbidden");
+    expect(source).toContain("open-preview");
+    expect(source).toContain("nktohbqmcpgonlizzcka");
+    expect(source).toContain("@example.com");
   });
   test("verifies ECDSA signature with short replay window",()=>{
     expect(source).toContain('namedCurve:"P-256"');
