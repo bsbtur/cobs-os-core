@@ -46,14 +46,29 @@ function PortalMessages() {
   const list = React.useMemo(() => messages.data ?? [], [messages.data]);
   const seen = React.useRef(new Set<string>());
 
-  // Reading the notice IS the read receipt — no extra button, one call per message.
+  // Reading the notice IS the read receipt. Only record the fact after the card
+  // is actually visible, so opening a long inbox does not mark off-screen notices.
   React.useEffect(() => {
-    for (const m of list) {
-      if (m.status === "published" && m.myFirstReadAt === null && !seen.current.has(m.messageId)) {
-        seen.current.add(m.messageId);
-        markRead.mutate(m.messageId);
-      }
-    }
+    const nodes = document.querySelectorAll<HTMLElement>("[data-unread-message-id]");
+    if (nodes.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.6) continue;
+          const node = entry.target as HTMLElement;
+          const messageId = node.dataset.unreadMessageId;
+          if (!messageId || seen.current.has(messageId)) continue;
+          seen.current.add(messageId);
+          observer.unobserve(node);
+          markRead.mutate(messageId);
+        }
+      },
+      { threshold: 0.6 },
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
   }, [list, markRead]);
 
   return (
@@ -86,7 +101,13 @@ function PortalMessages() {
         ) : (
           <div className="flex flex-col gap-3">
             {list.map((m) => (
-              <PortalCard key={m.messageId}>
+              <div
+                key={m.messageId}
+                data-unread-message-id={
+                  m.status === "published" && m.myFirstReadAt === null ? m.messageId : undefined
+                }
+              >
+                <PortalCard>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                     {m.title ?? "—"}
@@ -123,7 +144,8 @@ function PortalMessages() {
                     {t("w10.messages.readAt")}: {formatDateTime(m.myFirstReadAt, ctx)}
                   </p>
                 ) : null}
-              </PortalCard>
+                </PortalCard>
+              </div>
             ))}
           </div>
         )}
