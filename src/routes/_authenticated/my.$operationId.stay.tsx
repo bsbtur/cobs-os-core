@@ -1,4 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { BedDouble, Clock3, ShieldCheck } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
@@ -27,11 +28,106 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/stay")({
   component: PortalStay,
 });
 
+function localDateKey(value: number | string, timeZone?: string | null) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(new Date(value));
+}
+
+function isPlaceholderMidnight(value: string | null, timeZone?: string | null) {
+  if (!value) return false;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(new Date(value));
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  const minute = parts.find((part) => part.type === "minute")?.value;
+  const second = parts.find((part) => part.type === "second")?.value;
+  return hour === "00" && minute === "00" && second === "00";
+}
+
+function stayTemporalState(
+  stay: {
+    plannedCheckIn: string | null;
+    expectedCheckIn: string | null;
+    plannedCheckOut: string | null;
+    expectedCheckOut: string | null;
+    checkinOpen: boolean;
+  },
+  nowMs: number,
+  timeZone?: string | null,
+) {
+  const checkIn = stay.expectedCheckIn ?? stay.plannedCheckIn;
+  const checkOut = stay.expectedCheckOut ?? stay.plannedCheckOut;
+  const checkInMs = checkIn ? new Date(checkIn).getTime() : null;
+  const checkOutMs = checkOut ? new Date(checkOut).getTime() : null;
+  const checkInIsDateOnly = checkIn ? isPlaceholderMidnight(checkIn, timeZone) : false;
+  const checkOutIsDateOnly = checkOut ? isPlaceholderMidnight(checkOut, timeZone) : false;
+  const today = localDateKey(nowMs, timeZone);
+
+  if (checkOut) {
+    if (!checkOutIsDateOnly && checkOutMs !== null && checkOutMs <= nowMs) {
+      return "completed" as const;
+    }
+    if (checkOutIsDateOnly && localDateKey(checkOut, timeZone) < today) {
+      return "completed" as const;
+    }
+  }
+
+  if (stay.checkinOpen) {
+    return "now" as const;
+  }
+
+  if (checkIn && checkInIsDateOnly) {
+    const checkInDay = localDateKey(checkIn, timeZone);
+    if (checkInDay >= today) return "upcoming" as const;
+  }
+
+  if (checkInMs !== null && !checkInIsDateOnly) {
+    if (
+      checkInMs <= nowMs &&
+      checkOutMs !== null &&
+      !checkOutIsDateOnly &&
+      nowMs < checkOutMs
+    ) {
+      return "now" as const;
+    }
+    if (checkInMs > nowMs) {
+      return "upcoming" as const;
+    }
+  }
+
+  return "neutral" as const;
+}
+
 function PortalStay() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/stay" });
   const { t } = useI18n();
   const overview = useMyOverview(operationId);
   const stay = useMyStay(operationId);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const refreshNow = () => setNowMs(Date.now());
+    const timer = window.setInterval(refreshNow, 30_000);
+    document.addEventListener("visibilitychange", refreshNow);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshNow);
+    };
+  }, []);
+
+  const stays = stay.data ?? [];
+  const stayStates = stays.map((s) =>
+    stayTemporalState(s, nowMs, s.property?.timezone ?? overview.data?.timezone ?? null),
+  );
+  const nextStayIndex = stayStates.findIndex((state) => state === "upcoming");
 
   return (
     <PortalShell
@@ -48,24 +144,37 @@ function PortalStay() {
         error={stay.error}
         onRetry={() => void stay.refetch()}
       >
-        {(stay.data ?? []).length === 0 ? (
+        {stays.length === 0 ? (
           <PortalEmpty icon={BedDouble} title={t("w10.stay.emptyTitle")} body={t("w10.stay.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
-            {(stay.data ?? []).map((s) => {
+            {stays.map((s, index) => {
               const tz = s.property?.timezone ?? overview.data?.timezone ?? null;
               // Only MY room assignments are ever returned — no rooming list, no roommates.
               const room = s.myRoom.find((r) => r.active) ?? null;
               const address =
                 s.property?.addressLabel ??
                 [s.property?.city, s.property?.region].filter(Boolean).join(" · ");
+              const state = stayStates[index] ?? "neutral";
+              const isCurrent = state === "now";
+              const isNext = state === "upcoming" && index === nextStayIndex;
+              const isCompleted = state === "completed";
               return (
                 <PortalCard key={s.stayId}>
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                     <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                       {s.property?.name ?? s.name ?? "—"}
                     </h3>
-                    {s.checkinOpen ? <PortalTag>{t("w10.stay.checkinOpen")}</PortalTag> : null}
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      {isCurrent ? <PortalTag>{t("w10.stay.current")}</PortalTag> : null}
+                      {isNext ? <PortalTag>{t("w10.stay.next")}</PortalTag> : null}
+                      {isCompleted ? (
+                        <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {t("w10.stay.completed")}
+                        </span>
+                      ) : null}
+                      {s.checkinOpen ? <PortalTag>{t("w10.stay.checkinOpen")}</PortalTag> : null}
+                    </div>
                   </div>
                   {address ? (
                     <p className="mt-1 break-words text-sm text-muted-foreground">{address}</p>
