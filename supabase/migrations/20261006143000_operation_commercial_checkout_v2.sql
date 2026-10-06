@@ -246,6 +246,7 @@ begin
     select 1 from public.prices
     where tenant_id=_tenant_id and sellable_id=_sellable_id and status='active'
   ) then
+    perform set_config('app.w09_control','on',true);
     insert into public.prices(
       tenant_id,sellable_id,currency,unit_amount_minor,price_basis,
       description,status,valid_from,valid_until,metadata
