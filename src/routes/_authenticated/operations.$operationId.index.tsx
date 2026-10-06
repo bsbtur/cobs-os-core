@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArchiveRestore } from "lucide-react";
+import { Activity, ArchiveRestore, ArrowRight, BedDouble, Bus, CalendarDays, Megaphone, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
@@ -65,6 +65,78 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
       </p>
       <p className="mt-0.5 text-sm">{value}</p>
     </div>
+  );
+}
+
+function ManagerQuickLinks({ operationId }: { operationId: string }) {
+  const { t } = useI18n();
+  const links = [
+    {
+      to: "/operations/$operationId/people" as const,
+      label: t("roster.tab.people"),
+      helper: "Participantes, equipe e acessos",
+      icon: Users,
+    },
+    {
+      to: "/operations/$operationId/journey" as const,
+      label: t("w04.tab.journey"),
+      helper: "Etapas e sequência da experiência",
+      icon: CalendarDays,
+    },
+    {
+      to: "/operations/$operationId/mobility" as const,
+      label: t("w05.tab.mobility"),
+      helper: "Traslados, rotas e deslocamentos",
+      icon: Bus,
+    },
+    {
+      to: "/operations/$operationId/hospitality" as const,
+      label: t("w06.tab.hospitality"),
+      helper: "Estadias, quartos e check-in",
+      icon: BedDouble,
+    },
+    {
+      to: "/operations/$operationId/communication" as const,
+      label: t("w08.tab.communication"),
+      helper: "Avisos e comunicação com o grupo",
+      icon: Megaphone,
+    },
+  ];
+
+  return (
+    <section className="surface-panel p-5">
+      <div className="mb-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
+          Gestão da experiência
+        </p>
+        <h3 className="mt-1 text-lg font-semibold">Resumo operacional</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Acesse as áreas principais da viagem sem sair da visão geral.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {links.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              params={{ operationId }}
+              className="group flex min-h-[104px] items-center gap-3 rounded-xl border border-border bg-elevated/40 p-4 transition hover:border-primary/40 hover:bg-primary-soft/30"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
+                <Icon className="size-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-foreground">{item.label}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{item.helper}</span>
+              </span>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" aria-hidden="true" />
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -526,6 +598,8 @@ function OperationDetail() {
           </p>
         ) : null}
       </header>
+
+      <ManagerQuickLinks operationId={op.id} />
 
       <WindowsPanel op={op} />
       <LifecyclePanel op={op} />
