@@ -607,7 +607,7 @@ export function splitNowNext(agenda: PortalAgendaItem[], at: number = Date.now()
       const start = i.start ? new Date(i.start).getTime() : null;
       const end = i.end ? new Date(i.end).getTime() : null;
       if (start === null) return false;
-      return start <= at && (end === null ? at - start < 3 * 3600_000 : at <= end);
+      return start <= at && (end === null ? at - start < 3 * 3600_000 : at < end);
     }) ?? null;
   const next = agenda.find((i) => i.start !== null && new Date(i.start).getTime() > at) ?? null;
   return { now, next };
