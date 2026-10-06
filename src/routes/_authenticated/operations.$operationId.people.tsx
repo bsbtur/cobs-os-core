@@ -1162,20 +1162,13 @@ function CommercialLeadApprovalQueue({
   const woodstockStay = useQuery({
     queryKey: ["team-seffrin-woodstock-stay", operationId],
     queryFn: async () => {
-      const { data: property, error: propertyError } = await supabase
-        .from("hospitality_properties")
-        .select("id")
-        .eq("name", "Woodstock Guesthouse")
-        .maybeSingle();
-      if (propertyError) throw propertyError;
-      if (!property?.id) return null;
-
       const { data: stay, error } = await supabase
         .from("hospitality_stays")
         .select("id,name,status")
         .eq("operation_id", operationId)
-        .eq("property_id", property.id)
         .neq("status", "cancelled")
+        .order("created_at", { ascending: true })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       if (!stay) return null;
