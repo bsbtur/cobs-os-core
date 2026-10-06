@@ -93,6 +93,13 @@ export type RoomingRoom = {
 
 export type StayRooming = { stay_id: string; rooms: RoomingRoom[] };
 
+export type RoomingPreferenceCode =
+  | "share_with_men"
+  | "share_with_women"
+  | "couple"
+  | "family_companion"
+  | "unspecified";
+
 export type StayGuest = {
   stay_participation_id: string;
   participation_id: string;
@@ -100,6 +107,7 @@ export type StayGuest = {
   participation_kind: string;
   participation_status: string;
   accommodation_preference: string;
+  rooming_preference_code: RoomingPreferenceCode;
   is_active: boolean;
   removal_reason: string | null;
   state: GuestState;

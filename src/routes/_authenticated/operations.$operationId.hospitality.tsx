@@ -24,6 +24,7 @@ import {
   type OperationHospitality,
   type PropertyRow,
   type RoomingFilter,
+  type RoomingPreferenceCode,
   type RoomingRoom,
   type StayGuest,
   type StayGuests,
@@ -439,6 +440,70 @@ function ReleaseRoomButton({ guest, onDone }: { guest: StayGuest; onDone: () => 
   );
 }
 
+const ROOMING_PREFERENCE_OPTIONS: RoomingPreferenceCode[] = [
+  "share_with_men",
+  "share_with_women",
+  "couple",
+  "family_companion",
+  "unspecified",
+];
+
+function roomingPreferenceLabel(code: RoomingPreferenceCode, t: (key: string) => string) {
+  return t(`w06.rooming.preference.${code}`);
+}
+
+function PlanningPreferencePicker({
+  guest,
+  onDone,
+}: {
+  guest: StayGuest;
+  onDone: () => void;
+}) {
+  const { t, locale } = useI18n();
+
+  const updatePreference = useMutation({
+    mutationFn: async (preference: RoomingPreferenceCode) => {
+      const { error } = await supabase.rpc(
+        "set_stay_accommodation_preference" as never,
+        {
+          _stay_participation_id: guest.stay_participation_id,
+          _preference: preference,
+          _idempotency_key: newIdempotencyKey(),
+        } as never,
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      feedback.success(t("w06.rooming.preference.saved"));
+      onDone();
+    },
+    onError: (error) => feedback.error(humanizeError(error, locale)),
+  });
+
+  return (
+    <div className="min-w-[220px] space-y-1">
+      <Label htmlFor={`rooming-preference-${guest.stay_participation_id}`}>
+        {t("w06.rooming.preference.label")}
+      </Label>
+      <select
+        id={`rooming-preference-${guest.stay_participation_id}`}
+        className={SELECT_CLASS}
+        value={guest.rooming_preference_code}
+        disabled={updatePreference.isPending}
+        onChange={(event) =>
+          updatePreference.mutate(event.target.value as RoomingPreferenceCode)
+        }
+      >
+        {ROOMING_PREFERENCE_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {roomingPreferenceLabel(option, t)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Unassigned room queue                                               */
 /* ------------------------------------------------------------------ */
@@ -456,29 +521,35 @@ function UnassignedRoomQueue({
   canOverride: boolean;
   onDone: () => void;
 }) {
+  const { t } = useI18n();
   const unassigned = guests.filter(
     (guest) => guest.is_active && !guest.room_id && guest.state === "NOT_ARRIVED",
   );
 
   if (unassigned.length === 0) return null;
 
-  const preferenceOrder = [
-    "Casal",
-    "Quarto duplo compartilhado",
-    "Acompanhante / família",
-    "Ainda não defini",
-    "Ainda não definida",
+  const preferenceOrder: RoomingPreferenceCode[] = [
+    "couple",
+    "family_companion",
+    "share_with_women",
+    "share_with_men",
+    "unspecified",
   ];
-  const preferenceLabel = (guest: StayGuest) =>
-    guest.accommodation_preference === "Ainda não defini"
-      ? "Ainda não definida"
-      : guest.accommodation_preference || "Ainda não definida";
-  const preferenceCounts = unassigned.reduce<Record<string, number>>((acc, guest) => {
-    const label = preferenceLabel(guest);
-    acc[label] = (acc[label] ?? 0) + 1;
-    return acc;
-  }, {});
+  const preferenceCounts = unassigned.reduce<Record<RoomingPreferenceCode, number>>(
+    (acc, guest) => {
+      acc[guest.rooming_preference_code] += 1;
+      return acc;
+    },
+    {
+      share_with_men: 0,
+      share_with_women: 0,
+      couple: 0,
+      family_companion: 0,
+      unspecified: 0,
+    },
+  );
 
+  const inventoryPending = rooms.length === 0;
   const availableRooms = rooms.filter(
     (room) => room.room_status !== "blocked" && room.occupancy < room.capacity,
   );
@@ -491,38 +562,47 @@ function UnassignedRoomQueue({
     <section className="surface-panel border-warning/30 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <SectionLabel>Fila sem quarto</SectionLabel>
+          <SectionLabel>{t("w06.rooming.planning.title")}</SectionLabel>
           <h3 className="mt-1 text-lg font-semibold">
-            {unassigned.length} {unassigned.length === 1 ? "pessoa aguardando" : "pessoas aguardando"} alocação
+            {unassigned.length}{" "}
+            {unassigned.length === 1
+              ? t("w06.rooming.planning.person")
+              : t("w06.rooming.planning.people")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Estes hóspedes já pertencem à hospedagem, mas ainda não ocupam nenhum quarto.
-            Alocar quarto não registra check-in.
+            {inventoryPending
+              ? t("w06.rooming.planning.pendingInventory")
+              : t("w06.rooming.planning.readyInventory")}
           </p>
         </div>
         <div className="rounded-lg border border-border px-3 py-2 text-right">
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            Vagas disponíveis
+            {inventoryPending
+              ? t("w06.rooming.planning.inventory")
+              : t("w06.rooming.planning.availablePlaces")}
           </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">{availablePlaces}</p>
+          <p className="mt-1 text-sm font-semibold">
+            {inventoryPending ? t("w06.rooming.planning.pending") : availablePlaces}
+          </p>
         </div>
       </div>
 
-      {availablePlaces < unassigned.length ? (
+      {!inventoryPending && availablePlaces < unassigned.length ? (
         <p className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning">
-          Atenção: há {unassigned.length} hóspedes sem quarto e apenas {availablePlaces} vagas disponíveis nos quartos não bloqueados.
+          {t("w06.rooming.planning.capacityWarning")
+            .replace("{guests}", String(unassigned.length))
+            .replace("{places}", String(availablePlaces))}
         </p>
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {[
-          ["Casal", preferenceCounts["Casal"] ?? 0],
-          ["Duplo compartilhado", preferenceCounts["Quarto duplo compartilhado"] ?? 0],
-          ["Acompanhante / família", preferenceCounts["Acompanhante / família"] ?? 0],
-          ["Não definida", (preferenceCounts["Ainda não definida"] ?? 0) + (preferenceCounts["Ainda não defini"] ?? 0)],
-        ].map(([label, count]) => (
-          <span key={String(label)} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
-            {String(label)} · <strong className="text-foreground">{String(count)}</strong>
+        {preferenceOrder.map((code) => (
+          <span
+            key={code}
+            className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"
+          >
+            {roomingPreferenceLabel(code, t)} ·{" "}
+            <strong className="text-foreground">{preferenceCounts[code]}</strong>
           </span>
         ))}
       </div>
@@ -531,11 +611,12 @@ function UnassignedRoomQueue({
         {unassigned
           .slice()
           .sort((a, b) => {
-            const pa = preferenceOrder.indexOf(a.accommodation_preference);
-            const pb = preferenceOrder.indexOf(b.accommodation_preference);
-            const wa = pa === -1 ? preferenceOrder.length : pa;
-            const wb = pb === -1 ? preferenceOrder.length : pb;
-            return wa - wb || a.full_name.localeCompare(b.full_name, undefined, { sensitivity: "base" });
+            const wa = preferenceOrder.indexOf(a.rooming_preference_code);
+            const wb = preferenceOrder.indexOf(b.rooming_preference_code);
+            return (
+              wa - wb ||
+              a.full_name.localeCompare(b.full_name, undefined, { sensitivity: "base" })
+            );
           })
           .map((guest, index) => (
             <li
@@ -548,21 +629,29 @@ function UnassignedRoomQueue({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{guest.full_name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {guest.participation_status === "confirmed" ? "Participação confirmada" : "Participação esperada"}
-                  {" · "}Sem quarto
+                  {guest.participation_status === "confirmed"
+                    ? t("w06.rooming.planning.confirmed")
+                    : t("w06.rooming.planning.expected")}
+                  {" · "}
+                  {t("w06.rooming.noRoom")}
                 </p>
                 <p className="mt-1 text-xs font-medium">
-                  Acomodação: {preferenceLabel(guest)}
+                  {roomingPreferenceLabel(guest.rooming_preference_code, t)}
                 </p>
               </div>
+
               {terminal ? null : (
+                <PlanningPreferencePicker guest={guest} onDone={onDone} />
+              )}
+
+              {!terminal && !inventoryPending ? (
                 <RoomPicker
                   guest={guest}
                   rooms={rooms}
                   canOverride={canOverride}
                   onDone={onDone}
                 />
-              )}
+              ) : null}
             </li>
           ))}
       </ul>
