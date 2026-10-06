@@ -117,6 +117,7 @@ export const W10_DICTIONARIES = {
     "w10.journey.timePending": "Horário a confirmar",
     "w10.journey.location": "Local",
     "w10.journey.updates": "Atualizações",
+    "w10.journey.emptyTitle": "Seu roteiro está a caminho",
     "w10.journey.empty": "Seu cronograma está sendo preparado. As informações confirmadas aparecerão aqui.",
 
     "w10.mobility.title": "Meu transporte",
@@ -136,6 +137,7 @@ export const W10_DICTIONARIES = {
     "w10.mobility.modeMetro": "Metrô",
     "w10.mobility.modeBus": "Ônibus",
     "w10.mobility.modeTransfer": "Traslado",
+    "w10.mobility.emptyTitle": "Seu transporte está sendo preparado",
     "w10.mobility.empty": "Transporte em preparação. Os detalhes aparecerão aqui assim que forem confirmados.",
 
     "w10.stay.title": "Minha hospedagem",
@@ -149,6 +151,7 @@ export const W10_DICTIONARIES = {
     "w10.stay.floor": "Andar",
     "w10.stay.noRoom": "Acomodação em definição",
     "w10.stay.checkinOpen": "Check-in disponível",
+    "w10.stay.emptyTitle": "Sua hospedagem está sendo preparada",
     "w10.stay.empty": "Sua hospedagem está sendo preparada. Os detalhes aparecerão aqui conforme forem confirmados.",
 
     "w10.events.title": "Programação",
@@ -157,6 +160,7 @@ export const W10_DICTIONARIES = {
     "w10.events.locationPending": "Local em definição",
     "w10.events.venue": "Onde acontece",
     "w10.events.sessions": "Sessões",
+    "w10.events.emptyTitle": "Sua programação está sendo preparada",
     "w10.events.empty": "Sua programação está sendo preparada. As atividades aparecerão aqui conforme forem confirmadas.",
 
     "w10.messages.title": "Avisos",
@@ -167,6 +171,7 @@ export const W10_DICTIONARIES = {
     "w10.messages.read": "Marcar como lido",
     "w10.messages.readAt": "Visto",
     "w10.messages.cancelled": "Cancelado",
+    "w10.messages.emptyTitle": "Nenhum aviso por enquanto",
     "w10.messages.empty": "Tudo certo por enquanto. Se houver alguma novidade importante, ela aparecerá aqui.",
 
     "w10.time.planned": "Previsto",
@@ -307,6 +312,7 @@ export const W10_DICTIONARIES = {
     "w10.journey.timePending": "Time to be confirmed",
     "w10.journey.location": "Location",
     "w10.journey.updates": "Updates",
+    "w10.journey.emptyTitle": "Your itinerary is on the way",
     "w10.journey.empty": "Your schedule is being prepared. Confirmed information will appear here.",
 
     "w10.mobility.title": "My transport",
@@ -326,6 +332,7 @@ export const W10_DICTIONARIES = {
     "w10.mobility.modeMetro": "Metro",
     "w10.mobility.modeBus": "Bus",
     "w10.mobility.modeTransfer": "Transfer",
+    "w10.mobility.emptyTitle": "Your transport is being prepared",
     "w10.mobility.empty": "Transport is being prepared. Details will appear here as soon as they are confirmed.",
 
     "w10.stay.title": "My stay",
@@ -339,6 +346,7 @@ export const W10_DICTIONARIES = {
     "w10.stay.floor": "Floor",
     "w10.stay.noRoom": "Accommodation being finalized",
     "w10.stay.checkinOpen": "Check-in available",
+    "w10.stay.emptyTitle": "Your stay is being prepared",
     "w10.stay.empty": "Your stay is being prepared. Details will appear here as they are confirmed.",
 
     "w10.events.title": "Program",
@@ -347,6 +355,7 @@ export const W10_DICTIONARIES = {
     "w10.events.locationPending": "Location being finalized",
     "w10.events.venue": "Where it happens",
     "w10.events.sessions": "Sessions",
+    "w10.events.emptyTitle": "Your program is being prepared",
     "w10.events.empty": "Your program is being prepared. Activities will appear here as they are confirmed.",
 
     "w10.messages.title": "Notices",
@@ -357,6 +366,7 @@ export const W10_DICTIONARIES = {
     "w10.messages.read": "Mark as read",
     "w10.messages.readAt": "Seen",
     "w10.messages.cancelled": "Cancelled",
+    "w10.messages.emptyTitle": "No notices for now",
     "w10.messages.empty": "Everything is up to date for now. Any important news will appear here.",
 
     "w10.time.planned": "Planned",
@@ -497,6 +507,7 @@ export const W10_DICTIONARIES = {
     "w10.journey.timePending": "Horario por confirmar",
     "w10.journey.location": "Lugar",
     "w10.journey.updates": "Actualizaciones",
+    "w10.journey.emptyTitle": "Tu itinerario está en camino",
     "w10.journey.empty": "Tu cronograma se está preparando. La información confirmada aparecerá aquí.",
 
     "w10.mobility.title": "Mi transporte",
@@ -516,6 +527,7 @@ export const W10_DICTIONARIES = {
     "w10.mobility.modeMetro": "Metro",
     "w10.mobility.modeBus": "Autobús",
     "w10.mobility.modeTransfer": "Traslado",
+    "w10.mobility.emptyTitle": "Tu transporte se está preparando",
     "w10.mobility.empty": "El transporte está en preparación. Los detalles aparecerán aquí cuando estén confirmados.",
 
     "w10.stay.title": "Mi alojamiento",
@@ -529,6 +541,7 @@ export const W10_DICTIONARIES = {
     "w10.stay.floor": "Planta",
     "w10.stay.noRoom": "Acomodación por definir",
     "w10.stay.checkinOpen": "Check-in disponible",
+    "w10.stay.emptyTitle": "Tu alojamiento se está preparando",
     "w10.stay.empty": "Tu alojamiento se está preparando. Los detalles aparecerán aquí a medida que se confirmen.",
 
     "w10.events.title": "Programación",
@@ -537,6 +550,7 @@ export const W10_DICTIONARIES = {
     "w10.events.locationPending": "Lugar en definición",
     "w10.events.venue": "Dónde sucede",
     "w10.events.sessions": "Sesiones",
+    "w10.events.emptyTitle": "Tu programación se está preparando",
     "w10.events.empty": "Tu programación se está preparando. Las actividades aparecerán aquí a medida que se confirmen.",
 
     "w10.messages.title": "Avisos",
@@ -547,6 +561,7 @@ export const W10_DICTIONARIES = {
     "w10.messages.read": "Marcar como leído",
     "w10.messages.readAt": "Visto",
     "w10.messages.cancelled": "Cancelado",
+    "w10.messages.emptyTitle": "No hay avisos por ahora",
     "w10.messages.empty": "Todo está al día por ahora. Si hay alguna novedad importante, aparecerá aquí.",
 
     "w10.time.planned": "Previsto",
