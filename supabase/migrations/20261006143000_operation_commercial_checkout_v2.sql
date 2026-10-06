@@ -231,6 +231,7 @@ begin
   order by created_at asc limit 1;
 
   if _sellable_id is null then
+    perform set_config('app.w09_control','on',true);
     insert into public.sellables(
       tenant_id,sellable_kind,offering_id,name,description,status,metadata
     ) values (
@@ -238,6 +239,7 @@ begin
       'Team Seffrin Experience — Brasília 2027 · pacote por pessoa','active',
       jsonb_build_object('lot',1,'lot_capacity',5)
     ) returning id into _sellable_id;
+    perform set_config('app.w09_control','off',true);
   end if;
 
   if not exists (
@@ -256,6 +258,7 @@ begin
         'balance_card_installments_max',12,'card_installment_fees_paid_by_customer',true
       )
     );
+    perform set_config('app.w09_control','off',true);
   end if;
 
   insert into public.operation_commercial_configs(
