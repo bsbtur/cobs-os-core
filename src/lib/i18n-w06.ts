@@ -44,7 +44,7 @@ export const W06_PT: Record<string, string> = {
 
   "w06.next.title": "Próxima ação",
   "w06.next.terminal": "Esta hospedagem está encerrada. Somente histórico.",
-  "w06.next.noRooms": "Nenhum quarto cadastrado para esta hospedagem.",
+  "w06.next.noRooms": "Inventário de quartos aguardando confirmação do fornecedor.",
   "w06.next.noGuests": "Nenhuma pessoa adicionada a esta hospedagem.",
   "w06.next.withoutRoom": "pessoa(s) ainda estão sem quarto.",
   "w06.next.openCheckin": "O check-in desta hospedagem ainda não foi aberto.",
@@ -114,7 +114,7 @@ export const W06_PT: Record<string, string> = {
   "w06.room.notes": "Observações",
   "w06.room.saved": "Quarto salvo.",
   "w06.room.empty": "Nenhum quarto cadastrado para esta hospedagem.",
-  "w06.room.emptyBody": "Cadastre os quartos disponíveis para começar a alocar as pessoas.",
+  "w06.room.emptyBody": "Cadastre quartos somente após receber o inventário operacional confirmado da hospedagem.",
   "w06.room.available": "Disponível",
   "w06.room.blocked": "Bloqueado",
   "w06.room.full": "Sem vaga",
@@ -260,7 +260,7 @@ export const W06_EN: Record<string, string> = {
 
   "w06.next.title": "Next action",
   "w06.next.terminal": "This stay is closed. History only.",
-  "w06.next.noRooms": "No rooms registered for this stay.",
+  "w06.next.noRooms": "Room inventory is awaiting supplier confirmation.",
   "w06.next.noGuests": "Nobody has been added to this stay.",
   "w06.next.withoutRoom": "people still have no room.",
   "w06.next.openCheckin": "Check-in has not been opened for this stay.",
