@@ -196,6 +196,8 @@ export const W10_DICTIONARIES = {
     "w10.messages.read": "Marcar como lido",
     "w10.messages.readAt": "Visto",
     "w10.messages.cancelled": "Cancelado",
+    "w10.messages.priorityImportant": "Importante",
+    "w10.messages.priorityUrgent": "Urgente",
     "w10.messages.emptyTitle": "Nenhum aviso por enquanto",
     "w10.messages.empty": "Tudo certo por enquanto. Se houver alguma novidade importante, ela aparecerá aqui.",
 
@@ -416,6 +418,8 @@ export const W10_DICTIONARIES = {
     "w10.messages.read": "Mark as read",
     "w10.messages.readAt": "Seen",
     "w10.messages.cancelled": "Cancelled",
+    "w10.messages.priorityImportant": "Important",
+    "w10.messages.priorityUrgent": "Urgent",
     "w10.messages.emptyTitle": "No notices for now",
     "w10.messages.empty": "Everything is up to date for now. Any important news will appear here.",
 
@@ -636,6 +640,8 @@ export const W10_DICTIONARIES = {
     "w10.messages.read": "Marcar como leído",
     "w10.messages.readAt": "Visto",
     "w10.messages.cancelled": "Cancelado",
+    "w10.messages.priorityImportant": "Importante",
+    "w10.messages.priorityUrgent": "Urgente",
     "w10.messages.emptyTitle": "No hay avisos por ahora",
     "w10.messages.empty": "Todo está al día por ahora. Si hay alguna novedad importante, aparecerá aquí.",
 

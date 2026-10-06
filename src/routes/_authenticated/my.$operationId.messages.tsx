@@ -91,11 +91,22 @@ function PortalMessages() {
                   <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                     {m.title ?? "—"}
                   </h3>
-                  {m.status === "cancelled" ? (
-                    <PortalTag>{t("w10.messages.cancelled")}</PortalTag>
-                  ) : m.myFirstReadAt === null ? (
-                    <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" aria-hidden />
-                  ) : null}
+                  <div className="flex flex-wrap items-center justify-end gap-1.5">
+                    {m.priority === "urgent" ? (
+                      <span className="inline-flex shrink-0 items-center rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                        {t("w10.messages.priorityUrgent")}
+                      </span>
+                    ) : m.priority === "important" ? (
+                      <span className="inline-flex shrink-0 items-center rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                        {t("w10.messages.priorityImportant")}
+                      </span>
+                    ) : null}
+                    {m.status === "cancelled" ? (
+                      <PortalTag>{t("w10.messages.cancelled")}</PortalTag>
+                    ) : m.myFirstReadAt === null ? (
+                      <span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden />
+                    ) : null}
+                  </div>
                 </div>
                 {m.body ? (
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground">
