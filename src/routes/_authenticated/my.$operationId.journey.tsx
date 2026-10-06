@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, ChevronDown, Clock3, Compass, MapPin, Megaphone, Sparkles, ShieldCheck } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
@@ -22,6 +22,69 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/journey")(
   component: PortalJourney,
 });
 
+function localDateKey(value: number | string, timeZone?: string | null) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(new Date(value));
+}
+
+function isPlaceholderMidnight(value: string | null, timeZone?: string | null) {
+  if (!value) return false;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(new Date(value));
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  const minute = parts.find((part) => part.type === "minute")?.value;
+  const second = parts.find((part) => part.type === "second")?.value;
+  return hour === "00" && minute === "00" && second === "00";
+}
+
+function journeyStepState(
+  step: {
+    expectedStart: string | null;
+    plannedStart: string | null;
+    expectedEnd: string | null;
+    plannedEnd: string | null;
+  },
+  nowMs: number,
+  timeZone?: string | null,
+) {
+  const effectiveStart = step.expectedStart ?? step.plannedStart;
+  const effectiveEnd = step.expectedEnd ?? step.plannedEnd;
+  const startMs = effectiveStart ? new Date(effectiveStart).getTime() : null;
+  const endMs = effectiveEnd ? new Date(effectiveEnd).getTime() : null;
+  const startIsDateOnly = effectiveStart ? isPlaceholderMidnight(effectiveStart, timeZone) : false;
+  const endIsDateOnly = effectiveEnd ? isPlaceholderMidnight(effectiveEnd, timeZone) : false;
+
+  if (effectiveStart && startIsDateOnly) {
+    const stepDay = localDateKey(effectiveStart, timeZone);
+    const today = localDateKey(nowMs, timeZone);
+    if (stepDay < today) return "completed" as const;
+    return "upcoming" as const;
+  }
+
+  if (startMs !== null && !startIsDateOnly) {
+    if (endMs !== null && !endIsDateOnly && startMs <= nowMs && nowMs < endMs) {
+      return "now" as const;
+    }
+    if (endMs !== null && !endIsDateOnly && endMs <= nowMs) {
+      return "completed" as const;
+    }
+    if (startMs > nowMs) {
+      return "upcoming" as const;
+    }
+  }
+
+  return "neutral" as const;
+}
+
 function PortalJourney() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/journey" });
   const { t, locale } = useI18n();
@@ -30,11 +93,24 @@ function PortalJourney() {
   const timeZone = overview.data?.timezone ?? null;
   const steps = journey.data ?? [];
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
-  const now = Date.now();
-  const nextStepId = steps.find((step) => {
-    const value = step.expectedStart ?? step.plannedStart;
-    return value ? new Date(value).getTime() >= now : false;
-  })?.stepId ?? null;
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const refreshNow = () => setNowMs(Date.now());
+    const timer = window.setInterval(refreshNow, 30_000);
+    document.addEventListener("visibilitychange", refreshNow);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshNow);
+    };
+  }, []);
+
+  const stepStates = steps.map((step) => journeyStepState(step, nowMs, timeZone));
+  const nowStepIndex = stepStates.findIndex((state) => state === "now");
+  const nextStepIndex = stepStates.findIndex((state) => state === "upcoming");
+  const spotlightIndex = nowStepIndex >= 0 ? nowStepIndex : nextStepIndex;
+  const spotlightStep = spotlightIndex >= 0 ? steps[spotlightIndex] : null;
+  const spotlightIsNow = nowStepIndex >= 0;
 
   return (
     <PortalShell operationId={operationId} title={overview.data?.name ?? t("w10.portal.brand")} active="journey">
@@ -59,14 +135,18 @@ function PortalJourney() {
         ) : null}
       </section>
 
-      {!journey.isLoading && !journey.error && nextStepId ? (
+      {!journey.isLoading && !journey.error && spotlightStep ? (
         <section className="mb-5 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-primary/10 p-2"><Compass className="h-5 w-5 text-primary" /></div>
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{t("w10.journey.nextActivity")}</p>
-              <p className="mt-1 text-base font-semibold text-foreground">{steps.find((step) => step.stepId === nextStepId)?.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{t("w10.journey.nextGuidance")}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                {spotlightIsNow ? t("w10.journey.nowActivity") : t("w10.journey.nextActivity")}
+              </p>
+              <p className="mt-1 text-base font-semibold text-foreground">{spotlightStep.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {spotlightIsNow ? t("w10.journey.nowGuidance") : t("w10.journey.nextGuidance")}
+              </p>
             </div>
           </div>
         </section>
@@ -78,25 +158,24 @@ function PortalJourney() {
         ) : (
           <ol className="relative ml-3 border-l border-border pl-6">
             {steps.map((step, index) => {
-              const effectiveStart = step.expectedStart ?? step.plannedStart;
-              const effectiveEnd = step.expectedEnd ?? step.plannedEnd;
-              const startMs = effectiveStart ? new Date(effectiveStart).getTime() : null;
-              const endMs = effectiveEnd ? new Date(effectiveEnd).getTime() : startMs;
-              const elapsed = endMs !== null && endMs < now;
-              const isNext = !elapsed && step.stepId === nextStepId;
+              const state = stepStates[index] ?? "neutral";
+              const isNow = state === "now";
+              const isNext = state === "upcoming" && index === nextStepIndex;
+              const elapsed = state === "completed";
               const expanded = expandedStepId === step.stepId;
               return (
               <li key={step.stepId} className="relative pb-5 last:pb-0">
                 <span className="absolute -left-[2.05rem] top-5 flex h-4 w-4 rounded-full border-4 border-background bg-primary shadow-sm" />
-                <article className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm transition-shadow hover:shadow-md">
+                <article className={`overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-md ${isNow ? "border-primary/40 ring-1 ring-primary/10" : "border-border/80"}`}>
                   <div className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{t("w10.journey.step")} {String(index + 1).padStart(2, "0")}</p>
                         <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">{step.title}</h3>
                         <div className="mt-2 flex flex-wrap gap-2">
+                          {isNow ? <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold text-primary">{t("w10.journey.nowStep")}</span> : null}
                           {isNext ? <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">{t("w10.journey.nextStep")}</span> : null}
-                          {elapsed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">{t("w10.journey.elapsed")}</span> : null}
+                          {elapsed ? <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">{t("w10.journey.completed")}</span> : null}
                         </div>
                       </div>
                       {step.updates.length > 0 ? (
