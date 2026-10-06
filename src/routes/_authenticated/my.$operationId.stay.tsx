@@ -161,11 +161,11 @@ function PortalStay() {
               const isCompleted = state === "completed";
               return (
                 <PortalCard key={s.stayId}>
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                  <div className="flex flex-col items-start gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3">
                     <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                       {s.property?.name ?? s.name ?? "—"}
                     </h3>
-                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                       {isCurrent ? <PortalTag>{t("w10.stay.current")}</PortalTag> : null}
                       {isNext ? <PortalTag>{t("w10.stay.next")}</PortalTag> : null}
                       {isCompleted ? (
