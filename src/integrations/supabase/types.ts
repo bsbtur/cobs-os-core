@@ -5188,6 +5188,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_operation_stay_capacity: {
+        Args: { _operation_id: string }
+        Returns: Json
+      }
       list_operation_commercial_leads: {
         Args: { _operation_id: string }
         Returns: {

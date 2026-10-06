@@ -1162,42 +1162,28 @@ function CommercialLeadApprovalQueue({
   const woodstockStay = useQuery({
     queryKey: ["team-seffrin-woodstock-stay", operationId],
     queryFn: async () => {
-      const { data: stay, error } = await supabase
-        .from("hospitality_stays")
-        .select("id,name,status")
-        .eq("operation_id", operationId)
-        .neq("status", "cancelled")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_operation_stay_capacity", {
+        _operation_id: operationId,
+      });
       if (error) throw error;
-      if (!stay) return null;
 
-      const [rooms, guests] = await Promise.all([
-        supabase
-          .from("hospitality_rooms")
-          .select("capacity,room_status")
-          .eq("stay_id", stay.id),
-        supabase
-          .from("hospitality_stay_participations")
-          .select("id", { count: "exact", head: true })
-          .eq("stay_id", stay.id)
-          .eq("is_active", true),
-      ]);
-      if (rooms.error) throw rooms.error;
-      if (guests.error) throw guests.error;
+      const payload = (data ?? {}) as Record<string, unknown>;
+      if (payload["found"] !== true) return null;
 
-      const capacity = (rooms.data ?? [])
-        .filter((room) => room.room_status !== "blocked")
-        .reduce((sum, room) => sum + room.capacity, 0);
-      const activeGuests = guests.count ?? 0;
+      const stayId = typeof payload["stay_id"] === "string" ? payload["stay_id"] : null;
+      if (!stayId) return null;
+
+      const capacity = Number(payload["capacity"] ?? 0);
+      const activeGuests = Number(payload["active_guests"] ?? 0);
+      const remainingCapacity = Number(payload["remaining_capacity"] ?? 0);
+      const soldOut = payload["sold_out"] === true;
 
       return {
-        ...stay,
+        id: stayId,
         capacity,
         activeGuests,
-        remainingCapacity: Math.max(0, capacity - activeGuests),
-        soldOut: capacity > 0 && activeGuests >= capacity,
+        remainingCapacity,
+        soldOut,
       };
     },
   });
