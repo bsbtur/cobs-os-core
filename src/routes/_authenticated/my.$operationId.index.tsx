@@ -143,7 +143,9 @@ function PortalHome() {
       ? t("w10.mobility.empty")
       : hasOutbound && hasReturn && hasLocalTransfers
         ? t("w10.home.transportCoverage")
-        : t("w10.home.transportPlanned").replace("{count}", String(legs.length));
+        : legs.length === 1
+          ? t("w10.home.transportSingle")
+          : t("w10.home.transportPlanned").replace("{count}", String(legs.length));
   const staySummary = firstStay
     ? `${firstStay.property?.name ?? firstStay.name ?? t("w10.home.stayShortcut")} · ${
         activeRoom?.label ?? t("w10.home.accommodationPending")
