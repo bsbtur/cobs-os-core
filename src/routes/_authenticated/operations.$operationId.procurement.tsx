@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, FileCheck2, Plus, ShieldCheck, ShieldAlert } from "lucide-react";
+import { CheckCircle2, CircleDollarSign, ClipboardList, FileCheck2, Plus, ShieldCheck, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -35,6 +35,39 @@ type QuoteRow = SupplierLegalProfile & {
   contract_reference: string | null;
   created_at: string;
 };
+
+type ProductionPipelineRow = {
+  supplier_id: string;
+  supplier_name: string;
+  category: string;
+  stage: "planned" | "quoted" | "selected" | "contracted" | "documented";
+  quote_status: string | null;
+  amount_minor: number | null;
+  currency_code: string | null;
+  description: string | null;
+  total_documents: number;
+  pending_documents: number;
+  received_documents: number;
+  approved_documents: number;
+  rejected_documents: number;
+  expired_documents: number;
+};
+
+const productionStages: Array<{
+  key: ProductionPipelineRow["stage"];
+  label: string;
+  helper: string;
+}> = [
+  { key: "planned", label: "Previsto", helper: "Fornecedor mapeado, aguardando proposta real." },
+  { key: "quoted", label: "Cotado", helper: "Há cotação real registrada para comparação." },
+  { key: "selected", label: "Selecionado", helper: "Escolhido operacionalmente, ainda sem contratação formal." },
+  { key: "contracted", label: "Contratado", helper: "Contratação formal registrada; documentação ainda não está completa." },
+  { key: "documented", label: "Documentado", helper: "Contratado e com todos os documentos vinculados aprovados." },
+];
+
+function productionStageLabel(stage: ProductionPipelineRow["stage"]) {
+  return productionStages.find((item) => item.key === stage)?.label ?? stage;
+}
 
 function money(amountMinor: number, currency = "BRL") {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(amountMinor / 100);
@@ -240,7 +273,34 @@ function ProcurementPage() {
     },
   });
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["operation-procurement", operationId] });
+  const pipeline = useQuery({
+    queryKey: ["operation-production-pipeline", operationId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_operation_production_pipeline", {
+        _operation_id: operationId,
+      });
+      if (error) throw error;
+      return (data ?? []) as ProductionPipelineRow[];
+    },
+  });
+
+  const pipelineRows = pipeline.data ?? [];
+  const stageCounts = React.useMemo(
+    () =>
+      productionStages.reduce<Record<ProductionPipelineRow["stage"], number>>(
+        (acc, stage) => {
+          acc[stage.key] = pipelineRows.filter((row) => row.stage === stage.key).length;
+          return acc;
+        },
+        { planned: 0, quoted: 0, selected: 0, contracted: 0, documented: 0 },
+      ),
+    [pipelineRows],
+  );
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["operation-procurement", operationId] });
+    queryClient.invalidateQueries({ queryKey: ["operation-production-pipeline", operationId] });
+  };
 
   const selectQuote = useMutation({
     mutationFn: async (quoteId: string) => {
@@ -254,7 +314,7 @@ function ProcurementPage() {
     onError: (error) => feedback.error(humanizeError(error, locale)),
   });
 
-  if (quotes.isLoading) return <PanelSkeleton />;
+  if (quotes.isLoading || pipeline.isLoading) return <PanelSkeleton />;
 
   return (
     <section className="space-y-5">
@@ -268,6 +328,67 @@ function ProcurementPage() {
         </div>
         {canManage ? <CreateQuoteDialog operationId={operationId} onDone={refresh} /> : null}
       </header>
+
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+        {productionStages.map((stage) => (
+          <div key={stage.key} className="surface-panel p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">{stage.label}</p>
+              <span className="font-mono text-xl font-semibold tabular-nums">{stageCounts[stage.key]}</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{stage.helper}</p>
+          </div>
+        ))}
+      </div>
+
+      {pipeline.isError ? (
+        <div className="surface-panel border-destructive/40 p-4 text-sm text-destructive">
+          Não foi possível carregar o pipeline de produção.
+        </div>
+      ) : pipelineRows.length > 0 ? (
+        <div className="surface-panel p-4">
+          <div className="flex items-start gap-3">
+            <ClipboardList className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
+            <div>
+              <h2 className="font-semibold">Pipeline de produção</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Visão operacional de fornecedores previstos, cotados, selecionados, contratados e documentados.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 divide-y divide-border">
+            {pipelineRows.map((row) => (
+              <div key={row.supplier_id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium">{row.supplier_name}</p>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                      {productionStageLabel(row.stage)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {row.category}
+                    {row.total_documents > 0
+                      ? ` · documentos: ${row.approved_documents} aprovados / ${row.pending_documents} pendentes`
+                      : " · sem documento vinculado"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2 text-sm">
+                  {row.amount_minor != null && row.currency_code ? (
+                    <>
+                      <CircleDollarSign className="size-4 text-muted-foreground" aria-hidden="true" />
+                      <span className="font-medium tabular-nums">{money(row.amount_minor, row.currency_code)}</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Aguardando valor real</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {quotes.isError ? (
         <div className="surface-panel border-destructive/40 p-4 text-sm text-destructive">Não foi possível carregar as cotações.</div>
