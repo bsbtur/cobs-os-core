@@ -17,15 +17,20 @@ declare
   _cancelled_attempts integer := 0;
   _facts integer := 0;
 begin
-  select o.*, op.code, p.email
-    into _o, _op_code, _buyer_email
+  select * into _o
   from public.orders o
-  join public.operations op on op.id=o.operation_id and op.tenant_id=o.tenant_id
-  left join public.people p on p.id=o.buyer_person_id and p.tenant_id=o.tenant_id
   where o.id=_order_id
-  for update of o;
+  for update;
 
   if _o.id is null then raise exception 'Order not found'; end if;
+
+  select op.code into _op_code
+  from public.operations op
+  where op.id=_o.operation_id and op.tenant_id=_o.tenant_id;
+
+  select p.email into _buyer_email
+  from public.people p
+  where p.id=_o.buyer_person_id and p.tenant_id=_o.tenant_id;
   if _op_code <> 'TEAM-SEFFRIN-BSB-20270416' then raise exception 'Order is not Team Seffrin QA'; end if;
   if coalesce((_o.metadata->>'qa_public_checkout')::boolean,false) is not true then
     raise exception 'Order is not marked as QA public checkout';
