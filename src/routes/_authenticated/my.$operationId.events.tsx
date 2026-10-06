@@ -87,7 +87,7 @@ function PortalEvents() {
                   </div>
 
                   {ev.sessions.length === 0 ? (
-                    <p className="mt-3 text-sm text-muted-foreground">{t("w10.events.empty")}</p>
+                    <p className="mt-3 text-sm text-muted-foreground">{t("w10.events.sessionsPending")}</p>
                   ) : (
                     <ul className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
                       {ev.sessions.map((s) => (
