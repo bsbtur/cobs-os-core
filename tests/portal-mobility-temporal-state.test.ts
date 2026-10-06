@@ -21,8 +21,16 @@ describe("traveler mobility temporal states", () => {
     expect(source).toContain("!arrivalIsDateOnly");
   });
 
-  it("keeps date-only transport safe and distinguishes next and completed", () => {
-    expect(source).toContain("if (departure && departureIsDateOnly)");
+  it("keeps date-only transport safe and lets a confirmed arrival take precedence", () => {
+    const confirmedArrivalCompletion = source.indexOf(
+      'if (arrivalMs !== null && !arrivalIsDateOnly && arrivalMs <= nowMs)',
+    );
+    const dateOnlyDeparture = source.indexOf("if (departure && departureIsDateOnly)");
+
+    expect(confirmedArrivalCompletion).toBeGreaterThan(-1);
+    expect(dateOnlyDeparture).toBeGreaterThan(confirmedArrivalCompletion);
+    expect(source).toContain("arrivalMs > nowMs");
+    expect(source).toContain('return "neutral" as const');
     expect(source).toContain('return "upcoming" as const');
     expect(source).toContain('return "completed" as const');
     expect(source).toContain('t("w10.mobility.inProgress")');
