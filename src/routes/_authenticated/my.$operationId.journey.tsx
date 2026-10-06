@@ -163,7 +163,6 @@ function PortalJourney() {
               const isNext = state === "upcoming" && index === nextStepIndex;
               const elapsed = state === "completed";
               const expanded = expandedStepId === step.stepId;
-              const isFuture = state === "upcoming" && !isNext;
               const markerClass = isNow
                 ? "h-5 w-5 border-[5px] border-background bg-primary shadow-[0_0_0_5px_hsl(var(--primary)/0.12)]"
                 : isNext
@@ -182,7 +181,7 @@ function PortalJourney() {
                 : isNext
                   ? "border-primary/25"
                   : elapsed
-                    ? "border-border/60 bg-card/80"
+                    ? "border-border/60 opacity-90"
                     : "border-border/80";
 
               return (
@@ -197,7 +196,7 @@ function PortalJourney() {
                   aria-hidden="true"
                   className={`absolute top-5 flex rounded-full transition-all ${markerOffset} ${markerClass}`}
                 />
-                <article className={`overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-md ${cardStateClass}`}>
+                <article className={`overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:shadow-md ${cardStateClass}`}>
                   <div className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
