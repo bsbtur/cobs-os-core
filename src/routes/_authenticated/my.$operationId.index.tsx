@@ -14,6 +14,7 @@ import {
   useMyStay,
   type PortalAgendaItem,
   type PortalOverview,
+  type PortalStay,
 } from "@/lib/w10";
 import { PortalShell } from "@/app/portal/portal-shell";
 import { PortalCard, PortalQueryGate, PortalTag } from "@/app/portal/portal-states";
@@ -61,6 +62,87 @@ function daysUntil(value: string | null, at: number = Date.now()) {
   const ms = new Date(value).getTime() - at;
   if (!Number.isFinite(ms) || ms <= 0) return null;
   return Math.ceil(ms / 86_400_000);
+}
+
+function homeLocalDateKey(value: number | string, timeZone?: string | null) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(new Date(value));
+}
+
+function homeIsPlaceholderMidnight(value: string | null, timeZone?: string | null) {
+  if (!value) return false;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(new Date(value));
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  const minute = parts.find((part) => part.type === "minute")?.value;
+  const second = parts.find((part) => part.type === "second")?.value;
+  return hour === "00" && minute === "00" && second === "00";
+}
+
+function selectHomeStay(stays: PortalStay[], nowMs: number, fallbackTimeZone?: string | null) {
+  const todayByTimeZone = new Map<string, string>();
+  const todayFor = (timeZone?: string | null) => {
+    const key = timeZone ?? "";
+    const cached = todayByTimeZone.get(key);
+    if (cached) return cached;
+    const value = homeLocalDateKey(nowMs, timeZone);
+    todayByTimeZone.set(key, value);
+    return value;
+  };
+
+  const stateFor = (stay: PortalStay) => {
+    const timeZone = stay.property?.timezone ?? fallbackTimeZone ?? null;
+    const checkIn = stay.expectedCheckIn ?? stay.plannedCheckIn;
+    const checkOut = stay.expectedCheckOut ?? stay.plannedCheckOut;
+    const checkInMs = checkIn ? new Date(checkIn).getTime() : null;
+    const checkOutMs = checkOut ? new Date(checkOut).getTime() : null;
+    const checkInIsDateOnly = checkIn ? homeIsPlaceholderMidnight(checkIn, timeZone) : false;
+    const checkOutIsDateOnly = checkOut ? homeIsPlaceholderMidnight(checkOut, timeZone) : false;
+    const today = todayFor(timeZone);
+
+    const completed =
+      (checkOutMs !== null && !checkOutIsDateOnly && checkOutMs <= nowMs) ||
+      (checkOut !== null && checkOutIsDateOnly && homeLocalDateKey(checkOut, timeZone) < today);
+    if (completed) return "completed" as const;
+
+    if (stay.checkinOpen) return "current" as const;
+
+    if (
+      checkInMs !== null &&
+      !checkInIsDateOnly &&
+      checkInMs <= nowMs &&
+      checkOutMs !== null &&
+      !checkOutIsDateOnly &&
+      nowMs < checkOutMs
+    ) {
+      return "current" as const;
+    }
+
+    if (
+      (checkInMs !== null && !checkInIsDateOnly && checkInMs > nowMs) ||
+      (checkIn !== null && checkInIsDateOnly && homeLocalDateKey(checkIn, timeZone) >= today)
+    ) {
+      return "upcoming" as const;
+    }
+
+    return "neutral" as const;
+  };
+
+  return (
+    stays.find((stay) => stateFor(stay) === "current") ??
+    stays.find((stay) => stateFor(stay) === "upcoming") ??
+    stays[0] ??
+    null
+  );
 }
 
 function TripContextCard({ overview, nowMs }: { overview: PortalOverview; nowMs: number }) {
@@ -140,8 +222,8 @@ function PortalHome() {
   const sessions = eventRows.reduce((acc, e) => acc + e.sessions.length, 0);
   const firstEventName = eventRows[0]?.name;
   const showEventShortcut = eventRows.length > 0;
-  const firstStay = stays[0] ?? null;
-  const activeRoom = firstStay?.myRoom.find((room) => room.active) ?? null;
+  const homeStay = selectHomeStay(stays, nowMs, timeZone);
+  const activeRoom = homeStay?.myRoom.find((room) => room.active) ?? null;
   const journeyCount = (journey.data ?? []).length;
   const journeySummary =
     journeyCount === 1
@@ -158,8 +240,8 @@ function PortalHome() {
         : legs.length === 1
           ? t("w10.home.transportSingle")
           : t("w10.home.transportPlanned").replace("{count}", String(legs.length));
-  const staySummary = firstStay
-    ? `${firstStay.property?.name ?? firstStay.name ?? t("w10.home.stayShortcut")} · ${
+  const staySummary = homeStay
+    ? `${homeStay.property?.name ?? homeStay.name ?? t("w10.home.stayShortcut")} · ${
         activeRoom?.label ?? t("w10.home.accommodationPending")
       }`
     : t("w10.stay.empty");
