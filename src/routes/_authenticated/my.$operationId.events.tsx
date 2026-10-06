@@ -188,7 +188,10 @@ function PortalEvents() {
                 (sessionState) => sessionState === "upcoming",
               );
               return (
-                <PortalCard key={ev.eventId}>
+                <PortalCard
+                  key={ev.eventId}
+                  className={isCompleted ? "border-border/60 bg-muted/20 opacity-85 !p-3 sm:!p-4" : ""}
+                >
                   <div className="flex flex-col items-start gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3">
                     <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                       {ev.name ?? "—"}
@@ -225,7 +228,13 @@ function PortalEvents() {
                   {ev.sessions.length === 0 ? (
                     <p className="mt-3 text-sm text-muted-foreground">{t("w10.events.sessionsPending")}</p>
                   ) : (
-                    <ul className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
+                    <ul
+                      className={
+                        isCompleted
+                          ? "mt-2 flex flex-col gap-2 border-t border-border pt-2 sm:mt-3 sm:gap-3 sm:pt-3"
+                          : "mt-3 flex flex-col gap-3 border-t border-border pt-3"
+                      }
+                    >
                       {ev.sessions.map((s, sessionIndex) => {
                         const sessionState = sessionStates[sessionIndex] ?? "neutral";
                         const sessionIsCurrent = sessionState === "now";
