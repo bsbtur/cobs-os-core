@@ -57,7 +57,7 @@ function PortalMessages() {
         for (const entry of entries) {
           if (!entry.isIntersecting || entry.intersectionRatio < 0.6) continue;
           const node = entry.target as HTMLElement;
-          const messageId = node.dataset.unreadMessageId;
+          const messageId = node.dataset["unreadMessageId"];
           if (!messageId || seen.current.has(messageId)) continue;
           seen.current.add(messageId);
           observer.unobserve(node);
