@@ -75,7 +75,9 @@ function PortalEvents() {
                   <div className="mt-1">
                     {dateOnly ? (
                       <p className="text-sm text-muted-foreground">
-                        {dateRange ?? "—"} · {timeToConfirmLabel(locale)}
+                        {dateRange
+                          ? `${dateRange} · ${timeToConfirmLabel(locale)}`
+                          : t("w10.events.datePending")}
                       </p>
                     ) : (
                       <PortalTime
