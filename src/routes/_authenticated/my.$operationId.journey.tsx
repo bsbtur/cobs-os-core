@@ -74,7 +74,7 @@ function PortalJourney() {
 
       <PortalQueryGate isLoading={journey.isLoading} error={journey.error} onRetry={() => void journey.refetch()}>
         {steps.length === 0 ? (
-          <PortalEmpty body={t("w10.journey.empty")} />
+          <PortalEmpty icon={CalendarDays} title={t("w10.journey.emptyTitle")} body={t("w10.journey.empty")} />
         ) : (
           <ol className="relative ml-3 border-l border-border pl-6">
             {steps.map((step, index) => {

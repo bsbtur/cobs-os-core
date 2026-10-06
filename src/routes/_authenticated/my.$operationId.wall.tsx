@@ -45,6 +45,7 @@ const COPY = {
     community: "Reaja, participe de enquetes e converse com quem está vivendo essa experiência com você.",
     officialNotices: "Informações importantes e mudanças confirmadas continuam na área Avisos.",
     subtitle: "Um espaço para acompanhar o grupo, participar e trocar mensagens durante a viagem.",
+    emptyTitle: "A comunidade começa em breve",
     empty: "Ainda não há publicações. Quando o grupo começar a interagir, as novidades aparecerão aqui.",
     vote: "voto",
     votes: "votos",
@@ -58,6 +59,7 @@ const COPY = {
     community: "React, join polls, and chat with the people sharing this experience with you.",
     officialNotices: "Important information and confirmed changes remain in the Notices area.",
     subtitle: "A space to follow the group, take part, and exchange messages during the trip.",
+    emptyTitle: "The community will come to life soon",
     empty: "No posts yet. When the group starts interacting, new updates will appear here.",
     vote: "vote",
     votes: "votes",
@@ -71,6 +73,7 @@ const COPY = {
     community: "Reacciona, participa en encuestas y conversa con quienes comparten esta experiencia contigo.",
     officialNotices: "La información importante y los cambios confirmados siguen en el área Avisos.",
     subtitle: "Un espacio para seguir al grupo, participar e intercambiar mensajes durante el viaje.",
+    emptyTitle: "La comunidad cobrará vida pronto",
     empty: "Todavía no hay publicaciones. Cuando el grupo empiece a interactuar, las novedades aparecerán aquí.",
     vote: "voto",
     votes: "votos",
@@ -101,7 +104,7 @@ function PortalWall() {
 
       <PortalQueryGate isLoading={wall.isLoading} error={wall.error} onRetry={() => void wall.refetch()}>
         {(wall.data ?? []).length === 0 ? (
-          <PortalEmpty body={copy.empty} />
+          <PortalEmpty icon={MessageCircleHeart} title={copy.emptyTitle} body={copy.empty} />
         ) : (
           <div className="flex flex-col gap-4">
             {(wall.data ?? []).map((post) => (

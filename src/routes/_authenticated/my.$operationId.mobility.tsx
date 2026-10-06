@@ -72,7 +72,7 @@ function PortalMobility() {
         onRetry={() => void mobility.refetch()}
       >
         {(mobility.data ?? []).length === 0 ? (
-          <PortalEmpty body={t("w10.mobility.empty")} />
+          <PortalEmpty icon={Bus} title={t("w10.mobility.emptyTitle")} body={t("w10.mobility.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
             {(mobility.data ?? []).map((leg) => {

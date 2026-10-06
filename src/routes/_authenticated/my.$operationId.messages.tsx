@@ -82,7 +82,7 @@ function PortalMessages() {
         onRetry={() => void messages.refetch()}
       >
         {list.length === 0 ? (
-          <PortalEmpty body={t("w10.messages.empty")} />
+          <PortalEmpty icon={BellRing} title={t("w10.messages.emptyTitle")} body={t("w10.messages.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
             {list.map((m) => (

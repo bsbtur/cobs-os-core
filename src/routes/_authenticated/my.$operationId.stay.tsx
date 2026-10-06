@@ -49,7 +49,7 @@ function PortalStay() {
         onRetry={() => void stay.refetch()}
       >
         {(stay.data ?? []).length === 0 ? (
-          <PortalEmpty body={t("w10.stay.empty")} />
+          <PortalEmpty icon={BedDouble} title={t("w10.stay.emptyTitle")} body={t("w10.stay.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
             {(stay.data ?? []).map((s) => {

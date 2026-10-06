@@ -52,7 +52,7 @@ function PortalEvents() {
         }}
       >
         {(events.data ?? []).length === 0 ? (
-          <PortalEmpty body={t("w10.events.empty")} />
+          <PortalEmpty icon={Ticket} title={t("w10.events.emptyTitle")} body={t("w10.events.empty")} />
         ) : (
           <div className="flex flex-col gap-4">
             {(events.data ?? []).map((ev) => {
