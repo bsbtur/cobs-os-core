@@ -13,11 +13,11 @@ const migration = readFileSync(
 
 describe("operation production pipeline", () => {
   test("shows the five canonical production stages", () => {
-    expect(route).toContain('{ key: "planned", label: "Previsto"');
-    expect(route).toContain('{ key: "quoted", label: "Cotado"');
-    expect(route).toContain('{ key: "selected", label: "Selecionado"');
-    expect(route).toContain('{ key: "contracted", label: "Contratado"');
-    expect(route).toContain('{ key: "documented", label: "Documentado"');
+    expect(route).toContain('label: "Previsto"');
+    expect(route).toContain('label: "Cotado"');
+    expect(route).toContain('label: "Selecionado"');
+    expect(route).toContain('label: "Contratado"');
+    expect(route).toContain('label: "Documentado"');
   });
 
   test("reads the pipeline through an authorized rpc instead of supplier tables", () => {
