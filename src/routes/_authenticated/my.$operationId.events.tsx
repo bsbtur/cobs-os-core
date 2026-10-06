@@ -36,6 +36,53 @@ function eventLocalDateKey(value: number | string, timeZone?: string | null) {
   }).format(new Date(value));
 }
 
+function sessionIsPlaceholderMidnight(value: string | null, timeZone?: string | null) {
+  if (!value) return false;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(new Date(value));
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  const minute = parts.find((part) => part.type === "minute")?.value;
+  const second = parts.find((part) => part.type === "second")?.value;
+  return hour === "00" && minute === "00" && second === "00";
+}
+
+function sessionTemporalState(
+  session: {
+    plannedStart: string | null;
+    plannedEnd: string | null;
+    expectedStart: string | null;
+    expectedEnd: string | null;
+  },
+  nowMs: number,
+  timeZone?: string | null,
+) {
+  const start = session.expectedStart ?? session.plannedStart;
+  const end = session.expectedEnd ?? session.plannedEnd;
+  const startMs = start ? new Date(start).getTime() : null;
+  const endMs = end ? new Date(end).getTime() : null;
+  const startPlaceholder = sessionIsPlaceholderMidnight(start, timeZone);
+  const endPlaceholder = sessionIsPlaceholderMidnight(end, timeZone);
+
+  if (endMs !== null && !endPlaceholder && endMs <= nowMs) return "completed" as const;
+  if (
+    startMs !== null &&
+    endMs !== null &&
+    !startPlaceholder &&
+    !endPlaceholder &&
+    startMs <= nowMs &&
+    nowMs < endMs
+  ) {
+    return "now" as const;
+  }
+  if (startMs !== null && !startPlaceholder && startMs > nowMs) return "upcoming" as const;
+  return "neutral" as const;
+}
+
 function eventTemporalState(
   event: {
     plannedStart: string | null;
@@ -134,6 +181,12 @@ function PortalEvents() {
               const isCurrent = state === "now";
               const isNext = state === "upcoming" && index === nextEventIndex;
               const isCompleted = state === "completed";
+              const sessionStates = ev.sessions.map((session) =>
+                sessionTemporalState(session, nowMs, tz),
+              );
+              const nextSessionIndex = sessionStates.findIndex(
+                (sessionState) => sessionState === "upcoming",
+              );
               return (
                 <PortalCard key={ev.eventId}>
                   <div className="flex flex-col items-start gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3">
@@ -175,11 +228,28 @@ function PortalEvents() {
                     <p className="mt-3 text-sm text-muted-foreground">{t("w10.events.sessionsPending")}</p>
                   ) : (
                     <ul className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
-                      {ev.sessions.map((s) => (
+                      {ev.sessions.map((s, sessionIndex) => {
+                        const sessionState = sessionStates[sessionIndex] ?? "neutral";
+                        const sessionIsCurrent = sessionState === "now";
+                        const sessionIsNext =
+                          sessionState === "upcoming" && sessionIndex === nextSessionIndex;
+                        const sessionIsCompleted = sessionState === "completed";
+                        return (
                         <li key={s.sessionId} className="min-w-0">
-                          <p className="break-words text-sm font-medium text-foreground">
-                            {s.title ?? "—"}
-                          </p>
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <p className="min-w-0 break-words text-sm font-medium text-foreground">
+                              {s.title ?? "—"}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {sessionIsCurrent ? <PortalTag>{t("w10.events.sessionCurrent")}</PortalTag> : null}
+                              {sessionIsNext ? <PortalTag>{t("w10.events.sessionNext")}</PortalTag> : null}
+                              {sessionIsCompleted ? (
+                                <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                  {t("w10.events.sessionCompleted")}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
                           {s.space?.name || s.space?.spaceLabel ? (
                             <p className="mt-0.5 break-words text-xs text-muted-foreground">
                               {s.space?.name ?? s.space?.spaceLabel}
@@ -199,7 +269,8 @@ function PortalEvents() {
                             </p>
                           ) : null}
                         </li>
-                      ))}
+                        );
+                      })}
                     </ul>
                   )}
                 </PortalCard>
