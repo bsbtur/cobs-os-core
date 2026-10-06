@@ -130,13 +130,23 @@ function PortalHome() {
   const showEventShortcut = eventRows.length > 0;
   const firstStay = stays[0] ?? null;
   const activeRoom = firstStay?.myRoom.find((room) => room.active) ?? null;
+  const journeyCount = (journey.data ?? []).length;
+  const journeySummary =
+    journeyCount === 1
+      ? t("w10.home.experienceSingle")
+      : t("w10.home.experienceMany").replace("{count}", String(journeyCount));
+  const hasOutbound = legs.some((leg) => leg.legKind === "outbound");
+  const hasReturn = legs.some((leg) => leg.legKind === "return");
+  const hasLocalTransfers = legs.some((leg) => !["outbound", "return"].includes(leg.legKind ?? ""));
   const transportSummary =
-    legs.length > 0
-      ? `${legs.length} deslocamentos · ${legs[0]?.title ?? ""}`
-      : t("w10.mobility.empty");
+    legs.length === 0
+      ? t("w10.mobility.empty")
+      : hasOutbound && hasReturn && hasLocalTransfers
+        ? t("w10.home.transportCoverage")
+        : t("w10.home.transportPlanned").replace("{count}", String(legs.length));
   const staySummary = firstStay
     ? `${firstStay.property?.name ?? firstStay.name ?? t("w10.home.stayShortcut")} · ${
-        activeRoom?.label ?? t("w10.stay.noRoom")
+        activeRoom?.label ?? t("w10.home.accommodationPending")
       }`
     : t("w10.stay.empty");
   const historical = overview.data?.historical === true;
@@ -188,7 +198,7 @@ function PortalHome() {
                             <p className="mt-1 text-sm text-muted-foreground">{t("w10.home.areasBody")}</p>
                           </div>
                           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            <ShortcutRow to="/my/$operationId/journey" operationId={operationId} icon={CalendarDays} label={t("w10.home.journeyShortcut")} value={(journey.data ?? []).length > 0 ? `${(journey.data ?? []).length} ${t("w10.home.steps")}` : t("w10.journey.empty")} />
+                            <ShortcutRow to="/my/$operationId/journey" operationId={operationId} icon={CalendarDays} label={t("w10.home.journeyShortcut")} value={journeyCount > 0 ? journeySummary : t("w10.journey.empty")} />
                             <ShortcutRow to="/my/$operationId/mobility" operationId={operationId} icon={Bus} label={t("w10.home.transportShortcut")} value={transportSummary} />
                             <ShortcutRow to="/my/$operationId/stay" operationId={operationId} icon={BedDouble} label={t("w10.home.stayShortcut")} value={staySummary} />
                             {showEventShortcut ? (
