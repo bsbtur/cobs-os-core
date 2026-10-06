@@ -27,9 +27,23 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/mobility")
   component: PortalMobility,
 });
 
-function mobilityMode(leg: { title: string | null; originLabel: string | null; destinationLabel: string | null }) {
+function mobilityMode(leg: {
+  legKind: string | null;
+  title: string | null;
+  originLabel: string | null;
+  destinationLabel: string | null;
+}) {
+  // Operational kind wins over place-name heuristics. A road transfer that
+  // starts/ends at an airport must never be rendered as an air segment.
+  if (leg.legKind === "transfer" || leg.legKind === "shuttle" || leg.legKind === "return") {
+    return { labelKey: "w10.mobility.modeTransfer" as const, Icon: Van };
+  }
+
   const text = [leg.title, leg.originLabel, leg.destinationLabel].filter(Boolean).join(" ").toLowerCase();
-  if (/aeroporto|bsb|cgh|congonhas|voo|aéreo/.test(text)) return { labelKey: "w10.mobility.modeAir" as const, Icon: Plane };
+
+  if (/\b(voo|aéreo|aerea|aérea|flight)\b/.test(text)) {
+    return { labelKey: "w10.mobility.modeAir" as const, Icon: Plane };
+  }
   if (/metrô|metro|estação/.test(text)) return { labelKey: "w10.mobility.modeMetro" as const, Icon: TrainFront };
   if (/ônibus|onibus|bus|rodoviária|rodoviaria/.test(text)) return { labelKey: "w10.mobility.modeBus" as const, Icon: Bus };
   return { labelKey: "w10.mobility.modeTransfer" as const, Icon: Van };
