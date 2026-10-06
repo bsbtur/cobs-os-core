@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { ArrowRight, BedDouble, Bot, Bus, CalendarDays, MapPin, Megaphone, ShieldCheck, Sparkles, Ticket } from "lucide-react";
 
@@ -55,21 +56,21 @@ function AgendaLine({ item, timeZone }: { item: PortalAgendaItem; timeZone: stri
   );
 }
 
-function daysUntil(value: string | null) {
+function daysUntil(value: string | null, at: number = Date.now()) {
   if (!value) return null;
-  const ms = new Date(value).getTime() - Date.now();
+  const ms = new Date(value).getTime() - at;
   if (!Number.isFinite(ms) || ms <= 0) return null;
   return Math.ceil(ms / 86_400_000);
 }
 
-function TripContextCard({ overview }: { overview: PortalOverview }) {
+function TripContextCard({ overview, nowMs }: { overview: PortalOverview; nowMs: number }) {
   const { locale, t } = useI18n();
   const ctx = overview.timezone ? { locale, timeZone: overview.timezone } : { locale };
   const destination = [overview.city, overview.region, overview.country].filter(Boolean).join(" · ");
   const start = overview.expectedStart ?? overview.plannedStart;
   const end = overview.expectedEnd ?? overview.plannedEnd;
   const period = start ? (end ? `${formatDate(start, ctx)} – ${formatDate(end, ctx)}` : formatDate(start, ctx)) : null;
-  const countdown = daysUntil(start);
+  const countdown = daysUntil(start, nowMs);
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-primary/25 bg-sidebar px-5 py-7 text-sidebar-foreground shadow-[var(--shadow-lift)] sm:px-8 sm:py-9">
@@ -117,10 +118,21 @@ function PortalHome() {
   const events = useMyEventProgram(operationId);
   const messages = useMyMessages(operationId);
   const stay = useMyStay(operationId);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const refreshNow = () => setNowMs(Date.now());
+    const timer = window.setInterval(refreshNow, 30_000);
+    document.addEventListener("visibilitychange", refreshNow);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshNow);
+    };
+  }, []);
 
   const timeZone = overview.data?.timezone ?? null;
   const agenda = buildAgenda(journey.data ?? [], mobility.data ?? [], events.data ?? []);
-  const { now, next } = splitNowNext(agenda);
+  const { now, next } = splitNowNext(agenda, nowMs);
   const unread = (messages.data ?? []).filter((m) => m.myFirstReadAt === null && m.status === "published").length;
   const legs = mobility.data ?? [];
   const stays = stay.data ?? [];
@@ -153,7 +165,7 @@ function PortalHome() {
     : t("w10.stay.empty");
   const historical = overview.data?.historical === true;
   const plannedStart = overview.data?.expectedStart ?? overview.data?.plannedStart ?? null;
-  const upcoming = plannedStart ? new Date(plannedStart).getTime() > Date.now() : false;
+  const upcoming = plannedStart ? new Date(plannedStart).getTime() > nowMs : false;
   const experienceLoading = journey.isLoading || mobility.isLoading || events.isLoading || messages.isLoading || stay.isLoading;
   const experienceError = journey.error ?? mobility.error ?? events.error ?? messages.error ?? stay.error;
   const retryExperience = () => {
@@ -164,7 +176,7 @@ function PortalHome() {
     <PortalShell operationId={operationId} title={overview.data?.name ?? t("w10.portal.brand")} active="home">
       <PortalQueryGate isLoading={overview.isLoading} error={overview.error} onRetry={() => void overview.refetch()}>
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6">
-          {overview.data ? <TripContextCard overview={overview.data} /> : null}
+          {overview.data ? <TripContextCard overview={overview.data} nowMs={nowMs} /> : null}
 
           {experienceLoading ? (
             <PanelSkeleton rows={6} />
