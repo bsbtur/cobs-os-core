@@ -31,4 +31,11 @@ describe("traveler mobility card hierarchy", () => {
     expect(source).toContain("sm:grid-cols-[minmax(0,1fr)_auto]");
     expect(source).toContain("bg-muted/25");
   });
+
+  it("de-emphasizes and compacts completed cards only on mobile", () => {
+    expect(source).toContain("bg-muted/20 opacity-80 !p-3 sm:!p-4");
+    expect(source).toContain('isCompleted ? "space-y-2 sm:space-y-3" : "space-y-3"');
+    expect(source).toContain("mt-2 grid gap-1.5 sm:mt-3 sm:grid-cols-2 sm:gap-2");
+    expect(source).toContain("mt-2 border-t border-border/70 pt-2 sm:mt-3 sm:pt-3");
+  });
 });

@@ -230,11 +230,11 @@ function PortalMobility() {
                 : isNext
                   ? "border-primary/25"
                   : isCompleted
-                    ? "border-border/60 opacity-90"
+                    ? "border-border/60 bg-muted/20 opacity-80 !p-3 sm:!p-4"
                     : "";
               return (
               <PortalCard key={leg.legId} className={stateClass}>
-                <div className="space-y-3">
+                <div className={isCompleted ? "space-y-2 sm:space-y-3" : "space-y-3"}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="break-words text-base font-semibold leading-snug text-foreground">
@@ -299,7 +299,7 @@ function PortalMobility() {
                     {t("w10.mobility.timesPending")}
                   </div>
                 ) : (
-                  <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <dl className={isCompleted ? "mt-2 grid gap-1.5 sm:mt-3 sm:grid-cols-2 sm:gap-2" : "mt-3 grid gap-2 sm:grid-cols-2"}>
                     <div className="rounded-xl border border-border/70 bg-background/45 p-3">
                       <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         {t("w10.mobility.departure")}
@@ -334,7 +334,7 @@ function PortalMobility() {
                 ) : null}
 
                 {leg.stops.length > 0 ? (
-                  <div className="mt-3 border-t border-border/70 pt-3">
+                  <div className={isCompleted ? "mt-2 border-t border-border/70 pt-2 sm:mt-3 sm:pt-3" : "mt-3 border-t border-border/70 pt-3"}>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
