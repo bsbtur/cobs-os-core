@@ -8,17 +8,27 @@ const source = fs.readFileSync(
 );
 
 describe("traveler mobility card hierarchy", () => {
-  it("renders route as primary content and mode as a tag", () => {
-    expect(source).toContain('text-base font-semibold leading-snug');
-    expect(source).toContain('<PortalTag>');
-    expect(source).toContain('{t(mode.labelKey)}');
+  it("keeps canonical list order while using a separate current-or-next spotlight", () => {
+    expect(source).toContain("const spotlightIndex = currentLegIndex >= 0 ? currentLegIndex : nextLegIndex");
+    expect(source).toContain("legs.map((leg, index) =>");
   });
 
-  it("collapses fully unknown departure and arrival into one pending line", () => {
-    expect(source).toContain('!leg.plannedDeparture');
-    expect(source).toContain('!leg.expectedDeparture');
-    expect(source).toContain('!leg.plannedArrival');
-    expect(source).toContain('!leg.expectedArrival');
-    expect(source).toContain('t("w10.mobility.timesPending")');
+  it("renders origin and destination as the main route axis", () => {
+    expect(source).toContain('t("w10.mobility.origin")');
+    expect(source).toContain('t("w10.mobility.destination")');
+    expect(source).toContain("<ArrowRight");
+  });
+
+  it("separates departure and arrival into mobile-friendly blocks", () => {
+    expect(source).toContain("sm:grid-cols-2");
+    expect(source).toContain('t("w10.mobility.departure")');
+    expect(source).toContain('t("w10.mobility.arrival")');
+    expect(source).toContain("border-dashed");
+  });
+
+  it("renders stops as readable stacked items on mobile", () => {
+    expect(source).toContain('t("w10.mobility.stops")');
+    expect(source).toContain("sm:grid-cols-[minmax(0,1fr)_auto]");
+    expect(source).toContain("bg-muted/25");
   });
 });
