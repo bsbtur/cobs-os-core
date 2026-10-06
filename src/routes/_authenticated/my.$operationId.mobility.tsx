@@ -80,49 +80,63 @@ function PortalMobility() {
               const ModeIcon = mode.Icon;
               return (
               <PortalCard key={leg.legId}>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><ModeIcon className="h-4 w-4" />{t(mode.labelKey)}</div>
-                  <h3 className="min-w-0 break-words text-base font-medium text-foreground">
-                    {leg.title ??
-                      [leg.originLabel, leg.destinationLabel].filter(Boolean).join(" → ")}
-                  </h3>
-                  {leg.mySeat?.active && leg.mySeat.seatLabel ? (
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="break-words text-base font-semibold leading-snug text-foreground">
+                      {leg.title ??
+                        [leg.originLabel, leg.destinationLabel].filter(Boolean).join(" → ")}
+                    </h3>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                     <PortalTag>
-                      {t("w10.mobility.seat")} {leg.mySeat.seatLabel}
+                      <span className="inline-flex items-center gap-1.5">
+                        <ModeIcon className="h-3.5 w-3.5" />
+                        {t(mode.labelKey)}
+                      </span>
                     </PortalTag>
-                  ) : null}
+                    {leg.mySeat?.active && leg.mySeat.seatLabel ? (
+                      <PortalTag>
+                        {t("w10.mobility.seat")} {leg.mySeat.seatLabel}
+                      </PortalTag>
+                    ) : null}
+                  </div>
                 </div>
 
-                <dl className="mt-2 flex flex-col gap-1">
-                  <div className="flex flex-wrap items-baseline gap-2">
-                    <dt className="text-xs text-muted-foreground">{t("w10.mobility.departure")}</dt>
-                    <dd>
-                      <PortalTime
-                        planned={leg.plannedDeparture}
-                        expected={leg.expectedDeparture}
-                        timeZone={timeZone}
-                      />
-                    </dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline gap-2">
-                    <dt className="text-xs text-muted-foreground">{t("w10.mobility.arrival")}</dt>
-                    <dd>
-                      <PortalTime
-                        planned={leg.plannedArrival}
-                        expected={leg.expectedArrival}
-                        timeZone={timeZone}
-                      />
-                    </dd>
-                  </div>
-                  {leg.returnTime ? (
+                {!leg.plannedDeparture &&
+                !leg.expectedDeparture &&
+                !leg.plannedArrival &&
+                !leg.expectedArrival ? (
+                  <p className="mt-3 text-xs text-muted-foreground">{t("w10.mobility.timesPending")}</p>
+                ) : (
+                  <dl className="mt-3 flex flex-col gap-1">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <dt className="text-xs text-muted-foreground">{t("w10.mobility.return")}</dt>
+                      <dt className="text-xs text-muted-foreground">{t("w10.mobility.departure")}</dt>
                       <dd>
-                        <PortalTime planned={null} expected={leg.returnTime} timeZone={timeZone} />
+                        <PortalTime
+                          planned={leg.plannedDeparture}
+                          expected={leg.expectedDeparture}
+                          timeZone={timeZone}
+                        />
                       </dd>
                     </div>
-                  ) : null}
-                </dl>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <dt className="text-xs text-muted-foreground">{t("w10.mobility.arrival")}</dt>
+                      <dd>
+                        <PortalTime
+                          planned={leg.plannedArrival}
+                          expected={leg.expectedArrival}
+                          timeZone={timeZone}
+                        />
+                      </dd>
+                    </div>
+                  </dl>
+                )}
+                {leg.returnTime ? (
+                  <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                    <span className="text-xs text-muted-foreground">{t("w10.mobility.return")}</span>
+                    <PortalTime planned={null} expected={leg.returnTime} timeZone={timeZone} />
+                  </div>
+                ) : null}
 
                 {leg.stops.length > 0 ? (
                   <div className="mt-3 border-t border-border pt-3">
