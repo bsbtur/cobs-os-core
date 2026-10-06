@@ -35,14 +35,25 @@ Deno.serve(async (req: Request) => {
   if (opError) return json({ error: "operation_lookup_failed" }, 500);
   if (!op) return json({ error: "operation_not_found" }, 404);
 
-  const { data: stay, error: stayError } = await admin
-    .from("hospitality_stays")
-    .select("id,status,hospitality_properties!inner(name)")
-    .eq("operation_id", op.id)
+  const { data: property, error: propertyError } = await admin
+    .from("hospitality_properties")
+    .select("id")
     .eq("tenant_id", op.tenant_id)
-    .eq("hospitality_properties.name", "Woodstock Guesthouse")
-    .neq("status", "cancelled")
+    .eq("name", "Woodstock Guesthouse")
     .maybeSingle();
+
+  if (propertyError) return json({ error: "property_lookup_failed" }, 500);
+
+  const { data: stay, error: stayError } = property?.id
+    ? await admin
+        .from("hospitality_stays")
+        .select("id,status")
+        .eq("operation_id", op.id)
+        .eq("tenant_id", op.tenant_id)
+        .eq("property_id", property.id)
+        .neq("status", "cancelled")
+        .maybeSingle()
+    : { data: null, error: null };
 
   if (stayError) return json({ error: "stay_lookup_failed" }, 500);
   if (!stay) {

@@ -1148,12 +1148,9 @@ function CommercialLeadApprovalQueue({
   const leads = useQuery({
     queryKey: ["commercial-leads-operation", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("commercial_leads")
-        .select("id,full_name,email,phone,status,metadata,converted_person_id,created_at")
-        .eq("operation_id", operationId)
-        .is("converted_person_id", null)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("list_operation_commercial_leads", {
+        _operation_id: operationId,
+      });
       if (error) throw error;
       return (data ?? []) as CommercialLeadRow[];
     },
@@ -1162,11 +1159,19 @@ function CommercialLeadApprovalQueue({
   const woodstockStay = useQuery({
     queryKey: ["team-seffrin-woodstock-stay", operationId],
     queryFn: async () => {
+      const { data: property, error: propertyError } = await supabase
+        .from("hospitality_properties")
+        .select("id")
+        .eq("name", "Woodstock Guesthouse")
+        .maybeSingle();
+      if (propertyError) throw propertyError;
+      if (!property?.id) return null;
+
       const { data: stay, error } = await supabase
         .from("hospitality_stays")
-        .select("id,name,status,hospitality_properties!inner(name)")
+        .select("id,name,status")
         .eq("operation_id", operationId)
-        .eq("hospitality_properties.name", "Woodstock Guesthouse")
+        .eq("property_id", property.id)
         .neq("status", "cancelled")
         .maybeSingle();
       if (error) throw error;
