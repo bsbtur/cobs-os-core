@@ -7,10 +7,21 @@ const S=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")??"{}");
 const publishableKey=P.default;
 const secretKey=S.default;
 const CODE="TEAM-SEFFRIN-BSB-20270416";
-const cors={"access-control-allow-origin":"*","access-control-allow-headers":"authorization, content-type, x-client-info, apikey, x-team-seffrin-qa","access-control-allow-methods":"POST, OPTIONS"};
+const cors={"access-control-allow-origin":"*","access-control-allow-headers":"authorization, content-type, x-client-info, apikey, x-team-seffrin-qa, x-team-seffrin-qa-ts, x-team-seffrin-qa-signature","access-control-allow-methods":"POST, OPTIONS"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"content-type":"application/json; charset=utf-8"}});
 const hex=(buffer:ArrayBuffer)=>[...new Uint8Array(buffer)].map(x=>x.toString(16).padStart(2,"0")).join("");
 const sha256=async(value:string)=>hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)));
+const QA_PUBLIC_KEY_SPKI_B64="MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0pVsgjDyKSsGOjuaaQH0r9/P9ycykh5XaomY7aVdiPefg/NzVlvhkJKlDp5w58v6ZxDAY0+lO+BLJN5+7dMcNA==";
+const b64Bytes=(value:string)=>Uint8Array.from(atob(value),c=>c.charCodeAt(0));
+const verifySignedPreview=async(raw:string,ts:string|null,signature:string|null)=>{
+  if(!ts||!signature)return false;
+  const stamp=Number(ts);
+  if(!Number.isFinite(stamp)||Math.abs(Date.now()-stamp)>5*60*1000)return false;
+  try{
+    const key=await crypto.subtle.importKey("spki",b64Bytes(QA_PUBLIC_KEY_SPKI_B64),{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
+    return await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},key,b64Bytes(signature),new TextEncoder().encode(ts+"."+raw));
+  }catch{return false}
+};
 const normalizePhone=(value?:string)=>{
   if(!value)return null;
   const raw=value.trim();
@@ -26,8 +37,12 @@ Deno.serve(async(req:Request)=>{
   if(req.method!=="POST")return json({error:"method_not_allowed"},405);
   if(!secretKey)return json({error:"server_not_configured"},500);
 
+  let rawBody="";
   let body:any;
-  try{body=await req.json()}catch{return json({error:"invalid_json"},400)}
+  try{
+    rawBody=await req.text();
+    body=JSON.parse(rawBody);
+  }catch{return json({error:"invalid_json"},400)}
 
   const fullName=String(body.full_name??"").trim();
   const email=String(body.email??"").trim().toLowerCase();
@@ -56,21 +71,32 @@ Deno.serve(async(req:Request)=>{
   let qaMode=false;
 
   if(cfg.sales_public!==true){
-    if(req.headers.get("x-team-seffrin-qa")!=="1")return json({error:"sales_not_open"},409);
-    if(!publishableKey)return json({error:"qa_auth_not_configured"},500);
-    const authHeader=req.headers.get("authorization");
-    if(!authHeader)return json({error:"qa_preview_not_allowed"},403);
-
-    const userClient=createClient(SUPABASE_URL,publishableKey,{global:{headers:{Authorization:authHeader}},auth:{persistSession:false}});
-    const {data:authData,error:authError}=await userClient.auth.getUser();
-    if(authError||!authData.user)return json({error:"qa_invalid_session"},401);
-
-    const {data:membership,error:membershipError}=await admin.from("memberships").select("role,status").eq("tenant_id",op.tenant_id).eq("profile_id",authData.user.id).eq("status","active").maybeSingle();
-    if(membershipError)return json({error:"qa_membership_check_failed"},500);
-    if(!membership||!["owner","admin","operations_agent"].includes(membership.role))return json({error:"qa_forbidden"},403);
-
-    allowClosed=true;
-    qaMode=true;
+    const qaHeader=req.headers.get("x-team-seffrin-qa");
+    if(qaHeader==="open-preview"){
+      const isQaProject=SUPABASE_URL.includes("nktohbqmcpgonlizzcka");
+      const isSyntheticBuyer=email.endsWith("@example.com")&&fullName.startsWith("QA ");
+      if(!isQaProject||!isSyntheticBuyer)return json({error:"qa_open_preview_forbidden"},403);
+      allowClosed=true;
+      qaMode=true;
+    }else if(qaHeader==="signed-preview"){
+      const valid=await verifySignedPreview(rawBody,req.headers.get("x-team-seffrin-qa-ts"),req.headers.get("x-team-seffrin-qa-signature"));
+      if(!valid)return json({error:"qa_signed_preview_forbidden"},403);
+      allowClosed=true;
+      qaMode=true;
+    }else{
+      if(qaHeader!=="1")return json({error:"sales_not_open"},409);
+      if(!publishableKey)return json({error:"qa_auth_not_configured"},500);
+      const authHeader=req.headers.get("authorization");
+      if(!authHeader)return json({error:"qa_preview_not_allowed"},403);
+      const userClient=createClient(SUPABASE_URL,publishableKey,{global:{headers:{Authorization:authHeader}},auth:{persistSession:false}});
+      const {data:authData,error:authError}=await userClient.auth.getUser();
+      if(authError||!authData.user)return json({error:"qa_invalid_session"},401);
+      const {data:membership,error:membershipError}=await admin.from("memberships").select("role,status").eq("tenant_id",op.tenant_id).eq("profile_id",authData.user.id).eq("status","active").maybeSingle();
+      if(membershipError)return json({error:"qa_membership_check_failed"},500);
+      if(!membership||!["owner","admin","operations_agent"].includes(membership.role))return json({error:"qa_forbidden"},403);
+      allowClosed=true;
+      qaMode=true;
+    }
   }
 
   const tokenBytes=crypto.getRandomValues(new Uint8Array(32));
