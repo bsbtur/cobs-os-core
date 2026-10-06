@@ -197,24 +197,17 @@ function PortalJourney() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-start gap-2 rounded-xl border border-border/60 bg-background/45 p-3">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.officialSource")}</p>
-                        <p className="mt-0.5 text-xs font-medium text-foreground">{t("w10.journey.officialSourceBody")}</p>
-                      </div>
-                    </div>
                     <button
                       type="button"
                       onClick={() => setExpandedStepId(expanded ? null : step.stepId)}
-                      className="mt-4 flex w-full items-center justify-between rounded-xl border border-border/70 bg-background/60 px-3 py-2.5 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
+                      className="mt-3 flex w-full items-center justify-between rounded-xl border border-border/70 bg-background/60 px-3 py-2.5 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                       aria-expanded={expanded}
                     >
                       <span>{expanded ? t("w10.journey.hideDetails") : t("w10.journey.showDetails")}</span>
                       <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
                     </button>
                     {expanded ? (
-                      <div className="mt-3 space-y-3 rounded-xl border border-border/60 bg-muted/25 p-4">
+                      <div className="mt-2 space-y-3 px-1 pb-1 pt-2">
                         <div className="flex gap-3">
                           <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                           <div>
@@ -222,12 +215,19 @@ function PortalJourney() {
                             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("w10.journey.dayProgramBody")}</p>
                           </div>
                         </div>
+                        <div className="flex items-start gap-2 border-t border-border/60 pt-3">
+                          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.officialSource")}</p>
+                            <p className="mt-0.5 text-xs font-medium text-foreground">{t("w10.journey.officialSourceBody")}</p>
+                          </div>
+                        </div>
                         {step.updates.length > 0 ? (
                           <div className="border-t border-border/60 pt-3">
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.operationUpdates")}</p>
                             <div className="space-y-2">
                               {step.updates.map((update, updateIndex) => (
-                                <div key={`${step.stepId}-${updateIndex}`} className="rounded-lg bg-background/70 p-3 text-xs text-foreground">
+                                <div key={`${step.stepId}-${updateIndex}`} className="rounded-lg bg-muted/35 p-3 text-xs text-foreground">
                                   {update.note || t("w10.journey.updateAvailable")}
                                 </div>
                               ))}
