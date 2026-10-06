@@ -9,9 +9,9 @@ const source = fs.readFileSync(
 
 describe("traveler event hero selection", () => {
   it("prefers current, then upcoming, then the first non-completed event", () => {
-    const current = source.indexOf('state === "now"');
-    const upcoming = source.indexOf('state === "upcoming"');
-    const relevant = source.indexOf('state !== "completed"');
+    const current = source.indexOf("currentEventIndex >= 0");
+    const upcoming = source.indexOf("nextEventIndex >= 0");
+    const relevant = source.indexOf("firstRelevantEventIndex >= 0");
 
     expect(current).toBeGreaterThan(-1);
     expect(upcoming).toBeGreaterThan(current);
