@@ -553,10 +553,11 @@ function UnassignedRoomQueue({
   const availableRooms = rooms.filter(
     (room) => room.room_status !== "blocked" && room.occupancy < room.capacity,
   );
-  const availablePlaces = availableRooms.reduce(
-    (total, room) => total + Math.max(0, room.capacity - room.occupancy),
-    0,
-  );
+  const usableCapacity = rooms
+    .filter((room) => room.room_status !== "blocked")
+    .reduce((total, room) => total + room.capacity, 0);
+  const activeGuests = guests.filter((guest) => guest.is_active).length;
+  const availablePlaces = Math.max(0, usableCapacity - activeGuests);
 
   return (
     <section className="surface-panel border-warning/30 p-4">
