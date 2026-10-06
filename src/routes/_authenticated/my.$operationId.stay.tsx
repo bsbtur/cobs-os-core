@@ -56,9 +56,9 @@ function PortalStay() {
               const tz = s.property?.timezone ?? overview.data?.timezone ?? null;
               // Only MY room assignments are ever returned — no rooming list, no roommates.
               const room = s.myRoom.find((r) => r.active) ?? null;
-              const address = [s.property?.addressLabel, s.property?.city, s.property?.region]
-                .filter(Boolean)
-                .join(" · ");
+              const address =
+                s.property?.addressLabel ??
+                [s.property?.city, s.property?.region].filter(Boolean).join(" · ");
               return (
                 <PortalCard key={s.stayId}>
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
