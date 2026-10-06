@@ -151,7 +151,7 @@ function PortalStay() {
             {stays.map((s, index) => {
               const tz = s.property?.timezone ?? overview.data?.timezone ?? null;
               // Only MY room assignments are ever returned — no rooming list, no roommates.
-              const room = s.myRoom.find((r) => r.active) ?? null;
+              const room = s.myRoom.find((r) => r.active && r.label) ?? null;
               const address =
                 s.property?.addressLabel ??
                 [s.property?.city, s.property?.region].filter(Boolean).join(" · ");
