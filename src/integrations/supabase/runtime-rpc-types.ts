@@ -163,6 +163,27 @@ export type RuntimeRpcDatabase = {
           created_at: string;
         }>;
       };
+      get_operation_production_pipeline: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Array<{
+          supplier_id: string;
+          supplier_name: string;
+          category: string;
+          stage: "planned" | "quoted" | "selected" | "contracted" | "documented";
+          quote_status: string | null;
+          amount_minor: number | null;
+          currency_code: string | null;
+          description: string | null;
+          total_documents: number;
+          pending_documents: number;
+          received_documents: number;
+          approved_documents: number;
+          rejected_documents: number;
+          expired_documents: number;
+        }>;
+      };
       get_privacy_policy_versions_for_admin: {
         Args: {
           _tenant_id: string;
