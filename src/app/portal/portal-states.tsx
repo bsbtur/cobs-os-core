@@ -100,8 +100,17 @@ export function PortalTime({
   const ctx = timeZone ? { locale, timeZone } : { locale };
   const isPlaceholderMidnight = (value: string | null) => {
     if (!value) return false;
-    const match = value.match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);
-    return Boolean(match && match[1] === "00" && match[2] === "00" && (match[3] ?? "00") === "00");
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+      ...(timeZone ? { timeZone } : {}),
+    }).formatToParts(new Date(value));
+    const hour = parts.find((part) => part.type === "hour")?.value;
+    const minute = parts.find((part) => part.type === "minute")?.value;
+    const second = parts.find((part) => part.type === "second")?.value;
+    return hour === "00" && minute === "00" && second === "00";
   };
   const effective = expected ?? planned;
   if (
