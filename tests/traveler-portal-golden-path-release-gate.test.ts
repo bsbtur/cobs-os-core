@@ -53,6 +53,14 @@ describe("traveler portal golden path release gate", () => {
     expect(home).toContain("splitHomeNowNext(agenda, nowMs, timeZone)");
   });
 
+  test("keeps Home event summary aligned with the relevant traveler event", () => {
+    const home = route("index");
+    expect(home).toContain("selectHomeEvent(eventRows, nowMs, timeZone)");
+    expect(home).toContain('stateFor(event) === "current"');
+    expect(home).toContain('stateFor(event) === "upcoming"');
+    expect(home).toContain("homeEvent?.name");
+  });
+
   test("preserves read-only controls on interactive traveler surfaces", () => {
     expect(route("wall")).toContain("readOnly");
     expect(route("wall")).toContain("disabled={readOnly");
