@@ -187,7 +187,7 @@ export const W10_DICTIONARIES = {
     "w10.claim.invalid": "Este convite não é válido para esta conta.",
     "w10.claim.wrongAccount": "Este convite pertence a outra conta",
     "w10.claim.wrongAccountBody": "O convite continua válido e não foi consumido. Saia desta conta e abra novamente o link do convite em uma janela privada, entrando com a conta do viajante convidado.",
-    "w10.claim.invalidBody": "Não foi possível aceitar este convite. Ele pode estar expirado, revogado ou já ter sido utilizado. Solicite um novo convite ao responsável pela operação.",
+    "w10.claim.invalidBody": "Não foi possível aceitar este convite. Ele pode estar expirado, revogado ou já ter sido utilizado. Solicite um novo convite a quem organiza a sua viagem.",
     "w10.claim.signOut": "Sair desta conta",
     "w10.claim.retry": "Ir para minhas viagens",
 
@@ -377,7 +377,7 @@ export const W10_DICTIONARIES = {
     "w10.claim.invalid": "This invitation is not valid for this account.",
     "w10.claim.wrongAccount": "This invitation belongs to another account",
     "w10.claim.wrongAccountBody": "The invitation is still valid and has not been used. Sign out of this account and open the invitation link again in a private window, signing in with the invited traveler’s account.",
-    "w10.claim.invalidBody": "This invitation could not be accepted. It may be expired, revoked, or already used. Request a new invitation from the operation organizer.",
+    "w10.claim.invalidBody": "This invitation could not be accepted. It may be expired, revoked, or already used. Request a new invitation from whoever organizes your trip.",
     "w10.claim.signOut": "Sign out of this account",
     "w10.claim.retry": "Go to my trips",
 
@@ -567,7 +567,7 @@ export const W10_DICTIONARIES = {
     "w10.claim.invalid": "Esta invitación no es válida para esta cuenta.",
     "w10.claim.wrongAccount": "Esta invitación pertenece a otra cuenta",
     "w10.claim.wrongAccountBody": "La invitación sigue siendo válida y no se ha utilizado. Cierra sesión en esta cuenta y vuelve a abrir el enlace de invitación en una ventana privada, iniciando sesión con la cuenta del viajero invitado.",
-    "w10.claim.invalidBody": "No se pudo aceptar esta invitación. Puede haber caducado, haber sido revocada o ya utilizada. Solicita una nueva invitación al responsable de la operación.",
+    "w10.claim.invalidBody": "No se pudo aceptar esta invitación. Puede haber caducado, haber sido revocada o ya utilizada. Solicita una nueva invitación a quien organiza tu viaje.",
     "w10.claim.signOut": "Cerrar sesión en esta cuenta",
     "w10.claim.retry": "Ir a mis viajes",
 
