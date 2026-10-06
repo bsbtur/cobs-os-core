@@ -13,10 +13,10 @@ describe("Team Seffrin signed QA checkout",()=>{
     expect(source).toContain("@example.com");
   });
   test("verifies ECDSA signature with short replay window",()=>{
-    expect(source).toContain('namedCurve:"P-256"');
-    expect(source).toContain('name:"ECDSA"');
-    expect(source).toContain("5*60*1000");
-    expect(source).toContain('ts+"."+raw');
+    expect(source).toMatch(/namedCurve\s*:\s*"P-256"/);
+    expect(source).toMatch(/name\s*:\s*"ECDSA"/);
+    expect(source).toMatch(/5\s*\*\s*60\s*\*\s*1000/);
+    expect(source).toMatch(/ts\s*\+\s*"\."\s*\+\s*raw/);
   });
   test("preserves existing staff-auth QA",()=>{
     expect(source).toContain("qa_invalid_session");
