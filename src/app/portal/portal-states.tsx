@@ -162,5 +162,5 @@ export function PortalEmpty({
   body: string;
   icon?: LucideIcon;
 }) {
-  return <EmptyState icon={icon} title={title} body={body} className="px-5 py-8 sm:px-6 sm:py-10" />;
+  return <EmptyState {...(icon ? { icon } : {})} title={title} body={body} className="px-5 py-8 sm:px-6 sm:py-10" />;
 }
