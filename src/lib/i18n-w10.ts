@@ -181,6 +181,9 @@ export const W10_DICTIONARIES = {
     "w10.events.emptyTitle": "Sua programação está sendo preparada",
     "w10.events.empty": "Sua programação está sendo preparada. As atividades aparecerão aqui conforme forem confirmadas.",
     "w10.events.sessionsPending": "Os detalhes deste evento estão sendo preparados. As atividades aparecerão aqui conforme forem confirmadas.",
+    "w10.events.current": "Evento atual",
+    "w10.events.next": "Próximo evento",
+    "w10.events.completed": "Concluído",
 
     "w10.messages.title": "Avisos",
     "w10.messages.eyebrow": "Atualizações da sua viagem",
@@ -395,6 +398,9 @@ export const W10_DICTIONARIES = {
     "w10.events.emptyTitle": "Your program is being prepared",
     "w10.events.empty": "Your program is being prepared. Activities will appear here as they are confirmed.",
     "w10.events.sessionsPending": "Details for this event are being prepared. Activities will appear here as they are confirmed.",
+    "w10.events.current": "Current event",
+    "w10.events.next": "Next event",
+    "w10.events.completed": "Completed",
 
     "w10.messages.title": "Notices",
     "w10.messages.eyebrow": "Updates for your trip",
@@ -609,6 +615,9 @@ export const W10_DICTIONARIES = {
     "w10.events.emptyTitle": "Tu programación se está preparando",
     "w10.events.empty": "Tu programación se está preparando. Las actividades aparecerán aquí a medida que se confirmen.",
     "w10.events.sessionsPending": "Los detalles de este evento se están preparando. Las actividades aparecerán aquí a medida que se confirmen.",
+    "w10.events.current": "Evento actual",
+    "w10.events.next": "Próximo evento",
+    "w10.events.completed": "Completado",
 
     "w10.messages.title": "Avisos",
     "w10.messages.eyebrow": "Actualizaciones de tu viaje",
