@@ -5,7 +5,6 @@ import { ArrowRight, BedDouble, Bot, Bus, CalendarDays, MapPin, Megaphone, Shiel
 import { useI18n } from "@/lib/i18n";
 import {
   buildAgenda,
-  splitNowNext,
   useMyEventProgram,
   useMyJourney,
   useMyMessages,
@@ -86,6 +85,35 @@ function homeIsPlaceholderMidnight(value: string | null, timeZone?: string | nul
   const minute = parts.find((part) => part.type === "minute")?.value;
   const second = parts.find((part) => part.type === "second")?.value;
   return hour === "00" && minute === "00" && second === "00";
+}
+
+function splitHomeNowNext(
+  agenda: PortalAgendaItem[],
+  nowMs: number,
+  timeZone?: string | null,
+) {
+  const today = homeLocalDateKey(nowMs, timeZone);
+
+  const now =
+    agenda.find((item) => {
+      if (!item.start || homeIsPlaceholderMidnight(item.start, timeZone)) return false;
+      const startMs = new Date(item.start).getTime();
+      const endMs = item.end ? new Date(item.end).getTime() : null;
+      if (!Number.isFinite(startMs)) return false;
+      return startMs <= nowMs && (endMs === null ? nowMs - startMs < 3 * 3600_000 : nowMs < endMs);
+    }) ?? null;
+
+  const next =
+    agenda.find((item) => {
+      if (!item.start) return false;
+      if (homeIsPlaceholderMidnight(item.start, timeZone)) {
+        return homeLocalDateKey(item.start, timeZone) >= today;
+      }
+      const startMs = new Date(item.start).getTime();
+      return Number.isFinite(startMs) && startMs > nowMs;
+    }) ?? null;
+
+  return { now, next };
 }
 
 function selectHomeStay(stays: PortalStay[], nowMs: number, fallbackTimeZone?: string | null) {
@@ -214,7 +242,7 @@ function PortalHome() {
 
   const timeZone = overview.data?.timezone ?? null;
   const agenda = buildAgenda(journey.data ?? [], mobility.data ?? [], events.data ?? []);
-  const { now, next } = splitNowNext(agenda, nowMs);
+  const { now, next } = splitHomeNowNext(agenda, nowMs, timeZone);
   const publishedMessages = (messages.data ?? []).filter((m) => m.status === "published");
   const unread = publishedMessages.filter((m) => m.myFirstReadAt === null).length;
   const latestPublishedMessage = publishedMessages[0] ?? null;
