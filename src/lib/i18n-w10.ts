@@ -184,6 +184,9 @@ export const W10_DICTIONARIES = {
     "w10.events.current": "Evento atual",
     "w10.events.next": "Próximo evento",
     "w10.events.completed": "Concluído",
+    "w10.events.sessionCurrent": "Agora",
+    "w10.events.sessionNext": "Próxima",
+    "w10.events.sessionCompleted": "Concluída",
 
     "w10.messages.title": "Avisos",
     "w10.messages.eyebrow": "Atualizações da sua viagem",
@@ -401,6 +404,9 @@ export const W10_DICTIONARIES = {
     "w10.events.current": "Current event",
     "w10.events.next": "Next event",
     "w10.events.completed": "Completed",
+    "w10.events.sessionCurrent": "Now",
+    "w10.events.sessionNext": "Next",
+    "w10.events.sessionCompleted": "Completed",
 
     "w10.messages.title": "Notices",
     "w10.messages.eyebrow": "Updates for your trip",
@@ -618,6 +624,9 @@ export const W10_DICTIONARIES = {
     "w10.events.current": "Evento actual",
     "w10.events.next": "Próximo evento",
     "w10.events.completed": "Completado",
+    "w10.events.sessionCurrent": "Ahora",
+    "w10.events.sessionNext": "Próxima",
+    "w10.events.sessionCompleted": "Completada",
 
     "w10.messages.title": "Avisos",
     "w10.messages.eyebrow": "Actualizaciones de tu viaje",
