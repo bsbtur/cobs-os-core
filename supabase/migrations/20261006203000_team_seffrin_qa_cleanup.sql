@@ -51,7 +51,12 @@ begin
   update public.payment_attempts a
      set status='cancelled', updated_at=now()
    where a.tenant_id=_o.tenant_id
-     and a.order_id=_o.id
+     and a.charge_id in (
+       select c.id from public.payment_charges c
+       where c.tenant_id=_o.tenant_id
+         and c.order_id=_o.id
+         and coalesce(c.metadata->>'environment','')='test'
+     )
      and a.status in ('created','pending','processing');
   get diagnostics _cancelled_attempts = row_count;
 
@@ -60,7 +65,7 @@ begin
    where c.tenant_id=_o.tenant_id
      and c.order_id=_o.id
      and coalesce(c.metadata->>'environment','')='test'
-     and c.status in ('draft','pending','processing','failed','rejected');
+     and c.status in ('draft','pending','processing','failed');
   get diagnostics _cancelled_charges = row_count;
 
   for _res in
