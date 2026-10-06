@@ -398,7 +398,8 @@ function ReleaseRoomButton({ guest, onDone }: { guest: StayGuest; onDone: () => 
         _stay_participation_id: guest.stay_participation_id,
         _reason: reason,
         _idempotency_key: newIdempotencyKey(),
-      });      if (error) throw error;
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       feedback.success(t("w06.action.recorded"));
@@ -885,7 +886,8 @@ function EditRoomDialog({ room, onDone }: { room: RoomingRoom; onDone: () => voi
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">              <Label htmlFor={`room-edit-label-${room.room_id}`}>{t("w06.room.label")}</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor={`room-edit-label-${room.room_id}`}>{t("w06.room.label")}</Label>
               <Input
                 id={`room-edit-label-${room.room_id}`}
                 value={label}
@@ -1284,7 +1286,8 @@ function StayControls({ overview, onDone }: { overview: StayOverview; onDone: ()
           _idempotency_key: key,
         });
         if (error) throw error;
-      } else if (action === "checkout") {        const { error } = await supabase.rpc("complete_stay_checkout", {
+      } else if (action === "checkout") {
+        const { error } = await supabase.rpc("complete_stay_checkout", {
           _stay_id: overview.stay_id,
           _idempotency_key: key,
         });
@@ -1683,7 +1686,8 @@ function HospitalityPage() {
     stayMetadata["room_inventory_status"] === "pending_supplier_confirmation";
   const reportedSuiteCount =
     typeof stayMetadata["reported_suite_count"] === "number"
-      ? stayMetadata["reported_suite_count"]      : null;
+      ? stayMetadata["reported_suite_count"]
+      : null;
   const reportedGroupCapacity =
     typeof stayMetadata["reported_group_capacity"] === "number"
       ? stayMetadata["reported_group_capacity"]
