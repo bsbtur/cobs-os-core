@@ -235,7 +235,7 @@ begin
     insert into public.sellables(
       tenant_id,sellable_kind,offering_id,name,description,status,metadata
     ) values (
-      _tenant_id,'offering',_offering_id,'1º Lote Fundadores',
+      _tenant_id,'offering',_offering_id,null,
       'Team Seffrin Experience — Brasília 2027 · pacote por pessoa','active',
       jsonb_build_object('lot',1,'lot_capacity',5)
     ) returning id into _sellable_id;
