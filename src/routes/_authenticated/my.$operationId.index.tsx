@@ -102,7 +102,7 @@ function ShortcutRow({ to, operationId, icon: Icon, label, value }: { to: string
       <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary"><Icon className="size-5" aria-hidden="true" /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-semibold text-foreground">{label}</span>
-        <span className="mt-1 block truncate text-xs text-muted-foreground">{value}</span>
+        <span className="mt-1 block line-clamp-2 text-xs leading-relaxed text-muted-foreground">{value}</span>
       </span>
       <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" aria-hidden="true" />
     </Link>
