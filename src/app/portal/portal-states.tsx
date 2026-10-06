@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { ShieldOff, WifiOff } from "lucide-react";
+import { ShieldOff, WifiOff, type LucideIcon } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
@@ -153,6 +153,14 @@ export function PortalTag({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function PortalEmpty({ body }: { body: string }) {
-  return <EmptyState title={body} />;
+export function PortalEmpty({
+  title,
+  body,
+  icon,
+}: {
+  title: string;
+  body: string;
+  icon?: LucideIcon;
+}) {
+  return <EmptyState icon={icon} title={title} body={body} className="px-5 py-8 sm:px-6 sm:py-10" />;
 }
