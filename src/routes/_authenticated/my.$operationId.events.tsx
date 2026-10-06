@@ -1,4 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { CalendarDays, MapPin, Ticket } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
@@ -9,7 +10,7 @@ import {
   useMyEventSchedulePrecision,
 } from "@/lib/w10-event-precision";
 import { PortalShell } from "@/app/portal/portal-shell";
-import { PortalCard, PortalEmpty, PortalQueryGate, PortalTime } from "@/app/portal/portal-states";
+import { PortalCard, PortalEmpty, PortalQueryGate, PortalTag, PortalTime } from "@/app/portal/portal-states";
 
 export const Route = createFileRoute("/_authenticated/my/$operationId/events")({
   head: () => ({
@@ -26,12 +27,79 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/events")({
   component: PortalEvents,
 });
 
+function eventLocalDateKey(value: number | string, timeZone?: string | null) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(new Date(value));
+}
+
+function eventTemporalState(
+  event: {
+    plannedStart: string | null;
+    plannedEnd: string | null;
+    expectedStart: string | null;
+    expectedEnd: string | null;
+    closedOut: boolean;
+  },
+  schedulePrecision: "datetime" | "date_only",
+  nowMs: number,
+  timeZone?: string | null,
+) {
+  if (event.closedOut) return "completed" as const;
+
+  const start = event.expectedStart ?? event.plannedStart;
+  const end = event.expectedEnd ?? event.plannedEnd;
+  const startMs = start ? new Date(start).getTime() : null;
+  const endMs = end ? new Date(end).getTime() : null;
+
+  if (schedulePrecision === "date_only") {
+    const today = eventLocalDateKey(nowMs, timeZone);
+    if (end && eventLocalDateKey(end, timeZone) < today) return "completed" as const;
+    if (start && eventLocalDateKey(start, timeZone) > today) return "upcoming" as const;
+    return "neutral" as const;
+  }
+
+  if (endMs !== null && endMs <= nowMs) return "completed" as const;
+  if (startMs !== null && endMs !== null && startMs <= nowMs && nowMs < endMs) {
+    return "now" as const;
+  }
+  if (startMs !== null && startMs > nowMs) return "upcoming" as const;
+
+  return "neutral" as const;
+}
+
 function PortalEvents() {
   const { operationId } = useParams({ from: "/_authenticated/my/$operationId/events" });
   const { t, locale } = useI18n();
   const overview = useMyOverview(operationId);
   const events = useMyEventProgram(operationId);
   const precision = useMyEventSchedulePrecision(operationId);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const refreshNow = () => setNowMs(Date.now());
+    const timer = window.setInterval(refreshNow, 30_000);
+    document.addEventListener("visibilitychange", refreshNow);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshNow);
+    };
+  }, []);
+
+  const eventRows = events.data ?? [];
+  const eventStates = eventRows.map((event) => {
+    const tz = event.timezone ?? event.venue?.timezone ?? overview.data?.timezone ?? null;
+    return eventTemporalState(
+      event,
+      precision.data?.[event.eventId] ?? "datetime",
+      nowMs,
+      tz,
+    );
+  });
+  const nextEventIndex = eventStates.findIndex((state) => state === "upcoming");
 
   return (
     <PortalShell
@@ -51,22 +119,37 @@ function PortalEvents() {
           void precision.refetch();
         }}
       >
-        {(events.data ?? []).length === 0 ? (
+        {eventRows.length === 0 ? (
           <PortalEmpty icon={Ticket} title={t("w10.events.emptyTitle")} body={t("w10.events.empty")} />
         ) : (
           <div className="flex flex-col gap-4">
-            {(events.data ?? []).map((ev) => {
+            {eventRows.map((ev, index) => {
               const tz = ev.timezone ?? ev.venue?.timezone ?? overview.data?.timezone ?? null;
               const venue = [ev.venue?.name, ev.venue?.city].filter(Boolean).join(" · ");
               const dateOnly = precision.data?.[ev.eventId] === "date_only";
               const dateRange = dateOnly
                 ? formatDateOnlyRange(ev.plannedStart, ev.plannedEnd, tz, locale)
                 : null;
+              const state = eventStates[index] ?? "neutral";
+              const isCurrent = state === "now";
+              const isNext = state === "upcoming" && index === nextEventIndex;
+              const isCompleted = state === "completed";
               return (
                 <PortalCard key={ev.eventId}>
-                  <h3 className="break-words text-base font-medium text-foreground">
-                    {ev.name ?? "—"}
-                  </h3>
+                  <div className="flex flex-col items-start gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3">
+                    <h3 className="min-w-0 break-words text-base font-medium text-foreground">
+                      {ev.name ?? "—"}
+                    </h3>
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+                      {isCurrent ? <PortalTag>{t("w10.events.current")}</PortalTag> : null}
+                      {isNext ? <PortalTag>{t("w10.events.next")}</PortalTag> : null}
+                      {isCompleted ? (
+                        <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {t("w10.events.completed")}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
                   {venue ? (
                     <p className="mt-1 break-words text-sm text-muted-foreground">
                       {t("w10.events.venue")}: {venue}
