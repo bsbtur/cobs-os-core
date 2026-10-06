@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, Clock3, Compass, MapPin, Megaphone, Sparkles, ShieldCheck } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
@@ -93,6 +93,7 @@ function PortalJourney() {
   const timeZone = overview.data?.timezone ?? null;
   const steps = journey.data ?? [];
   const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
+  const hasInitializedExpansion = useRef(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -111,6 +112,33 @@ function PortalJourney() {
   const spotlightIndex = nowStepIndex >= 0 ? nowStepIndex : nextStepIndex;
   const spotlightStep = spotlightIndex >= 0 ? steps[spotlightIndex] : null;
   const spotlightIsNow = nowStepIndex >= 0;
+
+  useEffect(() => {
+    if (hasInitializedExpansion.current || journey.isLoading || journey.error) return;
+    hasInitializedExpansion.current = true;
+    if (spotlightStep) {
+      setExpandedStepId(spotlightStep.stepId);
+    }
+  }, [journey.error, journey.isLoading, spotlightStep]);
+
+  function handleStepToggle(stepId: string, expanded: boolean) {
+    hasInitializedExpansion.current = true;
+    if (expanded) {
+      setExpandedStepId(null);
+      return;
+    }
+
+    setExpandedStepId(stepId);
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`journey-step-${stepId}`);
+      if (!target) return;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "nearest",
+      });
+    });
+  }
 
   return (
     <PortalShell operationId={operationId} title={overview.data?.name ?? t("w10.portal.brand")} active="journey">
@@ -185,7 +213,7 @@ function PortalJourney() {
                     : "border-border/80";
 
               return (
-              <li key={step.stepId} className="relative pb-5 last:pb-0">
+              <li id={`journey-step-${step.stepId}`} key={step.stepId} className="relative scroll-mt-24 pb-5 last:pb-0">
                 {index < steps.length - 1 ? (
                   <span
                     aria-hidden="true"
@@ -229,7 +257,7 @@ function PortalJourney() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setExpandedStepId(expanded ? null : step.stepId)}
+                      onClick={() => handleStepToggle(step.stepId, expanded)}
                       className="mt-3 flex w-full items-center justify-between rounded-xl border border-border/70 bg-background/60 px-3 py-2.5 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted/60"
                       aria-expanded={expanded}
                     >
