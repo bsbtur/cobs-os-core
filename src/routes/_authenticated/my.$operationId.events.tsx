@@ -203,11 +203,9 @@ function PortalEvents() {
                       ) : null}
                     </div>
                   </div>
-                  {venue ? (
-                    <p className="mt-1 break-words text-sm text-muted-foreground">
-                      {t("w10.events.venue")}: {venue}
-                    </p>
-                  ) : null}
+                  <p className="mt-1 break-words text-sm text-muted-foreground">
+                    {t("w10.events.venue")}: {venue || t("w10.events.locationPending")}
+                  </p>
                   <div className="mt-1">
                     {dateOnly ? (
                       <p className="text-sm text-muted-foreground">
