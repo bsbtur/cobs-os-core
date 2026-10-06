@@ -71,8 +71,25 @@ Deno.serve(async(req:Request)=>{
   if(!mpToken)return json({error:paymentEnv==="test"?"mercado_pago_test_not_configured":"mercado_pago_not_configured"},500);
 
   const total=Number(order.grand_total_minor??0);
-  const entry=Number(cfg.entry_minor??0);
-  if(total!==999700||entry!==199700||Number(cfg.balance_minor)!==800000)return json({error:"commercial_amounts_not_configured"},409);
+  const lotNumber=Number(om.commercial_lot_number??1);
+  const lotResult=await db.from("operation_commercial_lots")
+    .select("lot_number,unit_amount_minor,entry_minor,balance_minor,balance_card_installments_max,status")
+    .eq("operation_id",op.id)
+    .eq("tenant_id",order.tenant_id)
+    .eq("lot_number",lotNumber)
+    .maybeSingle();
+  if(lotResult.error)return json({error:"commercial_lot_lookup_failed"},500);
+  const lot=lotResult.data;
+  if(!lot||lot.status!=="active")return json({error:"commercial_lot_not_available"},409);
+
+  const entry=Number(lot.entry_minor??0);
+  const balance=Number(lot.balance_minor??0);
+  if(
+    total!==Number(lot.unit_amount_minor??0)||
+    entry!==Number(om.entry_minor??0)||
+    balance!==Number(om.balance_minor??0)||
+    entry+balance!==total
+  )return json({error:"commercial_amounts_not_configured"},409);
 
   const factsResult=await db.from("financial_facts").select("fact_type,amount_minor").eq("order_id",order.id);
   if(factsResult.error)return json({error:"financial_facts_lookup_failed"},500);
@@ -100,7 +117,7 @@ Deno.serve(async(req:Request)=>{
     const created=await db.from("payment_charges").insert({
       tenant_id:order.tenant_id,order_id:order.id,reservation_id:reservationId,provider:"mercado_pago",status:"draft",currency:"BRL",
       amount_minor:amount,installment_number:1,installment_count:2,due_at:null,external_reference:ref,description:"Team Seffrin Brasília 2027 — entrada",
-      metadata:{environment:paymentEnv,source:"team_seffrin_public_checkout",settlement_authority:"webhook",commercial_payment_stage:"entry",commercial_terms_version:cfg.commercial_terms_version,paid_before_minor:paid}
+      metadata:{environment:paymentEnv,source:"team_seffrin_public_checkout",settlement_authority:"webhook",commercial_payment_stage:"entry",commercial_terms_version:cfg.commercial_terms_version,commercial_lot_number:lotNumber,paid_before_minor:paid}
     }).select("*").single();
     if(created.error)return json({error:"charge_create_failed",details:created.error.message},500);
     charge=created.data;
