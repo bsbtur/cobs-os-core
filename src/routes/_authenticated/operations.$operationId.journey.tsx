@@ -88,6 +88,30 @@ export const Route = createFileRoute("/_authenticated/operations/$operationId/jo
 const SELECT_CLASS =
   "min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+function formatJourneyStart(value: string, locale: string, timeZone?: string | null) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Horário a confirmar";
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(date);
+  const hour = parts.find((part) => part.type === "hour")?.value;
+  const minute = parts.find((part) => part.type === "minute")?.value;
+  const dateLabel = new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(date);
+  if (hour === "00" && minute === "00") return `${dateLabel} · Horário a confirmar`;
+  const timeLabel = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(date);
+  return `${dateLabel}, ${timeLabel}`;
+}
+
 function Chip({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <span
@@ -1423,10 +1447,7 @@ function JourneyPlanPage() {
                       <div className="flex gap-2">
                         <dt className="text-muted-foreground">{t("w04.planned")}</dt>
                         <dd className="tabular-nums">
-                          {formatDateTime(step.planned_start, {
-                            locale,
-                            timeZone: operation.timezone,
-                          })}
+                          {formatJourneyStart(step.planned_start, locale, operation.timezone)}
                         </dd>
                       </div>
                     ) : null}
@@ -1434,10 +1455,7 @@ function JourneyPlanPage() {
                       <div className="flex gap-2">
                         <dt className="text-muted-foreground">{t("w04.expected")}</dt>
                         <dd className="tabular-nums">
-                          {formatDateTime(step.expected_start, {
-                            locale,
-                            timeZone: operation.timezone,
-                          })}
+                          {formatJourneyStart(step.expected_start, locale, operation.timezone)}
                         </dd>
                       </div>
                     ) : null}
