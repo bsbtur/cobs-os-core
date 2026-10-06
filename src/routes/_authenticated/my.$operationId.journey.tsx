@@ -207,7 +207,7 @@ function PortalJourney() {
                       <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
                     </button>
                     {expanded ? (
-                      <div className="mt-2 space-y-3 px-1 pb-1 pt-2">
+                      <div className="mt-2 px-1 pb-1 pt-2">
                         <div className="flex gap-3">
                           <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                           <div>
@@ -215,15 +215,9 @@ function PortalJourney() {
                             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("w10.journey.dayProgramBody")}</p>
                           </div>
                         </div>
-                        <div className="flex items-start gap-2 border-t border-border/60 pt-3">
-                          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.officialSource")}</p>
-                            <p className="mt-0.5 text-xs font-medium text-foreground">{t("w10.journey.officialSourceBody")}</p>
-                          </div>
-                        </div>
+
                         {step.updates.length > 0 ? (
-                          <div className="border-t border-border/60 pt-3">
+                          <div className="mt-3 border-t border-border/60 pt-3">
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("w10.journey.operationUpdates")}</p>
                             <div className="space-y-2">
                               {step.updates.map((update, updateIndex) => (
@@ -232,9 +226,19 @@ function PortalJourney() {
                                 </div>
                               ))}
                             </div>
+                            <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
+                              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                              <p>{t("w10.journey.officialSourceBody")}</p>
+                            </div>
                           </div>
                         ) : (
-                          <p className="border-t border-border/60 pt-3 text-xs text-muted-foreground">{t("w10.journey.noUpdates")}</p>
+                          <div className="mt-3 flex items-start gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                            <p>
+                              <span className="font-medium text-foreground">{t("w10.journey.noUpdates")}</span>{" "}
+                              {t("w10.journey.officialSourceBody")}
+                            </p>
+                          </div>
                         )}
                       </div>
                     ) : null}
