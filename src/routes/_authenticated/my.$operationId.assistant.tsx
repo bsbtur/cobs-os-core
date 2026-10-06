@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/my/$operationId/assistant"
       { title: "Assistente COBS — Portal do viajante" },
       {
         name: "description",
-        content: "Tire dúvidas sobre a sua viagem usando apenas informações confirmadas da operação.",
+        content: "Tire dúvidas sobre a sua viagem usando apenas informações confirmadas.",
       },
       { name: "robots", content: "noindex" },
     ],
