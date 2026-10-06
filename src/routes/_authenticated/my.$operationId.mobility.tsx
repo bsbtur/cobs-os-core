@@ -69,10 +69,19 @@ function mobilityLegState(
   const departureIsDateOnly = departure ? isPlaceholderMidnight(departure, timeZone) : false;
   const arrivalIsDateOnly = arrival ? isPlaceholderMidnight(arrival, timeZone) : false;
 
+  if (arrivalMs !== null && !arrivalIsDateOnly && arrivalMs <= nowMs) {
+    return "completed" as const;
+  }
+
   if (departure && departureIsDateOnly) {
     const departureDay = localDateKey(departure, timeZone);
     const today = localDateKey(nowMs, timeZone);
-    if (departureDay < today) return "completed" as const;
+    if (departureDay < today) {
+      if (arrivalMs !== null && !arrivalIsDateOnly && arrivalMs > nowMs) {
+        return "neutral" as const;
+      }
+      return "completed" as const;
+    }
     return "upcoming" as const;
   }
 
@@ -80,16 +89,9 @@ function mobilityLegState(
     if (arrivalMs !== null && !arrivalIsDateOnly && departureMs <= nowMs && nowMs < arrivalMs) {
       return "now" as const;
     }
-    if (arrivalMs !== null && !arrivalIsDateOnly && arrivalMs <= nowMs) {
-      return "completed" as const;
-    }
     if (departureMs > nowMs) {
       return "upcoming" as const;
     }
-  }
-
-  if (arrivalMs !== null && !arrivalIsDateOnly && arrivalMs <= nowMs) {
-    return "completed" as const;
   }
 
   return "neutral" as const;
