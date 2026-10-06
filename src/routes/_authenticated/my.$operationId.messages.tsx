@@ -107,12 +107,18 @@ function PortalMessages() {
                   m.status === "published" && m.myFirstReadAt === null ? m.messageId : undefined
                 }
               >
-                <PortalCard>
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                <PortalCard
+                  className={
+                    m.status === "cancelled"
+                      ? "border-border/60 bg-muted/20 opacity-80 !p-3 sm:!p-4"
+                      : ""
+                  }
+                >
+                <div className="flex flex-col items-start gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-3">
                   <h3 className="min-w-0 break-words text-base font-medium text-foreground">
                     {m.title ?? "—"}
                   </h3>
-                  <div className="flex flex-wrap items-center justify-end gap-1.5">
+                  <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:justify-end">
                     {m.priority === "urgent" ? (
                       <span className="inline-flex shrink-0 items-center rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
                         {t("w10.messages.priorityUrgent")}
