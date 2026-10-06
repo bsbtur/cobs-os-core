@@ -1,0 +1,152 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
+const KEYS=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")??"{}");
+const secretKey=KEYS.default;
+const MP_ENV=(Deno.env.get("MERCADO_PAGO_ENVIRONMENT")??"test").trim().toLowerCase();
+const MP_PROD_TOKEN=Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
+const MP_TEST_TOKEN=Deno.env.get("MERCADO_PAGO_TEST_ACCESS_TOKEN");
+const CODE="TEAM-SEFFRIN-BSB-20270416";
+const cors={"access-control-allow-origin":"*","access-control-allow-headers":"content-type, x-client-info, apikey, authorization","access-control-allow-methods":"POST, OPTIONS"};
+const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
+const hex=(b:ArrayBuffer)=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+async function sha256(v:string){return hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)))}
+function mapStatus(status?:string,detail?:string){if(status==="approved"||(status==="processed"&&detail==="accredited"))return"approved";if(status==="processed"||status==="processing")return"processing";if(status==="rejected"||status==="failed")return"rejected";return"pending"}
+
+Deno.serve(async(req:Request)=>{
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
+  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
+  if(!secretKey)return json({error:"server_not_configured"},500);
+
+  let body:Record<string,unknown>;
+  try{body=await req.json()}catch{return json({error:"invalid_json"},400)}
+  const orderId=String(body.order_id??"").trim();
+  const checkoutToken=String(body.checkout_token??"").trim();
+  const cardToken=String(body.card_token??"").trim();
+  const paymentMethodId=String(body.payment_method_id??"").trim().toLowerCase();
+  const payerEmail=String(body.payer_email??"").trim().toLowerCase();
+  const installments=Number(body.installments??0);
+
+  if(!/^[0-9a-f-]{36}$/i.test(orderId)||!/^[0-9a-f]{64}$/i.test(checkoutToken))return json({error:"invalid_checkout_proof"},400);
+  if(!cardToken||cardToken.length>256||!paymentMethodId||!/^[a-z0-9_-]{2,40}$/.test(paymentMethodId))return json({error:"invalid_card_token"},400);
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payerEmail))return json({error:"invalid_payer_email"},400);
+
+  const db=createClient(SUPABASE_URL,secretKey,{auth:{persistSession:false}});
+  const hash=await sha256(checkoutToken);
+  const {data:session}=await db.from("public_checkout_sessions").select("id,tenant_id,order_id,status,expires_at").eq("order_id",orderId).eq("token_hash",hash).maybeSingle();
+  if(!session)return json({error:"invalid_checkout_proof"},403);
+  if(!["active","consumed"].includes(session.status)||new Date(session.expires_at).getTime()<=Date.now())return json({error:"checkout_proof_not_active"},409);
+
+  const {data:order}=await db.from("orders").select("id,tenant_id,operation_id,status,currency,grand_total_minor,metadata").eq("id",orderId).eq("tenant_id",session.tenant_id).maybeSingle();
+  if(!order)return json({error:"order_not_found"},404);
+
+  const {data:operation}=await db.from("operations").select("id,code").eq("id",order.operation_id).eq("tenant_id",order.tenant_id).maybeSingle();
+  if(!operation||operation.code!==CODE)return json({error:"order_operation_mismatch"},409);
+
+  const meta=(order.metadata??{}) as Record<string,unknown>;
+  const qa=meta.qa_public_checkout===true;
+  const environment=qa?"test":MP_ENV;
+  const accessToken=environment==="test"?MP_TEST_TOKEN:MP_PROD_TOKEN;
+
+  const {data:cfg}=await db.from("operation_commercial_configs").select("status,sales_public,cancellation_policy_version").eq("operation_id",operation.id).eq("tenant_id",order.tenant_id).maybeSingle();
+  if(!cfg||cfg.status!=="active")return json({error:"checkout_not_configured"},409);
+  if(!qa){
+    if(cfg.sales_public!==true)return json({error:"sales_not_open"},409);
+    if(cfg.cancellation_policy_version==="pending-legal-review")return json({error:"legal_release_not_ready"},409);
+  }
+  if(!accessToken)return json({error:"mercado_pago_not_configured"},500);
+
+  const maxInstallments=Number(meta.balance_card_installments_max??12);
+  if(!Number.isInteger(installments)||installments<1||installments>maxInstallments)return json({error:"invalid_installments",max_installments:maxInstallments},400);
+
+  const entry=Number(meta.entry_minor??0);
+  const expectedBalance=Number(meta.balance_minor??0);
+  const total=Number(order.grand_total_minor??0);
+  if(entry<=0||expectedBalance<=0||entry+expectedBalance!==total)return json({error:"commercial_amounts_not_configured"},409);
+
+  const {data:facts,error:factsError}=await db.from("financial_facts").select("fact_type,amount_minor").eq("order_id",orderId);
+  if(factsError)return json({error:"financial_facts_lookup_failed"},500);
+  let paid=0;
+  for(const fact of facts??[]){
+    const amount=Number(fact.amount_minor??0);
+    if(fact.fact_type==="PAYMENT_RECORDED")paid+=amount;
+    if(fact.fact_type==="PAYMENT_REVERSED"||fact.fact_type==="REFUND_RECORDED")paid-=amount;
+  }
+  paid=Math.max(paid,0);
+  if(paid<entry)return json({error:"entry_not_confirmed",paid_minor:paid,entry_minor:entry},409);
+  const balance=Math.max(total-paid,0);
+  if(balance<=0)return json({error:"order_has_no_outstanding_balance"},409);
+
+  const externalReference="cobs_ts_"+orderId.replaceAll("-","")+"_card_balance";
+  const {data:existingCharge,error:existingError}=await db.from("payment_charges").select("id,status,amount_minor,provider_order_id,paid_amount_minor,metadata").eq("tenant_id",order.tenant_id).eq("external_reference",externalReference).maybeSingle();
+  if(existingError)return json({error:"card_charge_lookup_failed"},500);
+  if(existingCharge?.status==="paid")return json({error:"card_balance_already_paid",charge_id:existingCharge.id},409);
+
+  if(existingCharge&&["draft","pending","processing"].includes(existingCharge.status)){
+    const {data:live}=await db.from("payment_attempts").select("id,status,provider_order_id").eq("charge_id",existingCharge.id).in("status",["created","pending","processing","approved"]).limit(1);
+    if((live??[]).length>0)return json({error:"card_balance_payment_in_progress",charge_id:existingCharge.id,status:existingCharge.status},409);
+  }
+
+  let charge=existingCharge;
+  if(!charge){
+    const created=await db.from("payment_charges").insert({
+      tenant_id:order.tenant_id,order_id:orderId,provider:"mercado_pago",status:"draft",currency:"BRL",
+      amount_minor:balance,installment_number:2,installment_count:2,external_reference:externalReference,
+      description:"Team Seffrin Brasília 2027 — saldo no cartão",
+      metadata:{environment,source:"team_seffrin_public_checkout",settlement_authority:"webhook",commercial_payment_stage:"card_balance",provider_installments:installments,commercial_lot_number:Number(meta.commercial_lot_number??1)}
+    }).select("*").single();
+    if(created.error||!created.data)return json({error:"card_charge_create_failed"},500);
+    charge=created.data;
+  }
+
+  const retryFingerprint=(await sha256(cardToken)).slice(0,24);
+  const idempotencyKey="cobs-ts-card-balance-"+charge.id+"-"+retryFingerprint;
+  const {data:attempt,error:attemptError}=await db.from("payment_attempts").insert({
+    tenant_id:order.tenant_id,charge_id:charge.id,provider:"mercado_pago",method:"card",status:"created",
+    amount_minor:balance,idempotency_key:idempotencyKey,
+    request_snapshot:{type:"online",total_amount:(balance/100).toFixed(2),external_reference:externalReference,payment_method_id:paymentMethodId,installments,payer_email:payerEmail,card_token_present:true},
+    metadata:{environment,source:"team_seffrin_public_checkout",settlement_authority:"webhook",commercial_payment_stage:"card_balance"}
+  }).select("*").single();
+  if(attemptError||!attempt){
+    await db.from("payment_charges").update({status:"failed"}).eq("id",charge.id).eq("status","draft");
+    return json({error:"card_attempt_create_failed"},500);
+  }
+
+  const amount=(balance/100).toFixed(2);
+  const providerBody={type:"online",processing_mode:"automatic",total_amount:amount,external_reference:externalReference,payer:{email:payerEmail},transactions:{payments:[{amount,payment_method:{id:paymentMethodId,type:"credit_card",token:cardToken,installments}}]}};
+
+  let response:Response;
+  try{
+    response=await fetch("https://api.mercadopago.com/v1/orders",{method:"POST",headers:{accept:"application/json","content-type":"application/json",authorization:"Bearer "+accessToken,"x-idempotency-key":idempotencyKey},body:JSON.stringify(providerBody)});
+  }catch{
+    await db.from("payment_attempts").update({status:"rejected",provider_status:"network_error"}).eq("id",attempt.id);
+    await db.from("payment_charges").update({status:"failed"}).eq("id",charge.id);
+    return json({error:"mercado_pago_network_error"},502);
+  }
+
+  const mp=await response.json().catch(()=>({}));
+  if(!response.ok){
+    await db.from("payment_attempts").update({status:"rejected",provider_status:"request_error",response_snapshot:mp}).eq("id",attempt.id);
+    await db.from("payment_charges").update({status:"failed"}).eq("id",charge.id);
+    return json({error:"mercado_pago_card_error",status:response.status},502);
+  }
+
+  const payment=mp?.transactions?.payments?.[0]??{};
+  const mapped=mapStatus(payment?.status??mp?.status,payment?.status_detail??mp?.status_detail);
+  const now=new Date().toISOString();
+  await db.from("payment_attempts").update({
+    status:mapped,provider_order_id:mp?.id??null,provider_payment_id:payment?.id??null,
+    provider_status:payment?.status??mp?.status??null,provider_status_detail:payment?.status_detail??mp?.status_detail??null,
+    response_snapshot:mp,...(mapped==="approved"?{approved_at:now}:{})
+  }).eq("id",attempt.id);
+
+  const chargeStatus=mapped==="rejected"?"failed":mapped==="approved"||mapped==="processing"?"processing":"pending";
+  await db.from("payment_charges").update({status:chargeStatus,provider_order_id:mp?.id??null}).eq("id",charge.id);
+
+  return json({
+    order_id:orderId,charge_id:charge.id,attempt_id:attempt.id,amount_minor:balance,installments,
+    max_installments:maxInstallments,status:mapped,provider_order_id:mp?.id??null,confirmed:false,
+    awaiting_webhook:mapped==="approved"
+  },201);
+});
