@@ -1148,12 +1148,9 @@ function CommercialLeadApprovalQueue({
   const leads = useQuery({
     queryKey: ["commercial-leads-operation", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("commercial_leads")
-        .select("id,full_name,email,phone,status,metadata,converted_person_id,created_at")
-        .eq("operation_id", operationId)
-        .is("converted_person_id", null)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("list_operation_commercial_leads", {
+        _operation_id: operationId,
+      });
       if (error) throw error;
       return (data ?? []) as CommercialLeadRow[];
     },
