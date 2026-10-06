@@ -142,6 +142,9 @@ function PortalMobility() {
   const spotlightIndex = currentLegIndex >= 0 ? currentLegIndex : nextLegIndex;
   const spotlightLeg = spotlightIndex >= 0 ? legs[spotlightIndex] : null;
   const spotlightIsNow = currentLegIndex >= 0;
+  const allLegsCompleted = legs.length > 0 && legStates.every((state) => state === "completed");
+  const spotlightDeparture = spotlightLeg?.expectedDeparture ?? spotlightLeg?.plannedDeparture ?? null;
+  const spotlightArrival = spotlightLeg?.expectedArrival ?? spotlightLeg?.plannedArrival ?? null;
 
   return (
     <PortalShell
@@ -157,16 +160,48 @@ function PortalMobility() {
         <section className="mb-5 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-primary/10 p-2"><Bus className="h-5 w-5 text-primary" /></div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
                 {spotlightIsNow ? t("w10.mobility.nowLeg") : t("w10.mobility.nextLeg")}
               </p>
-              <p className="mt-1 text-base font-semibold text-foreground">
-                {spotlightLeg.title ?? [spotlightLeg.originLabel, spotlightLeg.destinationLabel].filter(Boolean).join(" → ")}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
+
+              {(spotlightLeg.originLabel || spotlightLeg.destinationLabel) ? (
+                <div className="mt-2 flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+                  <span className="min-w-0 break-words">{spotlightLeg.originLabel ?? "—"}</span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0 break-words">{spotlightLeg.destinationLabel ?? "—"}</span>
+                </div>
+              ) : (
+                <p className="mt-2 text-sm font-semibold text-foreground">{spotlightLeg.title ?? "—"}</p>
+              )}
+
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                <span className="font-semibold uppercase tracking-wide text-muted-foreground">
+                  {spotlightIsNow ? t("w10.mobility.arrival") : t("w10.mobility.departure")}
+                </span>
+                <PortalTime
+                  planned={null}
+                  expected={spotlightIsNow ? spotlightArrival : spotlightDeparture}
+                  timeZone={timeZone}
+                />
+              </div>
+
+              <p className="mt-2 text-xs text-muted-foreground">
                 {spotlightIsNow ? t("w10.mobility.nowGuidance") : t("w10.mobility.nextGuidance")}
               </p>
+            </div>
+          </div>
+        </section>
+      ) : !mobility.isLoading && !mobility.error && allLegsCompleted ? (
+        <section className="mb-5 rounded-2xl border border-border/70 bg-muted/30 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-background p-2"><ShieldCheck className="h-5 w-5 text-primary" /></div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                {t("w10.mobility.allCompleted")}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{t("w10.mobility.allCompletedTitle")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("w10.mobility.allCompletedBody")}</p>
             </div>
           </div>
         </section>
