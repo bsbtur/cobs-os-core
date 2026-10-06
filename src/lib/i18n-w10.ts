@@ -166,6 +166,9 @@ export const W10_DICTIONARIES = {
     "w10.stay.floor": "Andar",
     "w10.stay.noRoom": "Acomodação em definição",
     "w10.stay.checkinOpen": "Check-in disponível",
+    "w10.stay.current": "Hospedagem atual",
+    "w10.stay.next": "Próxima hospedagem",
+    "w10.stay.completed": "Concluída",
     "w10.stay.emptyTitle": "Sua hospedagem está sendo preparada",
     "w10.stay.empty": "Sua hospedagem está sendo preparada. Os detalhes aparecerão aqui conforme forem confirmados.",
 
@@ -377,6 +380,9 @@ export const W10_DICTIONARIES = {
     "w10.stay.floor": "Floor",
     "w10.stay.noRoom": "Accommodation being finalized",
     "w10.stay.checkinOpen": "Check-in available",
+    "w10.stay.current": "Current stay",
+    "w10.stay.next": "Next stay",
+    "w10.stay.completed": "Completed",
     "w10.stay.emptyTitle": "Your stay is being prepared",
     "w10.stay.empty": "Your stay is being prepared. Details will appear here as they are confirmed.",
 
@@ -588,6 +594,9 @@ export const W10_DICTIONARIES = {
     "w10.stay.floor": "Planta",
     "w10.stay.noRoom": "Acomodación por definir",
     "w10.stay.checkinOpen": "Check-in disponible",
+    "w10.stay.current": "Alojamiento actual",
+    "w10.stay.next": "Próximo alojamiento",
+    "w10.stay.completed": "Completado",
     "w10.stay.emptyTitle": "Tu alojamiento se está preparando",
     "w10.stay.empty": "Tu alojamiento se está preparando. Los detalles aparecerán aquí a medida que se confirmen.",
 
