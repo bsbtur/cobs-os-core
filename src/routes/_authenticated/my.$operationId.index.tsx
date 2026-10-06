@@ -192,7 +192,7 @@ function PortalHome() {
                           <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
                             <section className="rounded-2xl border border-primary/30 bg-surface p-5 shadow-[var(--shadow-soft)] sm:p-6">
                               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{t("w10.home.nextStep")}</p>
-                              <div className="mt-3">{next ? <AgendaLine item={next} timeZone={timeZone} /> : <p className="text-sm leading-relaxed text-muted-foreground">{upcoming ? t("w10.home.upcomingPending") : t("w10.home.nothingNow")}</p>}</div>
+                              <div className="mt-3">{next ? <AgendaLine item={next} timeZone={timeZone} /> : <p className="text-sm leading-relaxed text-muted-foreground">{upcoming ? t("w10.home.upcomingPending") : t("w10.home.nothingNext")}</p>}</div>
                             </section>
                             <PortalCard title={t("w10.home.now")}>{now ? <AgendaLine item={now} timeZone={timeZone} /> : <p className="text-sm leading-relaxed text-muted-foreground">{upcoming ? t("w10.home.tripNotStarted") : t("w10.home.nothingNow")}</p>}</PortalCard>
                           </div>
