@@ -156,17 +156,47 @@ function PortalJourney() {
         {steps.length === 0 ? (
           <PortalEmpty icon={CalendarDays} title={t("w10.journey.emptyTitle")} body={t("w10.journey.empty")} />
         ) : (
-          <ol className="relative ml-3 border-l border-border pl-6">
+          <ol className="relative ml-3 pl-6">
             {steps.map((step, index) => {
               const state = stepStates[index] ?? "neutral";
               const isNow = state === "now";
               const isNext = state === "upcoming" && index === nextStepIndex;
               const elapsed = state === "completed";
               const expanded = expandedStepId === step.stepId;
+              const markerClass = isNow
+                ? "h-5 w-5 border-[5px] border-background bg-primary shadow-[0_0_0_5px_hsl(var(--primary)/0.12)]"
+                : isNext
+                  ? "h-4 w-4 border-4 border-background bg-primary shadow-sm"
+                  : elapsed
+                    ? "h-3 w-3 border-2 border-background bg-muted-foreground/45"
+                    : "h-3 w-3 border-2 border-background bg-muted";
+              const markerOffset = isNow ? "-left-[2.18rem]" : isNext ? "-left-[2.05rem]" : "-left-[1.98rem]";
+              const connectorClass = elapsed
+                ? "bg-primary/30"
+                : isNow
+                  ? "bg-gradient-to-b from-primary/50 to-border"
+                  : "bg-border";
+              const cardStateClass = isNow
+                ? "border-primary/40 ring-1 ring-primary/10"
+                : isNext
+                  ? "border-primary/25"
+                  : elapsed
+                    ? "border-border/60 opacity-90"
+                    : "border-border/80";
+
               return (
               <li key={step.stepId} className="relative pb-5 last:pb-0">
-                <span className="absolute -left-[2.05rem] top-5 flex h-4 w-4 rounded-full border-4 border-background bg-primary shadow-sm" />
-                <article className={`overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-md ${isNow ? "border-primary/40 ring-1 ring-primary/10" : "border-border/80"}`}>
+                {index < steps.length - 1 ? (
+                  <span
+                    aria-hidden="true"
+                    className={`absolute -left-[1.58rem] top-7 bottom-0 w-px ${connectorClass}`}
+                  />
+                ) : null}
+                <span
+                  aria-hidden="true"
+                  className={`absolute top-5 flex rounded-full transition-all ${markerOffset} ${markerClass}`}
+                />
+                <article className={`overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:shadow-md ${cardStateClass}`}>
                   <div className="p-4 sm:p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
