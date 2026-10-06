@@ -59,6 +59,7 @@ describe("traveler portal golden path release gate", () => {
     expect(home).toContain('stateFor(event) === "current"');
     expect(home).toContain('stateFor(event) === "upcoming"');
     expect(home).toContain("homeEvent?.name");
+    expect(home).not.toContain("firstEventName");
   });
 
   test("preserves read-only controls on interactive traveler surfaces", () => {
