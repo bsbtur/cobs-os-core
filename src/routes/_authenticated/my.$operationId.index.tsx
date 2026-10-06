@@ -215,7 +215,9 @@ function PortalHome() {
   const timeZone = overview.data?.timezone ?? null;
   const agenda = buildAgenda(journey.data ?? [], mobility.data ?? [], events.data ?? []);
   const { now, next } = splitNowNext(agenda, nowMs);
-  const unread = (messages.data ?? []).filter((m) => m.myFirstReadAt === null && m.status === "published").length;
+  const publishedMessages = (messages.data ?? []).filter((m) => m.status === "published");
+  const unread = publishedMessages.filter((m) => m.myFirstReadAt === null).length;
+  const latestPublishedMessage = publishedMessages[0] ?? null;
   const legs = mobility.data ?? [];
   const stays = stay.data ?? [];
   const eventRows = events.data ?? [];
@@ -300,7 +302,7 @@ function PortalHome() {
                             {showEventShortcut ? (
                               <ShortcutRow to="/my/$operationId/events" operationId={operationId} icon={Ticket} label={t("w10.home.eventShortcut")} value={sessions > 0 ? `${sessions} ${t("w10.home.activities")}` : (firstEventName ?? t("w10.events.empty"))} />
                             ) : null}
-                            <ShortcutRow to="/my/$operationId/messages" operationId={operationId} icon={Megaphone} label={t("w10.home.messagesShortcut")} value={(messages.data ?? []).length > 0 ? (unread > 0 ? `${unread} ${t(unread > 1 ? "w10.home.newNotices" : "w10.home.newNotice")}` : ((messages.data ?? [])[0]?.title ?? "")) : t("w10.messages.empty")} />
+                            <ShortcutRow to="/my/$operationId/messages" operationId={operationId} icon={Megaphone} label={t("w10.home.messagesShortcut")} value={unread > 0 ? `${unread} ${t(unread > 1 ? "w10.home.newNotices" : "w10.home.newNotice")}` : (latestPublishedMessage?.title ?? t("w10.messages.empty"))} />
                             <ShortcutRow to="/my/$operationId/assistant" operationId={operationId} icon={Bot} label={t("w10.home.assistantShortcut")} value={t("w10.home.assistantBody")} />
                           </div>
                         </section>
