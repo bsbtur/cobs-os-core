@@ -46,6 +46,13 @@ describe("traveler portal golden path release gate", () => {
     }
   });
 
+  test("keeps Home agenda precision aligned with traveler modules", () => {
+    const home = route("index");
+    expect(home).toContain("homeIsPlaceholderMidnight(item.start, timeZone)");
+    expect(home).toContain("homeLocalDateKey(item.start, timeZone) >= today");
+    expect(home).toContain("splitHomeNowNext(agenda, nowMs, timeZone)");
+  });
+
   test("preserves read-only controls on interactive traveler surfaces", () => {
     expect(route("wall")).toContain("readOnly");
     expect(route("wall")).toContain("disabled={readOnly");
