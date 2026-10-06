@@ -12,6 +12,7 @@ import {
   useMyOverview,
   useMyStay,
   type PortalAgendaItem,
+  type PortalEvent,
   type PortalOverview,
   type PortalStay,
 } from "@/lib/w10";
@@ -114,6 +115,49 @@ function splitHomeNowNext(
     }) ?? null;
 
   return { now, next };
+}
+
+function selectHomeEvent(events: PortalEvent[], nowMs: number, fallbackTimeZone?: string | null) {
+  const stateFor = (event: PortalEvent) => {
+    if (event.closedOut) return "completed" as const;
+    const timeZone = event.timezone ?? event.venue?.timezone ?? fallbackTimeZone ?? null;
+    const start = event.expectedStart ?? event.plannedStart;
+    const end = event.expectedEnd ?? event.plannedEnd;
+    const startMs = start ? new Date(start).getTime() : null;
+    const endMs = end ? new Date(end).getTime() : null;
+    const startDateOnly = start ? homeIsPlaceholderMidnight(start, timeZone) : false;
+    const endDateOnly = end ? homeIsPlaceholderMidnight(end, timeZone) : false;
+    const today = homeLocalDateKey(nowMs, timeZone);
+
+    if (
+      (endMs !== null && !endDateOnly && endMs <= nowMs) ||
+      (end !== null && endDateOnly && homeLocalDateKey(end, timeZone) < today)
+    ) return "completed" as const;
+
+    if (
+      startMs !== null &&
+      endMs !== null &&
+      !startDateOnly &&
+      !endDateOnly &&
+      startMs <= nowMs &&
+      nowMs < endMs
+    ) return "current" as const;
+
+    if (
+      (startMs !== null && !startDateOnly && startMs > nowMs) ||
+      (start !== null && startDateOnly && homeLocalDateKey(start, timeZone) >= today)
+    ) return "upcoming" as const;
+
+    return "neutral" as const;
+  };
+
+  return (
+    events.find((event) => stateFor(event) === "current") ??
+    events.find((event) => stateFor(event) === "upcoming") ??
+    events.find((event) => stateFor(event) !== "completed") ??
+    events[0] ??
+    null
+  );
 }
 
 function selectHomeStay(stays: PortalStay[], nowMs: number, fallbackTimeZone?: string | null) {
@@ -250,7 +294,7 @@ function PortalHome() {
   const stays = stay.data ?? [];
   const eventRows = events.data ?? [];
   const sessions = eventRows.reduce((acc, e) => acc + e.sessions.length, 0);
-  const firstEventName = eventRows[0]?.name;
+  const homeEvent = selectHomeEvent(eventRows, nowMs, timeZone);
   const showEventShortcut = eventRows.length > 0;
   const homeStay = selectHomeStay(stays, nowMs, timeZone);
   const activeRoom = homeStay?.myRoom.find((room) => room.active) ?? null;
@@ -328,7 +372,7 @@ function PortalHome() {
                             <ShortcutRow to="/my/$operationId/mobility" operationId={operationId} icon={Bus} label={t("w10.home.transportShortcut")} value={transportSummary} />
                             <ShortcutRow to="/my/$operationId/stay" operationId={operationId} icon={BedDouble} label={t("w10.home.stayShortcut")} value={staySummary} />
                             {showEventShortcut ? (
-                              <ShortcutRow to="/my/$operationId/events" operationId={operationId} icon={Ticket} label={t("w10.home.eventShortcut")} value={sessions > 0 ? `${sessions} ${t("w10.home.activities")}` : (firstEventName ?? t("w10.events.empty"))} />
+                              <ShortcutRow to="/my/$operationId/events" operationId={operationId} icon={Ticket} label={t("w10.home.eventShortcut")} value={sessions > 0 ? `${sessions} ${t("w10.home.activities")}` : (homeEvent?.name ?? t("w10.events.empty"))} />
                             ) : null}
                             <ShortcutRow to="/my/$operationId/messages" operationId={operationId} icon={Megaphone} label={t("w10.home.messagesShortcut")} value={unread > 0 ? `${unread} ${t(unread > 1 ? "w10.home.newNotices" : "w10.home.newNotice")}` : (latestPublishedMessage?.title ?? t("w10.messages.empty"))} />
                             <ShortcutRow to="/my/$operationId/assistant" operationId={operationId} icon={Bot} label={t("w10.home.assistantShortcut")} value={t("w10.home.assistantBody")} />
