@@ -895,6 +895,82 @@ function GenericLeadApprovalPanel({
 
   const approve = useMutation({
     mutationFn: async (lead: CommercialLeadRow) => {
+      if (enableChapadaGoldenPath) {
+        const { data: stay, error: stayError } = await supabase
+          .from("hospitality_stays")
+          .select("id")
+          .eq("operation_id", operationId)
+          .not("status", "in", '("cancelled","completed")')
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (stayError) throw stayError;
+
+        const approval = stay?.id
+          ? await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+              _lead_id: lead.id,
+              _stay_id: stay.id,
+              _idempotency_key: newIdempotencyKey(),
+            })
+          : await supabase.rpc("approve_commercial_lead_to_operation", {
+              _lead_id: lead.id,
+              _idempotency_key: newIdempotencyKey(),
+            });
+
+        if (approval.error) throw approval.error;
+
+        const approvalPayload = (approval.data ?? {}) as Record<string, unknown>;
+        const personId =
+          typeof approvalPayload["person_id"] === "string" ? approvalPayload["person_id"] : null;
+        if (!personId) throw new Error("lead_approval_missing_person_id");
+
+        let accessUrl: string | null = null;
+        let expiresAt: string | null = null;
+        let accessAlreadyActive = false;
+
+        const { data: grant, error: grantError } = await supabase
+          .from("participant_access_grants")
+          .select("id")
+          .eq("operation_id", operationId)
+          .eq("person_id", personId)
+          .eq("status", "active")
+          .maybeSingle();
+        if (grantError) throw grantError;
+
+        if (grant) {
+          accessAlreadyActive = true;
+        } else {
+          const { data: invitation, error: invitationError } = await supabase.rpc(
+            "invite_participant_access",
+            {
+              _operation_id: operationId,
+              _person_id: personId,
+              _idempotency_key: `commercial-lead-access:${lead.id}`,
+            },
+          );
+          if (invitationError) throw invitationError;
+
+          const invitationPayload = (invitation ?? {}) as Record<string, unknown>;
+          const token =
+            typeof invitationPayload["token"] === "string" ? invitationPayload["token"] : null;
+          expiresAt =
+            typeof invitationPayload["expires_at"] === "string"
+              ? invitationPayload["expires_at"]
+              : null;
+          if (token && typeof window !== "undefined") {
+            accessUrl = `${window.location.origin}/my/claim/${token}`;
+          }
+        }
+
+        return {
+          personId,
+          stayAdded: Boolean(stay?.id),
+          accessUrl,
+          expiresAt,
+          accessAlreadyActive,
+        };
+      }
+
       const { data: converted, error: convertError } = await supabase.rpc(
         "convert_commercial_lead_to_person",
         { _lead_id: lead.id },
@@ -925,86 +1001,13 @@ function GenericLeadApprovalPanel({
         if (addError) throw addError;
       }
 
-      const { data: participation, error: participationError } = await supabase
-        .from("operation_participations")
-        .select("id")
-        .eq("operation_id", operationId)
-        .eq("person_id", personId)
-        .maybeSingle();
-      if (participationError) throw participationError;
-      if (!participation?.id) throw new Error("lead_roster_participation_missing");
-
-      let stayAdded = false;
-      let accessUrl: string | null = null;
-      let expiresAt: string | null = null;
-      let accessAlreadyActive = false;
-
-      if (enableChapadaGoldenPath) {
-        const { data: stay, error: stayError } = await supabase
-          .from("hospitality_stays")
-          .select("id")
-          .eq("operation_id", operationId)
-          .not("status", "in", '("cancelled","completed")')
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        if (stayError) throw stayError;
-
-        if (stay?.id) {
-          const { data: existingStayGuest, error: stayGuestError } = await supabase
-            .from("hospitality_stay_participations")
-            .select("id, is_active")
-            .eq("stay_id", stay.id)
-            .eq("participation_id", participation.id)
-            .maybeSingle();
-          if (stayGuestError) throw stayGuestError;
-
-          if (!existingStayGuest?.is_active) {
-            const { error: addStayError } = await supabase.rpc("add_stay_participation", {
-              _stay_id: stay.id,
-              _participation_id: participation.id,
-              _idempotency_key: `commercial-lead-stay:${lead.id}`,
-              _notes: "Incluído após aprovação comercial; quarto ainda não definido.",
-            });
-            if (addStayError) throw addStayError;
-          }
-          stayAdded = true;
-        }
-
-        const { data: grant, error: grantError } = await supabase
-          .from("participant_access_grants")
-          .select("id")
-          .eq("operation_id", operationId)
-          .eq("person_id", personId)
-          .eq("status", "active")
-          .maybeSingle();
-        if (grantError) throw grantError;
-
-        if (grant) {
-          accessAlreadyActive = true;
-        } else {
-          const { data: invitation, error: invitationError } = await supabase.rpc(
-            "invite_participant_access",
-            {
-              _operation_id: operationId,
-              _person_id: personId,
-              _idempotency_key: `commercial-lead-access:${lead.id}`,
-            },
-          );
-          if (invitationError) throw invitationError;
-          const invitationPayload = (invitation ?? {}) as Record<string, unknown>;
-          const token = typeof invitationPayload["token"] === "string" ? invitationPayload["token"] : null;
-          expiresAt =
-            typeof invitationPayload["expires_at"] === "string"
-              ? invitationPayload["expires_at"]
-              : null;
-          if (token && typeof window !== "undefined") {
-            accessUrl = `${window.location.origin}/my/claim/${token}`;
-          }
-        }
-      }
-
-      return { personId, stayAdded, accessUrl, expiresAt, accessAlreadyActive };
+      return {
+        personId,
+        stayAdded: false,
+        accessUrl: null,
+        expiresAt: null,
+        accessAlreadyActive: false,
+      };
     },
     onSuccess: (result, lead) => {
       if (result.accessUrl) {
