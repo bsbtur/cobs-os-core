@@ -32,8 +32,9 @@ export const W10_DICTIONARIES = {
 
     "w10.home.now": "Agora",
     "w10.home.timePending": "Horário a confirmar",
-    "w10.home.experienceEyebrow": "Sua próxima experiência",
-    "w10.home.daysLeft": "Faltam {count} dias",
+    "w10.home.experienceEyebrow": "Sua experiência está chegando",
+    "w10.home.dayLeft": "1 dia para começar",
+    "w10.home.daysLeft": "{count} dias para começar",
     "w10.home.heroBody": "Sua viagem organizada para você acompanhar cada momento com tranquilidade — roteiro, transporte, hospedagem e avisos importantes em um só lugar.",
     "w10.home.bsbturExperience": "Experiência BSBTUR",
     "w10.home.confirmedInfo": "COBS · informações confirmadas",
@@ -220,7 +221,8 @@ export const W10_DICTIONARIES = {
 
     "w10.home.now": "Now",
     "w10.home.timePending": "Time to be confirmed",
-    "w10.home.experienceEyebrow": "Your next experience",
+    "w10.home.experienceEyebrow": "Your experience is getting closer",
+    "w10.home.dayLeft": "1 day to go",
     "w10.home.daysLeft": "{count} days to go",
     "w10.home.heroBody": "Your trip, organized so you can enjoy every moment with confidence — schedule, transport, stay, and important notices in one place.",
     "w10.home.bsbturExperience": "BSBTUR Experience",
@@ -408,8 +410,9 @@ export const W10_DICTIONARIES = {
 
     "w10.home.now": "Ahora",
     "w10.home.timePending": "Horario por confirmar",
-    "w10.home.experienceEyebrow": "Tu próxima experiencia",
-    "w10.home.daysLeft": "Faltan {count} días",
+    "w10.home.experienceEyebrow": "Tu experiencia se acerca",
+    "w10.home.dayLeft": "1 día para empezar",
+    "w10.home.daysLeft": "{count} días para empezar",
     "w10.home.heroBody": "Tu viaje organizado para que disfrutes cada momento con tranquilidad — itinerario, transporte, alojamiento y avisos importantes en un solo lugar.",
     "w10.home.bsbturExperience": "Experiencia BSBTUR",
     "w10.home.confirmedInfo": "COBS · información confirmada",

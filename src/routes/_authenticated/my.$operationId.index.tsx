@@ -78,7 +78,7 @@ function TripContextCard({ overview }: { overview: PortalOverview }) {
       <div className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sidebar-primary">{t("w10.home.experienceEyebrow")}</p>
-          {countdown ? <span className="rounded-full border border-sidebar-primary/30 bg-sidebar-primary/10 px-3 py-1 text-xs font-semibold text-sidebar-primary">{t("w10.home.daysLeft").replace("{count}", String(countdown))}</span> : null}
+          {countdown ? <span className="rounded-full border border-sidebar-primary/30 bg-sidebar-primary/10 px-3 py-1 text-xs font-semibold text-sidebar-primary">{countdown === 1 ? t("w10.home.dayLeft") : t("w10.home.daysLeft").replace("{count}", String(countdown))}</span> : null}
         </div>
         <h1 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">{overview.name}</h1>
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-sidebar-foreground/70">
