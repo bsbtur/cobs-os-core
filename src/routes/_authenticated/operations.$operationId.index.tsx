@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArchiveRestore, ArrowRight, BedDouble, Bus, CalendarDays, Megaphone, Users } from "lucide-react";
+import { Activity, ArchiveRestore, ArrowRight, BedDouble, Bus, CalendarDays, CircleDollarSign, Gauge, Megaphone, ShieldCheck, TriangleAlert, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
@@ -65,6 +65,194 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
       </p>
       <p className="mt-0.5 text-sm">{value}</p>
     </div>
+  );
+}
+
+
+type FinancialTrafficLightMetadata = {
+  status?: string;
+  public?: boolean;
+  floor_minor?: number;
+  contingency_minor?: number;
+  conservative_gap_to_april_minor?: number;
+  capital_buffer_minor?: number;
+  minimum_projected_closing_minor?: number;
+  minimum_projected_month?: string;
+};
+
+type RepricedCashflowMetadata = {
+  monthly?: Array<{ month?: string; closing_minor?: number }>;
+  april?: {
+    operational_cash_after_execution_if_receipt_first_minor?: number;
+  };
+};
+
+type OperationFinancialMetadata = {
+  financial_traffic_light?: FinancialTrafficLightMetadata;
+  repriced_cashflow?: RepricedCashflowMetadata;
+};
+
+function brlMinor(value: number) {
+  return (value / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function monthKeyNow() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function resolveProjectedCash(metadata: OperationFinancialMetadata) {
+  const cashflow = metadata.repriced_cashflow;
+  const currentMonth = monthKeyNow();
+
+  if (currentMonth === "2027-04") {
+    const aprilCash = cashflow?.april?.operational_cash_after_execution_if_receipt_first_minor;
+    if (typeof aprilCash === "number") return { month: currentMonth, minor: aprilCash };
+  }
+
+  const rows = (cashflow?.monthly ?? [])
+    .filter((row): row is { month: string; closing_minor: number } =>
+      typeof row.month === "string" && typeof row.closing_minor === "number",
+    )
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  const exact = rows.find((row) => row.month === currentMonth);
+  if (exact) return { month: exact.month, minor: exact.closing_minor };
+
+  const previous = rows.filter((row) => row.month <= currentMonth).at(-1);
+  if (previous) return { month: previous.month, minor: previous.closing_minor };
+
+  const first = rows[0];
+  return first ? { month: first.month, minor: first.closing_minor } : null;
+}
+
+function FinancialTrafficLightPanel({ metadata }: { metadata: unknown }) {
+  const parsed = (metadata ?? {}) as OperationFinancialMetadata;
+  const config = parsed.financial_traffic_light;
+  if (!config || config.status !== "enabled_internal") return null;
+
+  const floor = typeof config.floor_minor === "number" ? config.floor_minor : 0;
+  const contingency =
+    typeof config.contingency_minor === "number" ? config.contingency_minor : 0;
+  const gap =
+    typeof config.conservative_gap_to_april_minor === "number"
+      ? config.conservative_gap_to_april_minor
+      : 0;
+  const capitalBuffer =
+    typeof config.capital_buffer_minor === "number" ? config.capital_buffer_minor : 0;
+  const projected = resolveProjectedCash(parsed);
+  const projectedCash = projected?.minor ?? 0;
+
+  const level =
+    projectedCash >= floor
+      ? "green"
+      : projectedCash + contingency >= floor
+        ? "yellow"
+        : "red";
+
+  const status =
+    level === "green"
+      ? {
+          label: "Caixa protegido",
+          helper: "Caixa projetado acima do piso operacional.",
+          className: "border-success/40 bg-success/5 text-success",
+          dotClass: "bg-success",
+        }
+      : level === "yellow"
+        ? {
+            label: "Atenção",
+            helper: "Caixa abaixo do piso; contingência ainda cobre a diferença.",
+            className: "border-warning/40 bg-warning/5 text-warning",
+            dotClass: "bg-warning",
+          }
+        : {
+            label: "Ação necessária",
+            helper: "Caixa projetado abaixo do piso e sem cobertura suficiente da contingência.",
+            className: "border-destructive/40 bg-destructive/5 text-destructive",
+            dotClass: "bg-destructive",
+          };
+
+  const cards = [
+    {
+      label: "Caixa projetado",
+      value: brlMinor(projectedCash),
+      helper: projected?.month ? `Referência ${projected.month}` : "Sem referência mensal",
+      icon: CircleDollarSign,
+    },
+    {
+      label: "Piso protegido",
+      value: brlMinor(floor),
+      helper: "Capital de giro mínimo",
+      icon: ShieldCheck,
+    },
+    {
+      label: "Contingência disponível",
+      value: brlMinor(contingency),
+      helper: "5% · uso só para imprevisto real",
+      icon: Gauge,
+    },
+    {
+      label: "Gap conservador até abril",
+      value: brlMinor(gap),
+      helper: `Reserva de R$ 25 mil cobre com ${brlMinor(capitalBuffer)} de folga`,
+      icon: TriangleAlert,
+    },
+  ];
+
+  return (
+    <section className="surface-panel space-y-4 p-5" aria-labelledby="financial-traffic-light-title">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">
+            Segurança financeira
+          </p>
+          <h3 id="financial-traffic-light-title" className="mt-1 text-lg font-semibold">
+            Semáforo de capital de giro
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Projeção interna. Não altera venda, checkout ou pagamento.
+          </p>
+        </div>
+        <div className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold ${status.className}`}>
+          <span className={`size-2.5 rounded-full ${status.dotClass}`} aria-hidden="true" />
+          {status.label}
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div key={card.label} className="rounded-xl border border-border bg-elevated/40 p-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Icon className="size-4" aria-hidden="true" />
+                <p className="font-mono text-[10px] uppercase tracking-[0.13em]">
+                  {card.label}
+                </p>
+              </div>
+              <p className="mt-2 text-xl font-semibold tabular-nums">{card.value}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{card.helper}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className={`rounded-xl border px-4 py-3 text-sm ${status.className}`} role={level === "green" ? "status" : "alert"}>
+        <p className="font-semibold">{status.helper}</p>
+        {projectedCash < floor ? (
+          <p className="mt-1">
+            Alerta automático: caixa projetado {brlMinor(projectedCash)} abaixo do piso de {brlMinor(floor)}.
+          </p>
+        ) : (
+          <p className="mt-1">
+            Folga atual sobre o piso: {brlMinor(projectedCash - floor)}.
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -599,7 +787,7 @@ function OperationDetail() {
         ) : null}
       </header>
 
-      <ManagerQuickLinks operationId={op.id} />
+      <FinancialTrafficLightPanel metadata={op.metadata} />\n\n      <ManagerQuickLinks operationId={op.id} />
 
       <WindowsPanel op={op} />
       <LifecyclePanel op={op} />

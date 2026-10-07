@@ -24,4 +24,14 @@ describe("operation manager overview", () => {
     expect(source).toContain("Resumo operacional");
     expect(source).not.toContain("/operations/$operationId/payments");
   });
+
+  it("surfaces the financial traffic light without enabling payment actions", () => {
+    expect(source).toContain("Semáforo de capital de giro");
+    expect(source).toContain("Caixa projetado");
+    expect(source).toContain("Piso protegido");
+    expect(source).toContain("Contingência disponível");
+    expect(source).toContain("Gap conservador até abril");
+    expect(source).toContain("Alerta automático: caixa projetado");
+    expect(source).not.toContain("/operations/$operationId/payments");
+  });
 });
