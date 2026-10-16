@@ -787,7 +787,9 @@ function OperationDetail() {
         ) : null}
       </header>
 
-      <FinancialTrafficLightPanel metadata={op.metadata} />\n\n      <ManagerQuickLinks operationId={op.id} />
+      <FinancialTrafficLightPanel metadata={op.metadata} />
+
+      <ManagerQuickLinks operationId={op.id} />
 
       <WindowsPanel op={op} />
       <LifecyclePanel op={op} />
