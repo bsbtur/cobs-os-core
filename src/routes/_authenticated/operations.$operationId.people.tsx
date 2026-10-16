@@ -27,6 +27,32 @@ import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+// The commercial-lead surface (table + RPCs) is provisioned per release
+// environment and is not part of the generated schema snapshot; these typed
+// escape hatches keep those calls working without weakening the rest of the file.
+type LooseDbResult = { data: unknown; error: unknown };
+const looseRpc = supabase.rpc as unknown as (
+  fn: string,
+  args?: Record<string, unknown>,
+) => Promise<LooseDbResult>;
+const looseFrom = supabase.from as unknown as (
+  table: string,
+) => {
+  select: (columns: string) => {
+    eq: (column: string, value: unknown) => {
+      in: (
+        column: string,
+        values: unknown[],
+      ) => {
+        order: (
+          column: string,
+          options?: { ascending?: boolean },
+        ) => Promise<LooseDbResult>;
+      };
+    };
+  };
+};
+
 export const Route = createFileRoute("/_authenticated/operations/$operationId/people")({
   head: () => ({
     meta: [
