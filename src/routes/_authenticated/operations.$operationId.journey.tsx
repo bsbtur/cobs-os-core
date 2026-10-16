@@ -418,8 +418,8 @@ function ForecastDialog({
     mutationFn: async (values: { start: string; end: string; reason: string }) => {
       const { error } = await supabase.rpc("set_step_expected_window", {
         _journey_step_id: step!.id,
-        _expected_start: toIsoOrNull(values.start),
-        _expected_end: toIsoOrNull(values.end),
+        _expected_start: toIsoOrNull(values.start) as string,
+        _expected_end: toIsoOrNull(values.end) as string,
         _reason: values.reason.trim(),
       });
       if (error) throw error;

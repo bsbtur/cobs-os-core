@@ -164,7 +164,7 @@ function EditLegDialog({
       if (stepId !== (leg.journey_step_id ?? "")) {
         const link = await supabase.rpc("link_transport_leg_to_journey_step", {
           _transport_leg_id: leg.id,
-          _journey_step_id: stepId || null,
+          _journey_step_id: (stepId || null) as string,
         });
         if (link.error) throw link.error;
       }

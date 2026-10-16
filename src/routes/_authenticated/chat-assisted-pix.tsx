@@ -83,7 +83,14 @@ function ReviewPixDraft() {
         throw new Error("Pedido QA não está elegível para o Pix TEST de R$ 1,00.");
       }
 
-      const { data: qaOrders, error: qaError } = await supabase.rpc("list_orders_by_environment", {
+      // `list_orders_by_environment` is provisioned per release environment and is
+      // not part of the generated schema snapshot; keep the call fail-closed and
+      // bypass the generated RPC typings here.
+      const rpcAny = supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: unknown }>;
+      const { data: qaOrders, error: qaError } = await rpcAny("list_orders_by_environment", {
         _tenant_id: draft.tenant_id,
         _environment: "qa",
         _limit: 500,
