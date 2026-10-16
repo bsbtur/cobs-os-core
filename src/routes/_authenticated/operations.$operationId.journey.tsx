@@ -418,8 +418,8 @@ function ForecastDialog({
     mutationFn: async (values: { start: string; end: string; reason: string }) => {
       const { error } = await supabase.rpc("set_step_expected_window", {
         _journey_step_id: step!.id,
-        _expected_start: toIsoOrNull(values.start),
-        _expected_end: toIsoOrNull(values.end),
+        _expected_start: toIsoOrNull(values.start) as string,
+        _expected_end: toIsoOrNull(values.end) as string,
         _reason: values.reason.trim(),
       });
       if (error) throw error;
@@ -1367,8 +1367,10 @@ function JourneyPlanPage() {
         <div className="surface-panel px-4 py-3 text-sm">
           <p className="font-medium">{t("bp.origin.title")}</p>
           <p className="mt-1 text-muted-foreground">
-            {t("bp.origin.provisioned")} <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
-            {t("bp.version")} {t("bp.versionShort")}{journeyOrigin.versionNumber}
+            {t("bp.origin.provisioned")}{" "}
+            <span className="text-foreground">{journeyOrigin.blueprintName}</span> ·{" "}
+            {t("bp.version")} {t("bp.versionShort")}
+            {journeyOrigin.versionNumber}
             {journeyOrigin.stepCount === null
               ? ""
               : ` · ${journeyOrigin.stepCount} ${t("bp.stepCount").toLowerCase()}`}
@@ -1376,7 +1378,8 @@ function JourneyPlanPage() {
             {journeyOrigin.checksumShort ? (
               <span className="font-mono text-xs">{journeyOrigin.checksumShort}</span>
             ) : null}{" "}
-            · {t("bp.journeyOrigin.appliedAt")} {formatDateTime(journeyOrigin.appliedAt, {
+            · {t("bp.journeyOrigin.appliedAt")}{" "}
+            {formatDateTime(journeyOrigin.appliedAt, {
               locale,
               ...(operation.timezone ? { timeZone: operation.timezone } : {}),
             })}
@@ -1598,7 +1601,8 @@ function JourneyPlanPage() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              A etapa será arquivada, preservando o registro e a trilha de auditoria no banco de dados.
+              A etapa será arquivada, preservando o registro e a trilha de auditoria no banco de
+              dados.
             </p>
             <p className="text-sm font-medium">{archivingStep?.title}</p>
             <div className="space-y-1.5">

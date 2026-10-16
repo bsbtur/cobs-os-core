@@ -164,7 +164,7 @@ function EditLegDialog({
       if (stepId !== (leg.journey_step_id ?? "")) {
         const link = await supabase.rpc("link_transport_leg_to_journey_step", {
           _transport_leg_id: leg.id,
-          _journey_step_id: stepId || null,
+          _journey_step_id: (stepId || null) as string,
         });
         if (link.error) throw link.error;
       }
@@ -187,16 +187,50 @@ function EditLegDialog({
           <DialogHeader>
             <DialogTitle>Editar trecho planejado</DialogTitle>
             <DialogDescription>
-              Atualize rota e horários planejados. Dados ainda não confirmados podem permanecer em branco.
+              Atualize rota e horários planejados. Dados ainda não confirmados podem permanecer em
+              branco.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
-            <div><Label htmlFor="edit-leg-title">Título</Label><Input id="edit-leg-title" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div>
+              <Label htmlFor="edit-leg-title">Título</Label>
+              <Input id="edit-leg-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><Label htmlFor="edit-leg-origin">Origem</Label><Input id="edit-leg-origin" value={origin} onChange={(e) => setOrigin(e.target.value)} /></div>
-              <div><Label htmlFor="edit-leg-destination">Destino</Label><Input id="edit-leg-destination" value={destination} onChange={(e) => setDestination(e.target.value)} /></div>
-              <div><Label htmlFor="edit-leg-departure">Saída planejada</Label><Input id="edit-leg-departure" type="datetime-local" value={departure} onChange={(e) => setDeparture(e.target.value)} /></div>
-              <div><Label htmlFor="edit-leg-arrival">Chegada planejada</Label><Input id="edit-leg-arrival" type="datetime-local" value={arrival} onChange={(e) => setArrival(e.target.value)} /></div>
+              <div>
+                <Label htmlFor="edit-leg-origin">Origem</Label>
+                <Input
+                  id="edit-leg-origin"
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-leg-destination">Destino</Label>
+                <Input
+                  id="edit-leg-destination"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-leg-departure">Saída planejada</Label>
+                <Input
+                  id="edit-leg-departure"
+                  type="datetime-local"
+                  value={departure}
+                  onChange={(e) => setDeparture(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-leg-arrival">Chegada planejada</Label>
+                <Input
+                  id="edit-leg-arrival"
+                  type="datetime-local"
+                  value={arrival}
+                  onChange={(e) => setArrival(e.target.value)}
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="edit-leg-step">Etapa da jornada vinculada</Label>
@@ -216,7 +250,9 @@ function EditLegDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
             <Button disabled={save.isPending || !title.trim()} onClick={() => save.mutate()}>
               {save.isPending ? "Salvando…" : "Salvar alterações"}
             </Button>
@@ -555,7 +591,15 @@ function AssignmentPanel({
   );
 }
 
-function CancelLegAction({ leg, state, onDone }: { leg: TransportLegRow; state: LegDispatchState | null; onDone: () => void }) {
+function CancelLegAction({
+  leg,
+  state,
+  onDone,
+}: {
+  leg: TransportLegRow;
+  state: LegDispatchState | null;
+  onDone: () => void;
+}) {
   const { locale } = useI18n();
   const [reason, setReason] = React.useState("");
   const cancel = useMutation({
@@ -579,9 +623,20 @@ function CancelLegAction({ leg, state, onDone }: { leg: TransportLegRow; state: 
   return (
     <div className="space-y-2 rounded-lg border border-border p-3">
       <p className="text-sm font-medium">Cancelar trecho</p>
-      <p className="text-xs text-muted-foreground">Use para um trecho criado por engano. O registro permanece no histórico.</p>
-      <Input placeholder="Motivo do cancelamento" value={reason} onChange={(e) => setReason(e.target.value)} />
-      <Button variant="outline" className="min-h-11" disabled={cancel.isPending || reason.trim() === ""} onClick={() => cancel.mutate()}>
+      <p className="text-xs text-muted-foreground">
+        Use para um trecho criado por engano. O registro permanece no histórico.
+      </p>
+      <Input
+        placeholder="Motivo do cancelamento"
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+      />
+      <Button
+        variant="outline"
+        className="min-h-11"
+        disabled={cancel.isPending || reason.trim() === ""}
+        onClick={() => cancel.mutate()}
+      >
         {cancel.isPending ? "Cancelando…" : "Cancelar trecho"}
       </Button>
     </div>
@@ -1426,12 +1481,14 @@ function MobilityPage() {
                   {selected.destination_label ? ` → ${selected.destination_label}` : ""}
                 </p>
                 {planning && !isTerminalLeg(state) ? (
-                  <div className="mt-3"><EditLegDialog
-                    leg={selected}
-                    state={state}
-                    steps={data.data?.steps ?? []}
-                    onDone={refresh}
-                  /></div>
+                  <div className="mt-3">
+                    <EditLegDialog
+                      leg={selected}
+                      state={state}
+                      steps={data.data?.steps ?? []}
+                      onDone={refresh}
+                    />
+                  </div>
                 ) : null}
 
                 <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">

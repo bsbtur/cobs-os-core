@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -58,98 +58,6 @@ export type Database = {
           },
           {
             foreignKeyName: "audit_events_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      commercial_leads: {
-        Row: {
-          campaign: string | null
-          consent_at: string | null
-          consent_contact: boolean
-          converted_at: string | null
-          converted_person_id: string | null
-          created_at: string
-          email: string
-          experience_id: string | null
-          full_name: string
-          id: string
-          idempotency_key: string
-          metadata: Json
-          operation_id: string | null
-          phone: string
-          source: string
-          status: string
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          campaign?: string | null
-          consent_at?: string | null
-          consent_contact?: boolean
-          converted_at?: string | null
-          converted_person_id?: string | null
-          created_at?: string
-          email: string
-          experience_id?: string | null
-          full_name: string
-          id?: string
-          idempotency_key: string
-          metadata?: Json
-          operation_id?: string | null
-          phone: string
-          source?: string
-          status?: string
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          campaign?: string | null
-          consent_at?: string | null
-          consent_contact?: boolean
-          converted_at?: string | null
-          converted_person_id?: string | null
-          created_at?: string
-          email?: string
-          experience_id?: string | null
-          full_name?: string
-          id?: string
-          idempotency_key?: string
-          metadata?: Json
-          operation_id?: string | null
-          phone?: string
-          source?: string
-          status?: string
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "commercial_leads_converted_person_id_fkey"
-            columns: ["converted_person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "commercial_leads_experience_id_fkey"
-            columns: ["experience_id"]
-            isOneToOne: false
-            referencedRelation: "experiences"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "commercial_leads_operation_id_fkey"
-            columns: ["operation_id"]
-            isOneToOne: false
-            referencedRelation: "operations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "commercial_leads_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -5188,31 +5096,6 @@ export type Database = {
         }
         Returns: Json
       }
-      get_operation_stay_capacity: {
-        Args: { _operation_id: string }
-        Returns: Json
-      }
-      list_operation_commercial_leads: {
-        Args: { _operation_id: string }
-        Returns: {
-          id: string
-          full_name: string
-          email: string
-          phone: string
-          status: string
-          metadata: Json
-          converted_person_id: string | null
-          created_at: string
-        }[]
-      }
-      approve_commercial_lead_to_operation: {
-        Args: { _idempotency_key: string; _lead_id: string }
-        Returns: Json
-      }
-      approve_commercial_lead_to_operation_and_stay: {
-        Args: { _idempotency_key: string; _lead_id: string; _stay_id: string }
-        Returns: Json
-      }
       add_order_item: {
         Args: {
           _beneficiary_person_id?: string
@@ -5484,10 +5367,6 @@ export type Database = {
       }
       confirm_order: {
         Args: { _idempotency_key?: string; _order_id: string }
-        Returns: Json
-      }
-      convert_commercial_lead_to_person: {
-        Args: { _lead_id: string }
         Returns: Json
       }
       create_ad_hoc_journey_step: {
@@ -5986,7 +5865,7 @@ export type Database = {
         Returns: Json
       }
       link_transport_leg_to_journey_step: {
-        Args: { _journey_step_id: string | null; _transport_leg_id: string }
+        Args: { _journey_step_id: string; _transport_leg_id: string }
         Returns: Json
       }
       list_event_runtime_events: {
@@ -5995,16 +5874,6 @@ export type Database = {
       }
       list_orders: {
         Args: {
-          _limit?: number
-          _operation_id?: string
-          _status?: Database["public"]["Enums"]["order_status"]
-          _tenant_id: string
-        }
-        Returns: Json
-      }
-      list_orders_by_environment: {
-        Args: {
-          _environment?: string
           _limit?: number
           _operation_id?: string
           _status?: Database["public"]["Enums"]["order_status"]
@@ -6533,8 +6402,8 @@ export type Database = {
       }
       set_step_expected_window: {
         Args: {
-          _expected_end: string | null
-          _expected_start: string | null
+          _expected_end: string
+          _expected_start: string
           _journey_step_id: string
           _reason: string
         }
@@ -7167,12 +7036,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7196,11 +7065,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7221,11 +7090,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7246,11 +7115,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7263,11 +7132,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

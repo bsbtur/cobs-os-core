@@ -27,6 +27,30 @@ import { PanelSkeleton } from "@/components/feedback/loading";
 import { feedback } from "@/components/feedback/feedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+// The commercial-lead surface (table + RPCs) is provisioned per release
+// environment and is not part of the generated schema snapshot; these typed
+// escape hatches keep those calls working without weakening the rest of the file.
+type LooseDbResult = { data: unknown; error: unknown };
+const looseRpc = supabase.rpc as unknown as (
+  fn: string,
+  args?: Record<string, unknown>,
+) => Promise<LooseDbResult>;
+const looseFrom = supabase.from as unknown as (table: string) => {
+  select: (columns: string) => {
+    eq: (
+      column: string,
+      value: unknown,
+    ) => {
+      in: (
+        column: string,
+        values: unknown[],
+      ) => {
+        order: (column: string, options?: { ascending?: boolean }) => Promise<LooseDbResult>;
+      };
+    };
+  };
+};
+
 export const Route = createFileRoute("/_authenticated/operations/$operationId/people")({
   head: () => ({
     meta: [
@@ -759,7 +783,8 @@ function RosterCard({
             <div className="space-y-2">
               {row.status !== "confirmed" ? (
                 <p className="text-xs text-muted-foreground">
-                  O acesso ao Portal do Passageiro fica disponível somente após a participação ser confirmada.
+                  O acesso ao Portal do Passageiro fica disponível somente após a participação ser
+                  confirmada.
                 </p>
               ) : null}
               <PortalAccessAction
@@ -852,7 +877,6 @@ function RosterCard({
   );
 }
 
-
 type CommercialLeadRow = {
   id: string;
   full_name: string;
@@ -882,8 +906,7 @@ function GenericLeadApprovalPanel({
   const leads = useQuery({
     queryKey: ["commercial-leads", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("commercial_leads")
+      const { data, error } = await looseFrom("commercial_leads")
         .select("id, full_name, email, phone, status, created_at, converted_person_id")
         .eq("operation_id", operationId)
         .in("status", ["new", "contacted", "qualified", "converted"])
@@ -907,12 +930,12 @@ function GenericLeadApprovalPanel({
         if (stayError) throw stayError;
 
         const approval = stay?.id
-          ? await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+          ? await looseRpc("approve_commercial_lead_to_operation_and_stay", {
               _lead_id: lead.id,
               _stay_id: stay.id,
               _idempotency_key: newIdempotencyKey(),
             })
-          : await supabase.rpc("approve_commercial_lead_to_operation", {
+          : await looseRpc("approve_commercial_lead_to_operation", {
               _lead_id: lead.id,
               _idempotency_key: newIdempotencyKey(),
             });
@@ -971,7 +994,7 @@ function GenericLeadApprovalPanel({
         };
       }
 
-      const { data: converted, error: convertError } = await supabase.rpc(
+      const { data: converted, error: convertError } = await looseRpc(
         "convert_commercial_lead_to_person",
         { _lead_id: lead.id },
       );
@@ -1059,17 +1082,19 @@ function GenericLeadApprovalPanel({
         <div>
           <h3 className="text-lg font-semibold">Leads da landing</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Aprovar converte o lead em Pessoa e adiciona o viajante ao roster desta operação. Não cria pedido nem cobrança.
+            Aprovar converte o lead em Pessoa e adiciona o viajante ao roster desta operação. Não
+            cria pedido nem cobrança.
           </p>
         </div>
-        <Chip className="bg-primary-soft text-primary">
-          {pending.length} aguardando
-        </Chip>
+        <Chip className="bg-primary-soft text-primary">{pending.length} aguardando</Chip>
       </div>
 
       <ul className="mt-4 space-y-2">
         {rows.map((lead) => (
-          <li key={lead.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+          <li
+            key={lead.id}
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
+          >
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{lead.full_name}</p>
               <p className="truncate text-xs text-muted-foreground">
@@ -1137,7 +1162,6 @@ function GenericLeadApprovalPanel({
   );
 }
 
-
 function CommercialLeadApprovalQueue({
   operationId,
   disabled,
@@ -1151,7 +1175,7 @@ function CommercialLeadApprovalQueue({
   const leads = useQuery({
     queryKey: ["commercial-leads-operation", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("list_operation_commercial_leads", {
+      const { data, error } = await looseRpc("list_operation_commercial_leads", {
         _operation_id: operationId,
       });
       if (error) throw error;
@@ -1162,7 +1186,7 @@ function CommercialLeadApprovalQueue({
   const woodstockStay = useQuery({
     queryKey: ["team-seffrin-woodstock-stay", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_operation_stay_capacity", {
+      const { data, error } = await looseRpc("get_operation_stay_capacity", {
         _operation_id: operationId,
       });
       if (error) throw error;
@@ -1192,7 +1216,7 @@ function CommercialLeadApprovalQueue({
     mutationFn: async (leadId: string) => {
       const stayId = woodstockStay.data?.id ?? null;
       if (stayId) {
-        const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+        const { data, error } = await looseRpc("approve_commercial_lead_to_operation_and_stay", {
           _lead_id: leadId,
           _stay_id: stayId,
           _idempotency_key: newIdempotencyKey(),
@@ -1201,7 +1225,7 @@ function CommercialLeadApprovalQueue({
         return data;
       }
 
-      const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation", {
+      const { data, error } = await looseRpc("approve_commercial_lead_to_operation", {
         _lead_id: leadId,
         _idempotency_key: newIdempotencyKey(),
       });
@@ -1215,7 +1239,9 @@ function CommercialLeadApprovalQueue({
           : "Lead aprovado e vinculado à operação como participante esperado.",
       );
       void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
-      void queryClient.invalidateQueries({ queryKey: ["team-seffrin-woodstock-stay", operationId] });
+      void queryClient.invalidateQueries({
+        queryKey: ["team-seffrin-woodstock-stay", operationId],
+      });
       void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["stay-guests"] });
       void queryClient.invalidateQueries({ queryKey: ["hospitality-stay"] });
@@ -1234,11 +1260,7 @@ function CommercialLeadApprovalQueue({
         <p className="mt-1 text-xs text-muted-foreground">
           Não foi possível carregar os cadastros comerciais desta operação.
         </p>
-        <Button
-          variant="outline"
-          className="mt-3 min-h-11"
-          onClick={() => void leads.refetch()}
-        >
+        <Button variant="outline" className="mt-3 min-h-11" onClick={() => void leads.refetch()}>
           Tentar novamente
         </Button>
       </section>
@@ -1335,11 +1357,13 @@ function CommercialLeadApprovalQueue({
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             Cadastros que chegaram com capacidade disponível e podem seguir pelo fluxo comercial.
-            Aprovar cria ou reutiliza a Pessoa no COBS e, nesta operação, adiciona o participante à Woodstock como hóspede sem quarto.
+            Aprovar cria ou reutiliza a Pessoa no COBS e, nesta operação, adiciona o participante à
+            Woodstock como hóspede sem quarto.
           </p>
           {woodstockStay.data?.soldOut ? (
             <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser liberada na hospedagem.
+              Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser
+              liberada na hospedagem.
             </p>
           ) : null}
         </div>
@@ -1366,7 +1390,8 @@ function CommercialLeadApprovalQueue({
                 </span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Estes interessados se cadastraram quando a hospedagem estava lotada. Eles não ocupam vaga e não foram transformados em participantes.
+                Estes interessados se cadastraram quando a hospedagem estava lotada. Eles não ocupam
+                vaga e não foram transformados em participantes.
               </p>
             </div>
             {!woodstockStay.data?.soldOut && woodstockStay.data?.id ? (

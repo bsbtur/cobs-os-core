@@ -202,13 +202,19 @@ function CommerceWorkspace() {
   const orders = useQuery({
     queryKey: ["w09", "orders", tenantId, environment, status],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc(
+      // `list_orders_by_environment` is provisioned per release environment and is
+      // not part of the generated schema snapshot; bypass generated RPC typings.
+      const rpcAny = supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: unknown }>;
+      const { data, error } = await rpcAny(
         "list_orders_by_environment",
         rpcArgs({
           _tenant_id: tenantId,
           _environment: environment,
           _status: status || undefined,
-        }),
+        }) as Record<string, unknown>,
       );
       if (error) throw error;
       return (data ?? []) as unknown as OrderListRow[];
