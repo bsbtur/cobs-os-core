@@ -35,19 +35,17 @@ const looseRpc = supabase.rpc as unknown as (
   fn: string,
   args?: Record<string, unknown>,
 ) => Promise<LooseDbResult>;
-const looseFrom = supabase.from as unknown as (
-  table: string,
-) => {
+const looseFrom = supabase.from as unknown as (table: string) => {
   select: (columns: string) => {
-    eq: (column: string, value: unknown) => {
+    eq: (
+      column: string,
+      value: unknown,
+    ) => {
       in: (
         column: string,
         values: unknown[],
       ) => {
-        order: (
-          column: string,
-          options?: { ascending?: boolean },
-        ) => Promise<LooseDbResult>;
+        order: (column: string, options?: { ascending?: boolean }) => Promise<LooseDbResult>;
       };
     };
   };
@@ -785,7 +783,8 @@ function RosterCard({
             <div className="space-y-2">
               {row.status !== "confirmed" ? (
                 <p className="text-xs text-muted-foreground">
-                  O acesso ao Portal do Passageiro fica disponível somente após a participação ser confirmada.
+                  O acesso ao Portal do Passageiro fica disponível somente após a participação ser
+                  confirmada.
                 </p>
               ) : null}
               <PortalAccessAction
@@ -877,7 +876,6 @@ function RosterCard({
     </li>
   );
 }
-
 
 type CommercialLeadRow = {
   id: string;
@@ -1084,17 +1082,19 @@ function GenericLeadApprovalPanel({
         <div>
           <h3 className="text-lg font-semibold">Leads da landing</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Aprovar converte o lead em Pessoa e adiciona o viajante ao roster desta operação. Não cria pedido nem cobrança.
+            Aprovar converte o lead em Pessoa e adiciona o viajante ao roster desta operação. Não
+            cria pedido nem cobrança.
           </p>
         </div>
-        <Chip className="bg-primary-soft text-primary">
-          {pending.length} aguardando
-        </Chip>
+        <Chip className="bg-primary-soft text-primary">{pending.length} aguardando</Chip>
       </div>
 
       <ul className="mt-4 space-y-2">
         {rows.map((lead) => (
-          <li key={lead.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+          <li
+            key={lead.id}
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
+          >
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{lead.full_name}</p>
               <p className="truncate text-xs text-muted-foreground">
@@ -1161,7 +1161,6 @@ function GenericLeadApprovalPanel({
     </section>
   );
 }
-
 
 function CommercialLeadApprovalQueue({
   operationId,
@@ -1240,7 +1239,9 @@ function CommercialLeadApprovalQueue({
           : "Lead aprovado e vinculado à operação como participante esperado.",
       );
       void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
-      void queryClient.invalidateQueries({ queryKey: ["team-seffrin-woodstock-stay", operationId] });
+      void queryClient.invalidateQueries({
+        queryKey: ["team-seffrin-woodstock-stay", operationId],
+      });
       void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["stay-guests"] });
       void queryClient.invalidateQueries({ queryKey: ["hospitality-stay"] });
@@ -1259,11 +1260,7 @@ function CommercialLeadApprovalQueue({
         <p className="mt-1 text-xs text-muted-foreground">
           Não foi possível carregar os cadastros comerciais desta operação.
         </p>
-        <Button
-          variant="outline"
-          className="mt-3 min-h-11"
-          onClick={() => void leads.refetch()}
-        >
+        <Button variant="outline" className="mt-3 min-h-11" onClick={() => void leads.refetch()}>
           Tentar novamente
         </Button>
       </section>
@@ -1360,11 +1357,13 @@ function CommercialLeadApprovalQueue({
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             Cadastros que chegaram com capacidade disponível e podem seguir pelo fluxo comercial.
-            Aprovar cria ou reutiliza a Pessoa no COBS e, nesta operação, adiciona o participante à Woodstock como hóspede sem quarto.
+            Aprovar cria ou reutiliza a Pessoa no COBS e, nesta operação, adiciona o participante à
+            Woodstock como hóspede sem quarto.
           </p>
           {woodstockStay.data?.soldOut ? (
             <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser liberada na hospedagem.
+              Operação lotada. Novas aprovações comerciais estão bloqueadas até uma vaga ser
+              liberada na hospedagem.
             </p>
           ) : null}
         </div>
@@ -1391,7 +1390,8 @@ function CommercialLeadApprovalQueue({
                 </span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Estes interessados se cadastraram quando a hospedagem estava lotada. Eles não ocupam vaga e não foram transformados em participantes.
+                Estes interessados se cadastraram quando a hospedagem estava lotada. Eles não ocupam
+                vaga e não foram transformados em participantes.
               </p>
             </div>
             {!woodstockStay.data?.soldOut && woodstockStay.data?.id ? (
