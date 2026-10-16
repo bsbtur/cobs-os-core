@@ -908,8 +908,7 @@ function GenericLeadApprovalPanel({
   const leads = useQuery({
     queryKey: ["commercial-leads", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("commercial_leads")
+      const { data, error } = await looseFrom("commercial_leads")
         .select("id, full_name, email, phone, status, created_at, converted_person_id")
         .eq("operation_id", operationId)
         .in("status", ["new", "contacted", "qualified", "converted"])
@@ -933,12 +932,12 @@ function GenericLeadApprovalPanel({
         if (stayError) throw stayError;
 
         const approval = stay?.id
-          ? await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+          ? await looseRpc("approve_commercial_lead_to_operation_and_stay", {
               _lead_id: lead.id,
               _stay_id: stay.id,
               _idempotency_key: newIdempotencyKey(),
             })
-          : await supabase.rpc("approve_commercial_lead_to_operation", {
+          : await looseRpc("approve_commercial_lead_to_operation", {
               _lead_id: lead.id,
               _idempotency_key: newIdempotencyKey(),
             });
@@ -997,7 +996,7 @@ function GenericLeadApprovalPanel({
         };
       }
 
-      const { data: converted, error: convertError } = await supabase.rpc(
+      const { data: converted, error: convertError } = await looseRpc(
         "convert_commercial_lead_to_person",
         { _lead_id: lead.id },
       );
@@ -1177,7 +1176,7 @@ function CommercialLeadApprovalQueue({
   const leads = useQuery({
     queryKey: ["commercial-leads-operation", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("list_operation_commercial_leads", {
+      const { data, error } = await looseRpc("list_operation_commercial_leads", {
         _operation_id: operationId,
       });
       if (error) throw error;
@@ -1188,7 +1187,7 @@ function CommercialLeadApprovalQueue({
   const woodstockStay = useQuery({
     queryKey: ["team-seffrin-woodstock-stay", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_operation_stay_capacity", {
+      const { data, error } = await looseRpc("get_operation_stay_capacity", {
         _operation_id: operationId,
       });
       if (error) throw error;
@@ -1218,7 +1217,7 @@ function CommercialLeadApprovalQueue({
     mutationFn: async (leadId: string) => {
       const stayId = woodstockStay.data?.id ?? null;
       if (stayId) {
-        const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation_and_stay", {
+        const { data, error } = await looseRpc("approve_commercial_lead_to_operation_and_stay", {
           _lead_id: leadId,
           _stay_id: stayId,
           _idempotency_key: newIdempotencyKey(),
@@ -1227,7 +1226,7 @@ function CommercialLeadApprovalQueue({
         return data;
       }
 
-      const { data, error } = await supabase.rpc("approve_commercial_lead_to_operation", {
+      const { data, error } = await looseRpc("approve_commercial_lead_to_operation", {
         _lead_id: leadId,
         _idempotency_key: newIdempotencyKey(),
       });
