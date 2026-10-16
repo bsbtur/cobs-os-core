@@ -12,12 +12,26 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CaldasNovasExperienceRouteImport } from './routes/caldas-novas-experience'
+import { Route as ChapadaExperienceRouteImport } from './routes/chapada-experience'
 import { Route as Ciosp2027RouteImport } from './routes/ciosp-2027'
+import { Route as CityTourValidacaoRouteImport } from './routes/city-tour-validacao'
 import { Route as ClaimAccountMismatchRouteImport } from './routes/claim-account-mismatch'
+import { Route as DataDeletionRouteImport } from './routes/data-deletion'
+import { Route as PirenopolisExperienceParaDoisRouteImport } from './routes/pirenopolis-experience-para-dois'
 import { Route as PrivacidadeCiosp2027RouteImport } from './routes/privacidade-ciosp-2027'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermosCiosp2027RouteImport } from './routes/termos-ciosp-2027'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedChatAssistedRouteImport } from './routes/_authenticated/chat-assisted'
+import { Route as AuthenticatedChatAssistedCommerceRouteImport } from './routes/_authenticated/chat-assisted-commerce'
+import { Route as AuthenticatedChatAssistedFinancialPlanRouteImport } from './routes/_authenticated/chat-assisted-financial-plan'
+import { Route as AuthenticatedChatAssistedOrderRouteImport } from './routes/_authenticated/chat-assisted-order'
+import { Route as AuthenticatedChatAssistedPixRouteImport } from './routes/_authenticated/chat-assisted-pix'
+import { Route as AuthenticatedChatAssistedProductRouteImport } from './routes/_authenticated/chat-assisted-product'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
+import { Route as AuthenticatedMetaWhatsappCoexistenceRouteImport } from './routes/_authenticated/meta-whatsapp-coexistence'
 import { Route as AuthenticatedMyRouteImport } from './routes/_authenticated/my'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPeopleRouteImport } from './routes/_authenticated/people'
@@ -37,8 +51,11 @@ import { Route as AuthenticatedMyOperationIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedOperationsIndexRouteImport } from './routes/_authenticated/operations.index'
 import { Route as AuthenticatedOperationsOperationIdRouteImport } from './routes/_authenticated/operations.$operationId'
 import { Route as AuthenticatedPaymentsSandboxOrderIdRouteImport } from './routes/_authenticated/payments-sandbox.$orderId'
+import { Route as AuthenticatedQaCitytourR1RouteImport } from './routes/_authenticated/qa.citytour-r1'
 import { Route as AuthenticatedSettingsCatalogRouteImport } from './routes/_authenticated/settings_.catalog'
+import { Route as AuthenticatedSettingsContractsRouteImport } from './routes/_authenticated/settings_.contracts'
 import { Route as AuthenticatedSettingsFleetRouteImport } from './routes/_authenticated/settings_.fleet'
+import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings_.privacy'
 import { Route as AuthenticatedSettingsPropertiesRouteImport } from './routes/_authenticated/settings_.properties'
 import { Route as AuthenticatedSettingsVenuesRouteImport } from './routes/_authenticated/settings_.venues'
 import { Route as ApiPaymentsAttemptsRouteImport } from './routes/api/payments.attempts'
@@ -50,9 +67,13 @@ import { Route as AuthenticatedMyOperationIdJourneyRouteImport } from './routes/
 import { Route as AuthenticatedMyOperationIdMessagesRouteImport } from './routes/_authenticated/my.$operationId.messages'
 import { Route as AuthenticatedMyOperationIdMobilityRouteImport } from './routes/_authenticated/my.$operationId.mobility'
 import { Route as AuthenticatedMyOperationIdStayRouteImport } from './routes/_authenticated/my.$operationId.stay'
+import { Route as AuthenticatedMyOperationIdWallRouteImport } from './routes/_authenticated/my.$operationId.wall'
 import { Route as AuthenticatedMyClaimTokenRouteImport } from './routes/_authenticated/my.claim.$token'
 import { Route as AuthenticatedOperationsOperationIdIndexRouteImport } from './routes/_authenticated/operations.$operationId.index'
 import { Route as AuthenticatedOperationsOperationIdCommunicationRouteImport } from './routes/_authenticated/operations.$operationId.communication'
+import { Route as AuthenticatedOperationsOperationIdContractPartiesRouteImport } from './routes/_authenticated/operations.$operationId.contract-parties'
+import { Route as AuthenticatedOperationsOperationIdContractReadinessRouteImport } from './routes/_authenticated/operations.$operationId.contract-readiness'
+import { Route as AuthenticatedOperationsOperationIdContractsRouteImport } from './routes/_authenticated/operations.$operationId.contracts'
 import { Route as AuthenticatedOperationsOperationIdEventSchedulePrecisionRouteImport } from './routes/_authenticated/operations.$operationId.event-schedule-precision'
 import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './routes/_authenticated/operations.$operationId.events'
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
@@ -61,6 +82,8 @@ import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from '.
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
 import { Route as AuthenticatedOperationsOperationIdMobilityRouteImport } from './routes/_authenticated/operations.$operationId.mobility'
 import { Route as AuthenticatedOperationsOperationIdPeopleRouteImport } from './routes/_authenticated/operations.$operationId.people'
+import { Route as AuthenticatedOperationsOperationIdProcurementRouteImport } from './routes/_authenticated/operations.$operationId.procurement'
+import { Route as AuthenticatedOperationsOperationIdWallRouteImport } from './routes/_authenticated/operations.$operationId.wall'
 import { Route as ApiPublicPaymentsMercadopagoRouteImport } from './routes/api/public/payments.mercadopago'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,9 +100,24 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CaldasNovasExperienceRoute = CaldasNovasExperienceRouteImport.update({
+  id: '/caldas-novas-experience',
+  path: '/caldas-novas-experience',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChapadaExperienceRoute = ChapadaExperienceRouteImport.update({
+  id: '/chapada-experience',
+  path: '/chapada-experience',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Ciosp2027Route = Ciosp2027RouteImport.update({
   id: '/ciosp-2027',
   path: '/ciosp-2027',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CityTourValidacaoRoute = CityTourValidacaoRouteImport.update({
+  id: '/city-tour-validacao',
+  path: '/city-tour-validacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimAccountMismatchRoute = ClaimAccountMismatchRouteImport.update({
@@ -87,9 +125,25 @@ const ClaimAccountMismatchRoute = ClaimAccountMismatchRouteImport.update({
   path: '/claim-account-mismatch',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DataDeletionRoute = DataDeletionRouteImport.update({
+  id: '/data-deletion',
+  path: '/data-deletion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PirenopolisExperienceParaDoisRoute =
+  PirenopolisExperienceParaDoisRouteImport.update({
+    id: '/pirenopolis-experience-para-dois',
+    path: '/pirenopolis-experience-para-dois',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PrivacidadeCiosp2027Route = PrivacidadeCiosp2027RouteImport.update({
   id: '/privacidade-ciosp-2027',
   path: '/privacidade-ciosp-2027',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermosCiosp2027Route = TermosCiosp2027RouteImport.update({
@@ -97,16 +151,63 @@ const TermosCiosp2027Route = TermosCiosp2027RouteImport.update({
   path: '/termos-ciosp-2027',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatAssistedRoute =
+  AuthenticatedChatAssistedRouteImport.update({
+    id: '/chat-assisted',
+    path: '/chat-assisted',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatAssistedCommerceRoute =
+  AuthenticatedChatAssistedCommerceRouteImport.update({
+    id: '/chat-assisted-commerce',
+    path: '/chat-assisted-commerce',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatAssistedFinancialPlanRoute =
+  AuthenticatedChatAssistedFinancialPlanRouteImport.update({
+    id: '/chat-assisted-financial-plan',
+    path: '/chat-assisted-financial-plan',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatAssistedOrderRoute =
+  AuthenticatedChatAssistedOrderRouteImport.update({
+    id: '/chat-assisted-order',
+    path: '/chat-assisted-order',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatAssistedPixRoute =
+  AuthenticatedChatAssistedPixRouteImport.update({
+    id: '/chat-assisted-pix',
+    path: '/chat-assisted-pix',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatAssistedProductRoute =
+  AuthenticatedChatAssistedProductRouteImport.update({
+    id: '/chat-assisted-product',
+    path: '/chat-assisted-product',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMetaWhatsappCoexistenceRoute =
+  AuthenticatedMetaWhatsappCoexistenceRouteImport.update({
+    id: '/meta-whatsapp-coexistence',
+    path: '/meta-whatsapp-coexistence',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMyRoute = AuthenticatedMyRouteImport.update({
   id: '/my',
   path: '/my',
@@ -213,16 +314,34 @@ const AuthenticatedPaymentsSandboxOrderIdRoute =
     path: '/payments-sandbox/$orderId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedQaCitytourR1Route =
+  AuthenticatedQaCitytourR1RouteImport.update({
+    id: '/qa/citytour-r1',
+    path: '/qa/citytour-r1',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsCatalogRoute =
   AuthenticatedSettingsCatalogRouteImport.update({
     id: '/settings_/catalog',
     path: '/settings/catalog',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsContractsRoute =
+  AuthenticatedSettingsContractsRouteImport.update({
+    id: '/settings_/contracts',
+    path: '/settings/contracts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsFleetRoute =
   AuthenticatedSettingsFleetRouteImport.update({
     id: '/settings_/fleet',
     path: '/settings/fleet',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsPrivacyRoute =
+  AuthenticatedSettingsPrivacyRouteImport.update({
+    id: '/settings_/privacy',
+    path: '/settings/privacy',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsPropertiesRoute =
@@ -289,6 +408,12 @@ const AuthenticatedMyOperationIdStayRoute =
     path: '/stay',
     getParentRoute: () => AuthenticatedMyOperationIdRoute,
   } as any)
+const AuthenticatedMyOperationIdWallRoute =
+  AuthenticatedMyOperationIdWallRouteImport.update({
+    id: '/wall',
+    path: '/wall',
+    getParentRoute: () => AuthenticatedMyOperationIdRoute,
+  } as any)
 const AuthenticatedMyClaimTokenRoute =
   AuthenticatedMyClaimTokenRouteImport.update({
     id: '/claim/$token',
@@ -305,6 +430,24 @@ const AuthenticatedOperationsOperationIdCommunicationRoute =
   AuthenticatedOperationsOperationIdCommunicationRouteImport.update({
     id: '/communication',
     path: '/communication',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdContractPartiesRoute =
+  AuthenticatedOperationsOperationIdContractPartiesRouteImport.update({
+    id: '/contract-parties',
+    path: '/contract-parties',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdContractReadinessRoute =
+  AuthenticatedOperationsOperationIdContractReadinessRouteImport.update({
+    id: '/contract-readiness',
+    path: '/contract-readiness',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdContractsRoute =
+  AuthenticatedOperationsOperationIdContractsRouteImport.update({
+    id: '/contracts',
+    path: '/contracts',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
 const AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute =
@@ -355,6 +498,18 @@ const AuthenticatedOperationsOperationIdPeopleRoute =
     path: '/people',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const AuthenticatedOperationsOperationIdProcurementRoute =
+  AuthenticatedOperationsOperationIdProcurementRouteImport.update({
+    id: '/procurement',
+    path: '/procurement',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
+const AuthenticatedOperationsOperationIdWallRoute =
+  AuthenticatedOperationsOperationIdWallRouteImport.update({
+    id: '/wall',
+    path: '/wall',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 const ApiPublicPaymentsMercadopagoRoute =
   ApiPublicPaymentsMercadopagoRouteImport.update({
     id: '/api/public/payments/mercadopago',
@@ -365,12 +520,26 @@ const ApiPublicPaymentsMercadopagoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/caldas-novas-experience': typeof CaldasNovasExperienceRoute
+  '/chapada-experience': typeof ChapadaExperienceRoute
   '/ciosp-2027': typeof Ciosp2027Route
+  '/city-tour-validacao': typeof CityTourValidacaoRoute
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
+  '/data-deletion': typeof DataDeletionRoute
+  '/pirenopolis-experience-para-dois': typeof PirenopolisExperienceParaDoisRoute
   '/privacidade-ciosp-2027': typeof PrivacidadeCiosp2027Route
+  '/privacy': typeof PrivacyRoute
   '/termos-ciosp-2027': typeof TermosCiosp2027Route
+  '/terms': typeof TermsRoute
   '/app': typeof AuthenticatedAppRoute
+  '/chat-assisted': typeof AuthenticatedChatAssistedRoute
+  '/chat-assisted-commerce': typeof AuthenticatedChatAssistedCommerceRoute
+  '/chat-assisted-financial-plan': typeof AuthenticatedChatAssistedFinancialPlanRoute
+  '/chat-assisted-order': typeof AuthenticatedChatAssistedOrderRoute
+  '/chat-assisted-pix': typeof AuthenticatedChatAssistedPixRoute
+  '/chat-assisted-product': typeof AuthenticatedChatAssistedProductRoute
   '/inbox': typeof AuthenticatedInboxRoute
+  '/meta-whatsapp-coexistence': typeof AuthenticatedMetaWhatsappCoexistenceRoute
   '/my': typeof AuthenticatedMyRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/people': typeof AuthenticatedPeopleRoute
@@ -385,8 +554,11 @@ export interface FileRoutesByFullPath {
   '/my/$operationId': typeof AuthenticatedMyOperationIdRouteWithChildren
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/payments-sandbox/$orderId': typeof AuthenticatedPaymentsSandboxOrderIdRoute
+  '/qa/citytour-r1': typeof AuthenticatedQaCitytourR1Route
   '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
+  '/settings/contracts': typeof AuthenticatedSettingsContractsRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
+  '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
@@ -402,8 +574,12 @@ export interface FileRoutesByFullPath {
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
   '/my/$operationId/mobility': typeof AuthenticatedMyOperationIdMobilityRoute
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
+  '/my/$operationId/wall': typeof AuthenticatedMyOperationIdWallRoute
   '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/operations/$operationId/contract-parties': typeof AuthenticatedOperationsOperationIdContractPartiesRoute
+  '/operations/$operationId/contract-readiness': typeof AuthenticatedOperationsOperationIdContractReadinessRoute
+  '/operations/$operationId/contracts': typeof AuthenticatedOperationsOperationIdContractsRoute
   '/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -412,6 +588,8 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
+  '/operations/$operationId/procurement': typeof AuthenticatedOperationsOperationIdProcurementRoute
+  '/operations/$operationId/wall': typeof AuthenticatedOperationsOperationIdWallRoute
   '/api/public/payments/mercadopago': typeof ApiPublicPaymentsMercadopagoRoute
   '/my/$operationId/': typeof AuthenticatedMyOperationIdIndexRoute
   '/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
@@ -419,12 +597,26 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/caldas-novas-experience': typeof CaldasNovasExperienceRoute
+  '/chapada-experience': typeof ChapadaExperienceRoute
   '/ciosp-2027': typeof Ciosp2027Route
+  '/city-tour-validacao': typeof CityTourValidacaoRoute
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
+  '/data-deletion': typeof DataDeletionRoute
+  '/pirenopolis-experience-para-dois': typeof PirenopolisExperienceParaDoisRoute
   '/privacidade-ciosp-2027': typeof PrivacidadeCiosp2027Route
+  '/privacy': typeof PrivacyRoute
   '/termos-ciosp-2027': typeof TermosCiosp2027Route
+  '/terms': typeof TermsRoute
   '/app': typeof AuthenticatedAppRoute
+  '/chat-assisted': typeof AuthenticatedChatAssistedRoute
+  '/chat-assisted-commerce': typeof AuthenticatedChatAssistedCommerceRoute
+  '/chat-assisted-financial-plan': typeof AuthenticatedChatAssistedFinancialPlanRoute
+  '/chat-assisted-order': typeof AuthenticatedChatAssistedOrderRoute
+  '/chat-assisted-pix': typeof AuthenticatedChatAssistedPixRoute
+  '/chat-assisted-product': typeof AuthenticatedChatAssistedProductRoute
   '/inbox': typeof AuthenticatedInboxRoute
+  '/meta-whatsapp-coexistence': typeof AuthenticatedMetaWhatsappCoexistenceRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/people': typeof AuthenticatedPeopleRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -436,8 +628,11 @@ export interface FileRoutesByTo {
   '/experiences/$experienceId': typeof AuthenticatedExperiencesExperienceIdRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/payments-sandbox/$orderId': typeof AuthenticatedPaymentsSandboxOrderIdRoute
+  '/qa/citytour-r1': typeof AuthenticatedQaCitytourR1Route
   '/settings/catalog': typeof AuthenticatedSettingsCatalogRoute
+  '/settings/contracts': typeof AuthenticatedSettingsContractsRoute
   '/settings/fleet': typeof AuthenticatedSettingsFleetRoute
+  '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/settings/venues': typeof AuthenticatedSettingsVenuesRoute
   '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
@@ -453,8 +648,12 @@ export interface FileRoutesByTo {
   '/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
   '/my/$operationId/mobility': typeof AuthenticatedMyOperationIdMobilityRoute
   '/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
+  '/my/$operationId/wall': typeof AuthenticatedMyOperationIdWallRoute
   '/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/operations/$operationId/contract-parties': typeof AuthenticatedOperationsOperationIdContractPartiesRoute
+  '/operations/$operationId/contract-readiness': typeof AuthenticatedOperationsOperationIdContractReadinessRoute
+  '/operations/$operationId/contracts': typeof AuthenticatedOperationsOperationIdContractsRoute
   '/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -463,6 +662,8 @@ export interface FileRoutesByTo {
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
+  '/operations/$operationId/procurement': typeof AuthenticatedOperationsOperationIdProcurementRoute
+  '/operations/$operationId/wall': typeof AuthenticatedOperationsOperationIdWallRoute
   '/api/public/payments/mercadopago': typeof ApiPublicPaymentsMercadopagoRoute
   '/my/$operationId': typeof AuthenticatedMyOperationIdIndexRoute
   '/operations/$operationId': typeof AuthenticatedOperationsOperationIdIndexRoute
@@ -472,12 +673,26 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/caldas-novas-experience': typeof CaldasNovasExperienceRoute
+  '/chapada-experience': typeof ChapadaExperienceRoute
   '/ciosp-2027': typeof Ciosp2027Route
+  '/city-tour-validacao': typeof CityTourValidacaoRoute
   '/claim-account-mismatch': typeof ClaimAccountMismatchRoute
+  '/data-deletion': typeof DataDeletionRoute
+  '/pirenopolis-experience-para-dois': typeof PirenopolisExperienceParaDoisRoute
   '/privacidade-ciosp-2027': typeof PrivacidadeCiosp2027Route
+  '/privacy': typeof PrivacyRoute
   '/termos-ciosp-2027': typeof TermosCiosp2027Route
+  '/terms': typeof TermsRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/chat-assisted': typeof AuthenticatedChatAssistedRoute
+  '/_authenticated/chat-assisted-commerce': typeof AuthenticatedChatAssistedCommerceRoute
+  '/_authenticated/chat-assisted-financial-plan': typeof AuthenticatedChatAssistedFinancialPlanRoute
+  '/_authenticated/chat-assisted-order': typeof AuthenticatedChatAssistedOrderRoute
+  '/_authenticated/chat-assisted-pix': typeof AuthenticatedChatAssistedPixRoute
+  '/_authenticated/chat-assisted-product': typeof AuthenticatedChatAssistedProductRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
+  '/_authenticated/meta-whatsapp-coexistence': typeof AuthenticatedMetaWhatsappCoexistenceRoute
   '/_authenticated/my': typeof AuthenticatedMyRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/people': typeof AuthenticatedPeopleRoute
@@ -492,8 +707,11 @@ export interface FileRoutesById {
   '/_authenticated/my/$operationId': typeof AuthenticatedMyOperationIdRouteWithChildren
   '/_authenticated/operations/$operationId': typeof AuthenticatedOperationsOperationIdRouteWithChildren
   '/_authenticated/payments-sandbox/$orderId': typeof AuthenticatedPaymentsSandboxOrderIdRoute
+  '/_authenticated/qa/citytour-r1': typeof AuthenticatedQaCitytourR1Route
   '/_authenticated/settings_/catalog': typeof AuthenticatedSettingsCatalogRoute
+  '/_authenticated/settings_/contracts': typeof AuthenticatedSettingsContractsRoute
   '/_authenticated/settings_/fleet': typeof AuthenticatedSettingsFleetRoute
+  '/_authenticated/settings_/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/_authenticated/settings_/properties': typeof AuthenticatedSettingsPropertiesRoute
   '/_authenticated/settings_/venues': typeof AuthenticatedSettingsVenuesRoute
   '/api/payments/attempts': typeof ApiPaymentsAttemptsRoute
@@ -509,8 +727,12 @@ export interface FileRoutesById {
   '/_authenticated/my/$operationId/messages': typeof AuthenticatedMyOperationIdMessagesRoute
   '/_authenticated/my/$operationId/mobility': typeof AuthenticatedMyOperationIdMobilityRoute
   '/_authenticated/my/$operationId/stay': typeof AuthenticatedMyOperationIdStayRoute
+  '/_authenticated/my/$operationId/wall': typeof AuthenticatedMyOperationIdWallRoute
   '/_authenticated/my/claim/$token': typeof AuthenticatedMyClaimTokenRoute
   '/_authenticated/operations/$operationId/communication': typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  '/_authenticated/operations/$operationId/contract-parties': typeof AuthenticatedOperationsOperationIdContractPartiesRoute
+  '/_authenticated/operations/$operationId/contract-readiness': typeof AuthenticatedOperationsOperationIdContractReadinessRoute
+  '/_authenticated/operations/$operationId/contracts': typeof AuthenticatedOperationsOperationIdContractsRoute
   '/_authenticated/operations/$operationId/event-schedule-precision': typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   '/_authenticated/operations/$operationId/events': typeof AuthenticatedOperationsOperationIdEventsRoute
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -519,6 +741,8 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/_authenticated/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/_authenticated/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
+  '/_authenticated/operations/$operationId/procurement': typeof AuthenticatedOperationsOperationIdProcurementRoute
+  '/_authenticated/operations/$operationId/wall': typeof AuthenticatedOperationsOperationIdWallRoute
   '/api/public/payments/mercadopago': typeof ApiPublicPaymentsMercadopagoRoute
   '/_authenticated/my/$operationId/': typeof AuthenticatedMyOperationIdIndexRoute
   '/_authenticated/operations/$operationId/': typeof AuthenticatedOperationsOperationIdIndexRoute
@@ -528,12 +752,26 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/caldas-novas-experience'
+    | '/chapada-experience'
     | '/ciosp-2027'
+    | '/city-tour-validacao'
     | '/claim-account-mismatch'
+    | '/data-deletion'
+    | '/pirenopolis-experience-para-dois'
     | '/privacidade-ciosp-2027'
+    | '/privacy'
     | '/termos-ciosp-2027'
+    | '/terms'
     | '/app'
+    | '/chat-assisted'
+    | '/chat-assisted-commerce'
+    | '/chat-assisted-financial-plan'
+    | '/chat-assisted-order'
+    | '/chat-assisted-pix'
+    | '/chat-assisted-product'
     | '/inbox'
+    | '/meta-whatsapp-coexistence'
     | '/my'
     | '/onboarding'
     | '/people'
@@ -548,8 +786,11 @@ export interface FileRouteTypes {
     | '/my/$operationId'
     | '/operations/$operationId'
     | '/payments-sandbox/$orderId'
+    | '/qa/citytour-r1'
     | '/settings/catalog'
+    | '/settings/contracts'
     | '/settings/fleet'
+    | '/settings/privacy'
     | '/settings/properties'
     | '/settings/venues'
     | '/api/payments/attempts'
@@ -565,8 +806,12 @@ export interface FileRouteTypes {
     | '/my/$operationId/messages'
     | '/my/$operationId/mobility'
     | '/my/$operationId/stay'
+    | '/my/$operationId/wall'
     | '/my/claim/$token'
     | '/operations/$operationId/communication'
+    | '/operations/$operationId/contract-parties'
+    | '/operations/$operationId/contract-readiness'
+    | '/operations/$operationId/contracts'
     | '/operations/$operationId/event-schedule-precision'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
@@ -575,6 +820,8 @@ export interface FileRouteTypes {
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
     | '/operations/$operationId/people'
+    | '/operations/$operationId/procurement'
+    | '/operations/$operationId/wall'
     | '/api/public/payments/mercadopago'
     | '/my/$operationId/'
     | '/operations/$operationId/'
@@ -582,12 +829,26 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/caldas-novas-experience'
+    | '/chapada-experience'
     | '/ciosp-2027'
+    | '/city-tour-validacao'
     | '/claim-account-mismatch'
+    | '/data-deletion'
+    | '/pirenopolis-experience-para-dois'
     | '/privacidade-ciosp-2027'
+    | '/privacy'
     | '/termos-ciosp-2027'
+    | '/terms'
     | '/app'
+    | '/chat-assisted'
+    | '/chat-assisted-commerce'
+    | '/chat-assisted-financial-plan'
+    | '/chat-assisted-order'
+    | '/chat-assisted-pix'
+    | '/chat-assisted-product'
     | '/inbox'
+    | '/meta-whatsapp-coexistence'
     | '/onboarding'
     | '/people'
     | '/settings'
@@ -599,8 +860,11 @@ export interface FileRouteTypes {
     | '/experiences/$experienceId'
     | '/invite/$token'
     | '/payments-sandbox/$orderId'
+    | '/qa/citytour-r1'
     | '/settings/catalog'
+    | '/settings/contracts'
     | '/settings/fleet'
+    | '/settings/privacy'
     | '/settings/properties'
     | '/settings/venues'
     | '/api/payments/attempts'
@@ -616,8 +880,12 @@ export interface FileRouteTypes {
     | '/my/$operationId/messages'
     | '/my/$operationId/mobility'
     | '/my/$operationId/stay'
+    | '/my/$operationId/wall'
     | '/my/claim/$token'
     | '/operations/$operationId/communication'
+    | '/operations/$operationId/contract-parties'
+    | '/operations/$operationId/contract-readiness'
+    | '/operations/$operationId/contracts'
     | '/operations/$operationId/event-schedule-precision'
     | '/operations/$operationId/events'
     | '/operations/$operationId/hospitality'
@@ -626,6 +894,8 @@ export interface FileRouteTypes {
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
     | '/operations/$operationId/people'
+    | '/operations/$operationId/procurement'
+    | '/operations/$operationId/wall'
     | '/api/public/payments/mercadopago'
     | '/my/$operationId'
     | '/operations/$operationId'
@@ -634,12 +904,26 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/caldas-novas-experience'
+    | '/chapada-experience'
     | '/ciosp-2027'
+    | '/city-tour-validacao'
     | '/claim-account-mismatch'
+    | '/data-deletion'
+    | '/pirenopolis-experience-para-dois'
     | '/privacidade-ciosp-2027'
+    | '/privacy'
     | '/termos-ciosp-2027'
+    | '/terms'
     | '/_authenticated/app'
+    | '/_authenticated/chat-assisted'
+    | '/_authenticated/chat-assisted-commerce'
+    | '/_authenticated/chat-assisted-financial-plan'
+    | '/_authenticated/chat-assisted-order'
+    | '/_authenticated/chat-assisted-pix'
+    | '/_authenticated/chat-assisted-product'
     | '/_authenticated/inbox'
+    | '/_authenticated/meta-whatsapp-coexistence'
     | '/_authenticated/my'
     | '/_authenticated/onboarding'
     | '/_authenticated/people'
@@ -654,8 +938,11 @@ export interface FileRouteTypes {
     | '/_authenticated/my/$operationId'
     | '/_authenticated/operations/$operationId'
     | '/_authenticated/payments-sandbox/$orderId'
+    | '/_authenticated/qa/citytour-r1'
     | '/_authenticated/settings_/catalog'
+    | '/_authenticated/settings_/contracts'
     | '/_authenticated/settings_/fleet'
+    | '/_authenticated/settings_/privacy'
     | '/_authenticated/settings_/properties'
     | '/_authenticated/settings_/venues'
     | '/api/payments/attempts'
@@ -671,8 +958,12 @@ export interface FileRouteTypes {
     | '/_authenticated/my/$operationId/messages'
     | '/_authenticated/my/$operationId/mobility'
     | '/_authenticated/my/$operationId/stay'
+    | '/_authenticated/my/$operationId/wall'
     | '/_authenticated/my/claim/$token'
     | '/_authenticated/operations/$operationId/communication'
+    | '/_authenticated/operations/$operationId/contract-parties'
+    | '/_authenticated/operations/$operationId/contract-readiness'
+    | '/_authenticated/operations/$operationId/contracts'
     | '/_authenticated/operations/$operationId/event-schedule-precision'
     | '/_authenticated/operations/$operationId/events'
     | '/_authenticated/operations/$operationId/hospitality'
@@ -681,6 +972,8 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId/live'
     | '/_authenticated/operations/$operationId/mobility'
     | '/_authenticated/operations/$operationId/people'
+    | '/_authenticated/operations/$operationId/procurement'
+    | '/_authenticated/operations/$operationId/wall'
     | '/api/public/payments/mercadopago'
     | '/_authenticated/my/$operationId/'
     | '/_authenticated/operations/$operationId/'
@@ -690,10 +983,17 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CaldasNovasExperienceRoute: typeof CaldasNovasExperienceRoute
+  ChapadaExperienceRoute: typeof ChapadaExperienceRoute
   Ciosp2027Route: typeof Ciosp2027Route
+  CityTourValidacaoRoute: typeof CityTourValidacaoRoute
   ClaimAccountMismatchRoute: typeof ClaimAccountMismatchRoute
+  DataDeletionRoute: typeof DataDeletionRoute
+  PirenopolisExperienceParaDoisRoute: typeof PirenopolisExperienceParaDoisRoute
   PrivacidadeCiosp2027Route: typeof PrivacidadeCiosp2027Route
+  PrivacyRoute: typeof PrivacyRoute
   TermosCiosp2027Route: typeof TermosCiosp2027Route
+  TermsRoute: typeof TermsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   Ciosp2027ReservaRoute: typeof Ciosp2027ReservaRoute
   ApiPaymentsAttemptsRoute: typeof ApiPaymentsAttemptsRoute
@@ -724,11 +1024,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/caldas-novas-experience': {
+      id: '/caldas-novas-experience'
+      path: '/caldas-novas-experience'
+      fullPath: '/caldas-novas-experience'
+      preLoaderRoute: typeof CaldasNovasExperienceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chapada-experience': {
+      id: '/chapada-experience'
+      path: '/chapada-experience'
+      fullPath: '/chapada-experience'
+      preLoaderRoute: typeof ChapadaExperienceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ciosp-2027': {
       id: '/ciosp-2027'
       path: '/ciosp-2027'
       fullPath: '/ciosp-2027'
       preLoaderRoute: typeof Ciosp2027RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/city-tour-validacao': {
+      id: '/city-tour-validacao'
+      path: '/city-tour-validacao'
+      fullPath: '/city-tour-validacao'
+      preLoaderRoute: typeof CityTourValidacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim-account-mismatch': {
@@ -738,11 +1059,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClaimAccountMismatchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data-deletion': {
+      id: '/data-deletion'
+      path: '/data-deletion'
+      fullPath: '/data-deletion'
+      preLoaderRoute: typeof DataDeletionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pirenopolis-experience-para-dois': {
+      id: '/pirenopolis-experience-para-dois'
+      path: '/pirenopolis-experience-para-dois'
+      fullPath: '/pirenopolis-experience-para-dois'
+      preLoaderRoute: typeof PirenopolisExperienceParaDoisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacidade-ciosp-2027': {
       id: '/privacidade-ciosp-2027'
       path: '/privacidade-ciosp-2027'
       fullPath: '/privacidade-ciosp-2027'
       preLoaderRoute: typeof PrivacidadeCiosp2027RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termos-ciosp-2027': {
@@ -752,6 +1094,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermosCiosp2027RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/app': {
       id: '/_authenticated/app'
       path: '/app'
@@ -759,11 +1108,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat-assisted': {
+      id: '/_authenticated/chat-assisted'
+      path: '/chat-assisted'
+      fullPath: '/chat-assisted'
+      preLoaderRoute: typeof AuthenticatedChatAssistedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chat-assisted-commerce': {
+      id: '/_authenticated/chat-assisted-commerce'
+      path: '/chat-assisted-commerce'
+      fullPath: '/chat-assisted-commerce'
+      preLoaderRoute: typeof AuthenticatedChatAssistedCommerceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chat-assisted-financial-plan': {
+      id: '/_authenticated/chat-assisted-financial-plan'
+      path: '/chat-assisted-financial-plan'
+      fullPath: '/chat-assisted-financial-plan'
+      preLoaderRoute: typeof AuthenticatedChatAssistedFinancialPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chat-assisted-order': {
+      id: '/_authenticated/chat-assisted-order'
+      path: '/chat-assisted-order'
+      fullPath: '/chat-assisted-order'
+      preLoaderRoute: typeof AuthenticatedChatAssistedOrderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chat-assisted-pix': {
+      id: '/_authenticated/chat-assisted-pix'
+      path: '/chat-assisted-pix'
+      fullPath: '/chat-assisted-pix'
+      preLoaderRoute: typeof AuthenticatedChatAssistedPixRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chat-assisted-product': {
+      id: '/_authenticated/chat-assisted-product'
+      path: '/chat-assisted-product'
+      fullPath: '/chat-assisted-product'
+      preLoaderRoute: typeof AuthenticatedChatAssistedProductRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inbox': {
       id: '/_authenticated/inbox'
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof AuthenticatedInboxRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meta-whatsapp-coexistence': {
+      id: '/_authenticated/meta-whatsapp-coexistence'
+      path: '/meta-whatsapp-coexistence'
+      fullPath: '/meta-whatsapp-coexistence'
+      preLoaderRoute: typeof AuthenticatedMetaWhatsappCoexistenceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/my': {
@@ -899,6 +1297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPaymentsSandboxOrderIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/qa/citytour-r1': {
+      id: '/_authenticated/qa/citytour-r1'
+      path: '/qa/citytour-r1'
+      fullPath: '/qa/citytour-r1'
+      preLoaderRoute: typeof AuthenticatedQaCitytourR1RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings_/catalog': {
       id: '/_authenticated/settings_/catalog'
       path: '/settings/catalog'
@@ -906,11 +1311,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsCatalogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings_/contracts': {
+      id: '/_authenticated/settings_/contracts'
+      path: '/settings/contracts'
+      fullPath: '/settings/contracts'
+      preLoaderRoute: typeof AuthenticatedSettingsContractsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings_/fleet': {
       id: '/_authenticated/settings_/fleet'
       path: '/settings/fleet'
       fullPath: '/settings/fleet'
       preLoaderRoute: typeof AuthenticatedSettingsFleetRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings_/privacy': {
+      id: '/_authenticated/settings_/privacy'
+      path: '/settings/privacy'
+      fullPath: '/settings/privacy'
+      preLoaderRoute: typeof AuthenticatedSettingsPrivacyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings_/properties': {
@@ -990,6 +1409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyOperationIdStayRouteImport
       parentRoute: typeof AuthenticatedMyOperationIdRoute
     }
+    '/_authenticated/my/$operationId/wall': {
+      id: '/_authenticated/my/$operationId/wall'
+      path: '/wall'
+      fullPath: '/my/$operationId/wall'
+      preLoaderRoute: typeof AuthenticatedMyOperationIdWallRouteImport
+      parentRoute: typeof AuthenticatedMyOperationIdRoute
+    }
     '/_authenticated/my/claim/$token': {
       id: '/_authenticated/my/claim/$token'
       path: '/claim/$token'
@@ -1009,6 +1435,27 @@ declare module '@tanstack/react-router' {
       path: '/communication'
       fullPath: '/operations/$operationId/communication'
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdCommunicationRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/contract-parties': {
+      id: '/_authenticated/operations/$operationId/contract-parties'
+      path: '/contract-parties'
+      fullPath: '/operations/$operationId/contract-parties'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdContractPartiesRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/contract-readiness': {
+      id: '/_authenticated/operations/$operationId/contract-readiness'
+      path: '/contract-readiness'
+      fullPath: '/operations/$operationId/contract-readiness'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdContractReadinessRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/contracts': {
+      id: '/_authenticated/operations/$operationId/contracts'
+      path: '/contracts'
+      fullPath: '/operations/$operationId/contracts'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdContractsRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
     '/_authenticated/operations/$operationId/event-schedule-precision': {
@@ -1067,6 +1514,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdPeopleRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/procurement': {
+      id: '/_authenticated/operations/$operationId/procurement'
+      path: '/procurement'
+      fullPath: '/operations/$operationId/procurement'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdProcurementRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
+    '/_authenticated/operations/$operationId/wall': {
+      id: '/_authenticated/operations/$operationId/wall'
+      path: '/wall'
+      fullPath: '/operations/$operationId/wall'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdWallRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
     '/api/public/payments/mercadopago': {
       id: '/api/public/payments/mercadopago'
       path: '/api/public/payments/mercadopago'
@@ -1084,6 +1545,7 @@ interface AuthenticatedMyOperationIdRouteChildren {
   AuthenticatedMyOperationIdMessagesRoute: typeof AuthenticatedMyOperationIdMessagesRoute
   AuthenticatedMyOperationIdMobilityRoute: typeof AuthenticatedMyOperationIdMobilityRoute
   AuthenticatedMyOperationIdStayRoute: typeof AuthenticatedMyOperationIdStayRoute
+  AuthenticatedMyOperationIdWallRoute: typeof AuthenticatedMyOperationIdWallRoute
   AuthenticatedMyOperationIdIndexRoute: typeof AuthenticatedMyOperationIdIndexRoute
 }
 
@@ -1100,6 +1562,7 @@ const AuthenticatedMyOperationIdRouteChildren: AuthenticatedMyOperationIdRouteCh
     AuthenticatedMyOperationIdMobilityRoute:
       AuthenticatedMyOperationIdMobilityRoute,
     AuthenticatedMyOperationIdStayRoute: AuthenticatedMyOperationIdStayRoute,
+    AuthenticatedMyOperationIdWallRoute: AuthenticatedMyOperationIdWallRoute,
     AuthenticatedMyOperationIdIndexRoute: AuthenticatedMyOperationIdIndexRoute,
   }
 
@@ -1126,6 +1589,9 @@ const AuthenticatedMyRouteWithChildren = AuthenticatedMyRoute._addFileChildren(
 
 interface AuthenticatedOperationsOperationIdRouteChildren {
   AuthenticatedOperationsOperationIdCommunicationRoute: typeof AuthenticatedOperationsOperationIdCommunicationRoute
+  AuthenticatedOperationsOperationIdContractPartiesRoute: typeof AuthenticatedOperationsOperationIdContractPartiesRoute
+  AuthenticatedOperationsOperationIdContractReadinessRoute: typeof AuthenticatedOperationsOperationIdContractReadinessRoute
+  AuthenticatedOperationsOperationIdContractsRoute: typeof AuthenticatedOperationsOperationIdContractsRoute
   AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute: typeof AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute
   AuthenticatedOperationsOperationIdEventsRoute: typeof AuthenticatedOperationsOperationIdEventsRoute
   AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
@@ -1134,6 +1600,8 @@ interface AuthenticatedOperationsOperationIdRouteChildren {
   AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
   AuthenticatedOperationsOperationIdMobilityRoute: typeof AuthenticatedOperationsOperationIdMobilityRoute
   AuthenticatedOperationsOperationIdPeopleRoute: typeof AuthenticatedOperationsOperationIdPeopleRoute
+  AuthenticatedOperationsOperationIdProcurementRoute: typeof AuthenticatedOperationsOperationIdProcurementRoute
+  AuthenticatedOperationsOperationIdWallRoute: typeof AuthenticatedOperationsOperationIdWallRoute
   AuthenticatedOperationsOperationIdIndexRoute: typeof AuthenticatedOperationsOperationIdIndexRoute
 }
 
@@ -1141,6 +1609,12 @@ const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOp
   {
     AuthenticatedOperationsOperationIdCommunicationRoute:
       AuthenticatedOperationsOperationIdCommunicationRoute,
+    AuthenticatedOperationsOperationIdContractPartiesRoute:
+      AuthenticatedOperationsOperationIdContractPartiesRoute,
+    AuthenticatedOperationsOperationIdContractReadinessRoute:
+      AuthenticatedOperationsOperationIdContractReadinessRoute,
+    AuthenticatedOperationsOperationIdContractsRoute:
+      AuthenticatedOperationsOperationIdContractsRoute,
     AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute:
       AuthenticatedOperationsOperationIdEventSchedulePrecisionRoute,
     AuthenticatedOperationsOperationIdEventsRoute:
@@ -1157,6 +1631,10 @@ const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOp
       AuthenticatedOperationsOperationIdMobilityRoute,
     AuthenticatedOperationsOperationIdPeopleRoute:
       AuthenticatedOperationsOperationIdPeopleRoute,
+    AuthenticatedOperationsOperationIdProcurementRoute:
+      AuthenticatedOperationsOperationIdProcurementRoute,
+    AuthenticatedOperationsOperationIdWallRoute:
+      AuthenticatedOperationsOperationIdWallRoute,
     AuthenticatedOperationsOperationIdIndexRoute:
       AuthenticatedOperationsOperationIdIndexRoute,
   }
@@ -1168,7 +1646,14 @@ const AuthenticatedOperationsOperationIdRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedChatAssistedRoute: typeof AuthenticatedChatAssistedRoute
+  AuthenticatedChatAssistedCommerceRoute: typeof AuthenticatedChatAssistedCommerceRoute
+  AuthenticatedChatAssistedFinancialPlanRoute: typeof AuthenticatedChatAssistedFinancialPlanRoute
+  AuthenticatedChatAssistedOrderRoute: typeof AuthenticatedChatAssistedOrderRoute
+  AuthenticatedChatAssistedPixRoute: typeof AuthenticatedChatAssistedPixRoute
+  AuthenticatedChatAssistedProductRoute: typeof AuthenticatedChatAssistedProductRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
+  AuthenticatedMetaWhatsappCoexistenceRoute: typeof AuthenticatedMetaWhatsappCoexistenceRoute
   AuthenticatedMyRoute: typeof AuthenticatedMyRouteWithChildren
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPeopleRoute: typeof AuthenticatedPeopleRoute
@@ -1180,8 +1665,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedOperationsOperationIdRoute: typeof AuthenticatedOperationsOperationIdRouteWithChildren
   AuthenticatedPaymentsSandboxOrderIdRoute: typeof AuthenticatedPaymentsSandboxOrderIdRoute
+  AuthenticatedQaCitytourR1Route: typeof AuthenticatedQaCitytourR1Route
   AuthenticatedSettingsCatalogRoute: typeof AuthenticatedSettingsCatalogRoute
+  AuthenticatedSettingsContractsRoute: typeof AuthenticatedSettingsContractsRoute
   AuthenticatedSettingsFleetRoute: typeof AuthenticatedSettingsFleetRoute
+  AuthenticatedSettingsPrivacyRoute: typeof AuthenticatedSettingsPrivacyRoute
   AuthenticatedSettingsPropertiesRoute: typeof AuthenticatedSettingsPropertiesRoute
   AuthenticatedSettingsVenuesRoute: typeof AuthenticatedSettingsVenuesRoute
   AuthenticatedBlueprintsIndexRoute: typeof AuthenticatedBlueprintsIndexRoute
@@ -1192,7 +1680,17 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedChatAssistedRoute: AuthenticatedChatAssistedRoute,
+  AuthenticatedChatAssistedCommerceRoute:
+    AuthenticatedChatAssistedCommerceRoute,
+  AuthenticatedChatAssistedFinancialPlanRoute:
+    AuthenticatedChatAssistedFinancialPlanRoute,
+  AuthenticatedChatAssistedOrderRoute: AuthenticatedChatAssistedOrderRoute,
+  AuthenticatedChatAssistedPixRoute: AuthenticatedChatAssistedPixRoute,
+  AuthenticatedChatAssistedProductRoute: AuthenticatedChatAssistedProductRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
+  AuthenticatedMetaWhatsappCoexistenceRoute:
+    AuthenticatedMetaWhatsappCoexistenceRoute,
   AuthenticatedMyRoute: AuthenticatedMyRouteWithChildren,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPeopleRoute: AuthenticatedPeopleRoute,
@@ -1208,8 +1706,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedOperationsOperationIdRouteWithChildren,
   AuthenticatedPaymentsSandboxOrderIdRoute:
     AuthenticatedPaymentsSandboxOrderIdRoute,
+  AuthenticatedQaCitytourR1Route: AuthenticatedQaCitytourR1Route,
   AuthenticatedSettingsCatalogRoute: AuthenticatedSettingsCatalogRoute,
+  AuthenticatedSettingsContractsRoute: AuthenticatedSettingsContractsRoute,
   AuthenticatedSettingsFleetRoute: AuthenticatedSettingsFleetRoute,
+  AuthenticatedSettingsPrivacyRoute: AuthenticatedSettingsPrivacyRoute,
   AuthenticatedSettingsPropertiesRoute: AuthenticatedSettingsPropertiesRoute,
   AuthenticatedSettingsVenuesRoute: AuthenticatedSettingsVenuesRoute,
   AuthenticatedBlueprintsIndexRoute: AuthenticatedBlueprintsIndexRoute,
@@ -1225,10 +1726,17 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CaldasNovasExperienceRoute: CaldasNovasExperienceRoute,
+  ChapadaExperienceRoute: ChapadaExperienceRoute,
   Ciosp2027Route: Ciosp2027Route,
+  CityTourValidacaoRoute: CityTourValidacaoRoute,
   ClaimAccountMismatchRoute: ClaimAccountMismatchRoute,
+  DataDeletionRoute: DataDeletionRoute,
+  PirenopolisExperienceParaDoisRoute: PirenopolisExperienceParaDoisRoute,
   PrivacidadeCiosp2027Route: PrivacidadeCiosp2027Route,
+  PrivacyRoute: PrivacyRoute,
   TermosCiosp2027Route: TermosCiosp2027Route,
+  TermsRoute: TermsRoute,
   ApiHealthRoute: ApiHealthRoute,
   Ciosp2027ReservaRoute: Ciosp2027ReservaRoute,
   ApiPaymentsAttemptsRoute: ApiPaymentsAttemptsRoute,
