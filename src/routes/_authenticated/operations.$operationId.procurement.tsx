@@ -16,6 +16,7 @@ import {
   type SupplierLegalProfile,
 } from "@/components/procurement/supplier-legal-profile-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { SupplierDocumentManager } from "@/components/procurement/supplier-document-manager";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";
@@ -259,6 +260,7 @@ function ContractQuoteDialog({ quote, onDone }: { quote: QuoteRow; onDone: () =>
 function ProcurementPage() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/procurement" });
   const { canManage } = useTenant();
+  const { tenant } = useTenant();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
 
@@ -389,6 +391,8 @@ function ProcurementPage() {
           </div>
         </div>
       ) : null}
+
+      {tenant?.id ? <SupplierDocumentManager tenantId={tenant.id} operationId={operationId} quotes={quotes.data ?? []} canManage={canManage} /> : null}
 
       {quotes.isError ? (
         <div className="surface-panel border-destructive/40 p-4 text-sm text-destructive">Não foi possível carregar as cotações.</div>
