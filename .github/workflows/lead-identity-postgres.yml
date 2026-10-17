@@ -38,11 +38,6 @@ jobs:
         run: |
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233100_canonical_commercial_identity_resolver.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql
-      - name: Install and test manual Person RPC
-        run: |
-          psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-setup.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261017090000_create_person_manual_v1.sql
-          psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-assert.sql
       - name: Verify conflicts and idempotency
         run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-assert.sql
       - name: Verify concurrent conversions
@@ -56,3 +51,8 @@ jobs:
           wait "$a"
           wait "$b"
           psql -v ON_ERROR_STOP=1 -c "do \$\$ begin if (select count(*) from public.people where email='race@example.test') <> 1 then raise exception 'concurrent_person_duplicate'; end if; if (select count(distinct converted_person_id) from public.commercial_leads where id in ('20000000-0000-0000-0000-000000000005','20000000-0000-0000-0000-000000000006')) <> 1 then raise exception 'concurrent_identity_mismatch'; end if; end \$\$;"
+      - name: Install and test manual Person RPC
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-setup.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261017090000_create_person_manual_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-assert.sql
