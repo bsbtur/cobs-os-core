@@ -2,7 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase as generatedClient } from "./client";
 import type { Database, Json } from "./types";
 import type { RuntimeRpcDatabase } from "./runtime-rpc-types";
-import type { CommercialLead as PipelineLead, LeadAssignee, LeadPipelineResult, PipelineArgs } from "@/lib/commercial-leads";
+import type {
+  CommercialLead as PipelineLead,
+  LeadAssignee,
+  LeadPipelineResult,
+  PipelineArgs,
+} from "@/lib/commercial-leads";
 
 type CommercialLead = {
   id: string;
@@ -78,7 +83,8 @@ type CompatibilityDatabase = Omit<Database, "public"> & {
     Functions: Omit<
       Database["public"]["Functions"] & RuntimeRpcDatabase["public"]["Functions"],
       keyof CompatibilityFunctions
-    > & CompatibilityFunctions;
+    > &
+      CompatibilityFunctions;
     Tables: Database["public"]["Tables"] & {
       commercial_leads: {
         Row: CommercialLead;
