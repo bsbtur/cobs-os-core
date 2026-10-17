@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase as generatedClient } from "./client";
 import type { Database, Json } from "./types";
 import type { RuntimeRpcDatabase } from "./runtime-rpc-types";
+import type { CommercialLead as PipelineLead, LeadAssignee, LeadPipelineResult, PipelineArgs } from "@/lib/commercial-leads";
 
 type CommercialLead = {
   id: string;
@@ -31,7 +32,15 @@ type CompatibilityFunctions = {
   };
   list_operation_commercial_leads: {
     Args: { _operation_id: string };
-    Returns: CommercialLead[];
+    Returns: PipelineLead[];
+  };
+  list_commercial_lead_assignees: {
+    Args: { _operation_id: string };
+    Returns: LeadAssignee[];
+  };
+  update_commercial_lead_pipeline: {
+    Args: PipelineArgs;
+    Returns: LeadPipelineResult[];
   };
   get_operation_stay_capacity: {
     Args: { _operation_id: string };
