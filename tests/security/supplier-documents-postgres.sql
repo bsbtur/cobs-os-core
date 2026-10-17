@@ -3,6 +3,7 @@
 BEGIN;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
+CREATE ROLE service_role NOLOGIN;
 CREATE SCHEMA auth;
 CREATE SCHEMA app_private;
 CREATE TYPE public.app_role AS ENUM ('owner','admin','operations_agent','traveler');
