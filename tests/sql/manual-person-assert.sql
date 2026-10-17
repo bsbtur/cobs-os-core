@@ -33,3 +33,31 @@ begin
  if not blocked then raise exception 'tenant_escape_allowed';end if;
  if (select count(*) from public.commercial_leads where id in ('20000000-0000-0000-0000-000000000007','20000000-0000-0000-0000-000000000008','20000000-0000-0000-0000-000000000009') and converted_person_id is not null)<>3 then raise exception 'commercial_leads_changed';end if;
 end $$;
+
+-- Deletion must preserve the idempotency request as a tombstone.
+do $$
+declare _id uuid; _blocked boolean := false;
+begin
+ select person_id into _id
+ from app_private.manual_person_creation_requests
+ where tenant_id='ffffffff-ffff-ffff-ffff-ffffffffffff' and idempotency_key='manual-key-1';
+ delete from public.people where id=_id and tenant_id='ffffffff-ffff-ffff-ffff-ffffffffffff';
+ if exists (
+   select 1 from app_private.manual_person_creation_requests
+   where idempotency_key='manual-key-1' and person_id is not null
+ ) then raise exception 'deleted_person_reference_not_cleared'; end if;
+ begin
+   perform public.create_person_manual(
+     'ffffffff-ffff-ffff-ffff-ffffffffffff',
+     'Manual One','manual@example.test','+5561991111111','manual-key-1'
+   );
+ exception when others then _blocked := sqlerrm='manual_person_previous_person_deleted'; end;
+ if not _blocked then raise exception 'deleted_person_retry_not_blocked'; end if;
+ if exists(select 1 from public.people where email='manual@example.test') then
+   raise exception 'deleted_person_recreated';
+ end if;
+ if not exists (
+   select 1 from app_private.manual_person_creation_requests
+   where idempotency_key='manual-key-1' and person_id is null
+ ) then raise exception 'idempotency_history_missing'; end if;
+end $$;
