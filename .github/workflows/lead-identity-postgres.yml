@@ -1,0 +1,48 @@
+name: PR503 Disposable PostgreSQL Identity Test
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql'
+      - 'tests/sql/lead-identity-*'
+      - '.github/workflows/lead-identity-postgres.yml'
+  workflow_dispatch:
+jobs:
+  identity-test:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 503
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ephemeral
+          POSTGRES_DB: identity_fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d identity_fixture"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ephemeral
+      PGDATABASE: identity_fixture
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create synthetic schema
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-fixture.sql
+      - name: Install the proposed migration on disposable database
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql
+      - name: Verify conflicts and idempotency
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-assert.sql
+      - name: Verify concurrent conversions
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "select public.convert_commercial_lead_to_person('20000000-0000-0000-0000-000000000005')" > /tmp/identity-race-a.log &
+          a=$!
+          psql -v ON_ERROR_STOP=1 -c "select public.convert_commercial_lead_to_person('20000000-0000-0000-0000-000000000006')" > /tmp/identity-race-b.log &
+          b=$!
+          wait "$a"
+          wait "$b"
+          psql -v ON_ERROR_STOP=1 -c "do \$\$ begin if (select count(*) from public.people where email='race@example.test') <> 1 then raise exception 'concurrent_person_duplicate'; end if; if (select count(distinct converted_person_id) from public.commercial_leads where id in ('20000000-0000-0000-0000-000000000005','20000000-0000-0000-0000-000000000006')) <> 1 then raise exception 'concurrent_identity_mismatch'; end if; end \$\$;"
