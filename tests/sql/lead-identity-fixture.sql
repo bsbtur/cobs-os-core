@@ -29,3 +29,10 @@ values
 ('20000000-0000-0000-0000-000000000004','ffffffff-ffff-ffff-ffff-ffffffffffff','New','new@example.test','+5561993333333','qa','fixture'),
 ('20000000-0000-0000-0000-000000000005','ffffffff-ffff-ffff-ffff-ffffffffffff','Race A','race@example.test','+5561994444444','qa','fixture'),
 ('20000000-0000-0000-0000-000000000006','ffffffff-ffff-ffff-ffff-ffffffffffff','Race B','race@example.test','+5561994444444','qa','fixture');
+
+-- Historical conversion fixtures: one compatible, one conflicting, one dangling.
+insert into public.commercial_leads(id,tenant_id,full_name,email,phone,source,campaign,converted_person_id,status)
+values
+('20000000-0000-0000-0000-000000000007','ffffffff-ffff-ffff-ffff-ffffffffffff','Legacy valid','a@example.test','+5561991111111','qa','fixture','10000000-0000-0000-0000-000000000001','converted'),
+('20000000-0000-0000-0000-000000000008','ffffffff-ffff-ffff-ffff-ffffffffffff','Legacy mismatch','b@example.test','+5561991111111','qa','fixture','10000000-0000-0000-0000-000000000001','converted'),
+('20000000-0000-0000-0000-000000000009','ffffffff-ffff-ffff-ffff-ffffffffffff','Legacy missing','absent@example.test','+5561995555555','qa','fixture','10000000-0000-0000-0000-000000000099','converted');
