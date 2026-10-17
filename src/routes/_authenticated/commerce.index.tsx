@@ -5,7 +5,7 @@ import { Plus, Receipt, ShoppingBag } from "lucide-react";
 
 import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/compat-client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTenant } from "@/lib/tenant";

@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/compat-client";
 import { humanizeError } from "@/lib/auth";
 import { EditJourneyStepDialog } from "@/components/journey/edit-journey-step-dialog";
 import { VisitPointsPanel } from "@/components/journey/visit-points-panel";

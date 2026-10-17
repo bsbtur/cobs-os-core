@@ -10,3 +10,6 @@
 > the editor, so keep the branch in a working state.
 
 <!-- LOVABLE:END -->
+
+- Keep the official Lovable Vite adapter so deployment output and preview integration remain compatible.
+- Put supplemental SQL-derived client typings in `compat-client.ts`, reusing the generated client; never edit generated files or treat typings as proof of backend deployment.
