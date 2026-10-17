@@ -53,69 +53,15 @@ begin
     return jsonb_build_object('lead_id',_lead.id,'person_id',_person.id,'created',false,'unchanged',true);
   end if;
 
-  -- Serialize conversions with overlapping identity keys, including absent Person rows.
-  -- Transaction-scoped locks keep retries safe without storing an extra identity table.
-  if nullif(lower(btrim(_lead.email)), '') is not null then
-    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(_lead.tenant_id::text || ':email:' || lower(btrim(_lead.email)), 0));
-  end if;
-  -- The phone lock uses normalized E.164 below; all converters acquire email first.
-
-  _digits := regexp_replace(coalesce(_lead.phone,''), '\D', '', 'g');
-  if length(_digits) between 7 and 15 then
-    _phone := '+' || _digits;
-  else
-    _phone := null;
-  end if;
-
-  if _phone is not null then
-    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(_lead.tenant_id::text || ':phone:' || _phone, 0));
-  end if;
-
-  -- Fail closed: email and phone must resolve to at most one compatible Person.
-  -- Never silently favor an email match over a conflicting phone match.
-  select array_agg(p.id order by p.id), count(*)::integer
-    into _matched_ids, _matched_count
-    from public.people p
-   where p.tenant_id = _lead.tenant_id
-     and (
-       (nullif(lower(btrim(_lead.email)), '') is not null and lower(btrim(p.email)) = lower(btrim(_lead.email)))
-       or (_phone is not null and p.phone_e164 = _phone)
-     );
-
-  if _matched_count > 1 then
-    raise exception 'commercial_lead_identity_conflict' using errcode = 'P0001';
-  end if;
-
-  if _matched_count = 1 then
-    select
-      (nullif(lower(btrim(_lead.email)), '') is not null
-        and nullif(lower(btrim(p.email)), '') is not null
-        and lower(btrim(p.email)) <> lower(btrim(_lead.email))),
-      (_phone is not null and p.phone_e164 is not null and p.phone_e164 <> _phone)
-      into _email_mismatch, _phone_mismatch
-      from public.people p
-     where p.id = _matched_ids[1] and p.tenant_id = _lead.tenant_id;
-
-    if coalesce(_email_mismatch, false) or coalesce(_phone_mismatch, false) then
-      raise exception 'commercial_lead_identity_conflict' using errcode = 'P0001';
-    end if;
-  end if;
-
-  select * into _person
-    from public.people p
-   where p.tenant_id = _lead.tenant_id
-     and (
-       (nullif(lower(btrim(_lead.email)),'') is not null and lower(btrim(p.email)) = lower(btrim(_lead.email)))
-       or (_phone is not null and p.phone_e164 = _phone)
-     )
-   order by case when lower(btrim(p.email)) = lower(btrim(_lead.email)) then 0 else 1 end, p.created_at
-   limit 1
-   for update;
-
+  -- Canonical private resolver owns matching, locking and insertion.
+  -- The lead and tenant are authorized independently within the helper.
+  select * into _person from public.people
+    where tenant_id = _lead.tenant_id
+      and id = app_private.resolve_commercial_lead_person(
+        _lead.tenant_id, _lead.full_name, _lead.email, _lead.phone, _lead.id
+      );
   if _person.id is null then
-    insert into public.people(tenant_id,full_name,email,phone_e164,country_code,preferred_locale,notes)
-    values (_lead.tenant_id,btrim(_lead.full_name),lower(btrim(_lead.email)),_phone,'BR','pt-BR','Criado a partir de lead comercial ' || _lead.id::text)
-    returning * into _person;
+    raise exception 'commercial_lead_identity_review_required' using errcode='P0001';
   end if;
 
   update public.commercial_leads
