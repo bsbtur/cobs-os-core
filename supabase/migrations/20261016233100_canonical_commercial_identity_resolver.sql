@@ -61,4 +61,4 @@ begin
   return _person.id;
 end;
 $$;
-revoke all on function app_private.resolve_commercial_lead_person(uuid,text,text,text,uuid) from public, anon, authenticated;
+revoke all on function app_private.resolve_commercial_lead_person(uuid,text,text,text,uuid) from public;
