@@ -21,6 +21,15 @@ describe("Commercial lead identity collision gate", () => {
     expect(migration).toContain("coalesce(_email_mismatch, false) or coalesce(_phone_mismatch, false)");
   });
 
+  test("serializes email and phone before checking for existing people", () => {
+    const emailLock = migration.indexOf("pg_advisory_xact_lock(pg_catalog.hashtextextended(_lead.tenant_id::text || ':email:'");
+    const phoneLock = migration.indexOf("pg_advisory_xact_lock(pg_catalog.hashtextextended(_lead.tenant_id::text || ':phone:'");
+    const identityMatch = migration.indexOf("select array_agg(p.id order by p.id)");
+    expect(emailLock).toBeGreaterThan(-1);
+    expect(phoneLock).toBeGreaterThan(emailLock);
+    expect(identityMatch).toBeGreaterThan(phoneLock);
+  });
+
   test("runs the gate before selecting or creating a person", () => {
     const gate = migration.indexOf("if _matched_count > 1 then");
     const personLookup = migration.indexOf("select * into _person\n    from public.people p");
