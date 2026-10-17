@@ -101,8 +101,8 @@ SELECT public.assert_rejected('nonmember RPC add',$$SELECT public.add_supplier_d
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','a3000000-0000-0000-0000-000000000002',false);
 SET ROLE authenticated;
-SELECT public.assert_rejected('operations agent UPDATE',$UPDATE public.supplier_documents SET title='No agent edit' WHERE id='b4000000-0000-0000-0000-000000000001'$);
-SELECT public.assert_rejected('operations agent DELETE',$DELETE FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001'$);
+SELECT public.assert_zero_affected('operations agent UPDATE',$UPDATE public.supplier_documents SET title='No agent edit' WHERE id='b4000000-0000-0000-0000-000000000001'$);
+SELECT public.assert_zero_affected('operations agent DELETE',$DELETE FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001'$);
 SELECT public.assert_rejected('operations agent RPC add',$$SELECT public.add_supplier_document('a2000000-0000-0000-0000-000000000001','contract','Agent')$$);
 SELECT public.assert_rejected('operations agent direct insert',$$INSERT INTO public.supplier_documents(tenant_id,operation_id,supplier_id,document_type,title) VALUES('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','a0000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','contract','Agent')$$);
 RESET ROLE;
