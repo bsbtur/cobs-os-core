@@ -23,7 +23,7 @@ describe("operation profitability staged panel", () => {
     expect(ENABLE_OPERATION_PROFITABILITY_PANEL).toBe(false);
     expect(source).toContain("enabled: ENABLE_OPERATION_PROFITABILITY_PANEL");
     expect(source).toContain("if (!ENABLE_OPERATION_PROFITABILITY_PANEL) return null");
-    expect(source).toContain(".eq(\"tenant_id\", tenantId).eq(\"operation_id\", operationId)");
+    expect(source).toMatch(/\.eq\("tenant_id", tenantId\)\s*\.eq\("operation_id", operationId\)/);
     expect(route).toContain("<OperationProfitabilityPanel");
     expect(source).not.toMatch(/\.insert\(|\.update\(|\.delete\(|\.rpc\(/);
   });
