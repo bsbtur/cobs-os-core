@@ -50,6 +50,9 @@ INSERT INTO public.test_memberships VALUES
  ('b3000000-0000-0000-0000-000000000001','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','owner');
 INSERT INTO public.supplier_documents(id,tenant_id,operation_id,quote_id,supplier_id,document_type,title)
 VALUES('b4000000-0000-0000-0000-000000000001','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','b0000000-0000-0000-0000-000000000001','b2000000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','contract','Foreign synthetic document');
+-- Own-tenant target: agent may read this row but must not modify or delete it.
+INSERT INTO public.supplier_documents(id,tenant_id,operation_id,quote_id,supplier_id,document_type,title)
+VALUES('a4000000-0000-0000-0000-000000000001','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','a0000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','contract','Own synthetic document');
 -- Check simulated database role authorization and the real migration's policies/RPCs.
 CREATE TABLE public.security_results (name text, passed boolean, detail text);
 CREATE FUNCTION public.assert_rejected(_name text,_statement text) RETURNS void
@@ -101,6 +104,14 @@ SELECT public.assert_rejected('nonmember RPC add',$$SELECT public.add_supplier_d
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','a3000000-0000-0000-0000-000000000002',false);
 SET ROLE authenticated;
+DO $agent_read$BEGIN
+ IF (SELECT count(*) FROM public.supplier_documents WHERE id='a4000000-0000-0000-0000-000000000001') <> 1 THEN
+  RAISE EXCEPTION 'SECURITY FAILURE: agent cannot read own-tenant document';
+ END IF;
+END$agent_read$;
+SELECT public.assert_zero_affected('operations agent UPDATE own-tenant document',$sql$UPDATE public.supplier_documents SET title='Agent tampering' WHERE id='a4000000-0000-0000-0000-000000000001'$sql$);
+SELECT public.assert_zero_affected('operations agent DELETE own-tenant document',$sql$DELETE FROM public.supplier_documents WHERE id='a4000000-0000-0000-0000-000000000001'$sql$);
+SELECT public.assert_rejected('operations agent status RPC own-tenant',$sql$SELECT public.set_supplier_document_status('a4000000-0000-0000-0000-000000000001','approved')$sql$);
 SELECT public.assert_zero_affected('operations agent UPDATE',$sql$UPDATE public.supplier_documents SET title='No agent edit' WHERE id='b4000000-0000-0000-0000-000000000001'$sql$);
 SELECT public.assert_zero_affected('operations agent DELETE',$sql$DELETE FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001'$sql$);
 SELECT public.assert_rejected('operations agent RPC add',$$SELECT public.add_supplier_document('a2000000-0000-0000-0000-000000000001','contract','Agent')$$);
@@ -134,6 +145,9 @@ RESET ROLE;
 DO $block$BEGIN
  IF EXISTS(SELECT 1 FROM public.supplier_documents WHERE title='Updated valid contract') THEN
   RAISE EXCEPTION 'SECURITY FAILURE: authorized deletion did not remove row';
+ END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.supplier_documents WHERE id='a4000000-0000-0000-0000-000000000001' AND title='Own synthetic document' AND status='received') THEN
+  RAISE EXCEPTION 'SECURITY FAILURE: agent changed or deleted own-tenant row';
  END IF;
  IF NOT EXISTS(SELECT 1 FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001') THEN
   RAISE EXCEPTION 'SECURITY FAILURE: foreign document unexpectedly deleted';
