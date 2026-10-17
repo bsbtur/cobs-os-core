@@ -28,7 +28,7 @@ begin
  if not app_private.has_tenant_role(_tenant_id,array['owner','admin']::public.app_role[]) then
    raise exception 'manual_person_unauthorized' using errcode='42501';
  end if;
- _hash := md5(_name || chr(0) || coalesce(_email_norm,'') || chr(0) || coalesce(_phone_norm,''));
+ _hash := md5(jsonb_build_array(_name,_email_norm,_phone_norm)::text);
  perform pg_catalog.pg_advisory_xact_lock(
    pg_catalog.hashtextextended(_tenant_id::text || ':manual-request:' || _key,0)
  );
