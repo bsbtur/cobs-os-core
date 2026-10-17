@@ -173,7 +173,8 @@ export function OperationLeadsBoard({ operationId }: { operationId: string }) {
         _operation_id: operationId,
       });
       if (error) throw error;
-      return (data ?? []).filter((lead) => isLeadStatus(lead.status));
+      const rows = (data ?? []) as unknown as CommercialLead[];
+      return rows.filter((lead) => isLeadStatus(lead.status));
     },
   });
   const assignees = useQuery({
