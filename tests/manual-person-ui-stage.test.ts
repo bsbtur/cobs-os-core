@@ -11,8 +11,13 @@ describe("Manual People RPC staged integration", () => {
   });
   test("prepares isolated RPC with server-side idempotency without modifying other actions", () => {
     expect(people).toContain('rpc("create_person_manual"');
-    expect(people).toContain("_idempotency_key: manualCreateKey.current");
-    expect(people).toContain("manualCreateKey.current = null");
+    expect(people).toContain("_idempotency_key: manualCreateAttempt.current.key");
+    expect(people).toContain("manualCreateAttempt.current?.payload !== payload");
+    expect(people).toContain("key: crypto.randomUUID()");
+    expect(people).toContain("input.email.trim().toLowerCase()");
+    expect(people).toContain("manualCreateAttempt.current = null");
+    expect(people).toContain("onClick={() => { manualCreateAttempt.current = null; setOpen(false); }}");
+    expect(people).toContain("onClick={() => { manualCreateAttempt.current = null; setOpen((v) => !v); }}");
     expect(people).toContain('supabase.rpc("link_person_to_profile"');
     expect(people).toContain('supabase.from("people").delete()');
   });
