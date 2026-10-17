@@ -135,7 +135,7 @@ export function OperationLeadsBoard({ operationId }: { operationId: string }) {
   const failed = scope.isError || leads.isError || assignees.isError;
   const waiting = scope.isPending || (enabled && (leads.isPending || assignees.isPending));
   const renderCard = (lead: CommercialLead) => <article key={lead.id} className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-border-strong"
-    onClick={(event) => { if (event.target instanceof Element && !event.target.closest("button,a,[role=combobox]")) setSelectedId(lead.id); }}>
+    onClick={(event) => { if (event.target instanceof Element && event.currentTarget.contains(event.target) && !event.target.closest("button,a,[role=combobox],[role=option]")) setSelectedId(lead.id); }}>
     <div className="space-y-1">
       <Button variant="link" className="h-auto max-w-full justify-start whitespace-normal break-all p-0 text-left text-base font-semibold text-foreground" onClick={() => setSelectedId(lead.id)}>{lead.full_name}</Button>
       <p className="break-all text-xs text-muted-foreground">{lead.phone}</p>
