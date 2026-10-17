@@ -71,6 +71,15 @@ SELECT public.assert_rejected('anon SELECT','SELECT * FROM public.supplier_docum
 SELECT public.assert_rejected('anon INSERT',$$INSERT INTO public.supplier_documents(tenant_id,operation_id,supplier_id,document_type,title) VALUES('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','a0000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','contract','x')$$);
 SELECT public.assert_rejected('anon RPC add',$$SELECT public.add_supplier_document('a2000000-0000-0000-0000-000000000001','contract','Anon')$$);
 RESET ROLE;
+SELECT set_config('request.jwt.claim.sub','c3000000-0000-0000-0000-000000000001',false);
+SET ROLE authenticated;
+DO $BEGIN
+ IF (SELECT count(*) FROM public.supplier_documents) <> 0 THEN
+   RAISE EXCEPTION 'nonmember saw documents';
+ END IF;
+END$;
+SELECT public.assert_rejected('nonmember RPC add',$SELECT public.add_supplier_document('a2000000-0000-0000-0000-000000000001','contract','Other')$);
+RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','a3000000-0000-0000-0000-000000000002',false);
 SET ROLE authenticated;
 SELECT public.assert_rejected('operations agent RPC add',$$SELECT public.add_supplier_document('a2000000-0000-0000-0000-000000000001','contract','Agent')$$);
@@ -84,6 +93,12 @@ SELECT public.assert_rejected('owner accessing foreign quote',$$SELECT public.ad
 SELECT public.assert_rejected('cross-tenant operation direct insert',$$INSERT INTO public.supplier_documents(tenant_id,operation_id,supplier_id,document_type,title) VALUES('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','b0000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','contract','Cross tenant')$$);
 SELECT public.assert_rejected('cross-tenant supplier direct insert',$$INSERT INTO public.supplier_documents(tenant_id,operation_id,supplier_id,document_type,title) VALUES('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','a0000000-0000-0000-0000-000000000001','b1000000-0000-0000-0000-000000000001','contract','Cross supplier')$$);
 SELECT public.assert_rejected('cross-operation quote direct insert',$$INSERT INTO public.supplier_documents(tenant_id,operation_id,quote_id,supplier_id,document_type,title) VALUES('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','a0000000-0000-0000-0000-000000000002','a2000000-0000-0000-0000-000000000001','a1000000-0000-0000-0000-000000000001','contract','Cross operation')$$);
+DO $BEGIN
+ IF EXISTS(SELECT 1 FROM public.supplier_documents WHERE tenant_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb') THEN
+  RAISE EXCEPTION 'foreign tenant leak';
+ END IF;
+END$;
+SELECT public.assert_rejected('foreign status via RPC',$SELECT public.set_supplier_document_status('b4000000-0000-0000-0000-000000000001','approved')$);
 SELECT public.assert_rejected('invalid document status',$$SELECT public.set_supplier_document_status((SELECT id FROM public.supplier_documents WHERE title='Valid contract' LIMIT 1),'invalid')$$);
 RESET ROLE;
 ROLLBACK;
