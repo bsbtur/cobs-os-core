@@ -14,8 +14,8 @@ describe("Manual People RPC staged integration", () => {
     expect(people).toContain("_idempotency_key: manualCreateAttempt.current.key");
     expect(people).toContain("nextManualPersonAttempt(");
     expect(people).toContain("manualCreateAttempt.current = null");
-    expect(people).toContain("onClick={() => { manualCreateAttempt.current = null; setOpen(false); }}");
-    expect(people).toContain("onClick={() => { manualCreateAttempt.current = null; setOpen((v) => !v); }}");
+    expect(people).toMatch(/onClick=\{\(\) => \{\s*manualCreateAttempt\.current = null;\s*setOpen\(false\);\s*\}\}/);
+    expect(people).toMatch(/onClick=\{\(\) => \{\s*manualCreateAttempt\.current = null;\s*setOpen\(\(v\) => !v\);\s*\}\}/);
     expect(people).toContain('supabase.rpc("link_person_to_profile"');
     expect(people).toContain('supabase.from("people").delete()');
   });
