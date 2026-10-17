@@ -61,3 +61,26 @@ begin
    where idempotency_key='manual-key-1' and person_id is null
  ) then raise exception 'idempotency_history_missing'; end if;
 end $$;
+
+-- A non-email UNIQUE violation must remain SQLSTATE 23505 with its real constraint.
+create unique index manual_person_unrelated_unique_test on public.people(full_name)
+where full_name='Manual Two';
+do $$
+declare _blocked boolean := false; _constraint text;
+begin
+ begin
+   perform public.create_person_manual(
+     'ffffffff-ffff-ffff-ffff-ffffffffffff',
+     'Manual Two','unrelated@example.test',null,'manual-key-unrelated'
+   );
+ exception when unique_violation then
+   get stacked diagnostics _constraint = CONSTRAINT_NAME;
+   _blocked := _constraint = 'manual_person_unrelated_unique_test';
+ end;
+ if not _blocked then raise exception 'unrelated_unique_violation_misclassified'; end if;
+ if exists(select 1 from public.people where email='unrelated@example.test') then
+   raise exception 'unrelated_unique_insert_not_rolled_back'; end if;
+ if exists(select 1 from app_private.manual_person_creation_requests
+           where idempotency_key='manual-key-unrelated') then
+   raise exception 'unrelated_unique_ledger_not_rolled_back'; end if;
+end $$;
