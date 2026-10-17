@@ -3,7 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bus, Clock, MapPin, Plus, Users } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/compat-client";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";

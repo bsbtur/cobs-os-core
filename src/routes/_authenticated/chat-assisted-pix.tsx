@@ -6,7 +6,7 @@ import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { Button } from "@/components/ui/button";
 import { feedback } from "@/components/feedback/feedback";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/compat-client";
 import { useTenant } from "@/lib/tenant";
 
 type PixDraft = {
