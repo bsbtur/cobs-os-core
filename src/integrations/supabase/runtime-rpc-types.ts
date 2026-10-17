@@ -135,6 +135,55 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      list_operation_commercial_leads: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Array<{
+          id: string;
+          full_name: string;
+          email: string;
+          phone: string;
+          status: string;
+          source: string;
+          campaign: string | null;
+          metadata: Record<string, unknown>;
+          converted_person_id: string | null;
+          assigned_profile_id: string | null;
+          assigned_profile_name: string | null;
+          assigned_at: string | null;
+          status_changed_at: string;
+          created_at: string;
+          updated_at: string;
+        }>;
+      };
+      list_commercial_lead_assignees: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Array<{
+          profile_id: string;
+          display_name: string;
+          role: string;
+        }>;
+      };
+      update_commercial_lead_pipeline: {
+        Args: {
+          _lead_id: string;
+          _status?: string | null;
+          _assigned_profile_id?: string | null;
+          _clear_assignee?: boolean;
+        };
+        Returns: Array<{
+          id: string;
+          status: string;
+          assigned_profile_id: string | null;
+          assigned_profile_name: string | null;
+          assigned_at: string | null;
+          status_changed_at: string;
+          updated_at: string;
+        }>;
+      };
       get_operation_procurement_quotes: {
         Args: {
           _operation_id: string;
