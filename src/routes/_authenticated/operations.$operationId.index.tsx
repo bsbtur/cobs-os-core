@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, ArchiveRestore, ArrowRight, BedDouble, Bus, CalendarDays, CircleDollarSign, Gauge, Megaphone, ShieldCheck, TriangleAlert, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { OperationProfitabilityPanel } from "@/components/operations/operation-profitability-panel";
 import { humanizeError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
@@ -788,6 +789,7 @@ function OperationDetail() {
       </header>
 
       <FinancialTrafficLightPanel metadata={op.metadata} />
+      {tenant?.id ? <OperationProfitabilityPanel tenantId={tenant.id} operationId={op.id} /> : null}
 
       <ManagerQuickLinks operationId={op.id} />
 
