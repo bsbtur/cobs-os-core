@@ -9,3 +9,4 @@ $$;
 select set_config('test.tenant','ffffffff-ffff-ffff-ffff-ffffffffffff',false);
 select set_config('test.role','owner',false);
 create unique index people_tenant_lower_email_test on public.people(tenant_id,lower(email)) where email is not null;
+alter table public.people add constraint people_identity_key unique (id,tenant_id);
