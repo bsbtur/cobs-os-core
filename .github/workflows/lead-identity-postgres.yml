@@ -1,0 +1,76 @@
+name: PR503 Disposable PostgreSQL Identity Test
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql'
+      - 'supabase/migrations/20261016233100_canonical_commercial_identity_resolver.sql'
+      - 'tests/sql/lead-identity-*'
+      - 'tests/sql/manual-person-*'
+      - 'supabase/migrations/20261017090000_create_person_manual_v1.sql'
+      - '.github/workflows/lead-identity-postgres.yml'
+  workflow_dispatch:
+jobs:
+  identity-test:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 503
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ephemeral
+          POSTGRES_DB: identity_fixture
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d identity_fixture"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ephemeral
+      PGDATABASE: identity_fixture
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create synthetic schema
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-fixture.sql
+      - name: Install the proposed migration on disposable database
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233100_canonical_commercial_identity_resolver.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql
+      - name: Verify conflicts and idempotency
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-assert.sql
+      - name: Verify concurrent conversions
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "select public.convert_commercial_lead_to_person('20000000-0000-0000-0000-000000000005')" > /tmp/identity-race-a.log &
+          a=$!
+          psql -v ON_ERROR_STOP=1 -c "select public.convert_commercial_lead_to_person('20000000-0000-0000-0000-000000000006')" > /tmp/identity-race-b.log &
+          b=$!
+          wait "$a"
+          wait "$b"
+          psql -v ON_ERROR_STOP=1 -c "do \$\$ begin if (select count(*) from public.people where email='race@example.test') <> 1 then raise exception 'concurrent_person_duplicate'; end if; if (select count(distinct converted_person_id) from public.commercial_leads where id in ('20000000-0000-0000-0000-000000000005','20000000-0000-0000-0000-000000000006')) <> 1 then raise exception 'concurrent_identity_mismatch'; end if; end \$\$;"
+      - name: Install and test manual Person RPC
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-setup.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261017090000_create_person_manual_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-assert.sql
+      - name: Verify concurrent manual email creation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in race-manual-a race-manual-b; do
+            psql -v ON_ERROR_STOP=1 -c "select set_config('test.tenant','ffffffff-ffff-ffff-ffff-ffffffffffff',false); select set_config('test.role','owner',false); select public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Concurrent Manual','manual-race@example.test','+5561990000000','$key');" > "/tmp/$key.log" 2>&1 &
+            pids+=("$!")
+          done
+          set +e
+          wait "${pids[0]}"; status_a=$?
+          wait "${pids[1]}"; status_b=$?
+          set -e
+          if ! { { [ "$status_a" -eq 0 ] && [ "$status_b" -ne 0 ]; } || { [ "$status_b" -eq 0 ] && [ "$status_a" -ne 0 ]; }; }; then
+            echo "Expected exactly one successful concurrent create"
+            cat /tmp/race-manual-*.log
+            exit 1
+          fi
+          psql -v ON_ERROR_STOP=1 -c "do \$\$ begin if (select count(*) from public.people where email='manual-race@example.test') <> 1 then raise exception 'manual_concurrent_duplicate'; end if; end \$\$;"
