@@ -28,11 +28,22 @@ begin
     end if;
   end if;
 
+  -- Serialize conversions with overlapping identity keys, including absent Person rows.
+  -- Transaction-scoped locks keep retries safe without storing an extra identity table.
+  if nullif(lower(btrim(_lead.email)), '') is not null then
+    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(_lead.tenant_id::text || ':email:' || lower(btrim(_lead.email)), 0));
+  end if;
+  -- The phone lock uses normalized E.164 below; all converters acquire email first.
+
   _digits := regexp_replace(coalesce(_lead.phone,''), '\D', '', 'g');
   if length(_digits) between 7 and 15 then
     _phone := '+' || _digits;
   else
     _phone := null;
+  end if;
+
+  if _phone is not null then
+    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(_lead.tenant_id::text || ':phone:' || _phone, 0));
   end if;
 
   -- Fail closed: email and phone must resolve to at most one compatible Person.
