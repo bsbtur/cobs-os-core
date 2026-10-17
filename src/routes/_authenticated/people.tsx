@@ -7,6 +7,7 @@ import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { nextManualPersonAttempt, type ManualPersonAttempt } from "@/lib/manual-person-attempt";
 import { useI18n } from "@/lib/i18n";
 import { useTenant, type PersonRow } from "@/lib/tenant";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ function PeopleList() {
   const { tenant, canManage } = useTenant();
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const manualCreateAttempt = React.useRef<{ payload: string; key: string } | null>(null);
+  const manualCreateAttempt = React.useRef<ManualPersonAttempt | null>(null);
   const [linking, setLinking] = React.useState<PersonRow | null>(null);
 
   const people = useQuery({
@@ -92,15 +93,9 @@ function PeopleList() {
     mutationFn: async (input: { full_name: string; email: string; phone: string }) => {
       if (ENABLE_MANUAL_PERSON_RPC) {
         // Reuse the same request key for retries while this form remains open.
-        const payload = JSON.stringify([
-          tenant!.id,
-          input.full_name.trim(),
-          input.email.trim().toLowerCase(),
-          input.phone.trim(),
-        ]);
-        if (manualCreateAttempt.current?.payload !== payload) {
-          manualCreateAttempt.current = { payload, key: crypto.randomUUID() };
-        }
+        manualCreateAttempt.current = nextManualPersonAttempt(
+          manualCreateAttempt.current, tenant!.id, input, () => crypto.randomUUID(),
+        );
         // The RPC does not exist in generated Supabase types until the migration is applied.
         const rpc = supabase.rpc as unknown as (
           name: string,
