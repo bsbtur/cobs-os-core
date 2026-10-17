@@ -21,6 +21,7 @@ declare
  _hash text;
  _prior app_private.manual_person_creation_requests;
  _person_id uuid;
+ _constraint_name text;
 begin
  if _tenant_id is null or _name is null or length(_name)>200 or
     _key is null or length(_key)>150 then
@@ -66,7 +67,11 @@ begin
  return jsonb_build_object('person_id',_person_id,'unchanged',false);
 exception
  when unique_violation then
-   raise exception 'person_email_conflict_requires_review' using errcode='P0001';
+   get stacked diagnostics _constraint_name = CONSTRAINT_NAME;
+   if _constraint_name = 'people_tenant_email_key' then
+     raise exception 'person_email_conflict_requires_review' using errcode='P0001';
+   end if;
+   raise;
 end;
 $$;
 revoke all on function public.create_person_manual(uuid,text,text,text,text) from public;
