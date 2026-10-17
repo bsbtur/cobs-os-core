@@ -137,7 +137,7 @@ export function OperationLeadsBoard({ operationId }: { operationId: string }) {
   const renderCard = (lead: CommercialLead) => <article key={lead.id} className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-border-strong"
     onClick={(event) => { if (event.target instanceof Element && !event.target.closest("button,a,[role=combobox]")) setSelectedId(lead.id); }}>
     <div className="space-y-1">
-      <Button variant="link" className="h-auto max-w-full justify-start whitespace-normal p-0 text-left text-base font-semibold text-foreground" onClick={() => setSelectedId(lead.id)}>{lead.full_name}</Button>
+      <Button variant="link" className="h-auto max-w-full justify-start whitespace-normal break-all p-0 text-left text-base font-semibold text-foreground" onClick={() => setSelectedId(lead.id)}>{lead.full_name}</Button>
       <p className="break-all text-xs text-muted-foreground">{lead.phone}</p>
       {lead.converted_person_id ? <span className="inline-flex rounded border border-success/30 px-2 py-0.5 text-[10px] text-success">Pessoa criada</span> : null}
     </div>
@@ -186,7 +186,7 @@ export function OperationLeadsBoard({ operationId }: { operationId: string }) {
     </>}
     <Sheet open={Boolean(selected && enabled && !failed)} onOpenChange={(open) => { if (!open) setSelectedId(null); }}>
       <SheetContent className="w-full max-w-full overflow-y-auto sm:max-w-lg motion-reduce:transition-none">
-        <SheetHeader><SheetTitle>Detalhes do lead</SheetTitle><SheetDescription>{selected?.full_name}</SheetDescription></SheetHeader>
+        <SheetHeader><SheetTitle>Detalhes do lead</SheetTitle><SheetDescription className="break-all">{selected?.full_name}</SheetDescription></SheetHeader>
         {selected && !failed && enabled ? <div className="mt-6 space-y-6">
           <dl className="grid grid-cols-1 gap-4 text-sm">
             {[
