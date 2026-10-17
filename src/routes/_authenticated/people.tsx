@@ -54,7 +54,7 @@ function PeopleList() {
   const { tenant, canManage } = useTenant();
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const manualCreateKey = React.useRef<string | null>(null);
+  const manualCreateAttempt = React.useRef<{ payload: string; key: string } | null>(null);
   const [linking, setLinking] = React.useState<PersonRow | null>(null);
 
   const people = useQuery({
@@ -92,7 +92,15 @@ function PeopleList() {
     mutationFn: async (input: { full_name: string; email: string; phone: string }) => {
       if (ENABLE_MANUAL_PERSON_RPC) {
         // Reuse the same request key for retries while this form remains open.
-        manualCreateKey.current ??= crypto.randomUUID();
+        const payload = JSON.stringify([
+          tenant!.id,
+          input.full_name.trim(),
+          input.email.trim().toLowerCase(),
+          input.phone.trim(),
+        ]);
+        if (manualCreateAttempt.current?.payload !== payload) {
+          manualCreateAttempt.current = { payload, key: crypto.randomUUID() };
+        }
         // The RPC does not exist in generated Supabase types until the migration is applied.
         const rpc = supabase.rpc as unknown as (
           name: string,
@@ -103,7 +111,7 @@ function PeopleList() {
           _full_name: input.full_name,
           _email: input.email || null,
           _phone_e164: input.phone || null,
-          _idempotency_key: manualCreateKey.current,
+          _idempotency_key: manualCreateAttempt.current.key,
         });
         if (error) throw error;
         return;
@@ -120,7 +128,7 @@ function PeopleList() {
     onSuccess: () => {
       feedback.success(t("people.created"));
       setOpen(false);
-      manualCreateKey.current = null;
+      manualCreateAttempt.current = null;
       void queryClient.invalidateQueries({ queryKey: ["people", tenant?.id] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
@@ -163,7 +171,7 @@ function PeopleList() {
     <div className="space-y-4">
       {canManage ? (
         <div className="flex justify-end">
-          <Button className="min-h-11" onClick={() => setOpen((v) => !v)}>
+          <Button className="min-h-11" onClick={() => { manualCreateAttempt.current = null; setOpen((v) => !v); }}>
             <UserPlus className="mr-2 size-4" aria-hidden="true" />
             {t("people.add")}
           </Button>
@@ -205,7 +213,7 @@ function PeopleList() {
               type="button"
               variant="ghost"
               className="min-h-11"
-              onClick={() => setOpen(false)}
+              onClick={() => { manualCreateAttempt.current = null; setOpen(false); }}
             >
               {t("common.cancel")}
             </Button>
