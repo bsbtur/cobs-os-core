@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql'
+      - 'supabase/migrations/20261016233100_canonical_commercial_identity_resolver.sql'
       - 'tests/sql/lead-identity-*'
       - '.github/workflows/lead-identity-postgres.yml'
   workflow_dispatch:
@@ -32,7 +33,9 @@ jobs:
       - name: Create synthetic schema
         run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-fixture.sql
       - name: Install the proposed migration on disposable database
-        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233100_canonical_commercial_identity_resolver.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql
       - name: Verify conflicts and idempotency
         run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-assert.sql
       - name: Verify concurrent conversions
