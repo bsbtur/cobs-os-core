@@ -259,7 +259,8 @@ function ContractQuoteDialog({ quote, onDone }: { quote: QuoteRow; onDone: () =>
 
 function ProcurementPage() {
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId/procurement" });
-  const { canManage, tenant } = useTenant();
+  const { canManage } = useTenant();
+  const { tenant } = useTenant();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
 
