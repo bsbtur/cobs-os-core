@@ -22,10 +22,35 @@ begin
   perform app_private.w09_require_commerce_manager(_lead.tenant_id);
 
   if _lead.converted_person_id is not null then
-    select * into _person from public.people where id = _lead.converted_person_id and tenant_id = _lead.tenant_id;
-    if _person.id is not null then
-      return jsonb_build_object('lead_id',_lead.id,'person_id',_person.id,'created',false,'unchanged',true);
+    select * into _person from public.people
+     where id = _lead.converted_person_id and tenant_id = _lead.tenant_id
+     for update;
+    -- Historical links are immutable here: never relink or silently reuse
+    -- an identity when the recorded details conflict or the person is missing.
+    if _person.id is null then
+      raise exception 'commercial_lead_historical_identity_review_required' using errcode = 'P0001';
     end if;
+    _digits := regexp_replace(coalesce(_lead.phone,''), '\\D', '', 'g');
+    _phone := case when length(_digits) between 7 and 15 then '+' || _digits else null end;
+    if (nullif(lower(btrim(_lead.email)), '') is not null
+          and nullif(lower(btrim(_person.email)), '') is not null
+          and lower(btrim(_lead.email)) <> lower(btrim(_person.email)))
+       or (_phone is not null and _person.phone_e164 is not null and _phone <> _person.phone_e164)
+    then
+      raise exception 'commercial_lead_historical_identity_review_required' using errcode = 'P0001';
+    end if;
+    -- A competing Person sharing the lead's email or phone also requires review.
+    if exists (
+      select 1 from public.people p
+       where p.tenant_id = _lead.tenant_id
+         and p.id <> _person.id
+         and ((nullif(lower(btrim(_lead.email)), '') is not null
+                and lower(btrim(p.email)) = lower(btrim(_lead.email)))
+              or (_phone is not null and p.phone_e164 = _phone))
+    ) then
+      raise exception 'commercial_lead_historical_identity_review_required' using errcode = 'P0001';
+    end if;
+    return jsonb_build_object('lead_id',_lead.id,'person_id',_person.id,'created',false,'unchanged',true);
   end if;
 
   -- Serialize conversions with overlapping identity keys, including absent Person rows.
