@@ -15,6 +15,7 @@ import { PanelSkeleton } from "@/components/feedback/loading";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
+import { useTenant } from "@/lib/tenant";
 import { eventLabel, type JourneyEventRow } from "@/lib/w04";
 import { isOperationTerminal, type OperationStatus } from "@/lib/w02";
 
@@ -99,6 +100,7 @@ function TerminalLiveRecord({
 
 function OperationWorkspace() {
   const { t } = useI18n();
+  const { canManage } = useTenant();
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId" });
   const location = useLocation();
 
@@ -130,6 +132,9 @@ function OperationWorkspace() {
     { to: "/operations/$operationId/hospitality" as const, label: t("w06.tab.hospitality") },
     { to: "/operations/$operationId/events" as const, label: t("w07.tab.events") },
     { to: "/operations/$operationId/communication" as const, label: t("w08.tab.communication") },
+    ...(canManage
+      ? [{ to: "/operations/$operationId/leads" as const, label: "Leads" }]
+      : []),
     { to: "/operations/$operationId/procurement" as const, label: "Fornecedores" },
     { to: "/operations/$operationId/contract-readiness" as const, label: "Prontidão contratual" },
     { to: "/operations/$operationId/contracts" as const, label: "Contratos" },
