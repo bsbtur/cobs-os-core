@@ -29,6 +29,9 @@ GRANT USAGE ON SCHEMA public,auth,app_private TO anon,authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid() TO anon,authenticated;
 GRANT EXECUTE ON FUNCTION app_private.has_tenant_role(uuid,public.app_role[]) TO authenticated;
 \i supabase/migrations/20260906060000_consolidate_supplier_documents_v1.sql
+\if :APPLY_GUARD
+\i tests/security/patches/supplier-document-context-guard.candidate.sql
+\endif
 INSERT INTO public.tenants VALUES
  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
 INSERT INTO public.operations VALUES
