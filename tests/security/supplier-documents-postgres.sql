@@ -153,4 +153,11 @@ DO $block$BEGIN
   RAISE EXCEPTION 'SECURITY FAILURE: foreign document unexpectedly deleted';
  END IF;
 END$block$;
+-- Bidirectional referential safety: parent changes cannot orphan existing supplier documents.
+-- These tests use the disposable DB owner so the result checks database integrity, not UI permissions.
+SELECT public.assert_rejected('parent quote changes operation with linked document',$sql$UPDATE public.operation_quotes SET operation_id='a0000000-0000-0000-0000-000000000002' WHERE id='a2000000-0000-0000-0000-000000000001'$sql$);
+SELECT public.assert_rejected('parent quote changes tenant with linked document',$sql$UPDATE public.operation_quotes SET tenant_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' WHERE id='a2000000-0000-0000-0000-000000000001'$sql$);
+SELECT public.assert_rejected('parent quote changes supplier with linked document',$sql$UPDATE public.operation_quotes SET supplier_id='b1000000-0000-0000-0000-000000000001' WHERE id='a2000000-0000-0000-0000-000000000001'$sql$);
+SELECT public.assert_rejected('parent operation changes tenant with linked document',$sql$UPDATE public.operations SET tenant_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' WHERE id='a0000000-0000-0000-0000-000000000001'$sql$);
+SELECT public.assert_rejected('parent supplier changes tenant with linked document',$sql$UPDATE public.suppliers SET tenant_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' WHERE id='a1000000-0000-0000-0000-000000000001'$sql$);
 ROLLBACK;
