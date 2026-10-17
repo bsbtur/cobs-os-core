@@ -1,0 +1,35 @@
+select set_config('test.tenant','ffffffff-ffff-ffff-ffff-ffffffffffff',false);
+select set_config('test.role','owner',false);
+do $$
+declare r jsonb; first_id uuid; other_id uuid; blocked boolean;
+begin
+ r:=public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Manual One','MANUAL@example.test','+5561991111111','manual-key-1');
+ first_id:=(r->>'person_id')::uuid;
+ if first_id is null or (r->>'unchanged')::boolean then raise exception 'first_create_failed';end if;
+ r:=public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Manual One','manual@example.test','+5561991111111','manual-key-1');
+ if (r->>'person_id')::uuid<>first_id or (r->>'unchanged')::boolean is distinct from true then raise exception 'retry_failed';end if;
+ blocked:=false;
+ begin perform public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Different Name','manual@example.test',null,'manual-key-1');
+ exception when others then blocked:=sqlerrm='manual_person_idempotency_conflict';end;
+ if not blocked then raise exception 'idempotency_mismatch_not_blocked';end if;
+ blocked:=false;
+ begin perform public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Duplicate',' MANUAL@EXAMPLE.TEST ',null,'another-key');
+ exception when others then blocked:=sqlerrm='person_email_conflict_requires_review';end;
+ if not blocked then raise exception 'duplicate_email_not_blocked';end if;
+ r:=public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Manual Two','other@example.test','+5561991111111','manual-key-2');
+ other_id:=(r->>'person_id')::uuid;
+ if other_id=first_id then raise exception 'shared_phone_merged';end if;
+ r:=public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','No email',null,'+5561991111111','manual-key-3');
+ if (r->>'person_id') is null then raise exception 'missing_email_rejected';end if;
+ perform set_config('test.role','operations_agent',true);
+ blocked:=false;
+ begin perform public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Unauthorized','u@example.test',null,'manual-key-4');
+ exception when others then blocked:=sqlerrm='manual_person_unauthorized';end;
+ if not blocked then raise exception 'operator_allowed';end if;
+ perform set_config('test.role','owner',true);
+ blocked:=false;
+ begin perform public.create_person_manual('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee','Foreign','foreign@example.test',null,'manual-key-5');
+ exception when others then blocked:=sqlerrm='manual_person_unauthorized';end;
+ if not blocked then raise exception 'tenant_escape_allowed';end if;
+ if (select count(*) from public.commercial_leads where converted_person_id is not null)<>3 then raise exception 'commercial_leads_changed';end if;
+end $$;
