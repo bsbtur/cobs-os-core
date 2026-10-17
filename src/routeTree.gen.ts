@@ -79,6 +79,7 @@ import { Route as AuthenticatedOperationsOperationIdEventsRouteImport } from './
 import { Route as AuthenticatedOperationsOperationIdHospitalityRouteImport } from './routes/_authenticated/operations.$operationId.hospitality'
 import { Route as AuthenticatedOperationsOperationIdIncidentsRouteImport } from './routes/_authenticated/operations.$operationId.incidents'
 import { Route as AuthenticatedOperationsOperationIdJourneyRouteImport } from './routes/_authenticated/operations.$operationId.journey'
+import { Route as AuthenticatedOperationsOperationIdLeadsRouteImport } from './routes/_authenticated/operations.$operationId.leads'
 import { Route as AuthenticatedOperationsOperationIdLiveRouteImport } from './routes/_authenticated/operations.$operationId.live'
 import { Route as AuthenticatedOperationsOperationIdMobilityRouteImport } from './routes/_authenticated/operations.$operationId.mobility'
 import { Route as AuthenticatedOperationsOperationIdPeopleRouteImport } from './routes/_authenticated/operations.$operationId.people'
@@ -480,6 +481,12 @@ const AuthenticatedOperationsOperationIdJourneyRoute =
     path: '/journey',
     getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
   } as any)
+const AuthenticatedOperationsOperationIdLeadsRoute =
+  AuthenticatedOperationsOperationIdLeadsRouteImport.update({
+    id: '/leads',
+    path: '/leads',
+    getParentRoute: () => AuthenticatedOperationsOperationIdRoute,
+  } as any)
 const AuthenticatedOperationsOperationIdLiveRoute =
   AuthenticatedOperationsOperationIdLiveRouteImport.update({
     id: '/live',
@@ -585,6 +592,7 @@ export interface FileRoutesByFullPath {
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/incidents': typeof AuthenticatedOperationsOperationIdIncidentsRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
+  '/operations/$operationId/leads': typeof AuthenticatedOperationsOperationIdLeadsRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
@@ -659,6 +667,7 @@ export interface FileRoutesByTo {
   '/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/operations/$operationId/incidents': typeof AuthenticatedOperationsOperationIdIncidentsRoute
   '/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
+  '/operations/$operationId/leads': typeof AuthenticatedOperationsOperationIdLeadsRoute
   '/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
@@ -738,6 +747,7 @@ export interface FileRoutesById {
   '/_authenticated/operations/$operationId/hospitality': typeof AuthenticatedOperationsOperationIdHospitalityRoute
   '/_authenticated/operations/$operationId/incidents': typeof AuthenticatedOperationsOperationIdIncidentsRoute
   '/_authenticated/operations/$operationId/journey': typeof AuthenticatedOperationsOperationIdJourneyRoute
+  '/_authenticated/operations/$operationId/leads': typeof AuthenticatedOperationsOperationIdLeadsRoute
   '/_authenticated/operations/$operationId/live': typeof AuthenticatedOperationsOperationIdLiveRoute
   '/_authenticated/operations/$operationId/mobility': typeof AuthenticatedOperationsOperationIdMobilityRoute
   '/_authenticated/operations/$operationId/people': typeof AuthenticatedOperationsOperationIdPeopleRoute
@@ -817,6 +827,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/incidents'
     | '/operations/$operationId/journey'
+    | '/operations/$operationId/leads'
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
     | '/operations/$operationId/people'
@@ -891,6 +902,7 @@ export interface FileRouteTypes {
     | '/operations/$operationId/hospitality'
     | '/operations/$operationId/incidents'
     | '/operations/$operationId/journey'
+    | '/operations/$operationId/leads'
     | '/operations/$operationId/live'
     | '/operations/$operationId/mobility'
     | '/operations/$operationId/people'
@@ -969,6 +981,7 @@ export interface FileRouteTypes {
     | '/_authenticated/operations/$operationId/hospitality'
     | '/_authenticated/operations/$operationId/incidents'
     | '/_authenticated/operations/$operationId/journey'
+    | '/_authenticated/operations/$operationId/leads'
     | '/_authenticated/operations/$operationId/live'
     | '/_authenticated/operations/$operationId/mobility'
     | '/_authenticated/operations/$operationId/people'
@@ -1493,6 +1506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsOperationIdJourneyRouteImport
       parentRoute: typeof AuthenticatedOperationsOperationIdRoute
     }
+    '/_authenticated/operations/$operationId/leads': {
+      id: '/_authenticated/operations/$operationId/leads'
+      path: '/leads'
+      fullPath: '/operations/$operationId/leads'
+      preLoaderRoute: typeof AuthenticatedOperationsOperationIdLeadsRouteImport
+      parentRoute: typeof AuthenticatedOperationsOperationIdRoute
+    }
     '/_authenticated/operations/$operationId/live': {
       id: '/_authenticated/operations/$operationId/live'
       path: '/live'
@@ -1597,6 +1617,7 @@ interface AuthenticatedOperationsOperationIdRouteChildren {
   AuthenticatedOperationsOperationIdHospitalityRoute: typeof AuthenticatedOperationsOperationIdHospitalityRoute
   AuthenticatedOperationsOperationIdIncidentsRoute: typeof AuthenticatedOperationsOperationIdIncidentsRoute
   AuthenticatedOperationsOperationIdJourneyRoute: typeof AuthenticatedOperationsOperationIdJourneyRoute
+  AuthenticatedOperationsOperationIdLeadsRoute: typeof AuthenticatedOperationsOperationIdLeadsRoute
   AuthenticatedOperationsOperationIdLiveRoute: typeof AuthenticatedOperationsOperationIdLiveRoute
   AuthenticatedOperationsOperationIdMobilityRoute: typeof AuthenticatedOperationsOperationIdMobilityRoute
   AuthenticatedOperationsOperationIdPeopleRoute: typeof AuthenticatedOperationsOperationIdPeopleRoute
@@ -1625,6 +1646,8 @@ const AuthenticatedOperationsOperationIdRouteChildren: AuthenticatedOperationsOp
       AuthenticatedOperationsOperationIdIncidentsRoute,
     AuthenticatedOperationsOperationIdJourneyRoute:
       AuthenticatedOperationsOperationIdJourneyRoute,
+    AuthenticatedOperationsOperationIdLeadsRoute:
+      AuthenticatedOperationsOperationIdLeadsRoute,
     AuthenticatedOperationsOperationIdLiveRoute:
       AuthenticatedOperationsOperationIdLiveRoute,
     AuthenticatedOperationsOperationIdMobilityRoute:
