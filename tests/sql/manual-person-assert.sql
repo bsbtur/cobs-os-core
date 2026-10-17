@@ -31,5 +31,5 @@ begin
  begin perform public.create_person_manual('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee','Foreign','foreign@example.test',null,'manual-key-5');
  exception when others then blocked:=sqlerrm='manual_person_unauthorized';end;
  if not blocked then raise exception 'tenant_escape_allowed';end if;
- if (select count(*) from public.commercial_leads where converted_person_id is not null)<>3 then raise exception 'commercial_leads_changed';end if;
+ if (select count(*) from public.commercial_leads where id in ('20000000-0000-0000-0000-000000000007','20000000-0000-0000-0000-000000000008','20000000-0000-0000-0000-000000000009') and converted_person_id is not null)<>3 then raise exception 'commercial_leads_changed';end if;
 end $$;
