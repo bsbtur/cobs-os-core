@@ -30,7 +30,7 @@ begin
     if _person.id is null then
       raise exception 'commercial_lead_historical_identity_review_required' using errcode = 'P0001';
     end if;
-    _digits := regexp_replace(coalesce(_lead.phone,''), '\\D', '', 'g');
+    _digits := regexp_replace(coalesce(_lead.phone,''), '\D', '', 'g');
     _phone := case when length(_digits) between 7 and 15 then '+' || _digits else null end;
     if (nullif(lower(btrim(_lead.email)), '') is not null
           and nullif(lower(btrim(_person.email)), '') is not null
