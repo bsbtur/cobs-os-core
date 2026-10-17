@@ -9,7 +9,12 @@ describe("Canonical commercial lead identity resolver", () => {
     expect(converter).toContain("app_private.resolve_commercial_lead_person(");
     expect(converter).toContain("app_private.w09_require_commerce_manager(_lead.tenant_id)");
     expect(resolver).toContain("app_private.w09_require_commerce_manager(_tenant_id)");
-    expect(resolver).toContain("l.tenant_id = _tenant_id");
+    expect(resolver).toContain("where id = _lead_id for update");
+    expect(resolver).toContain("_tenant_id := _lead.tenant_id");
+    expect(resolver).toContain("_normalized_email := nullif(lower(btrim(_lead.email)),");
+    expect(resolver).toContain("coalesce(_lead.phone");
+    expect(converter).toContain("resolve_commercial_lead_person(_lead.id)");
+    expect(resolver).toContain("resolve_commercial_lead_person(\n  _lead_id uuid");
   });
   test("serializes per tenant and email; telephone is never an identity key", () => {
     expect(resolver).toContain("pg_advisory_xact_lock(");
