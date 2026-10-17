@@ -9,6 +9,7 @@ as $$
 declare
   _lead public.commercial_leads;
   _person public.people;
+  _resolved_person_id uuid;
   _phone text;
   _digits text;
   _matched_ids uuid[];
@@ -55,11 +56,11 @@ begin
 
   -- Canonical private resolver owns matching, locking and insertion.
   -- The lead and tenant are authorized independently within the helper.
+  _resolved_person_id := app_private.resolve_commercial_lead_person(
+    _lead.tenant_id, _lead.full_name, _lead.email, _lead.phone, _lead.id
+  );
   select * into _person from public.people
-    where tenant_id = _lead.tenant_id
-      and id = app_private.resolve_commercial_lead_person(
-        _lead.tenant_id, _lead.full_name, _lead.email, _lead.phone, _lead.id
-      );
+    where tenant_id = _lead.tenant_id and id = _resolved_person_id;
   if _person.id is null then
     raise exception 'commercial_lead_identity_review_required' using errcode='P0001';
   end if;
