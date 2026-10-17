@@ -1,8 +1,10 @@
 -- Manual person creation, deliberately separate from the commercial lead resolver.
 create table if not exists app_private.manual_person_creation_requests(
  tenant_id uuid not null, idempotency_key text not null,
- payload_hash text not null, person_id uuid not null,
- primary key(tenant_id,idempotency_key)
+ payload_hash text not null, person_id uuid,
+ primary key(tenant_id,idempotency_key),
+ constraint manual_person_requests_person_fk foreign key(person_id,tenant_id)
+ references public.people(id,tenant_id) on delete set null (person_id)
 );
 revoke all on app_private.manual_person_creation_requests from public;
 
@@ -37,6 +39,12 @@ begin
  if found then
    if _prior.payload_hash <> _hash then
      raise exception 'manual_person_idempotency_conflict' using errcode='P0001';
+   end if;
+   if _prior.person_id is null or not exists (
+     select 1 from public.people p
+     where p.id=_prior.person_id and p.tenant_id=_tenant_id
+   ) then
+     raise exception 'manual_person_previous_person_deleted' using errcode='P0001';
    end if;
    return jsonb_build_object('person_id',_prior.person_id,'unchanged',true);
  end if;
