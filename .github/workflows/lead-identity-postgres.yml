@@ -56,3 +56,21 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-setup.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261017090000_create_person_manual_v1.sql
           psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-assert.sql
+      - name: Verify concurrent manual email creation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in race-manual-a race-manual-b; do
+            psql -v ON_ERROR_STOP=1 -c "select set_config('test.tenant','ffffffff-ffff-ffff-ffff-ffffffffffff',false); select set_config('test.role','owner',false); select public.create_person_manual('ffffffff-ffff-ffff-ffff-ffffffffffff','Concurrent Manual','manual-race@example.test','+5561990000000','$key');" > "/tmp/$key.log" 2>&1 &
+            pids+=("$!")
+          done
+          set +e
+          wait "${pids[0]}"; status_a=$?
+          wait "${pids[1]}"; status_b=$?
+          set -e
+          if ! { { [ "$status_a" -eq 0 ] && [ "$status_b" -ne 0 ]; } || { [ "$status_b" -eq 0 ] && [ "$status_a" -ne 0 ]; }; }; then
+            echo "Expected exactly one successful concurrent create"
+            cat /tmp/race-manual-*.log
+            exit 1
+          fi
+          psql -v ON_ERROR_STOP=1 -c "do \$\$ begin if (select count(*) from public.people where email='manual-race@example.test') <> 1 then raise exception 'manual_concurrent_duplicate'; end if; end \$\$;"
