@@ -17,6 +17,7 @@ import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { eventLabel, type JourneyEventRow } from "@/lib/w04";
 import { isOperationTerminal, type OperationStatus } from "@/lib/w02";
+import { useTenant } from "@/lib/tenant";
 
 /** Operation workspace layout — exposes only implemented areas. */
 export const Route = createFileRoute("/_authenticated/operations/$operationId")({
@@ -99,6 +100,7 @@ function TerminalLiveRecord({
 
 function OperationWorkspace() {
   const { t } = useI18n();
+  const { canManage } = useTenant();
   const { operationId } = useParams({ from: "/_authenticated/operations/$operationId" });
   const location = useLocation();
 
@@ -124,6 +126,7 @@ function OperationWorkspace() {
   const isMoreActive = !isOverview && !isPeople && !isWall;
 
   const secondaryLinks = [
+    ...(canManage ? [{ to: "/operations/$operationId/leads" as const, label: "Leads" }] : []),
     { to: "/operations/$operationId/journey" as const, label: t("w04.tab.journey") },
     { to: "/operations/$operationId/live" as const, label: t("w04.tab.live") },
     { to: "/operations/$operationId/mobility" as const, label: t("w05.tab.mobility") },
