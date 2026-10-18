@@ -1,0 +1,50 @@
+name: Supplier Documents PostgreSQL Security (isolated)
+on:
+  push:
+    branches: [feat/supplier-documents-staged-20261017]
+    paths:
+      - 'tests/security/supplier-documents-postgres.sql'
+      - 'tests/security/patches/**'
+      - '.github/workflows/supplier-documents-security.yml'
+  workflow_dispatch:
+jobs:
+  isolated-security:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated_test_only
+          POSTGRES_DB: supplier_security
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d supplier_security"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: isolated_test_only
+      PGDATABASE: supplier_security
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Verify isolated database identity
+        run: |
+          test "$PGDATABASE" = supplier_security
+          psql -X -v ON_ERROR_STOP=1 -Atc "select current_database()" | grep -Fx supplier_security
+      - name: Confirm baseline rejects unsafe assumption (expected security failure)
+        shell: bash
+        run: |
+          if psql -X -v ON_ERROR_STOP=1 -v APPLY_GUARD=0 -f tests/security/supplier-documents-postgres.sql > baseline-security.log 2>&1; then
+            echo "ERROR: baseline unexpectedly passed; investigate test validity"
+            exit 1
+          fi
+          grep -F 'SECURITY FAILURE: cross-tenant operation direct insert unexpectedly succeeded' baseline-security.log
+      - name: Exercise candidate database guard (must pass)
+        run: psql -X -v ON_ERROR_STOP=1 -v APPLY_GUARD=1 -f tests/security/supplier-documents-postgres.sql
