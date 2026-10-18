@@ -77,6 +77,12 @@ export function canManageLeadPipeline(role: string | null) {
 export function leadStatusLabel(status: string) {
   return LEAD_STAGES.find((stage) => stage.value === status)?.label ?? "—";
 }
+export function leadMoveStages(lead: CommercialLead) {
+  if (lead.status === "converted" || lead.converted_person_id) {
+    return LEAD_STAGES.filter((stage) => stage.value === "converted");
+  }
+  return LEAD_STAGES.filter((stage) => stage.value !== "converted");
+}
 export function leadMetadata(lead: CommercialLead, key: string): string {
   const metadata = lead.metadata;
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return "";
@@ -144,6 +150,8 @@ export async function updateLeadPipeline(rpc: PipelineRpc, leadId: string, chang
     throw new Error("Invalid pipeline update");
   if (change.status !== undefined && !isLeadStatus(change.status))
     throw new Error("Invalid lead status");
+  if (change.status === "converted")
+    throw new Error("Converted status is managed by the canonical Person conversion flow");
   const args: PipelineArgs = { _lead_id: leadId };
   if (change.status !== undefined) args._status = change.status;
   if (change.assignee === null) args._clear_assignee = true;
