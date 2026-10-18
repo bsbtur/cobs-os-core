@@ -53,6 +53,8 @@ declare
   _lead public.commercial_leads%rowtype;
   _new_status text;
   _new_assignee uuid;
+  _old_status text;
+  _old_assignee uuid;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required';
@@ -82,6 +84,8 @@ begin
     raise exception 'Archived lead is read-only';
   end if;
 
+  _old_status := _lead.status;
+  _old_assignee := _lead.assigned_profile_id;
   _new_status := coalesce(_status, _lead.status);
 
   if _new_status not in ('new','contacted','qualified','converted','lost') then
@@ -131,6 +135,25 @@ begin
       updated_at = now()
   where l.id = _lead_id
   returning l.* into _lead;
+
+  if _old_status is distinct from _lead.status
+     or _old_assignee is distinct from _lead.assigned_profile_id then
+    perform app_private.record_audit_event(
+      _lead.tenant_id,
+      auth.uid(),
+      'commercial.lead_pipeline_updated',
+      'commercial_lead',
+      _lead.id,
+      null,
+      jsonb_build_object(
+        'operation_id', _lead.operation_id,
+        'old_status', _old_status,
+        'new_status', _lead.status,
+        'old_assigned_profile_id', _old_assignee,
+        'new_assigned_profile_id', _lead.assigned_profile_id
+      )
+    );
+  end if;
 
   return query
   select
