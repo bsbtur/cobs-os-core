@@ -7,6 +7,7 @@ import { AppShell } from "@/app/shell/app-shell";
 import { RequireTenant } from "@/app/shell/require-tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { nextManualPersonAttempt, type ManualPersonAttempt } from "@/lib/manual-person-attempt";
 import { useI18n } from "@/lib/i18n";
 import { useTenant, type PersonRow } from "@/lib/tenant";
 import { Button } from "@/components/ui/button";
@@ -45,11 +46,16 @@ export const Route = createFileRoute("/_authenticated/people")({
   component: PeoplePage,
 });
 
+// PREVIEW ONLY: set to true only after migration, grants and RLS pass staging review.
+// Do not enable in this draft PR. Existing People UI continues using its current insert.
+const ENABLE_MANUAL_PERSON_RPC = false;
+
 function PeopleList() {
   const { t, locale } = useI18n();
   const { tenant, canManage } = useTenant();
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
+  const manualCreateAttempt = React.useRef<ManualPersonAttempt | null>(null);
   const [linking, setLinking] = React.useState<PersonRow | null>(null);
 
   const people = useQuery({
@@ -85,6 +91,27 @@ function PeopleList() {
 
   const create = useMutation({
     mutationFn: async (input: { full_name: string; email: string; phone: string }) => {
+      if (ENABLE_MANUAL_PERSON_RPC) {
+        // Reuse the same request key for retries while this form remains open.
+        manualCreateAttempt.current = nextManualPersonAttempt(
+          manualCreateAttempt.current, tenant!.id, input, () => crypto.randomUUID(),
+        );
+        // The RPC does not exist in generated Supabase types until the migration is applied.
+        const rpc = supabase.rpc as unknown as (
+          name: string,
+          args: Record<string, string | null>,
+        ) => PromiseLike<{ error: { message: string } | null }>;
+        const { error } = await rpc("create_person_manual", {
+          _tenant_id: tenant!.id,
+          _full_name: input.full_name,
+          _email: input.email || null,
+          _phone_e164: input.phone || null,
+          _idempotency_key: manualCreateAttempt.current.key,
+        });
+        if (error) throw error;
+        return;
+      }
+      // Existing path remains in effect while the rollout flag is disabled.
       const { error } = await supabase.from("people").insert({
         tenant_id: tenant!.id,
         full_name: input.full_name,
@@ -96,6 +123,7 @@ function PeopleList() {
     onSuccess: () => {
       feedback.success(t("people.created"));
       setOpen(false);
+      manualCreateAttempt.current = null;
       void queryClient.invalidateQueries({ queryKey: ["people", tenant?.id] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
@@ -138,7 +166,7 @@ function PeopleList() {
     <div className="space-y-4">
       {canManage ? (
         <div className="flex justify-end">
-          <Button className="min-h-11" onClick={() => setOpen((v) => !v)}>
+          <Button className="min-h-11" onClick={() => { manualCreateAttempt.current = null; setOpen((v) => !v); }}>
             <UserPlus className="mr-2 size-4" aria-hidden="true" />
             {t("people.add")}
           </Button>
@@ -180,7 +208,7 @@ function PeopleList() {
               type="button"
               variant="ghost"
               className="min-h-11"
-              onClick={() => setOpen(false)}
+              onClick={() => { manualCreateAttempt.current = null; setOpen(false); }}
             >
               {t("common.cancel")}
             </Button>
