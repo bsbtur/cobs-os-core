@@ -160,4 +160,30 @@ SELECT public.assert_rejected('parent quote changes tenant with linked document'
 SELECT public.assert_rejected('parent quote changes supplier with linked document',$sql$UPDATE public.operation_quotes SET supplier_id='b1000000-0000-0000-0000-000000000001' WHERE id='a2000000-0000-0000-0000-000000000001'$sql$);
 SELECT public.assert_rejected('parent operation changes tenant with linked document',$sql$UPDATE public.operations SET tenant_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' WHERE id='a0000000-0000-0000-0000-000000000001'$sql$);
 SELECT public.assert_rejected('parent supplier changes tenant with linked document',$sql$UPDATE public.suppliers SET tenant_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' WHERE id='a1000000-0000-0000-0000-000000000001'$sql$);
+-- Verify existing ON DELETE CASCADE behavior in the canonical supplier document migration.
+-- Each savepoint keeps subsequent checks independent; never touches non-synthetic data.
+SAVEPOINT cascade_quote;
+DELETE FROM public.operation_quotes WHERE id='b2000000-0000-0000-0000-000000000001';
+DO $cascade$BEGIN
+ IF EXISTS(SELECT 1 FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001')
+ THEN RAISE EXCEPTION 'SECURITY FAILURE: quote cascade did not remove linked document'; END IF;
+ RAISE NOTICE 'PASS cascade: quote deletion removes document';
+END$cascade$;
+ROLLBACK TO SAVEPOINT cascade_quote;
+SAVEPOINT cascade_operation;
+DELETE FROM public.operations WHERE id='b0000000-0000-0000-0000-000000000001';
+DO $cascade$BEGIN
+ IF EXISTS(SELECT 1 FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001')
+ THEN RAISE EXCEPTION 'SECURITY FAILURE: operation cascade did not remove linked document'; END IF;
+ RAISE NOTICE 'PASS cascade: operation deletion removes document';
+END$cascade$;
+ROLLBACK TO SAVEPOINT cascade_operation;
+SAVEPOINT cascade_supplier;
+DELETE FROM public.suppliers WHERE id='b1000000-0000-0000-0000-000000000001';
+DO $cascade$BEGIN
+ IF EXISTS(SELECT 1 FROM public.supplier_documents WHERE id='b4000000-0000-0000-0000-000000000001')
+ THEN RAISE EXCEPTION 'SECURITY FAILURE: supplier cascade did not remove linked document'; END IF;
+ RAISE NOTICE 'PASS cascade: supplier deletion removes document';
+END$cascade$;
+ROLLBACK TO SAVEPOINT cascade_supplier;
 ROLLBACK;
