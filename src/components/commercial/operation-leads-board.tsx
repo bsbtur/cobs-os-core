@@ -16,6 +16,7 @@ import {
   leadOriginKey,
   leadQueryKey,
   leadStageAge,
+  leadStageTimestamp,
   leadStatusLabel,
   updateLeadPipeline,
   whatsappUrl,
@@ -305,7 +306,7 @@ export function OperationLeadsBoard({ operationId }: { operationId: string }) {
           {[lead.source, lead.campaign].filter(Boolean).join(" · ") || "Origem não informada"}
         </p>
         <p>{time(lead.created_at)}</p>
-        <p>{leadStageAge(lead.status_changed_at)} na etapa</p>
+        <p>{leadStageAge(leadStageTimestamp(lead))} na etapa</p>
       </div>
       <WhatsAppLink phone={lead.phone} />
       <LeadControls
