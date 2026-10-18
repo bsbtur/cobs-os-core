@@ -5,6 +5,8 @@ import { Check, Plus, ShieldCheck, UserPlus, Users, X } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
+import { nextManualPersonAttempt, type ManualPersonAttempt } from "@/lib/manual-person-attempt";
+import { createManualPerson, ENABLE_MANUAL_PERSON_RPC } from "@/lib/manual-person";
 import { useI18n } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/format";
 import { useTenant } from "@/lib/tenant";
@@ -123,6 +125,7 @@ function AddPersonDialog({
   const [roles, setRoles] = React.useState<string[]>([]);
   const [primaryRole, setPrimaryRole] = React.useState<string | null>(null);
   const [notes, setNotes] = React.useState("");
+  const manualCreateAttempt = React.useRef<ManualPersonAttempt | null>(null);
   const idempotencyKey = React.useRef(newIdempotencyKey());
 
   const reset = () => {
@@ -134,6 +137,7 @@ function AddPersonDialog({
     setRoles([]);
     setPrimaryRole(null);
     setNotes("");
+    manualCreateAttempt.current = null;
     idempotencyKey.current = newIdempotencyKey();
   };
 
@@ -153,6 +157,23 @@ function AddPersonDialog({
 
   const createPerson = useMutation({
     mutationFn: async (input: { full_name: string; email: string }) => {
+      if (ENABLE_MANUAL_PERSON_RPC) {
+        const manualInput = { ...input, phone: "" };
+        manualCreateAttempt.current = nextManualPersonAttempt(
+          manualCreateAttempt.current,
+          tenant!.id,
+          manualInput,
+          () => crypto.randomUUID(),
+        );
+        const result = await createManualPerson(
+          tenant!.id,
+          manualInput,
+          manualCreateAttempt.current.key,
+        );
+        return result.personId;
+      }
+
+      // Existing path remains in effect while the rollout flag is disabled.
       const { data, error } = await supabase
         .from("people")
         .insert({
@@ -283,7 +304,10 @@ function AddPersonDialog({
                     type="button"
                     variant="ghost"
                     className="min-h-11"
-                    onClick={() => setCreating(false)}
+                    onClick={() => {
+                      manualCreateAttempt.current = null;
+                      setCreating(false);
+                    }}
                   >
                     {t("common.cancel")}
                   </Button>
