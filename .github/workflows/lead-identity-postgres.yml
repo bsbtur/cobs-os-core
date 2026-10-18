@@ -2,11 +2,11 @@ name: PR503 Disposable PostgreSQL Identity Test
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261018003100_commercial_lead_identity_conflict_gate_v1.sql'
-      - 'supabase/migrations/20261018003000_canonical_commercial_identity_resolver.sql'
+      - 'supabase/migrations/20261018004643_commercial_lead_identity_conflict_gate_v1.sql'
+      - 'supabase/migrations/20261018004505_canonical_commercial_identity_resolver.sql'
       - 'tests/sql/lead-identity-*'
       - 'tests/sql/manual-person-*'
-      - 'supabase/migrations/20261018003200_create_person_manual_v1.sql'
+      - 'supabase/migrations/20261018004710_create_person_manual_v1.sql'
       - '.github/workflows/lead-identity-postgres.yml'
   workflow_dispatch:
 jobs:
@@ -36,8 +36,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-fixture.sql
       - name: Install the proposed migration on disposable database
         run: |
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018003000_canonical_commercial_identity_resolver.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018003100_commercial_lead_identity_conflict_gate_v1.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018004505_canonical_commercial_identity_resolver.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018004643_commercial_lead_identity_conflict_gate_v1.sql
       - name: Verify conflicts and idempotency
         run: psql -v ON_ERROR_STOP=1 -f tests/sql/lead-identity-assert.sql
       - name: Verify concurrent conversions
@@ -54,7 +54,7 @@ jobs:
       - name: Install and test manual Person RPC
         run: |
           psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-setup.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018003200_create_person_manual_v1.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018004710_create_person_manual_v1.sql
           psql -v ON_ERROR_STOP=1 -f tests/sql/manual-person-assert.sql
       - name: Verify concurrent manual email creation
         shell: bash
