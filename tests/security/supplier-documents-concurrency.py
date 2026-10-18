@@ -31,38 +31,52 @@ def check_integrity():
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "0", f"INTEGRITY VIOLATION: {result.stdout.strip()} inconsistent documents"
 
-# Run both commit orders. In insert-first case A holds uncommitted document while
-# B updates the parent. Distinct psql subprocesses = distinct server connections.
-scenarios = [
-    ("document_first", 1.8, 0.2),
-    ("parent_first", 0.2, 1.8),
+# Both orderings for every parent relation. A real OS process + connection per session.
+# Parent rows are changed to the other tenant while a document is inserted.
+# PostgreSQL should reject one operation, never accept an inconsistent final state.
+OTHER_TENANT = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+cases = [
+    ("quote_operation", "UPDATE public.operation_quotes SET operation_id='" + OP2 + "' WHERE id='" + QUOTE + "'", "UPDATE public.operation_quotes SET operation_id='" + OP1 + "' WHERE id='" + QUOTE + "'"),
+    ("operation_tenant", "UPDATE public.operations SET tenant_id='" + OTHER_TENANT + "' WHERE id='" + OP1 + "'", "UPDATE public.operations SET tenant_id='" + TENANT + "' WHERE id='" + OP1 + "'"),
+    ("supplier_tenant", "UPDATE public.suppliers SET tenant_id='" + OTHER_TENANT + "' WHERE id='" + SUP + "'", "UPDATE public.suppliers SET tenant_id='" + TENANT + "' WHERE id='" + SUP + "'"),
 ]
-for name, a_delay, b_delay in scenarios:
-    reset = sql(f"""DELETE FROM public.supplier_documents;
-    UPDATE public.operation_quotes SET operation_id='{OP1}' WHERE id='{QUOTE}';""")
-    assert reset.returncode == 0, reset.stderr
-    insert = f"""BEGIN; INSERT INTO public.supplier_documents
-       (tenant_id,operation_id,quote_id,supplier_id,document_type,title)
-       VALUES('{TENANT}','{OP1}','{QUOTE}','{SUP}','contract','Synthetic concurrent');
-       SELECT pg_sleep({a_delay}); COMMIT;"""
-    parent = f"""BEGIN; UPDATE public.operation_quotes SET operation_id='{OP2}'
-       WHERE id='{QUOTE}'; SELECT pg_sleep({b_delay}); COMMIT;"""
-    answers = {}
-    def invoke(key, stmt):
-        answers[key] = sql(stmt)
-    a = threading.Thread(target=invoke,args=("document",insert))
-    b = threading.Thread(target=invoke,args=("parent",parent))
-    if name == "parent_first":
-        b.start()
-        time.sleep(0.35)
-        a.start()
-    else:
-        a.start()
-        time.sleep(0.35)
-        b.start()
-    a.join(timeout=20)
-    b.join(timeout=20)
-    assert not a.is_alive() and not b.is_alive(), "Concurrent sessions deadlocked or timed out"
-    check_integrity()
-    print(f"PASS {name}: final database references consistent (document_rc={answers['document'].returncode}, parent_rc={answers['parent'].returncode})",flush=True)
-print("PASS concurrent transactions: invariant upheld")
+for kind, parent_sql, restore_sql in cases:
+    for order in ("document_first","parent_first"):
+        reset = sql("DELETE FROM public.supplier_documents; " + restore_sql + ";")
+        assert reset.returncode == 0, reset.stderr
+        insert = f"""BEGIN; SET LOCAL lock_timeout = '7s'; SET LOCAL statement_timeout='10s';
+            INSERT INTO public.supplier_documents
+            (tenant_id,operation_id,quote_id,supplier_id,document_type,title)
+            VALUES('{TENANT}','{OP1}','{QUOTE}','{SUP}','contract','Synthetic concurrent');
+            SELECT pg_sleep(1.5); COMMIT;"""
+        parent = f"""BEGIN; SET LOCAL lock_timeout = '7s'; SET LOCAL statement_timeout='10s';
+            {parent_sql}; SELECT pg_sleep(1.5); COMMIT;"""
+        answers = {}
+        errors = {}
+        def invoke(key, stmt):
+            try:
+                answers[key] = sql(stmt)
+            except Exception as exc:
+                errors[key] = str(exc)
+        a = threading.Thread(target=invoke,args=("document",insert))
+        b = threading.Thread(target=invoke,args=("parent",parent))
+        if order == "parent_first":
+            b.start()
+            time.sleep(0.3)
+            a.start()
+        else:
+            a.start()
+            time.sleep(0.3)
+            b.start()
+        a.join(timeout=16)
+        b.join(timeout=16)
+        assert not a.is_alive() and not b.is_alive(), f"TIMEOUT: {kind} {order}"
+        assert not errors, f"Session exception: {kind} {order}: {errors}"
+        for key, result in answers.items():
+            assert "deadlock detected" not in result.stderr.lower(), f"DEADLOCK: {kind} {order} {key}"
+            assert "canceling statement due to lock timeout" not in result.stderr.lower(), f"LOCK TIMEOUT: {kind} {order} {key}"
+            assert "canceling statement due to statement timeout" not in result.stderr.lower(), f"STATEMENT TIMEOUT: {kind} {order} {key}"
+        assert not (answers["document"].returncode == 0 and answers["parent"].returncode == 0), f"Unexpected double commit: {kind} {order}"
+        check_integrity()
+        print(f"PASS {kind} {order}: consistent, document_rc={answers['document'].returncode}, parent_rc={answers['parent'].returncode}",flush=True)
+print("PASS concurrent operations/suppliers/quotes: invariants upheld; no deadlocks or timeouts")
