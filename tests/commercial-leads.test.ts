@@ -6,6 +6,7 @@ import {
   filterLeads,
   leadMoveStages,
   leadQueryKey,
+  leadStageTimestamp,
   leadStatusLabel,
   updateLeadPipeline,
   whatsappUrl,
@@ -93,6 +94,20 @@ describe("commercial lead pipeline", () => {
     expect(leadQueryKey("tenant-a", "owner-a", "operation-a")).not.toEqual(
       leadQueryKey("tenant-b", "owner-a", "operation-a"),
     );
+  });
+  test("uses updated_at as a display-only proxy for legacy synthetic stage timestamps", () => {
+    const legacy = {
+      ...lead,
+      status_changed_at: "2026-10-17T21:00:00Z",
+      updated_at: "2026-10-01T10:00:00Z",
+    };
+    expect(leadStageTimestamp(legacy)).toBe("2026-10-01T10:00:00Z");
+    const current = {
+      ...lead,
+      status_changed_at: "2026-10-10T10:00:00Z",
+      updated_at: "2026-10-17T21:00:00Z",
+    };
+    expect(leadStageTimestamp(current)).toBe("2026-10-10T10:00:00Z");
   });
   test("normalizes WhatsApp without inventing a country code", () => {
     expect(whatsappUrl(lead.phone)).toBe("https://wa.me/5561999991234");
@@ -190,8 +205,8 @@ describe("commercial lead migration hardening", () => {
     expect(hardening).toContain("'new_assigned_profile_id', _lead.assigned_profile_id");
   });
 
-  test("repairs only synthetic stage timestamps created by the first migration", () => {
-    expect(hardening).toContain("where status_changed_at > updated_at");
+  test("does not rewrite historical timestamps during hardening", () => {
+    expect(hardening).not.toContain("update public.commercial_leads\nset status_changed_at");
   });
 });
 
