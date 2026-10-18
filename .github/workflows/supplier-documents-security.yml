@@ -7,6 +7,7 @@ on:
       - 'tests/security/patches/**'
       - 'tests/security/supplier-documents-concurrency.py'
       - 'tests/security/supplier-documents-canonical-rpc.sql'
+      - 'tests/security/supplier-documents-retention.sql'
       - '.github/workflows/supplier-documents-security.yml'
   workflow_dispatch:
 jobs:
@@ -62,3 +63,20 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS supplier_canonical'
           psql -X -v ON_ERROR_STOP=1 -c 'CREATE DATABASE supplier_canonical'
           PGDATABASE=supplier_canonical psql -X -v ON_ERROR_STOP=1 -f tests/security/supplier-documents-canonical-rpc.sql
+      - name: Reproduce deletion and enforce retention in independent disposable databases
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed '/^INSERT INTO public.tenants/,$d; /^BEGIN;$/d' tests/security/supplier-documents-canonical-rpc.sql > /tmp/supplier-retention-schema.sql
+          for scenario in baseline guarded; do
+            database="supplier_retention_${scenario}"
+            psql -X -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${database}"
+            PGDATABASE="$database" psql -X -v ON_ERROR_STOP=1 -f /tmp/supplier-retention-schema.sql >/dev/null
+            if [ "$scenario" = guarded ]; then
+              PGDATABASE="$database" psql -X -v ON_ERROR_STOP=1 -f tests/security/patches/supplier-document-retention.candidate.sql
+              protect=true
+            else
+              protect=false
+            fi
+            PGDATABASE="$database" psql -X -v ON_ERROR_STOP=1 -v PROTECT="$protect" -f tests/security/supplier-documents-retention.sql
+          done
