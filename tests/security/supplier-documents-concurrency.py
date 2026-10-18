@@ -52,9 +52,14 @@ for name, a_delay, b_delay in scenarios:
         answers[key] = sql(stmt)
     a = threading.Thread(target=invoke,args=("document",insert))
     b = threading.Thread(target=invoke,args=("parent",parent))
-    a.start()
-    time.sleep(0.35)
-    b.start()
+    if name == "parent_first":
+        b.start()
+        time.sleep(0.35)
+        a.start()
+    else:
+        a.start()
+        time.sleep(0.35)
+        b.start()
     a.join(timeout=20)
     b.join(timeout=20)
     assert not a.is_alive() and not b.is_alive(), "Concurrent sessions deadlocked or timed out"
