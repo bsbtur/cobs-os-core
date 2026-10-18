@@ -9,7 +9,7 @@ const operationPeople = readFileSync(
 const manualPerson = readFileSync("src/lib/manual-person.ts", "utf8");
 const auth = readFileSync("src/lib/auth.tsx", "utf8");
 const auditMigration = readFileSync(
-  "supabase/migrations/20261018013000_create_person_manual_audit_v2.sql",
+  "supabase/migrations/20261018012725_create_person_manual_audit_v2.sql",
   "utf8",
 );
 
