@@ -162,7 +162,7 @@ describe("commercial lead pipeline", () => {
 
 describe("commercial lead migration hardening", () => {
   const hardening = readFileSync(
-    "supabase/migrations/20261018001000_commercial_lead_pipeline_hardening_v1.sql",
+    "supabase/migrations/20261018002200_commercial_lead_pipeline_hardening_v1.sql",
     "utf8",
   );
 
