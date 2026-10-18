@@ -880,14 +880,11 @@ function GenericLeadApprovalPanel({
   >({});
 
   const leads = useQuery({
-    queryKey: ["commercial-leads", operationId],
+    queryKey: ["commercial-leads-operation", operationId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("commercial_leads")
-        .select("id, full_name, email, phone, status, created_at, converted_person_id")
-        .eq("operation_id", operationId)
-        .in("status", ["new", "contacted", "qualified", "converted"])
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("list_operation_commercial_leads", {
+        _operation_id: operationId,
+      });
       if (error) throw error;
       return (data ?? []) as CommercialLeadRow[];
     },
@@ -978,8 +975,7 @@ function GenericLeadApprovalPanel({
       if (convertError) throw convertError;
 
       const payload = (converted ?? {}) as Record<string, unknown>;
-      const personId =
-        typeof payload["person_id"] === "string" ? payload["person_id"] : lead.converted_person_id;
+      const personId = typeof payload["person_id"] === "string" ? payload["person_id"] : null;
       if (!personId) throw new Error("lead_conversion_missing_person_id");
 
       const { data: existing, error: existingError } = await supabase
@@ -1023,7 +1019,7 @@ function GenericLeadApprovalPanel({
             : "Lead aprovado, hospedagem vinculada e convite de acesso gerado."
           : "Lead aprovado e adicionado à operação.",
       );
-      void queryClient.invalidateQueries({ queryKey: ["commercial-leads", operationId] });
+      void queryClient.invalidateQueries({ queryKey: ["commercial-leads-operation", operationId] });
       void queryClient.invalidateQueries({ queryKey: ["roster", operationId] });
     },
     onError: (error) => feedback.error(humanizeError(error, locale)),
@@ -1048,8 +1044,6 @@ function GenericLeadApprovalPanel({
   }
 
   const rows = leads.data ?? [];
-  const pending = rows.filter((lead) => lead.status !== "converted");
-  const converted = rows.filter((lead) => lead.status === "converted");
 
   if (rows.length === 0) return null;
 
@@ -1063,7 +1057,7 @@ function GenericLeadApprovalPanel({
           </p>
         </div>
         <Chip className="bg-primary-soft text-primary">
-          {pending.length} aguardando
+          {rows.length} aguardando
         </Chip>
       </div>
 
@@ -1127,12 +1121,6 @@ function GenericLeadApprovalPanel({
           </li>
         ))}
       </ul>
-
-      {converted.length > 0 ? (
-        <p className="mt-3 text-xs text-muted-foreground">
-          Leads convertidos permanecem visíveis aqui como evidência do funil comercial.
-        </p>
-      ) : null}
     </section>
   );
 }
