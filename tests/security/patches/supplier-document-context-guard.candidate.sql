@@ -7,14 +7,14 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM public.operations o
     WHERE o.id = NEW.operation_id AND o.tenant_id = NEW.tenant_id
-    FOR KEY SHARE
+    FOR SHARE
   ) THEN
     RAISE EXCEPTION 'supplier_document_operation_tenant_mismatch';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.suppliers s
     WHERE s.id = NEW.supplier_id AND s.tenant_id = NEW.tenant_id
-    FOR KEY SHARE
+    FOR SHARE
   ) THEN
     RAISE EXCEPTION 'supplier_document_supplier_tenant_mismatch';
   END IF;
@@ -22,7 +22,7 @@ BEGIN
     SELECT 1 FROM public.operation_quotes q
     WHERE q.id = NEW.quote_id AND q.tenant_id = NEW.tenant_id
       AND q.operation_id = NEW.operation_id AND q.supplier_id = NEW.supplier_id
-    FOR KEY SHARE
+    FOR SHARE
   ) THEN
     RAISE EXCEPTION 'supplier_document_quote_context_mismatch';
   END IF;
