@@ -187,6 +187,36 @@ export function humanizeError(error: unknown, locale: string): string {
       "Este lead já possui um vínculo histórico com dados divergentes. Revise manualmente; o COBS não vai relinkar a Pessoa automaticamente.",
       "This lead already has a historical link with conflicting data. Review it manually; COBS will not relink the Person automatically.",
     ],
+    [
+      /person_email_conflict_requires_review/i,
+      "Já existe uma Pessoa com este e-mail. Revise o cadastro existente antes de criar outra.",
+      "A Person with this email already exists. Review the existing record before creating another.",
+    ],
+    [
+      /manual_person_idempotency_conflict/i,
+      "Os dados mudaram durante esta tentativa. Feche o formulário e tente novamente.",
+      "The data changed during this attempt. Close the form and try again.",
+    ],
+    [
+      /manual_person_previous_person_deleted/i,
+      "A tentativa anterior aponta para uma Pessoa que não existe mais. Feche o formulário e tente novamente.",
+      "The previous attempt points to a Person that no longer exists. Close the form and try again.",
+    ],
+    [
+      /manual_person_invalid_input/i,
+      "Revise nome, e-mail e telefone antes de salvar.",
+      "Review name, email and phone before saving.",
+    ],
+    [
+      /manual_person_unauthorized/i,
+      "Apenas proprietários e administradores podem criar Pessoas.",
+      "Only owners and admins can create People.",
+    ],
+    [
+      /manual_person_missing_person_id/i,
+      "A criação não retornou uma Pessoa válida. Tente novamente antes de continuar.",
+      "The creation did not return a valid Person. Try again before continuing.",
+    ],
     // QA-FINAL-20260822: lifecycle guards must tell the operator which
     // precondition is still open instead of collapsing to the generic fallback.
     [

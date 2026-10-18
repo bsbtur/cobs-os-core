@@ -135,6 +135,16 @@ export type RuntimeRpcDatabase = {
         };
         Returns: Record<string, unknown>;
       };
+      create_person_manual: {
+        Args: {
+          _tenant_id: string;
+          _full_name: string;
+          _email: string | null;
+          _phone_e164: string | null;
+          _idempotency_key: string;
+        };
+        Returns: Record<string, unknown>;
+      };
       list_operation_commercial_leads: {
         Args: {
           _operation_id: string;
