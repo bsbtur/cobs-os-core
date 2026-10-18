@@ -94,6 +94,14 @@ export function whatsappUrl(phone: string) {
   // Do not guess a country code: use the canonical number supplied by the backend.
   return digits.length >= 10 && digits.length <= 15 ? `https://wa.me/${digits}` : null;
 }
+export function leadStageTimestamp(lead: CommercialLead) {
+  const changed = Date.parse(lead.status_changed_at);
+  const updated = Date.parse(lead.updated_at);
+  if (Number.isFinite(changed) && Number.isFinite(updated) && changed > updated) {
+    return lead.updated_at;
+  }
+  return lead.status_changed_at;
+}
 export function leadStageAge(timestamp: string, now = Date.now()) {
   const entered = Date.parse(timestamp);
   if (!Number.isFinite(entered)) return "—";
