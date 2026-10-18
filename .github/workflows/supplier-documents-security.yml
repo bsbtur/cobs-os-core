@@ -58,4 +58,7 @@ jobs:
       - name: Run independent PostgreSQL sessions and assert final integrity
         run: python3 tests/security/supplier-documents-concurrency.py
       - name: Exercise real canonical procurement RPC with linked document
-        run: psql -X -v ON_ERROR_STOP=1 -f tests/security/supplier-documents-canonical-rpc.sql
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS supplier_canonical'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE DATABASE supplier_canonical'
+          PGDATABASE=supplier_canonical psql -X -v ON_ERROR_STOP=1 -f tests/security/supplier-documents-canonical-rpc.sql
