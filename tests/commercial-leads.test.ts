@@ -151,6 +151,18 @@ describe("commercial lead migration hardening", () => {
     "utf8",
   );
 
+  test("keeps approval and CRM read models semantically separate", () => {
+    const board = readFileSync(
+      "src/components/commercial/operation-leads-board.tsx",
+      "utf8",
+    );
+    expect(hardening).toContain("list_operation_commercial_lead_pipeline");
+    expect(hardening).toContain("and l.converted_person_id is null");
+    expect(hardening).toContain("and l.status <> 'archived'");
+    expect(board).toContain('supabase.rpc("list_operation_commercial_lead_pipeline"');
+    expect(board).not.toContain('supabase.rpc("list_operation_commercial_leads"');
+  });
+
   test("removes direct authenticated writes and narrows PII reads to managers", () => {
     expect(hardening).toContain(
       "revoke update on table public.commercial_leads from authenticated",
