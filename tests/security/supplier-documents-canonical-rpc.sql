@@ -28,7 +28,7 @@ BEGIN
  END IF;
  RETURN NEW;
 END $f$;
-CREATE TABLE public.operations(id uuid PRIMARY KEY,tenant_id uuid NOT NULL REFERENCES public.tenants(id));
+CREATE TABLE public.operations(id uuid PRIMARY KEY,tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE);
 CREATE TRIGGER operations_guard BEFORE UPDATE ON public.operations
 FOR EACH ROW EXECUTE FUNCTION public.guard_operation_mutation();
 CREATE TABLE public.suppliers(
