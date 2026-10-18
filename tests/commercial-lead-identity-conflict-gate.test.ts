@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "bun:test";
 
-const converter = readFileSync("supabase/migrations/20261016233000_commercial_lead_identity_conflict_gate_v1.sql", "utf8");
-const resolver = readFileSync("supabase/migrations/20261016233100_canonical_commercial_identity_resolver.sql", "utf8");
+const converter = readFileSync("supabase/migrations/20261018003100_commercial_lead_identity_conflict_gate_v1.sql", "utf8");
+const resolver = readFileSync("supabase/migrations/20261018003000_canonical_commercial_identity_resolver.sql", "utf8");
 
 describe("Canonical commercial lead identity resolver", () => {
   test("delegates conversion to a private tenant-authorized resolver", () => {
