@@ -169,6 +169,15 @@ describe("commercial lead migration hardening", () => {
     expect(hardening).toContain("Archived lead is read-only");
   });
 
+  test("audits status and assignee changes through the canonical audit helper", () => {
+    expect(hardening).toContain("app_private.record_audit_event");
+    expect(hardening).toContain("commercial.lead_pipeline_updated");
+    expect(hardening).toContain("'old_status', _old_status");
+    expect(hardening).toContain("'new_status', _lead.status");
+    expect(hardening).toContain("'old_assigned_profile_id', _old_assignee");
+    expect(hardening).toContain("'new_assigned_profile_id', _lead.assigned_profile_id");
+  });
+
   test("repairs only synthetic stage timestamps created by the first migration", () => {
     expect(hardening).toContain("where status_changed_at > updated_at");
   });
