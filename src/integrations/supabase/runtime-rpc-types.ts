@@ -157,6 +157,28 @@ export type RuntimeRpcDatabase = {
           updated_at: string;
         }>;
       };
+      list_operation_commercial_lead_pipeline: {
+        Args: {
+          _operation_id: string;
+        };
+        Returns: Array<{
+          id: string;
+          full_name: string;
+          email: string;
+          phone: string;
+          status: string;
+          source: string;
+          campaign: string | null;
+          metadata: Record<string, unknown>;
+          converted_person_id: string | null;
+          assigned_profile_id: string | null;
+          assigned_profile_name: string | null;
+          assigned_at: string | null;
+          status_changed_at: string;
+          created_at: string;
+          updated_at: string;
+        }>;
+      };
       list_commercial_lead_assignees: {
         Args: {
           _operation_id: string;
