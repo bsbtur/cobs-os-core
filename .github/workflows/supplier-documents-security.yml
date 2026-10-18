@@ -5,6 +5,7 @@ on:
     paths:
       - 'tests/security/supplier-documents-postgres.sql'
       - 'tests/security/patches/**'
+      - 'tests/security/supplier-documents-concurrency.py'
       - '.github/workflows/supplier-documents-security.yml'
   workflow_dispatch:
 jobs:
@@ -48,3 +49,10 @@ jobs:
           grep -F 'SECURITY FAILURE: cross-tenant operation direct insert unexpectedly succeeded' baseline-security.log
       - name: Exercise candidate database guard (must pass)
         run: psql -X -v ON_ERROR_STOP=1 -v APPLY_GUARD=1 -f tests/security/supplier-documents-postgres.sql
+      - name: Prepare committed synthetic database for concurrent connections
+        shell: bash
+        run: |
+          sed '/^SET ROLE anon;/,$d; /^BEGIN;$/d' tests/security/supplier-documents-postgres.sql > /tmp/supplier-concurrency-setup.sql
+          psql -X -v ON_ERROR_STOP=1 -v APPLY_GUARD=1 -f /tmp/supplier-concurrency-setup.sql
+      - name: Run independent PostgreSQL sessions and assert final integrity
+        run: python3 tests/security/supplier-documents-concurrency.py
