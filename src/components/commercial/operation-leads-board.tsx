@@ -12,6 +12,7 @@ import {
   isLeadStatus,
   leadCounts,
   leadMetadata,
+  leadMoveStages,
   leadOriginKey,
   leadQueryKey,
   leadStageAge,
@@ -110,12 +111,20 @@ function LeadControls({
       <Choice
         label="Mover para"
         value={lead.status}
-        disabled={pending}
-        options={LEAD_STAGES.map((stage) => ({ value: stage.value, label: stage.label }))}
+        disabled={pending || lead.status === "converted" || Boolean(lead.converted_person_id)}
+        options={leadMoveStages(lead).map((stage) => ({
+          value: stage.value,
+          label: stage.label,
+        }))}
         onChange={(value) => {
           if (isLeadStatus(value)) change(lead, { status: value });
         }}
       />
+      {!lead.converted_person_id && lead.status !== "converted" ? (
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          “Convertido” é definido pelo fluxo canônico de criação/vínculo de Pessoa.
+        </p>
+      ) : null}
     </div>
   );
 }
