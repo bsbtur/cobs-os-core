@@ -6,6 +6,7 @@ on:
       - 'tests/security/supplier-documents-postgres.sql'
       - 'tests/security/patches/**'
       - 'tests/security/supplier-documents-concurrency.py'
+      - 'tests/security/supplier-documents-canonical-rpc.sql'
       - '.github/workflows/supplier-documents-security.yml'
   workflow_dispatch:
 jobs:
@@ -56,3 +57,5 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -v APPLY_GUARD=1 -f /tmp/supplier-concurrency-setup.sql
       - name: Run independent PostgreSQL sessions and assert final integrity
         run: python3 tests/security/supplier-documents-concurrency.py
+      - name: Exercise real canonical procurement RPC with linked document
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/security/supplier-documents-canonical-rpc.sql
