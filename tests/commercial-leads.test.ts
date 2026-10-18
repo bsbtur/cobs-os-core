@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, test, mock } from "bun:test";
 import {
   LEAD_STAGES,
   canManageLeadPipeline,
   filterLeads,
+  leadMoveStages,
   leadQueryKey,
   leadStatusLabel,
   updateLeadPipeline,
@@ -31,7 +33,7 @@ const lead: CommercialLead = {
 const filters = { search: "", assignee: "all", origin: "all" };
 const result = {
   id: lead.id,
-  status: "converted",
+  status: "new",
   assigned_profile_id: null,
   assigned_profile_name: null,
   assigned_at: null,
@@ -96,15 +98,25 @@ describe("commercial lead pipeline", () => {
     expect(whatsappUrl(lead.phone)).toBe("https://wa.me/5561999991234");
     expect(whatsappUrl("123")).toBeNull();
   });
-  test("converted calls only the pipeline RPC without creating Person or order", async () => {
+  test("keeps converted visible but out of the manual move options", () => {
+    expect(leadMoveStages(lead).map((stage) => stage.value)).toEqual([
+      "new",
+      "contacted",
+      "qualified",
+      "lost",
+    ]);
+    const converted = { ...lead, status: "converted", converted_person_id: "person-a" };
+    expect(leadMoveStages(converted).map((stage) => stage.value)).toEqual(["converted"]);
+  });
+  test("rejects manual converted status before calling the pipeline RPC", async () => {
     const rpc = mock(async (_name: string, _args: PipelineArgs) => ({
       data: [result],
       error: null,
     }));
-    expect(await updateLeadPipeline(rpc, lead.id, { status: "converted" })).toEqual(result);
-    expect(rpc.mock.calls).toEqual([
-      ["update_commercial_lead_pipeline", { _lead_id: "lead-a", _status: "converted" }],
-    ]);
+    await expect(updateLeadPipeline(rpc, lead.id, { status: "converted" })).rejects.toThrow(
+      "canonical Person conversion",
+    );
+    expect(rpc).toHaveBeenCalledTimes(0);
   });
   test("assignment calls only the pipeline RPC", async () => {
     const rpc = mock(async (_name: string, _args: PipelineArgs) => ({
@@ -130,5 +142,34 @@ describe("commercial lead pipeline", () => {
     const rpc = mock(async () => ({ data: null, error: new Error("denied") }));
     await expect(updateLeadPipeline(rpc, lead.id, { status: "lost" })).rejects.toThrow("denied");
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("commercial lead migration hardening", () => {
+  const hardening = readFileSync(
+    "supabase/migrations/20261018001000_commercial_lead_pipeline_hardening_v1.sql",
+    "utf8",
+  );
+
+  test("removes direct authenticated writes and narrows PII reads to managers", () => {
+    expect(hardening).toContain(
+      "revoke update on table public.commercial_leads from authenticated",
+    );
+    expect(hardening).toContain(
+      "drop policy if exists commercial_leads_staff_update on public.commercial_leads",
+    );
+    expect(hardening).toContain("create policy commercial_leads_manager_select");
+    expect(hardening).toContain("and m.role in ('owner','admin')");
+    expect(hardening).toContain("m.profile_id = (select auth.uid())");
+  });
+
+  test("preserves canonical conversion and archived invariants", () => {
+    expect(hardening).toContain("Converted status requires canonical Person conversion");
+    expect(hardening).toContain("Converted lead status is managed by canonical Person conversion");
+    expect(hardening).toContain("Archived lead is read-only");
+  });
+
+  test("repairs only synthetic stage timestamps created by the first migration", () => {
+    expect(hardening).toContain("where status_changed_at > updated_at");
   });
 });
