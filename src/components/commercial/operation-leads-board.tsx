@@ -178,7 +178,7 @@ export function OperationLeadsBoard({ operationId }: { operationId: string }) {
     enabled,
     retry: false,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("list_operation_commercial_leads", {
+      const { data, error } = await supabase.rpc("list_operation_commercial_lead_pipeline", {
         _operation_id: operationId,
       });
       if (error) throw error;
