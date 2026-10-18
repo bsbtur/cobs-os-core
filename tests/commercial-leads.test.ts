@@ -173,3 +173,39 @@ describe("commercial lead migration hardening", () => {
     expect(hardening).toContain("where status_changed_at > updated_at");
   });
 });
+
+
+describe("PIRI public lead capture source", () => {
+  const source = readFileSync(
+    "supabase/functions/piri-public-lead-capture/index.ts",
+    "utf8",
+  );
+  const config = readFileSync("supabase/config.toml", "utf8");
+
+  test("is pinned to the PIRI operation and priority-list campaign", () => {
+    expect(source).toContain('const OPERATION_ID = "0cf5d7fa-4d89-428a-9fec-0906ebc188d0"');
+    expect(source).toContain('const CAMPAIGN = "piri-experience-2027"');
+    expect(source).toContain('sales_mode: "priority_list"');
+  });
+
+  test("requires consent, idempotency and server-side rate limiting", () => {
+    expect(source).toContain("contact_consent_required");
+    expect(source).toContain("invalid_idempotency_key");
+    expect(source).toContain("consume_public_endpoint_rate_limit");
+    expect(source).toContain("30,");
+    expect(source).toContain("600,");
+    expect(source).toContain("3600,");
+  });
+
+  test("does not create orders or payments and keeps CORS allowlisted", () => {
+    expect(source).toContain("creates_order: false");
+    expect(source).toContain("creates_payment: false");
+    expect(source).toContain("https://piri-premium-preview.lovable.app");
+    expect(source).toContain("origin_not_allowed");
+  });
+
+  test("keeps JWT verification disabled explicitly for the public endpoint", () => {
+    expect(config).toContain("[functions.piri-public-lead-capture]");
+    expect(config).toMatch(/\[functions\.piri-public-lead-capture\][\s\S]*verify_jwt\s*=\s*false/);
+  });
+});
