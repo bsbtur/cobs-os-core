@@ -8,6 +8,7 @@ import { RequireTenant } from "@/app/shell/require-tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeError } from "@/lib/auth";
 import { nextManualPersonAttempt, type ManualPersonAttempt } from "@/lib/manual-person-attempt";
+import { createManualPerson, ENABLE_MANUAL_PERSON_RPC } from "@/lib/manual-person";
 import { useI18n } from "@/lib/i18n";
 import { useTenant, type PersonRow } from "@/lib/tenant";
 import { Button } from "@/components/ui/button";
@@ -45,10 +46,6 @@ export const Route = createFileRoute("/_authenticated/people")({
   }),
   component: PeoplePage,
 });
-
-// PREVIEW ONLY: set to true only after migration, grants and RLS pass staging review.
-// Do not enable in this draft PR. Existing People UI continues using its current insert.
-const ENABLE_MANUAL_PERSON_RPC = false;
 
 function PeopleList() {
   const { t, locale } = useI18n();
@@ -94,21 +91,12 @@ function PeopleList() {
       if (ENABLE_MANUAL_PERSON_RPC) {
         // Reuse the same request key for retries while this form remains open.
         manualCreateAttempt.current = nextManualPersonAttempt(
-          manualCreateAttempt.current, tenant!.id, input, () => crypto.randomUUID(),
+          manualCreateAttempt.current,
+          tenant!.id,
+          input,
+          () => crypto.randomUUID(),
         );
-        // The RPC does not exist in generated Supabase types until the migration is applied.
-        const rpc = supabase.rpc as unknown as (
-          name: string,
-          args: Record<string, string | null>,
-        ) => PromiseLike<{ error: { message: string } | null }>;
-        const { error } = await rpc("create_person_manual", {
-          _tenant_id: tenant!.id,
-          _full_name: input.full_name,
-          _email: input.email || null,
-          _phone_e164: input.phone || null,
-          _idempotency_key: manualCreateAttempt.current.key,
-        });
-        if (error) throw error;
+        await createManualPerson(tenant!.id, input, manualCreateAttempt.current.key);
         return;
       }
       // Existing path remains in effect while the rollout flag is disabled.
