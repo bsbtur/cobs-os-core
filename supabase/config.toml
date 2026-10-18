@@ -1,1 +1,4 @@
 project_id = "kkclthdpnwuamsndtxxq"
+
+[functions.piri-public-lead-capture]
+verify_jwt = false
