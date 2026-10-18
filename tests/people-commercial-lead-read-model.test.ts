@@ -6,7 +6,7 @@ const peopleRoute = readFileSync(
   "utf8",
 );
 const migration = readFileSync(
-  "supabase/migrations/20261018011500_people_commercial_lead_approval_read_model_v1.sql",
+  "supabase/migrations/20261018011158_people_commercial_lead_approval_read_model_v1.sql",
   "utf8",
 );
 
