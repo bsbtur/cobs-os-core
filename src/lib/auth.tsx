@@ -177,6 +177,16 @@ export function humanizeError(error: unknown, locale: string): string {
       "Sessão expirada. Entre novamente.",
       "Session expired. Please sign in again.",
     ],
+    [
+      /commercial_lead_identity_conflict/i,
+      "Este lead conflita com uma Pessoa já cadastrada. Revise e-mail e telefone antes de aprovar.",
+      "This lead conflicts with an existing Person. Review email and phone before approving.",
+    ],
+    [
+      /commercial_lead_historical_identity_review_required/i,
+      "Este lead já possui um vínculo histórico com dados divergentes. Revise manualmente; o COBS não vai relinkar a Pessoa automaticamente.",
+      "This lead already has a historical link with conflicting data. Review it manually; COBS will not relink the Person automatically.",
+    ],
     // QA-FINAL-20260822: lifecycle guards must tell the operator which
     // precondition is still open instead of collapsing to the generic fallback.
     [
