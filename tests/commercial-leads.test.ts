@@ -228,9 +228,8 @@ describe("PIRI public lead capture source", () => {
     expect(source).toContain("contact_consent_required");
     expect(source).toContain("invalid_idempotency_key");
     expect(source).toContain("consume_public_endpoint_rate_limit");
-    expect(source).toContain("30,");
-    expect(source).toContain("600,");
-    expect(source).toContain("3600,");
+    expect(source).toContain("30, 600");
+    expect(source).toContain("5, 3600");
   });
 
   test("does not create orders or payments and keeps CORS allowlisted", () => {
