@@ -2,13 +2,6 @@
 -- Preserve existing read use cases for managers, force writes through governed RPCs,
 -- preserve the historical meaning of status='converted', and repair stage-age backfill.
 
--- Rows that existed before status_changed_at was introduced received now() as a default.
--- If that synthetic timestamp is newer than the row's last real update, updated_at is a
--- safer historical proxy. Rows changed after the migration are left untouched.
-update public.commercial_leads
-set status_changed_at = updated_at
-where status_changed_at > updated_at;
-
 -- Leads contain contact PII. Direct authenticated reads are manager-only.
 drop policy if exists commercial_leads_staff_select on public.commercial_leads;
 drop policy if exists commercial_leads_manager_select on public.commercial_leads;
